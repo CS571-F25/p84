@@ -23,7 +23,9 @@
               nodejs_22
               # wrangler
               just
+              # language servers
               typescript-language-server
+              typespec
             ];
           };
       }

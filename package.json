@@ -9,7 +9,8 @@
     "test": "vitest run",
     "format": "biome format",
     "lint": "biome lint",
-    "check": "biome check"
+    "check": "biome check",
+    "build:typelex": "typelex compile com.deckbelcher.*"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.6",
@@ -31,6 +32,8 @@
     "@biomejs/biome": "2.2.4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
+    "@typelex/cli": "^0.4.0",
+    "@typelex/emitter": "^0.4.0",
     "@types/node": "^22.10.2",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
