@@ -1,0 +1,50 @@
+{
+  "lexicon": 1,
+  "id": "com.deckbelcher.actor.profile",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 640,
+            "maxGraphemes": 64,
+            "description": "User's display name."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2560,
+            "maxGraphemes": 256,
+            "description": "Free-form profile description."
+          },
+          "descriptionFacets": {
+            "type": "array",
+            "items": {
+              "type": "ref",
+              "ref": "com.deckbelcher.richtext.facet"
+            },
+            "description": "Annotations of text in the profile description (mentions, URLs, hashtags, etc)."
+          },
+          "pronouns": {
+            "type": "string",
+            "maxLength": 200,
+            "maxGraphemes": 20,
+            "description": "Free-form pronouns text."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when the profile was created."
+          }
+        },
+        "required": [
+          "createdAt"
+        ]
+      },
+      "description": "A DeckBelcher user profile."
+    }
+  }
+}

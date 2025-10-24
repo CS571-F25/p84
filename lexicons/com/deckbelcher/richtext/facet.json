@@ -1,0 +1,89 @@
+{
+  "lexicon": 1,
+  "id": "com.deckbelcher.richtext.facet",
+  "defs": {
+    "main": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "ref",
+          "ref": "#byteSlice"
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "union",
+            "refs": [
+              "#mention",
+              "#link",
+              "#tag"
+            ]
+          }
+        }
+      },
+      "description": "Annotation of a sub-string within rich text.\nExtends Bluesky's facet system to support DeckBelcher-specific features.",
+      "required": [
+        "index",
+        "features"
+      ]
+    },
+    "byteSlice": {
+      "type": "object",
+      "properties": {
+        "byteStart": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "byteEnd": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "description": "Specifies the sub-string range a facet feature applies to.\nStart index is inclusive, end index is exclusive.\nIndices are zero-indexed, counting bytes of the UTF-8 encoded text.",
+      "required": [
+        "byteStart",
+        "byteEnd"
+      ]
+    },
+    "mention": {
+      "type": "object",
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did"
+        }
+      },
+      "description": "Facet feature for mention of another account.\nThe text is usually a handle, including an `@` prefix, but the facet reference is a DID.",
+      "required": [
+        "did"
+      ]
+    },
+    "link": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "description": "Facet feature for a URL.\nThe text URL may have been simplified or truncated, but the facet reference should be a complete URL.",
+      "required": [
+        "uri"
+      ]
+    },
+    "tag": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "maxLength": 640,
+          "maxGraphemes": 64
+        }
+      },
+      "description": "Facet feature for a hashtag.\nThe text usually includes a '#' prefix, but the facet reference should not.",
+      "required": [
+        "tag"
+      ]
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "lexicon": 1,
+  "id": "com.deckbelcher.deck.list",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 1280,
+            "maxGraphemes": 128,
+            "description": "Name of the decklist."
+          },
+          "format": {
+            "type": "string",
+            "maxLength": 320,
+            "maxGraphemes": 32,
+            "description": "Format of the deck (e.g., \"commander\", \"cube\", \"pauper\")."
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "type": "ref",
+              "ref": "#card"
+            },
+            "description": "Array of cards in the decklist."
+          },
+          "primer": {
+            "type": "string",
+            "maxLength": 100000,
+            "maxGraphemes": 10000,
+            "description": "Deck primer with strategy, combos, and card choices."
+          },
+          "primerFacets": {
+            "type": "array",
+            "items": {
+              "type": "ref",
+              "ref": "com.deckbelcher.richtext.facet"
+            },
+            "description": "Annotations of text in the primer (mentions, URLs, hashtags, card references, etc)."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when the decklist was created."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when the decklist was last updated."
+          }
+        },
+        "required": [
+          "name",
+          "cards",
+          "createdAt"
+        ]
+      },
+      "description": "A Magic: The Gathering decklist."
+    },
+    "card": {
+      "type": "object",
+      "properties": {
+        "scryfallId": {
+          "type": "string",
+          "description": "Scryfall UUID for the specific printing."
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of copies in the deck."
+        },
+        "section": {
+          "type": "string",
+          "knownValues": [
+            "mainboard",
+            "sideboard",
+            "maybeboard",
+            "commander"
+          ],
+          "description": "Which section of the deck this card belongs to. Extensible to support format-specific sections."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "User annotations for this card in this deck (e.g., \"removal\", \"wincon\", \"ramp\")."
+        }
+      },
+      "description": "A card entry in a decklist.",
+      "required": [
+        "scryfallId",
+        "quantity",
+        "section"
+      ]
+    }
+  }
+}
