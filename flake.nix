@@ -21,7 +21,7 @@
           mkShell {
             buildInputs = [
               nodejs_22
-              wrangler
+              # wrangler
               just
               typescript
               typescript-language-server
