@@ -12,3 +12,7 @@ count.txt
 .vinxi
 todos.json
 .direnv
+
+# Scryfall data (downloaded during build)
+public/data/
+.cache/

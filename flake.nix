@@ -23,6 +23,7 @@
               nodejs_22
               # wrangler
               just
+              jq
               # language servers
               typescript-language-server
               typespec

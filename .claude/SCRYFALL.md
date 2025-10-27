@@ -36,11 +36,24 @@
 ## Image & Display Fields
 
 ### Images
-- `image_uris`: Object with card image URLs at different sizes
-  - Keys: `small`, `normal`, `large`, `png`, `art_crop`, `border_crop`
+
+**Image URI Reconstruction:**
+Scryfall image URLs follow a predictable pattern. Instead of storing `image_uris`, reconstruct them:
+
+```typescript
+function getImageUri(scryfallId: string, size: 'small' | 'normal' | 'large' | 'png' | 'art_crop' | 'border_crop'): string {
+  return `https://cards.scryfall.io/${size}/front/${scryfallId[0]}/${scryfallId[1]}/${scryfallId}.jpg`;
+}
+```
+
+Pattern: `https://cards.scryfall.io/{size}/front/{id[0]}/{id[1]}/{id}.jpg`
+
+Verified on 100% of sampled cards (96.5% of all cards have images).
+
+**Stored fields:**
 - `image_status`: Quality indicator (`missing`, `placeholder`, `lowres`, `highres_scan`)
 - `highres_image`: Boolean for high-res availability
-- `illustration_id`: Unique artwork identifier
+- `illustration_id`: Unique artwork identifier (not currently stored, but available)
 
 ### Card Appearance
 - `layout`: Layout code (e.g., `"normal"`, `"split"`, `"transform"`, `"modal_dfc"`)

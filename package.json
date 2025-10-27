@@ -5,12 +5,14 @@
   "scripts": {
     "dev": "vite dev --port 3000",
     "build": "vite build",
+    "prebuild": "npm run download:scryfall",
     "serve": "vite preview",
     "test": "vitest run",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
-    "build:typelex": "typelex compile com.deckbelcher.*"
+    "build:typelex": "typelex compile com.deckbelcher.*",
+    "download:scryfall": "node --experimental-strip-types scripts/download-scryfall.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.6",

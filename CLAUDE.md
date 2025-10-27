@@ -90,6 +90,8 @@ These contain important context about project decisions, API details, and toolin
 
 ## Important Notes
 
+- **This is a TypeScript project** - ALL code (including scripts) must use TypeScript with proper types
+- **Use `nix-shell -p <package>` for missing commands** - If a command isn't in PATH, use nix-shell to get it temporarily
 - `src/routeTree.gen.ts` is auto-generated - never edit manually
 - `typelex/externals.tsp` is auto-generated from lexicons folder - add external lexicon JSON to trigger regeneration
 - Demo files (prefixed with `demo`) are safe to delete
