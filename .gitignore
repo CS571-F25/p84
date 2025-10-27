@@ -15,4 +15,5 @@ todos.json
 
 # Scryfall data (downloaded during build)
 public/data/
+public/symbols/
 .cache/

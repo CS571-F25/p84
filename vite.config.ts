@@ -14,6 +14,12 @@ const config = defineConfig({
     tanstackStart(),
     viteReact(),
   ],
+  server: {
+    watch: {
+      // Exclude large data files from watching
+      ignored: ['**/public/data/**', '**/public/symbols/**', '**/.cache/**'],
+    },
+  },
 })
 
 export default config

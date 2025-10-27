@@ -8,7 +8,6 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import Header from "../components/Header";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
-import type { CardDataOutput } from "../lib/scryfall-types";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -16,20 +15,6 @@ interface MyRouterContext {
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-	loader: async ({ context }) => {
-		await context.queryClient.ensureQueryData({
-			queryKey: ["cards"],
-			queryFn: async () => {
-				const response = await fetch("/data/cards.json");
-				if (!response.ok) {
-					throw new Error("Failed to load card data");
-				}
-				return response.json() as Promise<CardDataOutput>;
-			},
-			staleTime: Number.POSITIVE_INFINITY,
-		});
-	},
-
 	head: () => ({
 		meta: [
 			{

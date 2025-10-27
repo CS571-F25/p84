@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useState } from "react";
 import { CardThumbnail } from "../../components/CardImage";
+import { cardsQueryOptions } from "../../lib/queries";
 import type { CardDataOutput } from "../../lib/scryfall-types";
 
 export const Route = createFileRoute("/cards/")({
@@ -11,10 +12,7 @@ export const Route = createFileRoute("/cards/")({
 
 function CardsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
-	const { data } = useQuery<CardDataOutput>({
-		queryKey: ["cards"],
-		staleTime: Number.POSITIVE_INFINITY,
-	});
+	const { data } = useQuery<CardDataOutput>(cardsQueryOptions);
 
 	if (!data) {
 		return (

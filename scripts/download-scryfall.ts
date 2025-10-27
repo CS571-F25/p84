@@ -17,8 +17,8 @@
 import { writeFile, mkdir, readFile, stat } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Card, CardDataOutput } from "../src/lib/scryfall-types.js";
-import { asScryfallId, asOracleId } from "../src/lib/scryfall-types.js";
+import type { Card, CardDataOutput } from "../src/lib/scryfall-types.ts";
+import { asScryfallId, asOracleId } from "../src/lib/scryfall-types.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -269,18 +269,16 @@ async function downloadSymbols(): Promise<number> {
 
 	await mkdir(SYMBOLS_DIR, { recursive: true });
 
-	let downloaded = 0;
-	for (const symbol of symbology.data) {
-		// Extract filename from symbol (e.g., "{T}" -> "T")
-		const filename = symbol.symbol.replace(/[{}]/g, "").toLowerCase();
-		const outputPath = join(SYMBOLS_DIR, `${filename}.svg`);
+	await Promise.all(
+		symbology.data.map((symbol) => {
+			const filename = symbol.symbol.replace(/[{}]/g, "").toLowerCase();
+			const outputPath = join(SYMBOLS_DIR, `${filename}.svg`);
+			return downloadFile(symbol.svg_uri, outputPath);
+		}),
+	);
 
-		await downloadFile(symbol.svg_uri, outputPath);
-		downloaded++;
-	}
-
-	console.log(`Downloaded ${downloaded} symbol SVGs to: ${SYMBOLS_DIR}`);
-	return downloaded;
+	console.log(`Downloaded ${symbology.data.length} symbol SVGs to: ${SYMBOLS_DIR}`);
+	return symbology.data.length;
 }
 
 async function main(): Promise<void> {

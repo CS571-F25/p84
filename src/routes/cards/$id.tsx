@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { CardImage, CardPreview } from "../../components/CardImage";
 import { ManaCost } from "../../components/ManaCost";
+import { cardsQueryOptions } from "../../lib/queries";
 import type { Card, CardDataOutput } from "../../lib/scryfall-types";
 import { isScryfallId } from "../../lib/scryfall-types";
 
@@ -12,10 +13,7 @@ export const Route = createFileRoute("/cards/$id")({
 
 function CardDetailPage() {
 	const { id } = Route.useParams();
-	const { data: cardsData } = useQuery<CardDataOutput>({
-		queryKey: ["cards"],
-		staleTime: Number.POSITIVE_INFINITY,
-	});
+	const { data: cardsData } = useQuery<CardDataOutput>(cardsQueryOptions);
 
 	if (!cardsData) {
 		return (
