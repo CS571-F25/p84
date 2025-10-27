@@ -100,12 +100,12 @@ export function CardPreview({
 	href,
 	className,
 }: CardPreviewProps) {
+	const card: Card = { id: cardId, name } as Card;
 	const content = (
-		<img
-			src={getImageUri(cardId, "small")}
-			alt={name}
+		<CardImage
+			card={card}
+			size="small"
 			className="w-full h-full object-cover"
-			loading="lazy"
 		/>
 	);
 

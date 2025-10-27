@@ -4,7 +4,6 @@ import { Search } from "lucide-react";
 import { useState } from "react";
 import { CardThumbnail } from "../../components/CardImage";
 import { cardsQueryOptions } from "../../lib/queries";
-import type { CardDataOutput } from "../../lib/scryfall-types";
 
 export const Route = createFileRoute("/cards/")({
 	ssr: false,

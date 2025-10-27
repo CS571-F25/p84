@@ -3,8 +3,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { CardImage, CardPreview } from "../../components/CardImage";
 import { ManaCost } from "../../components/ManaCost";
+import { OracleText } from "../../components/OracleText";
 import { cardsQueryOptions } from "../../lib/queries";
-import type { Card, CardDataOutput } from "../../lib/scryfall-types";
+import type { Card } from "../../lib/scryfall-types";
 import { isScryfallId } from "../../lib/scryfall-types";
 
 export const Route = createFileRoute("/cards/$id")({
@@ -77,8 +78,8 @@ function CardDetailPage() {
 
 						{card.oracle_text && (
 							<div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-								<p className="text-gray-200 whitespace-pre-line">
-									{card.oracle_text}
+								<p className="text-gray-200">
+									<OracleText text={card.oracle_text} />
 								</p>
 							</div>
 						)}
