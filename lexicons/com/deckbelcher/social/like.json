@@ -1,0 +1,30 @@
+{
+  "lexicon": 1,
+  "id": "com.deckbelcher.social.like",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "Reference to the content being liked."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when the like was created."
+          }
+        },
+        "required": [
+          "subject",
+          "createdAt"
+        ]
+      },
+      "description": "Record declaring a 'like' of a piece of content (decklist, reply, etc)."
+    }
+  }
+}

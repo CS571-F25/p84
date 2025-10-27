@@ -76,9 +76,22 @@ Tailwind CSS v4 is integrated via `@tailwindcss/vite` plugin. Global styles in `
 - **Biome**: Uses tabs for indentation, double quotes, excludes generated files
 - **Devtools**: Integrated TanStack Router + Query + React devtools in root layout
 
+## Reference Documentation
+
+Additional reference docs are in `.claude/` - **read and update these when working on relevant topics**:
+
+- **PROJECT.md** - DeckBelcher project overview, lexicon structure, and product decisions
+- **SCRYFALL.md** - Scryfall card API reference (IDs, fields, image handling)
+- **TYPELEX.md** - Typelex syntax guide (decorators, external refs, patterns)
+
+These contain important context about project decisions, API details, and tooling. Keep them updated as the project evolves.
+
+**When to create new reference docs:** If you're doing significant research, explaining complex topics repeatedly, or the user is spending time teaching you something important—create a new markdown file in `.claude/` to preserve that knowledge for future sessions.
+
 ## Important Notes
 
 - `src/routeTree.gen.ts` is auto-generated - never edit manually
+- `typelex/externals.tsp` is auto-generated from lexicons folder - add external lexicon JSON to trigger regeneration
 - Demo files (prefixed with `demo`) are safe to delete
 - Biome only lints files in `src/`, `.vscode/`, and root config files
 - Router uses "intent" preloading by default
