@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useState } from "react";
+import { CardThumbnail } from "../../components/CardImage";
 import type { CardDataOutput } from "../../lib/scryfall-types";
-import { getImageUri } from "../../lib/scryfall-utils";
 
 export const Route = createFileRoute("/cards/")({
 	component: CardsPage,
@@ -11,28 +11,12 @@ export const Route = createFileRoute("/cards/")({
 
 function CardsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
-
-	const { data, isLoading, error } = useQuery<CardDataOutput>({
+	const { data } = useQuery<CardDataOutput>({
 		queryKey: ["cards"],
-		queryFn: async () => {
-			const response = await fetch("/data/cards.json");
-			if (!response.ok) {
-				throw new Error("Failed to load card data");
-			}
-			return response.json();
-		},
-		staleTime: Number.POSITIVE_INFINITY, // Static data, never refetch
+		staleTime: Number.POSITIVE_INFINITY,
 	});
 
-	if (isLoading) {
-		return (
-			<div className="min-h-screen bg-slate-900 flex items-center justify-center">
-				<p className="text-white text-lg">Loading cards...</p>
-			</div>
-		);
-	}
-
-	if (error || !data) {
+	if (!data) {
 		return (
 			<div className="min-h-screen bg-slate-900 flex items-center justify-center">
 				<p className="text-red-400 text-lg">Failed to load card data</p>
@@ -84,30 +68,11 @@ function CardsPage() {
 
 				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
 					{filteredCards.map((card) => (
-						<a
+						<CardThumbnail
 							key={card.id}
+							card={card}
 							href={`/cards/${card.id}`}
-							className="group relative aspect-[5/7] rounded-lg overflow-hidden bg-slate-800 hover:ring-2 hover:ring-cyan-500 transition-all"
-						>
-							<img
-								src={getImageUri(card.id, "small")}
-								alt={card.name}
-								className="w-full h-full object-cover"
-								loading="lazy"
-							/>
-							<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity">
-								<div className="absolute bottom-0 left-0 right-0 p-3">
-									<p className="text-white font-semibold text-sm line-clamp-2">
-										{card.name}
-									</p>
-									{card.set_name && (
-										<p className="text-gray-300 text-xs mt-1">
-											{card.set_name}
-										</p>
-									)}
-								</div>
-							</div>
-						</a>
+						/>
 					))}
 				</div>
 			</div>

@@ -6,10 +6,12 @@
  * Fetches:
  * - default_cards bulk data (all English cards)
  * - migrations data (UUID changes)
+ * - mana symbol SVGs
  *
  * Outputs:
  * - public/data/cards.json - filtered card data with indexes
  * - public/data/migrations.json - ID migration mappings
+ * - public/symbols/*.svg - mana symbol images
  */
 
 import { writeFile, mkdir, readFile, stat } from "node:fs/promises";
@@ -21,6 +23,7 @@ import { asScryfallId, asOracleId } from "../src/lib/scryfall-types.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const OUTPUT_DIR = join(__dirname, "../public/data");
+const SYMBOLS_DIR = join(__dirname, "../public/symbols");
 const TEMP_DIR = join(__dirname, "../.cache");
 
 // Fields to keep from Scryfall data
@@ -118,6 +121,19 @@ interface Migration {
 
 interface MigrationsResponse {
 	data: Migration[];
+}
+
+interface CardSymbol {
+	object: string;
+	symbol: string;
+	svg_uri: string;
+	english: string;
+	represents_mana: boolean;
+	appears_in_mana_costs: boolean;
+}
+
+interface SymbologyResponse {
+	data: CardSymbol[];
 }
 
 type MigrationMap = Record<string, string>;
@@ -243,18 +259,44 @@ async function processMigrations(): Promise<MigrationMap> {
 	return migrationMap;
 }
 
+async function downloadSymbols(): Promise<number> {
+	console.log("Fetching symbology...");
+	const symbology = await fetchJSON<SymbologyResponse>(
+		"https://api.scryfall.com/symbology",
+	);
+
+	console.log(`Found ${symbology.data.length} symbols`);
+
+	await mkdir(SYMBOLS_DIR, { recursive: true });
+
+	let downloaded = 0;
+	for (const symbol of symbology.data) {
+		// Extract filename from symbol (e.g., "{T}" -> "T")
+		const filename = symbol.symbol.replace(/[{}]/g, "").toLowerCase();
+		const outputPath = join(SYMBOLS_DIR, `${filename}.svg`);
+
+		await downloadFile(symbol.svg_uri, outputPath);
+		downloaded++;
+	}
+
+	console.log(`Downloaded ${downloaded} symbol SVGs to: ${SYMBOLS_DIR}`);
+	return downloaded;
+}
+
 async function main(): Promise<void> {
 	try {
 		console.log("=== Scryfall Data Download ===\n");
 
-		const [cardsData, migrations] = await Promise.all([
+		const [cardsData, migrations, symbolCount] = await Promise.all([
 			processBulkData(),
 			processMigrations(),
+			downloadSymbols(),
 		]);
 
 		console.log("\n=== Summary ===");
 		console.log(`Cards: ${cardsData.cardCount.toLocaleString()}`);
 		console.log(`Migrations: ${Object.keys(migrations).length.toLocaleString()}`);
+		console.log(`Symbols: ${symbolCount.toLocaleString()}`);
 		console.log(`Version: ${cardsData.version}`);
 		console.log("\n✓ Done!");
 	} catch (error) {

@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { CardImage, CardPreview } from "../../components/CardImage";
+import { ManaCost } from "../../components/ManaCost";
 import type { Card, CardDataOutput } from "../../lib/scryfall-types";
 import { isScryfallId } from "../../lib/scryfall-types";
-import { getImageUri } from "../../lib/scryfall-utils";
 
 export const Route = createFileRoute("/cards/$id")({
 	component: CardDetailPage,
@@ -11,32 +12,12 @@ export const Route = createFileRoute("/cards/$id")({
 
 function CardDetailPage() {
 	const { id } = Route.useParams();
-
-	const {
-		data: cardsData,
-		isLoading,
-		error,
-	} = useQuery<CardDataOutput>({
+	const { data: cardsData } = useQuery<CardDataOutput>({
 		queryKey: ["cards"],
-		queryFn: async () => {
-			const response = await fetch("/data/cards.json");
-			if (!response.ok) {
-				throw new Error("Failed to load card data");
-			}
-			return response.json();
-		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});
 
-	if (isLoading) {
-		return (
-			<div className="min-h-screen bg-slate-900 flex items-center justify-center">
-				<p className="text-white text-lg">Loading card...</p>
-			</div>
-		);
-	}
-
-	if (error || !cardsData) {
+	if (!cardsData) {
 		return (
 			<div className="min-h-screen bg-slate-900 flex items-center justify-center">
 				<p className="text-red-400 text-lg">Failed to load card data</p>
@@ -79,9 +60,9 @@ function CardDetailPage() {
 
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 					<div className="flex justify-center lg:justify-end">
-						<img
-							src={getImageUri(card.id, "large")}
-							alt={card.name}
+						<CardImage
+							card={card}
+							size="large"
 							className="rounded-xl shadow-2xl max-w-full h-auto"
 						/>
 					</div>
@@ -92,9 +73,9 @@ function CardDetailPage() {
 								{card.name}
 							</h1>
 							{card.mana_cost && (
-								<p className="text-xl text-gray-300 font-mono">
-									{card.mana_cost}
-								</p>
+								<div className="mb-2">
+									<ManaCost cost={card.mana_cost} size="large" />
+								</div>
 							)}
 							{card.type_line && (
 								<p className="text-lg text-gray-400 mt-2">{card.type_line}</p>
@@ -166,19 +147,13 @@ function CardDetailPage() {
 									{otherPrintings.slice(0, 12).map((printId) => {
 										const printing = cardsData.cards[printId];
 										return (
-											<a
+											<CardPreview
 												key={printId}
+												cardId={printId}
+												name={printing.name}
+												setName={printing.set_name}
 												href={`/cards/${printId}`}
-												className="aspect-[5/7] rounded overflow-hidden hover:ring-2 hover:ring-cyan-500 transition-all"
-												title={printing.set_name}
-											>
-												<img
-													src={getImageUri(printId, "small")}
-													alt={printing.name}
-													className="w-full h-full object-cover"
-													loading="lazy"
-												/>
-											</a>
+											/>
 										);
 									})}
 								</div>
