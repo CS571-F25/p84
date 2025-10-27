@@ -3,27 +3,22 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useState } from "react";
 import { CardThumbnail } from "../../components/CardImage";
-import { cardsQueryOptions } from "../../lib/queries";
+import {
+	getCardsMetadataQueryOptions,
+	searchCardsQueryOptions,
+} from "../../lib/queries";
 
 export const Route = createFileRoute("/cards/")({
 	ssr: false,
-	loader: ({ context }) =>
-		context.queryClient.ensureQueryData(cardsQueryOptions),
 	component: CardsPage,
 });
 
 function CardsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
-	const { data } = useSuspenseQuery(cardsQueryOptions);
-
-	const cards = Object.values(data.cards);
-	const filteredCards = searchQuery
-		? cards
-				.filter((card) =>
-					card.name.toLowerCase().includes(searchQuery.toLowerCase()),
-				)
-				.slice(0, 100)
-		: cards.slice(0, 100);
+	const { data: searchResults } = useSuspenseQuery(
+		searchCardsQueryOptions(searchQuery),
+	);
+	const { data: metadata } = useSuspenseQuery(getCardsMetadataQueryOptions());
 
 	return (
 		<div className="min-h-screen bg-slate-900">
@@ -31,7 +26,8 @@ function CardsPage() {
 				<div className="mb-8">
 					<h1 className="text-4xl font-bold text-white mb-2">Card Browser</h1>
 					<p className="text-gray-400">
-						{data.cardCount.toLocaleString()} cards • Version: {data.version}
+						{metadata.cardCount.toLocaleString()} cards • Version:{" "}
+						{metadata.version}
 					</p>
 				</div>
 
@@ -46,20 +42,25 @@ function CardsPage() {
 							className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors"
 						/>
 					</div>
-					{searchQuery && (
+					{searchQuery && searchResults.cards.length > 0 && (
 						<p className="text-sm text-gray-400 mt-2">
-							Showing first 100 results for "{searchQuery}"
+							Found {searchResults.cards.length} results for "{searchQuery}"
+						</p>
+					)}
+					{searchQuery && searchResults.cards.length === 0 && (
+						<p className="text-sm text-gray-400 mt-2">
+							No results found for "{searchQuery}"
 						</p>
 					)}
 					{!searchQuery && (
 						<p className="text-sm text-gray-400 mt-2">
-							Showing first 100 cards (use search to find specific cards)
+							Enter a search query to find cards
 						</p>
 					)}
 				</div>
 
 				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-					{filteredCards.map((card) => (
+					{searchResults.cards.map((card) => (
 						<CardThumbnail
 							key={card.id}
 							card={card}

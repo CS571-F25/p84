@@ -97,7 +97,6 @@ These contain important context about project decisions, API details, and toolin
 - **NEVER manually fix formatting issues** - Always use `npm run format -- --write` to apply formatting fixes automatically. Manual formatting edits are error-prone and waste time
 - `src/routeTree.gen.ts` is auto-generated - never edit manually
 - `typelex/externals.tsp` is auto-generated from lexicons folder - add external lexicon JSON to trigger regeneration
-- Demo files (prefixed with `demo`) are safe to delete
 - Biome only lints files in `src/`, `.vscode/`, and root config files
 - Router uses "intent" preloading by default
 - SSR is configured via TanStack Start plugin

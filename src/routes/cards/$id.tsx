@@ -4,22 +4,25 @@ import { ArrowLeft } from "lucide-react";
 import { CardImage, CardPreview } from "../../components/CardImage";
 import { ManaCost } from "../../components/ManaCost";
 import { OracleText } from "../../components/OracleText";
-import { cardsQueryOptions } from "../../lib/queries";
-import type { Card } from "../../lib/scryfall-types";
+import { getCardWithPrintingsQueryOptions } from "../../lib/queries";
+import type { ScryfallId } from "../../lib/scryfall-types";
 import { isScryfallId } from "../../lib/scryfall-types";
 
 export const Route = createFileRoute("/cards/$id")({
 	ssr: false,
-	loader: ({ context }) =>
-		context.queryClient.ensureQueryData(cardsQueryOptions),
 	component: CardDetailPage,
 });
 
 function CardDetailPage() {
 	const { id } = Route.useParams();
-	const { data: cardsData } = useSuspenseQuery(cardsQueryOptions);
 
-	if (!isScryfallId(id)) {
+	// Validate ID format but don't return early (hooks must be unconditional)
+	const isValidId = isScryfallId(id);
+	const { data } = useSuspenseQuery(
+		getCardWithPrintingsQueryOptions(isValidId ? id : ("" as ScryfallId)),
+	);
+
+	if (!isValidId) {
 		return (
 			<div className="min-h-screen bg-slate-900 flex items-center justify-center">
 				<p className="text-red-400 text-lg">Invalid card ID format</p>
@@ -27,9 +30,7 @@ function CardDetailPage() {
 		);
 	}
 
-	const card: Card | undefined = cardsData.cards[id];
-
-	if (!card) {
+	if (!data) {
 		return (
 			<div className="min-h-screen bg-slate-900 flex items-center justify-center">
 				<p className="text-red-400 text-lg">Card not found</p>
@@ -37,9 +38,7 @@ function CardDetailPage() {
 		);
 	}
 
-	const otherPrintings = cardsData.oracleIdToPrintings[card.oracle_id]?.filter(
-		(printId) => printId !== id,
-	);
+	const { card, otherPrintings } = data;
 
 	return (
 		<div className="min-h-screen bg-slate-900">
@@ -138,18 +137,15 @@ function CardDetailPage() {
 									Other Printings ({otherPrintings.length})
 								</h2>
 								<div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-									{otherPrintings.slice(0, 12).map((printId) => {
-										const printing = cardsData.cards[printId];
-										return (
-											<CardPreview
-												key={printId}
-												cardId={printId}
-												name={printing.name}
-												setName={printing.set_name}
-												href={`/cards/${printId}`}
-											/>
-										);
-									})}
+									{otherPrintings.slice(0, 12).map((printing) => (
+										<CardPreview
+											key={printing.id}
+											cardId={printing.id}
+											name={printing.name}
+											setName={printing.set_name}
+											href={`/cards/${printing.id}`}
+										/>
+									))}
 								</div>
 							</div>
 						)}
