@@ -92,6 +92,7 @@ These contain important context about project decisions, API details, and toolin
 
 - **This is a TypeScript project** - ALL code (including scripts) must use TypeScript with proper types
 - **Use `nix-shell -p <package>` for missing commands** - If a command isn't in PATH, use nix-shell to get it temporarily
+- **Prefer functional style over exceptions** - Avoid throwing errors for control flow. Use type predicates, Option/Result patterns, and early returns instead. Throwing is like GOTO—it breaks local reasoning and makes code harder to follow
 - `src/routeTree.gen.ts` is auto-generated - never edit manually
 - `typelex/externals.tsp` is auto-generated from lexicons folder - add external lexicon JSON to trigger regeneration
 - Demo files (prefixed with `demo`) are safe to delete

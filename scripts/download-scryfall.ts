@@ -15,6 +15,8 @@
 import { writeFile, mkdir, readFile, stat } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { Card, CardDataOutput } from "../src/lib/scryfall-types.js";
+import { asScryfallId, asOracleId } from "../src/lib/scryfall-types.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -83,12 +85,6 @@ interface ScryfallCard {
 	[key: string]: unknown;
 }
 
-interface FilteredCard {
-	id: string;
-	oracle_id: string;
-	name: string;
-	[key: string]: unknown;
-}
 
 interface BulkDataItem {
 	type: string;
@@ -124,13 +120,6 @@ interface MigrationsResponse {
 	data: Migration[];
 }
 
-interface CardDataOutput {
-	version: string;
-	cardCount: number;
-	cards: Record<string, FilteredCard>;
-	oracleIdToPrintings: Record<string, string[]>;
-}
-
 type MigrationMap = Record<string, string>;
 
 async function fetchJSON<T>(url: string): Promise<T> {
@@ -155,10 +144,10 @@ async function downloadFile(url: string, outputPath: string): Promise<void> {
 	console.log(`Saved to: ${outputPath}`);
 }
 
-function filterCard(card: ScryfallCard): FilteredCard {
-	const filtered: FilteredCard = {
-		id: card.id,
-		oracle_id: card.oracle_id,
+function filterCard(card: ScryfallCard): Card {
+	const filtered: Card = {
+		id: asScryfallId(card.id),
+		oracle_id: asOracleId(card.oracle_id),
 		name: card.name,
 	};
 
@@ -203,7 +192,7 @@ async function processBulkData(): Promise<CardDataOutput> {
 	console.log("Building indexes...");
 	const cardById = Object.fromEntries(cards.map((card) => [card.id, card]));
 
-	const oracleIdToPrintings = cards.reduce(
+	const oracleIdToPrintings = cards.reduce<CardDataOutput['oracleIdToPrintings']>(
 		(acc, card) => {
 			if (!acc[card.oracle_id]) {
 				acc[card.oracle_id] = [];
@@ -211,7 +200,7 @@ async function processBulkData(): Promise<CardDataOutput> {
 			acc[card.oracle_id].push(card.id);
 			return acc;
 		},
-		{} as Record<string, string[]>,
+		{},
 	);
 
 	const output: CardDataOutput = {
