@@ -99,3 +99,4 @@ These contain important context about project decisions, API details, and toolin
 - Biome only lints files in `src/`, `.vscode/`, and root config files
 - Router uses "intent" preloading by default
 - SSR is configured via TanStack Start plugin
+- **ALWAYS use `<Link to="...">` from `@tanstack/react-router` instead of `<a href="...">`** - Using `<a>` tags causes full page reloads, which recreates the router and QueryClient instances on every navigation. This breaks TanStack Query's cache and causes expensive data (like the 163MB cards.json) to be refetched unnecessarily

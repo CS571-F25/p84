@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useState } from "react";
@@ -7,20 +7,15 @@ import { cardsQueryOptions } from "../../lib/queries";
 import type { CardDataOutput } from "../../lib/scryfall-types";
 
 export const Route = createFileRoute("/cards/")({
+	ssr: false,
+	loader: ({ context }) =>
+		context.queryClient.ensureQueryData(cardsQueryOptions),
 	component: CardsPage,
 });
 
 function CardsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
-	const { data } = useQuery<CardDataOutput>(cardsQueryOptions);
-
-	if (!data) {
-		return (
-			<div className="min-h-screen bg-slate-900 flex items-center justify-center">
-				<p className="text-red-400 text-lg">Failed to load card data</p>
-			</div>
-		);
-	}
+	const { data } = useSuspenseQuery(cardsQueryOptions);
 
 	const cards = Object.values(data.cards);
 	const filteredCards = searchQuery

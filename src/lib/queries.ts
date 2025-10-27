@@ -10,7 +10,7 @@ export const cardsQueryOptions = {
 	queryFn: async (): Promise<CardDataOutput> => {
 		const response = await fetch("/data/cards.json");
 		if (!response.ok) {
-			throw new Error("Failed to load card data");
+			throw new Error("Failed to load card data!!");
 		}
 		return response.json();
 	},

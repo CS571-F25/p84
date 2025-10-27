@@ -2,6 +2,7 @@
  * Reusable card image components for different use cases
  */
 
+import { Link } from "@tanstack/react-router";
 import type { Card, ScryfallId } from "../lib/scryfall-types";
 import { getImageUri } from "../lib/scryfall-utils";
 
@@ -64,9 +65,9 @@ export function CardThumbnail({ card, href, onClick }: CardThumbnailProps) {
 
 	if (href) {
 		return (
-			<a href={href} className={className}>
+			<Link to={href} className={className}>
 				{content}
-			</a>
+			</Link>
 		);
 	}
 
@@ -114,9 +115,9 @@ export function CardPreview({
 
 	if (href) {
 		return (
-			<a href={href} className={finalClassName} title={setName}>
+			<Link to={href} className={finalClassName} title={setName}>
 				{content}
-			</a>
+			</Link>
 		);
 	}
 

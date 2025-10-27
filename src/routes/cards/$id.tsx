@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { CardImage, CardPreview } from "../../components/CardImage";
 import { ManaCost } from "../../components/ManaCost";
@@ -8,20 +8,15 @@ import type { Card, CardDataOutput } from "../../lib/scryfall-types";
 import { isScryfallId } from "../../lib/scryfall-types";
 
 export const Route = createFileRoute("/cards/$id")({
+	ssr: false,
+	loader: ({ context }) =>
+		context.queryClient.ensureQueryData(cardsQueryOptions),
 	component: CardDetailPage,
 });
 
 function CardDetailPage() {
 	const { id } = Route.useParams();
-	const { data: cardsData } = useQuery<CardDataOutput>(cardsQueryOptions);
-
-	if (!cardsData) {
-		return (
-			<div className="min-h-screen bg-slate-900 flex items-center justify-center">
-				<p className="text-red-400 text-lg">Failed to load card data</p>
-			</div>
-		);
-	}
+	const { data: cardsData } = useSuspenseQuery(cardsQueryOptions);
 
 	if (!isScryfallId(id)) {
 		return (
@@ -48,13 +43,13 @@ function CardDetailPage() {
 	return (
 		<div className="min-h-screen bg-slate-900">
 			<div className="max-w-7xl mx-auto px-6 py-8">
-				<a
-					href="/cards"
+				<Link
+					to="/cards"
 					className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6 transition-colors"
 				>
 					<ArrowLeft className="w-4 h-4" />
 					Back to card browser
-				</a>
+				</Link>
 
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 					<div className="flex justify-center lg:justify-end">
