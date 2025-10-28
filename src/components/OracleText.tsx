@@ -5,6 +5,7 @@
  * preserving newlines.
  */
 
+import type React from "react";
 import { CardSymbol } from "./CardSymbol";
 
 interface OracleTextProps {
@@ -12,51 +13,112 @@ interface OracleTextProps {
 	className?: string;
 }
 
-function parseLine(line: string) {
-	const parts: Array<{
-		type: "text" | "symbol" | "reminder";
-		content: string;
-	}> = [];
-	let lastIndex = 0;
+type ParsedPart =
+	| { type: "text"; content: string }
+	| { type: "symbol"; content: string }
+	| { type: "reminder"; parts: ParsedPart[] };
 
-	// Match both symbols {X} and reminder text (X)
-	const tokenRegex = /\{([^}]+)\}|\(([^)]+)\)/g;
-	let match = tokenRegex.exec(line);
+function parseLine(line: string): ParsedPart[] {
+	const parts: ParsedPart[] = [];
+	let i = 0;
 
-	while (match !== null) {
-		if (match.index > lastIndex) {
+	while (i < line.length) {
+		// Check for symbol {X}
+		if (line[i] === "{") {
+			const closeIdx = line.indexOf("}", i);
+			if (closeIdx !== -1) {
+				parts.push({
+					type: "symbol",
+					content: line.slice(i + 1, closeIdx),
+				});
+				i = closeIdx + 1;
+				continue;
+			}
+		}
+
+		// Check for reminder text (...)
+		if (line[i] === "(") {
+			const closeIdx = findMatchingParen(line, i);
+			if (closeIdx !== -1) {
+				const reminderContent = line.slice(i + 1, closeIdx);
+				// Recursively parse symbols within reminder text
+				const reminderParts = parseLine(reminderContent);
+				parts.push({
+					type: "reminder",
+					parts: reminderParts,
+				});
+				i = closeIdx + 1;
+				continue;
+			}
+		}
+
+		// Regular text - collect until next special char
+		let textEnd = i;
+		while (
+			textEnd < line.length &&
+			line[textEnd] !== "{" &&
+			line[textEnd] !== "("
+		) {
+			textEnd++;
+		}
+
+		if (textEnd > i) {
 			parts.push({
 				type: "text",
-				content: line.slice(lastIndex, match.index),
+				content: line.slice(i, textEnd),
 			});
-		}
-
-		if (match[1] !== undefined) {
-			// Symbol match
+			i = textEnd;
+		} else {
+			// Unmatched special char, treat as text
 			parts.push({
-				type: "symbol",
-				content: match[1],
+				type: "text",
+				content: line[i],
 			});
-		} else if (match[2] !== undefined) {
-			// Reminder text match
-			parts.push({
-				type: "reminder",
-				content: match[2],
-			});
+			i++;
 		}
-
-		lastIndex = match.index + match[0].length;
-		match = tokenRegex.exec(line);
-	}
-
-	if (lastIndex < line.length) {
-		parts.push({
-			type: "text",
-			content: line.slice(lastIndex),
-		});
 	}
 
 	return parts;
+}
+
+function findMatchingParen(str: string, openIdx: number): number {
+	let depth = 1;
+	for (let i = openIdx + 1; i < str.length; i++) {
+		if (str[i] === "(") depth++;
+		else if (str[i] === ")") {
+			depth--;
+			if (depth === 0) return i;
+		}
+	}
+	return -1;
+}
+
+function renderParts(parts: ParsedPart[]): React.ReactNode[] {
+	return parts.map((part, i) => {
+		if (part.type === "symbol") {
+			return (
+				<CardSymbol
+					// biome-ignore lint/suspicious/noArrayIndexKey: symbols in oracle text are stable ordered list
+					key={i}
+					symbol={part.content}
+					size="small"
+					className="inline align-middle mx-0.5"
+				/>
+			);
+		}
+		if (part.type === "reminder") {
+			return (
+				// biome-ignore lint/suspicious/noArrayIndexKey: text fragments in oracle text are stable ordered list
+				<span key={i} className="italic">
+					({renderParts(part.parts)})
+				</span>
+			);
+		}
+		return (
+			// biome-ignore lint/suspicious/noArrayIndexKey: text fragments in oracle text are stable ordered list
+			<span key={i}>{part.content}</span>
+		);
+	});
 }
 
 export function OracleText({ text, className }: OracleTextProps) {
@@ -69,31 +131,7 @@ export function OracleText({ text, className }: OracleTextProps) {
 				return (
 					// biome-ignore lint/suspicious/noArrayIndexKey: oracle text lines are stable ordered list
 					<span key={lineIndex}>
-						{parts.map((part, i) => {
-							if (part.type === "symbol") {
-								return (
-									<CardSymbol
-										// biome-ignore lint/suspicious/noArrayIndexKey: symbols in oracle text are stable ordered list
-										key={i}
-										symbol={part.content}
-										size="small"
-										className="inline align-text-bottom mx-0.5"
-									/>
-								);
-							}
-							if (part.type === "reminder") {
-								return (
-									// biome-ignore lint/suspicious/noArrayIndexKey: text fragments in oracle text are stable ordered list
-									<span key={i} className="italic">
-										({part.content})
-									</span>
-								);
-							}
-							return (
-								// biome-ignore lint/suspicious/noArrayIndexKey: text fragments in oracle text are stable ordered list
-								<span key={i}>{part.content}</span>
-							);
-						})}
+						{renderParts(parts)}
 						{lineIndex < lines.length - 1 && <br />}
 					</span>
 				);
