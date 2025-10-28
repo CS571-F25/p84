@@ -1,6 +1,6 @@
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { useState } from "react";
 import { CardThumbnail } from "@/components/CardImage";
 import {
@@ -13,22 +13,36 @@ export const Route = createFileRoute("/cards/")({
 	component: CardsPage,
 });
 
+function MetadataDisplay() {
+	const { data: metadata } = useQuery(getCardsMetadataQueryOptions());
+
+	if (!metadata) {
+		return (
+			<p className="text-gray-400">
+				<Loader2 className="inline w-4 h-4 animate-spin" />
+			</p>
+		);
+	}
+
+	return (
+		<p className="text-gray-400">
+			{metadata.cardCount.toLocaleString()} cards • Version: {metadata.version}
+		</p>
+	);
+}
+
 function CardsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const { data: searchResults, isFetching } = useQuery(
 		searchCardsQueryOptions(searchQuery),
 	);
-	const { data: metadata } = useSuspenseQuery(getCardsMetadataQueryOptions());
 
 	return (
 		<div className="min-h-screen bg-slate-900">
 			<div className="max-w-7xl mx-auto px-6 py-8">
 				<div className="mb-8">
 					<h1 className="text-4xl font-bold text-white mb-2">Card Browser</h1>
-					<p className="text-gray-400">
-						{metadata.cardCount.toLocaleString()} cards • Version:{" "}
-						{metadata.version}
-					</p>
+					<MetadataDisplay />
 				</div>
 
 				<div className="mb-6">
