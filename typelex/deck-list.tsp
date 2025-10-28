@@ -37,6 +37,11 @@ namespace com.deckbelcher.deck.list {
     updatedAt?: datetime;
   }
 
+  /** A tag annotation for a card. */
+  @maxGraphemes(64)
+  @maxLength(640)
+  scalar CardTag extends string;
+
   /** A card entry in a decklist. */
   model Card {
     /** Scryfall UUID for the specific printing. */
@@ -53,6 +58,7 @@ namespace com.deckbelcher.deck.list {
     section: "mainboard" | "sideboard" | "maybeboard" | "commander" | string;
 
     /** User annotations for this card in this deck (e.g., "removal", "wincon", "ramp"). */
-    tags?: string[];
+    @maxItems(128)
+    tags?: CardTag[];
   }
 }

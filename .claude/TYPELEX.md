@@ -52,6 +52,15 @@ Use `@rec()` decorator to define record types:
 ### Collections
 - Arrays: `string[]`, `Model[]`
 - Optional: `field?: type`
+- Item constraints: Use scalars for constrained array items
+  ```typescript
+  @maxGraphemes(64)
+  @maxLength(640)
+  scalar Tag extends string;
+
+  @maxItems(128)
+  tags?: Tag[];  // Array of max 128 tags, each max 64 graphemes
+  ```
 
 ### Unions
 

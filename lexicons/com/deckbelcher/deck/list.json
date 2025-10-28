@@ -86,8 +86,12 @@
         "tags": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 640,
+            "maxGraphemes": 64,
+            "description": "A tag annotation for a card."
           },
+          "maxLength": 128,
           "description": "User annotations for this card in this deck (e.g., \"removal\", \"wincon\", \"ramp\")."
         }
       },
