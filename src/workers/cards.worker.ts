@@ -140,12 +140,13 @@ class CardsWorker implements CardsWorkerAPI {
 		}
 
 		// Perform fuzzy search with exact-match priority
-		const results = this.searchIndex.search(query, { limit });
+		const results = this.searchIndex.search(query);
 
-		// Map search results back to full Card objects
+		// Map search results back to full Card objects and limit
 		return results
 			.map((result) => this.data.cards[result.id as ScryfallId])
-			.filter((card): card is Card => card !== undefined);
+			.filter((card): card is Card => card !== undefined)
+			.slice(0, limit);
 	}
 
 	getCardById(id: ScryfallId): Card | undefined {

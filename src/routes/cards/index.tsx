@@ -7,6 +7,7 @@ import {
 	getCardsMetadataQueryOptions,
 	searchCardsQueryOptions,
 } from "@/lib/queries";
+import { useDebounce } from "@/lib/useDebounce";
 
 export const Route = createFileRoute("/cards/")({
 	ssr: false,
@@ -33,8 +34,9 @@ function MetadataDisplay() {
 
 function CardsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
+	const debouncedSearchQuery = useDebounce(searchQuery, 250);
 	const { data: searchResults, isFetching } = useQuery(
-		searchCardsQueryOptions(searchQuery),
+		searchCardsQueryOptions(debouncedSearchQuery),
 	);
 
 	return (
@@ -78,7 +80,7 @@ function CardsPage() {
 				</div>
 
 				<div
-					className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 transition-opacity ${isFetching ? "opacity-50" : "opacity-100"}`}
+					className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 transition-opacity ${isFetching || searchQuery !== debouncedSearchQuery ? "opacity-50" : "opacity-100"}`}
 				>
 					{searchResults?.cards.map((card) => (
 						<CardThumbnail

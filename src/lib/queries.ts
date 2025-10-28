@@ -21,7 +21,7 @@ export const searchCardsQueryOptions = (query: string) =>
 				return { cards: [], totalCount: 0 };
 			}
 
-			const cards = await worker.searchCards(query, 200);
+			const cards = await worker.searchCards(query, 50);
 			const metadata = await worker.getMetadata();
 
 			return {
