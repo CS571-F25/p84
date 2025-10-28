@@ -46,13 +46,20 @@ function CardsPage() {
 		searchCardsQueryOptions(debouncedSearchQuery),
 	);
 
+	// Sync state with URL when navigating back/forward
+	useEffect(() => {
+		setSearchQuery(search.q || "");
+	}, [search.q]);
+
 	// Update URL immediately on search query change
 	useEffect(() => {
-		navigate({
-			search: { q: searchQuery },
-			replace: true,
-		});
-	}, [searchQuery, navigate]);
+		if (searchQuery !== search.q) {
+			navigate({
+				search: { q: searchQuery },
+				replace: true,
+			});
+		}
+	}, [searchQuery, search.q, navigate]);
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
