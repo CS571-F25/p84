@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
 import { CardImage, CardPreview } from "@/components/CardImage";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
@@ -35,13 +34,6 @@ function CardDetailPage() {
 		return (
 			<div className="min-h-screen bg-white dark:bg-slate-900">
 				<div className="max-w-7xl mx-auto px-6 py-8">
-					<Link
-						to="/cards"
-						className="inline-flex items-center gap-2 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 mb-6 transition-colors"
-					>
-						<ArrowLeft className="w-4 h-4" />
-						Back to card browser
-					</Link>
 					<div className="flex items-center justify-center py-20">
 						<p className="text-gray-600 dark:text-gray-400 text-lg">
 							Loading card...
@@ -65,20 +57,12 @@ function CardDetailPage() {
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
 			<div className="max-w-7xl mx-auto px-6 py-8">
-				<Link
-					to="/cards"
-					className="inline-flex items-center gap-2 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 mb-6 transition-colors"
-				>
-					<ArrowLeft className="w-4 h-4" />
-					Back to card browser
-				</Link>
-
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 					<div className="flex justify-center lg:justify-end">
 						<CardImage
 							card={card}
 							size="large"
-							className="shadow-[0_20px_50px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)] max-w-full h-auto max-h-[80vh] object-contain"
+							className="shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)] max-w-full h-auto max-h-[80vh] object-contain"
 						/>
 					</div>
 
