@@ -6,6 +6,7 @@
  */
 
 import * as Comlink from "comlink";
+import MiniSearch from "minisearch";
 import type {
 	Card,
 	CardDataOutput,
@@ -66,6 +67,7 @@ class CardsWorker implements CardsWorkerAPI {
 	private data: CardDataOutput | null = null;
 	private cardsArray: Card[] = [];
 	private canonicalCards: Card[] = [];
+	private searchIndex: MiniSearch<Card> | null = null;
 
 	private ensureInitialized(): asserts this is this & {
 		data: CardDataOutput;
@@ -97,6 +99,24 @@ class CardsWorker implements CardsWorkerAPI {
 			.filter((card): card is Card => card !== undefined)
 			.filter((card) => card.layout !== "art_series");
 
+		// Build fuzzy search index
+		console.log("[CardsWorker] Building search index...");
+		this.searchIndex = new MiniSearch<Card>({
+			fields: ["name"],
+			storeFields: ["id", "oracle_id", "name"],
+			searchOptions: {
+				prefix: true, // "bol" matches "bolt"
+				fuzzy: 0.2, // ~2 char tolerance
+				combineWith: "AND", // all terms must match
+				weights: {
+					prefix: 0.7, // exact (1.0) > prefix (0.7) > fuzzy
+					fuzzy: 0.4,
+				},
+			},
+		});
+
+		this.searchIndex.addAll(this.canonicalCards);
+
 		console.log(
 			`[CardsWorker] Initialized: ${this.data.cardCount.toLocaleString()} cards, ${this.canonicalCards.length.toLocaleString()} unique`,
 		);
@@ -109,10 +129,23 @@ class CardsWorker implements CardsWorkerAPI {
 
 	searchCards(query: string, limit = 100): Card[] {
 		this.ensureInitialized();
-		const lowerQuery = query.toLowerCase();
-		return this.canonicalCards
-			.filter((card) => card.name.toLowerCase().includes(lowerQuery))
-			.slice(0, limit);
+
+		if (!this.searchIndex) {
+			throw new Error("Search index not initialized");
+		}
+
+		// Empty query returns no results
+		if (!query.trim()) {
+			return [];
+		}
+
+		// Perform fuzzy search with exact-match priority
+		const results = this.searchIndex.search(query, { limit });
+
+		// Map search results back to full Card objects
+		return results
+			.map((result) => this.data.cards[result.id as ScryfallId])
+			.filter((card): card is Card => card !== undefined);
 	}
 
 	getCardById(id: ScryfallId): Card | undefined {
