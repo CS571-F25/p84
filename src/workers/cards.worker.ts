@@ -76,6 +76,13 @@ class CardsWorker implements CardsWorkerAPI {
 	}
 
 	async initialize(): Promise<void> {
+		// Prevent re-initialization in SharedWorker mode (shared across tabs)
+		if (this.data) {
+			console.log("[CardsWorker] Already initialized, skipping");
+			return;
+		}
+
+		console.log("[CardsWorker] Initializing card data...");
 		const response = await fetch("/data/cards.json");
 		if (!response.ok) {
 			throw new Error("Failed to load card data");
@@ -89,6 +96,10 @@ class CardsWorker implements CardsWorkerAPI {
 			.map((scryfallId) => this.data.cards[scryfallId])
 			.filter((card): card is Card => card !== undefined)
 			.filter((card) => card.layout !== "art_series");
+
+		console.log(
+			`[CardsWorker] Initialized: ${this.data.cardCount.toLocaleString()} cards, ${this.canonicalCards.length.toLocaleString()} unique`,
+		);
 	}
 
 	getCards(limit?: number): Card[] {
@@ -163,6 +174,20 @@ class CardsWorker implements CardsWorkerAPI {
 }
 
 const worker = new CardsWorker();
-Comlink.expose(worker);
+
+// Support both SharedWorker and regular Worker modes
+if ("SharedWorkerGlobalScope" in self) {
+	// SharedWorker mode - handle multiple connections
+	console.log("[CardsWorker] Running in SharedWorker mode");
+	self.onconnect = (e: MessageEvent) => {
+		const port = e.ports[0];
+		console.log("[CardsWorker] New tab connected");
+		Comlink.expose(worker, port);
+	};
+} else {
+	// Regular Worker mode - single connection
+	console.log("[CardsWorker] Running in Worker mode");
+	Comlink.expose(worker);
+}
 
 export type { CardsWorkerAPI };

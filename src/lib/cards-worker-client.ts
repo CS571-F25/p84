@@ -1,5 +1,8 @@
 /**
  * Client for communicating with cards web worker
+ *
+ * Uses SharedWorker when available (desktop browsers) to share card data across tabs.
+ * Gracefully falls back to regular Worker on unsupported browsers (mainly Chrome Android).
  */
 
 import * as Comlink from "comlink";
@@ -9,15 +12,37 @@ let workerInstance: Comlink.Remote<CardsWorkerAPI> | null = null;
 let initPromise: Promise<void> | null = null;
 
 /**
+ * Detect if SharedWorker is supported
+ */
+function isSharedWorkerSupported(): boolean {
+	return typeof SharedWorker !== "undefined";
+}
+
+/**
  * Get or create the cards worker instance
+ *
+ * On desktop (Chrome/Firefox/Safari): creates SharedWorker, shared across tabs
+ * On mobile Chrome: creates regular Worker, per-tab instance
  */
 function getWorker(): Comlink.Remote<CardsWorkerAPI> {
 	if (!workerInstance) {
-		const worker = new Worker(
-			new URL("../workers/cards.worker.ts", import.meta.url),
-			{ type: "module" },
-		);
-		workerInstance = Comlink.wrap<CardsWorkerAPI>(worker);
+		const workerUrl = new URL("../workers/cards.worker.ts", import.meta.url);
+
+		if (isSharedWorkerSupported()) {
+			// SharedWorker mode: shared across tabs
+			console.log(
+				"[CardsWorker] Using SharedWorker (card data shared across tabs)",
+			);
+			const sharedWorker = new SharedWorker(workerUrl, { type: "module" });
+			workerInstance = Comlink.wrap<CardsWorkerAPI>(sharedWorker.port);
+		} else {
+			// Regular Worker mode: per-tab fallback
+			console.log(
+				"[CardsWorker] Using Worker (per-tab, SharedWorker not supported)",
+			);
+			const worker = new Worker(workerUrl, { type: "module" });
+			workerInstance = Comlink.wrap<CardsWorkerAPI>(worker);
+		}
 	}
 	return workerInstance;
 }
