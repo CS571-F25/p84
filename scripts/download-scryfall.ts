@@ -271,7 +271,7 @@ async function downloadSymbols(): Promise<number> {
 
 	await Promise.all(
 		symbology.data.map((symbol) => {
-			const filename = symbol.symbol.replace(/[{}]/g, "").toLowerCase();
+			const filename = symbol.symbol.replace(/[{}\/]/g, "").toLowerCase();
 			const outputPath = join(SYMBOLS_DIR, `${filename}.svg`);
 			return downloadFile(symbol.svg_uri, outputPath);
 		}),
