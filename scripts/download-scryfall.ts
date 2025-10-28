@@ -205,6 +205,20 @@ export function isDefaultPrinting(card: Card): boolean {
 		return false;
 	}
 
+	// Exclude special promo types (serialized, doublerainbow, etc)
+	// Note: some promos like prerelease, buyabox are considered "neutral" by Scryfall
+	const invalidPromoTypes = [
+		"serialized",
+		"doublerainbow",
+		"gilded",
+		"confettifoil",
+		"galaxyfoil",
+		"textured",
+	];
+	if (card.promo_types?.some((pt) => invalidPromoTypes.includes(pt))) {
+		return false;
+	}
+
 	// Finishes: prefer nonfoil or foil (exclude etched, special finishes)
 	// Note: finishes is optional, so we're lenient here
 	if (card.finishes) {

@@ -69,6 +69,38 @@ describe("isDefaultPrinting", () => {
 	it("rejects cards with only special finishes", () => {
 		expect(isDefaultPrinting(createCard({ finishes: ["etched"] }))).toBe(false);
 	});
+
+	it("rejects special promo types (serialized, doublerainbow, etc)", () => {
+		expect(
+			isDefaultPrinting(createCard({ promo_types: ["serialized"] })),
+		).toBe(false);
+		expect(
+			isDefaultPrinting(
+				createCard({ promo_types: ["serialized", "doublerainbow"] }),
+			),
+		).toBe(false);
+		expect(isDefaultPrinting(createCard({ promo_types: ["gilded"] }))).toBe(
+			false,
+		);
+		expect(
+			isDefaultPrinting(createCard({ promo_types: ["confettifoil"] })),
+		).toBe(false);
+		expect(
+			isDefaultPrinting(createCard({ promo_types: ["galaxyfoil"] })),
+		).toBe(false);
+		expect(isDefaultPrinting(createCard({ promo_types: ["textured"] }))).toBe(
+			false,
+		);
+	});
+
+	it("allows neutral promo types (prerelease, buyabox)", () => {
+		expect(isDefaultPrinting(createCard({ promo_types: ["prerelease"] }))).toBe(
+			true,
+		);
+		expect(isDefaultPrinting(createCard({ promo_types: ["buyabox"] }))).toBe(
+			true,
+		);
+	});
 });
 
 describe("compareCards canonical printing selection", () => {
@@ -216,6 +248,39 @@ describe("compareCards canonical printing selection", () => {
 		});
 
 		expect(compareCards(olderPaper, newerDigital)).toBe(-1);
+	});
+
+	it("prefers normal card over serialized promo (regression test)", () => {
+		// Real-world bug: Goblin Charbelcher was choosing serialized doublerainbow over normal
+		const serialized = createCard({
+			id: asScryfallId("6e726e71-b9cc-421a-9f0d-22e321e88610"),
+			name: "Goblin Charbelcher",
+			set: "brr",
+			released_at: "2022-11-18",
+			games: ["paper"],
+			frame: "1997",
+			border_color: "black",
+			promo_types: ["serialized", "doublerainbow"],
+			finishes: ["foil"],
+		});
+		const normal = createCard({
+			id: asScryfallId("7f945594-2f11-471c-b992-1b70d82c8164"),
+			name: "Goblin Charbelcher",
+			set: "brr",
+			released_at: "2022-11-18",
+			games: ["paper", "mtgo", "arena"],
+			frame: "1997",
+			border_color: "black",
+			promo_types: [],
+			finishes: ["nonfoil", "foil"],
+		});
+
+		// Serialized should NOT be is:default
+		expect(isDefaultPrinting(serialized)).toBe(false);
+		expect(isDefaultPrinting(normal)).toBe(true);
+
+		// Normal should win
+		expect(compareCards(normal, serialized)).toBe(-1);
 	});
 
 	it("correctly prioritizes: english > is:default > paper > highres > newer", () => {
