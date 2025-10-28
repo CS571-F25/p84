@@ -1,0 +1,278 @@
+import { describe, it, expect } from "vitest";
+import { isDefaultPrinting, compareCards } from "./download-scryfall.ts";
+import type { Card } from "../src/lib/scryfall-types.ts";
+import { asScryfallId, asOracleId } from "../src/lib/scryfall-types.ts";
+
+function createCard(overrides: Partial<Card>): Card {
+	return {
+		id: asScryfallId("00000000-0000-0000-0000-000000000000"),
+		oracle_id: asOracleId("00000000-0000-0000-0000-000000000000"),
+		name: "Test Card",
+		lang: "en",
+		frame: "2015",
+		border_color: "black",
+		released_at: "2020-01-01",
+		...overrides,
+	};
+}
+
+describe("isDefaultPrinting", () => {
+	it("accepts traditional frames", () => {
+		expect(isDefaultPrinting(createCard({ frame: "1993" }))).toBe(true);
+		expect(isDefaultPrinting(createCard({ frame: "1997" }))).toBe(true);
+		expect(isDefaultPrinting(createCard({ frame: "2003" }))).toBe(true);
+		expect(isDefaultPrinting(createCard({ frame: "2015" }))).toBe(true);
+	});
+
+	it("rejects non-traditional frames", () => {
+		expect(isDefaultPrinting(createCard({ frame: "future" }))).toBe(false);
+	});
+
+	it("accepts valid borders", () => {
+		expect(isDefaultPrinting(createCard({ border_color: "black" }))).toBe(true);
+		expect(isDefaultPrinting(createCard({ border_color: "white" }))).toBe(true);
+		expect(isDefaultPrinting(createCard({ border_color: "silver" }))).toBe(
+			true,
+		);
+	});
+
+	it("rejects borderless", () => {
+		expect(isDefaultPrinting(createCard({ border_color: "borderless" }))).toBe(
+			false,
+		);
+	});
+
+	it("rejects special frame effects", () => {
+		expect(
+			isDefaultPrinting(createCard({ frame_effects: ["extendedart"] })),
+		).toBe(false);
+		expect(
+			isDefaultPrinting(createCard({ frame_effects: ["showcase"] })),
+		).toBe(false);
+		expect(
+			isDefaultPrinting(createCard({ frame_effects: ["inverted"] })),
+		).toBe(false);
+	});
+
+	it("rejects full art", () => {
+		expect(isDefaultPrinting(createCard({ full_art: true }))).toBe(false);
+	});
+
+	it("accepts valid finishes", () => {
+		expect(isDefaultPrinting(createCard({ finishes: ["nonfoil"] }))).toBe(true);
+		expect(isDefaultPrinting(createCard({ finishes: ["foil"] }))).toBe(true);
+		expect(
+			isDefaultPrinting(createCard({ finishes: ["nonfoil", "foil"] })),
+		).toBe(true);
+	});
+
+	it("rejects cards with only special finishes", () => {
+		expect(isDefaultPrinting(createCard({ finishes: ["etched"] }))).toBe(false);
+	});
+});
+
+describe("compareCards canonical printing selection", () => {
+	it("prefers english over other languages", () => {
+		const english = createCard({ lang: "en" });
+		const japanese = createCard({ lang: "ja" });
+		expect(compareCards(english, japanese)).toBe(-1);
+		expect(compareCards(japanese, english)).toBe(1);
+	});
+
+	it("prefers is:default over non-default", () => {
+		const defaultCard = createCard({
+			frame: "2015",
+			border_color: "black",
+		});
+		const showcase = createCard({
+			frame: "2015",
+			border_color: "black",
+			frame_effects: ["showcase"],
+		});
+		expect(compareCards(defaultCard, showcase)).toBe(-1);
+		expect(compareCards(showcase, defaultCard)).toBe(1);
+	});
+
+	it("prefers newer within same default status and paper/highres", () => {
+		const newer = createCard({
+			released_at: "2024-01-01",
+			games: ["paper"],
+			highres_image: true,
+		});
+		const older = createCard({
+			released_at: "2020-01-01",
+			games: ["paper"],
+			highres_image: true,
+		});
+		expect(compareCards(newer, older)).toBe(-1);
+		expect(compareCards(older, newer)).toBe(1);
+	});
+
+	it("prefers newest default over newest non-default", () => {
+		const oldDefault = createCard({
+			released_at: "2020-01-01",
+			frame: "2015",
+			border_color: "black",
+		});
+		const newShowcase = createCard({
+			released_at: "2024-01-01",
+			frame: "2015",
+			border_color: "black",
+			frame_effects: ["showcase"],
+		});
+		expect(compareCards(oldDefault, newShowcase)).toBe(-1);
+	});
+
+	it("does not discriminate against UB for is:default status", () => {
+		const ubDefault = createCard({
+			promo_types: ["universesbeyond"],
+			frame: "2015",
+			border_color: "black",
+		});
+		expect(isDefaultPrinting(ubDefault)).toBe(true);
+	});
+
+	it("uses UB status as tiebreaker within same default status and date", () => {
+		const nonUB = createCard({
+			released_at: "2024-01-01",
+		});
+		const ub = createCard({
+			released_at: "2024-01-01",
+			promo_types: ["universesbeyond"],
+		});
+		expect(compareCards(nonUB, ub)).toBe(-1);
+		expect(compareCards(ub, nonUB)).toBe(1);
+	});
+
+	it("prefers paper over digital-only (even if digital is newer)", () => {
+		const olderPaper = createCard({
+			released_at: "2020-01-01",
+			games: ["paper", "mtgo"],
+		});
+		const newerDigital = createCard({
+			released_at: "2024-01-01",
+			games: ["mtgo"],
+		});
+		expect(compareCards(olderPaper, newerDigital)).toBe(-1);
+		expect(compareCards(newerDigital, olderPaper)).toBe(1);
+	});
+
+	it("prefers highres images over newer date", () => {
+		const olderHighres = createCard({
+			released_at: "2020-01-01",
+			highres_image: true,
+		});
+		const newerLowres = createCard({
+			released_at: "2024-01-01",
+			highres_image: false,
+		});
+		expect(compareCards(olderHighres, newerLowres)).toBe(-1);
+		expect(compareCards(newerLowres, olderHighres)).toBe(1);
+	});
+
+	it("prefers highres images when both are same date", () => {
+		const highres = createCard({
+			released_at: "2024-01-01",
+			highres_image: true,
+		});
+		const lowres = createCard({
+			released_at: "2024-01-01",
+			highres_image: false,
+		});
+		expect(compareCards(highres, lowres)).toBe(-1);
+	});
+
+	it("prefers non-variants", () => {
+		const normal = createCard({
+			released_at: "2024-01-01",
+			variation: false,
+		});
+		const variant = createCard({
+			released_at: "2024-01-01",
+			variation: true,
+		});
+		expect(compareCards(normal, variant)).toBe(-1);
+	});
+
+	it("prefers older paper default over newer digital-only default (regression test)", () => {
+		// Real-world bug: Hobgoblin Bandit Lord was choosing mtgo promo over paper version
+		const newerDigital = createCard({
+			id: asScryfallId("5e3f2736-9d13-44e3-a4bf-4f64314e5848"),
+			name: "Hobgoblin Bandit Lord",
+			set: "prm",
+			released_at: "2021-10-28",
+			games: ["mtgo"],
+			frame: "2015",
+			border_color: "black",
+		});
+		const olderPaper = createCard({
+			id: asScryfallId("7da8e543-c9ef-4f2d-99e4-ef6ba496ae75"),
+			name: "Hobgoblin Bandit Lord",
+			set: "afr",
+			released_at: "2021-07-23",
+			games: ["arena", "paper", "mtgo"],
+			frame: "2015",
+			border_color: "black",
+		});
+
+		expect(compareCards(olderPaper, newerDigital)).toBe(-1);
+	});
+
+	it("correctly prioritizes: english > is:default > paper > highres > newer", () => {
+		const cards = [
+			createCard({
+				id: asScryfallId("00000000-0000-0000-0000-000000000001"),
+				lang: "en",
+				frame: "2015",
+				border_color: "black",
+				games: ["paper"],
+				highres_image: false,
+				released_at: "2024-01-01",
+			}),
+			createCard({
+				id: asScryfallId("00000000-0000-0000-0000-000000000002"),
+				lang: "en",
+				frame: "2015",
+				border_color: "black",
+				games: ["arena"],
+				highres_image: true,
+				released_at: "2025-01-01",
+			}),
+			createCard({
+				id: asScryfallId("00000000-0000-0000-0000-000000000003"),
+				lang: "en",
+				frame: "2015",
+				border_color: "black",
+				games: ["paper"],
+				highres_image: true,
+				released_at: "2020-01-01",
+			}),
+			createCard({
+				id: asScryfallId("00000000-0000-0000-0000-000000000004"),
+				lang: "en",
+				frame: "2015",
+				border_color: "borderless",
+				games: ["paper"],
+				highres_image: true,
+				released_at: "2025-01-01",
+			}),
+			createCard({
+				id: asScryfallId("00000000-0000-0000-0000-000000000005"),
+				lang: "ja",
+				frame: "2015",
+				border_color: "black",
+				games: ["paper"],
+				highres_image: true,
+				released_at: "2025-01-01",
+			}),
+		];
+
+		const sorted = [...cards].sort(compareCards);
+		// Priority: english > is:default > paper > highres > newer
+		expect(sorted[0].id).toBe(cards[2].id); // en, default, paper, highres, 2020 (best)
+		expect(sorted[1].id).toBe(cards[0].id); // en, default, paper, lowres, 2024
+		expect(sorted[2].id).toBe(cards[1].id); // en, default, digital, highres, 2025 (is:default beats paper)
+		expect(sorted[3].id).toBe(cards[3].id); // en, non-default, paper, highres, 2025
+		expect(sorted[4].id).toBe(cards[4].id); // ja, default, paper, highres, 2025
+	});
+});

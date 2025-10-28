@@ -177,6 +177,92 @@ function filterCard(card: ScryfallCard): Card {
 	return filtered;
 }
 
+/**
+ * Determines if a card printing matches Scryfall's is:default criteria.
+ * Default = traditional frames (1993/1997/2003/2015), standard borders, no special treatments
+ */
+export function isDefaultPrinting(card: Card): boolean {
+	// Frame must be traditional (1993, 1997, 2003, or 2015)
+	const validFrames = ["1993", "1997", "2003", "2015"];
+	if (!card.frame || !validFrames.includes(card.frame)) {
+		return false;
+	}
+
+	// Border must be black, white, or silver
+	const validBorders = ["black", "white", "silver"];
+	if (!card.border_color || !validBorders.includes(card.border_color)) {
+		return false;
+	}
+
+	// Must not have special frame effects (extended art, showcase, borderless, etc)
+	const invalidEffects = ["extendedart", "showcase", "inverted"];
+	if (card.frame_effects?.some((fx) => invalidEffects.includes(fx))) {
+		return false;
+	}
+
+	// Must not be full art or textless
+	if (card.full_art) {
+		return false;
+	}
+
+	// Finishes: prefer nonfoil or foil (exclude etched, special finishes)
+	// Note: finishes is optional, so we're lenient here
+	if (card.finishes) {
+		const validFinishes = ["nonfoil", "foil"];
+		const hasValidFinish = card.finishes.some((f) =>
+			validFinishes.includes(f),
+		);
+		if (!hasValidFinish) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Comparator for selecting canonical card printings.
+ * Priority: english > is:default > paper > highres > newer > non-variant > non-UB
+ */
+export function compareCards(a: Card, b: Card): number {
+	// English first (essential for our use case)
+	if (a.lang === "en" && b.lang !== "en") return -1;
+	if (a.lang !== "en" && b.lang === "en") return 1;
+
+	// Prefer is:default printings
+	const aDefault = isDefaultPrinting(a);
+	const bDefault = isDefaultPrinting(b);
+	if (aDefault && !bDefault) return -1;
+	if (!aDefault && bDefault) return 1;
+
+	// Paper over digital-only (paper cards are more canonical)
+	const aPaper = a.games?.includes("paper");
+	const bPaper = b.games?.includes("paper");
+	if (aPaper && !bPaper) return -1;
+	if (!aPaper && bPaper) return 1;
+
+	// Highres (image quality matters more than recency)
+	if (a.highres_image && !b.highres_image) return -1;
+	if (!a.highres_image && b.highres_image) return 1;
+
+	// Newer (tiebreaker among similar quality printings)
+	if (a.released_at && b.released_at && a.released_at !== b.released_at) {
+		return b.released_at.localeCompare(a.released_at);
+	}
+
+	// Non-variant (variants are weird alternate versions)
+	if (!a.variation && b.variation) return -1;
+	if (a.variation && !b.variation) return 1;
+
+	// Non-Universes Beyond (subjective UX preference)
+	const aUB = a.promo_types?.includes("universesbeyond");
+	const bUB = b.promo_types?.includes("universesbeyond");
+	if (!aUB && bUB) return -1;
+	if (aUB && !bUB) return 1;
+
+	return 0;
+}
+
 async function processBulkData(): Promise<CardDataOutput> {
 	// Get bulk data list
 	const bulkData = await fetchJSON<BulkDataResponse>(
@@ -221,45 +307,9 @@ async function processBulkData(): Promise<CardDataOutput> {
 	);
 
 	// Calculate canonical printing for each oracle ID
-	// Priority (most → least important): english > highres > non-variant > non-full-art > non-UB > paper > newer
+	// Follows Scryfall's is:default logic: prefer most recent "default" printing
+	// Priority: english > is:default > paper > highres > newer > non-variant > non-UB
 	console.log("Calculating canonical printings...");
-
-	function compareCards(a: Card, b: Card): number {
-		// English first
-		if (a.lang === "en" && b.lang !== "en") return -1;
-		if (a.lang !== "en" && b.lang === "en") return 1;
-
-		// Highres
-		if (a.highres_image && !b.highres_image) return -1;
-		if (!a.highres_image && b.highres_image) return 1;
-
-		// Non-variant
-		if (!a.variation && b.variation) return -1;
-		if (a.variation && !b.variation) return 1;
-
-		// Non-full-art (prefer normal frames)
-		if (!a.full_art && b.full_art) return -1;
-		if (a.full_art && !b.full_art) return 1;
-
-		// Non-Universes Beyond
-		const aUB = a.promo_types?.includes("universesbeyond");
-		const bUB = b.promo_types?.includes("universesbeyond");
-		if (!aUB && bUB) return -1;
-		if (aUB && !bUB) return 1;
-
-		// Paper
-		const aPaper = a.games?.includes("paper");
-		const bPaper = b.games?.includes("paper");
-		if (aPaper && !bPaper) return -1;
-		if (!aPaper && bPaper) return 1;
-
-		// Newer
-		if (a.released_at && b.released_at && a.released_at !== b.released_at) {
-			return b.released_at.localeCompare(a.released_at);
-		}
-
-		return 0;
-	}
 
 	const canonicalPrintingByOracleId = Object.fromEntries(
 		Object.entries(oracleIdToPrintings).map(([oracleId, printingIds]) => {
@@ -358,4 +408,7 @@ async function main(): Promise<void> {
 	}
 }
 
-main();
+// Only run main() when executed directly (not when imported for tests)
+if (import.meta.url === `file://${process.argv[1]}`) {
+	main();
+}
