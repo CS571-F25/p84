@@ -173,6 +173,7 @@ export interface Card {
 	// Nice-to-have
 	edhrec_rank?: number;
 	reprint?: boolean;
+	variation?: boolean;
 	lang?: string;
 	content_warning?: boolean;
 
@@ -184,4 +185,5 @@ export interface CardDataOutput {
 	cardCount: number;
 	cards: Record<ScryfallId, Card>;
 	oracleIdToPrintings: Record<OracleId, ScryfallId[]>;
+	canonicalPrintingByOracleId: Record<OracleId, ScryfallId>;
 }

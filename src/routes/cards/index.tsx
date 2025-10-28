@@ -70,7 +70,7 @@ function CardsPage() {
 						<CardThumbnail
 							key={card.id}
 							card={card}
-							href={`/cards/${card.id}`}
+							href={`/cards/${card.oracle_id}`}
 						/>
 					))}
 				</div>

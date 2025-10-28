@@ -8,18 +8,20 @@ import { getCardWithPrintingsQueryOptions } from "../../lib/queries";
 import type { ScryfallId } from "../../lib/scryfall-types";
 import { isScryfallId } from "../../lib/scryfall-types";
 
-export const Route = createFileRoute("/cards/$id")({
+export const Route = createFileRoute("/cards/$oracleId/$scryfallId")({
 	ssr: false,
 	component: CardDetailPage,
 });
 
 function CardDetailPage() {
-	const { id } = Route.useParams();
+	const { oracleId, scryfallId } = Route.useParams();
 
 	// Validate ID format but don't return early (hooks must be unconditional)
-	const isValidId = isScryfallId(id);
+	const isValidId = isScryfallId(scryfallId);
 	const { data, isLoading } = useQuery(
-		getCardWithPrintingsQueryOptions(isValidId ? id : ("" as ScryfallId)),
+		getCardWithPrintingsQueryOptions(
+			isValidId ? scryfallId : ("" as ScryfallId),
+		),
 	);
 
 	if (!isValidId) {
@@ -162,7 +164,7 @@ function CardDetailPage() {
 											cardId={printing.id}
 											name={printing.name}
 											setName={printing.set_name}
-											href={`/cards/${printing.id}`}
+											href={`/cards/${oracleId}/${printing.id}`}
 										/>
 									))}
 								</div>

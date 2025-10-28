@@ -45,6 +45,11 @@ interface CardsWorkerAPI {
 	getMetadata(): { version: string; cardCount: number };
 
 	/**
+	 * Get canonical printing ID for an oracle ID
+	 */
+	getCanonicalPrinting(oracleId: OracleId): ScryfallId | undefined;
+
+	/**
 	 * Get card with all its printings data
 	 */
 	getCardWithPrintings(id: ScryfallId): {
@@ -60,6 +65,7 @@ interface CardsWorkerAPI {
 class CardsWorker implements CardsWorkerAPI {
 	private data: CardDataOutput | null = null;
 	private cardsArray: Card[] = [];
+	private canonicalCards: Card[] = [];
 
 	private ensureInitialized(): asserts this is this & {
 		data: CardDataOutput;
@@ -77,6 +83,11 @@ class CardsWorker implements CardsWorkerAPI {
 
 		this.data = await response.json();
 		this.cardsArray = Object.values(this.data.cards);
+
+		// Build canonical cards array (one per oracle ID)
+		this.canonicalCards = Object.values(this.data.canonicalPrintingByOracleId)
+			.map((scryfallId) => this.data.cards[scryfallId])
+			.filter((card): card is Card => card !== undefined);
 	}
 
 	getCards(limit?: number): Card[] {
@@ -87,7 +98,7 @@ class CardsWorker implements CardsWorkerAPI {
 	searchCards(query: string, limit = 100): Card[] {
 		this.ensureInitialized();
 		const lowerQuery = query.toLowerCase();
-		return this.cardsArray
+		return this.canonicalCards
 			.filter((card) => card.name.toLowerCase().includes(lowerQuery))
 			.slice(0, limit);
 	}
@@ -108,6 +119,11 @@ class CardsWorker implements CardsWorkerAPI {
 			version: this.data.version,
 			cardCount: this.data.cardCount,
 		};
+	}
+
+	getCanonicalPrinting(oracleId: OracleId): ScryfallId | undefined {
+		this.ensureInitialized();
+		return this.data.canonicalPrintingByOracleId[oracleId];
 	}
 
 	getCardWithPrintings(id: ScryfallId): {

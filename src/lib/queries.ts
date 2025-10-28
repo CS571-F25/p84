@@ -76,3 +76,17 @@ export const getCardsMetadataQueryOptions = () =>
 		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});
+
+/**
+ * Get canonical printing ID for an oracle ID
+ */
+export const getCanonicalPrintingQueryOptions = (oracleId: OracleId) =>
+	queryOptions({
+		queryKey: ["cards", "canonical", oracleId] as const,
+		queryFn: async (): Promise<ScryfallId | null> => {
+			await initializeWorker();
+			const worker = getCardsWorker();
+			return worker.getCanonicalPrinting(oracleId) ?? null;
+		},
+		staleTime: Number.POSITIVE_INFINITY,
+	});

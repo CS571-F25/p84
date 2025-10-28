@@ -11,7 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CardsIndexRouteImport } from './routes/cards/index'
-import { Route as CardsIdRouteImport } from './routes/cards/$id'
+import { Route as CardsOracleIdRouteImport } from './routes/cards/$oracleId'
+import { Route as CardsOracleIdScryfallIdRouteImport } from './routes/cards/$oracleId/$scryfallId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,39 +24,56 @@ const CardsIndexRoute = CardsIndexRouteImport.update({
   path: '/cards/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CardsIdRoute = CardsIdRouteImport.update({
-  id: '/cards/$id',
-  path: '/cards/$id',
+const CardsOracleIdRoute = CardsOracleIdRouteImport.update({
+  id: '/cards/$oracleId',
+  path: '/cards/$oracleId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CardsOracleIdScryfallIdRoute = CardsOracleIdScryfallIdRouteImport.update({
+  id: '/$scryfallId',
+  path: '/$scryfallId',
+  getParentRoute: () => CardsOracleIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/cards/$id': typeof CardsIdRoute
+  '/cards/$oracleId': typeof CardsOracleIdRouteWithChildren
   '/cards': typeof CardsIndexRoute
+  '/cards/$oracleId/$scryfallId': typeof CardsOracleIdScryfallIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/cards/$id': typeof CardsIdRoute
+  '/cards/$oracleId': typeof CardsOracleIdRouteWithChildren
   '/cards': typeof CardsIndexRoute
+  '/cards/$oracleId/$scryfallId': typeof CardsOracleIdScryfallIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/cards/$id': typeof CardsIdRoute
+  '/cards/$oracleId': typeof CardsOracleIdRouteWithChildren
   '/cards/': typeof CardsIndexRoute
+  '/cards/$oracleId/$scryfallId': typeof CardsOracleIdScryfallIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cards/$id' | '/cards'
+  fullPaths:
+    | '/'
+    | '/cards/$oracleId'
+    | '/cards'
+    | '/cards/$oracleId/$scryfallId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cards/$id' | '/cards'
-  id: '__root__' | '/' | '/cards/$id' | '/cards/'
+  to: '/' | '/cards/$oracleId' | '/cards' | '/cards/$oracleId/$scryfallId'
+  id:
+    | '__root__'
+    | '/'
+    | '/cards/$oracleId'
+    | '/cards/'
+    | '/cards/$oracleId/$scryfallId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CardsIdRoute: typeof CardsIdRoute
+  CardsOracleIdRoute: typeof CardsOracleIdRouteWithChildren
   CardsIndexRoute: typeof CardsIndexRoute
 }
 
@@ -75,19 +93,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CardsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/cards/$id': {
-      id: '/cards/$id'
-      path: '/cards/$id'
-      fullPath: '/cards/$id'
-      preLoaderRoute: typeof CardsIdRouteImport
+    '/cards/$oracleId': {
+      id: '/cards/$oracleId'
+      path: '/cards/$oracleId'
+      fullPath: '/cards/$oracleId'
+      preLoaderRoute: typeof CardsOracleIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/cards/$oracleId/$scryfallId': {
+      id: '/cards/$oracleId/$scryfallId'
+      path: '/$scryfallId'
+      fullPath: '/cards/$oracleId/$scryfallId'
+      preLoaderRoute: typeof CardsOracleIdScryfallIdRouteImport
+      parentRoute: typeof CardsOracleIdRoute
     }
   }
 }
 
+interface CardsOracleIdRouteChildren {
+  CardsOracleIdScryfallIdRoute: typeof CardsOracleIdScryfallIdRoute
+}
+
+const CardsOracleIdRouteChildren: CardsOracleIdRouteChildren = {
+  CardsOracleIdScryfallIdRoute: CardsOracleIdScryfallIdRoute,
+}
+
+const CardsOracleIdRouteWithChildren = CardsOracleIdRoute._addFileChildren(
+  CardsOracleIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CardsIdRoute: CardsIdRoute,
+  CardsOracleIdRoute: CardsOracleIdRouteWithChildren,
   CardsIndexRoute: CardsIndexRoute,
 }
 export const routeTree = rootRouteImport

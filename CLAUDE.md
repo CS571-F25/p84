@@ -93,6 +93,7 @@ These contain important context about project decisions, API details, and toolin
 - **This is a TypeScript project** - ALL code (including scripts) must use TypeScript with proper types
 - **Use `nix-shell -p <package>` for missing commands** - If a command isn't in PATH, use nix-shell to get it temporarily
 - **Prefer functional style over exceptions** - Avoid throwing errors for control flow. Use type predicates, Option/Result patterns, and early returns instead. Throwing is like GOTO—it breaks local reasoning and makes code harder to follow
+- **Avoid unnecessary try/catch blocks** - Don't wrap code in try/catch without a specific reason. It's not defensive coding—it's noisy and masks real errors. If a function can return null/undefined, use that instead of throwing. Let exceptions bubble naturally unless you have a specific recovery strategy
 - **Check `typelex/*.tsp` for DeckBelcher data models** - When confused about deck structure or app schemas, read the `.tsp` files. For card data, see `src/lib/scryfall-types.ts`
 - **NEVER use `-f` flag with rm/git/etc without justification** - Force flags suppress errors and can hide problems. Use `rm -r` not `rm -rf`, let commands fail naturally
 - **ALWAYS run `npm run check` before considering work complete** - Verify linting and formatting pass
