@@ -72,6 +72,18 @@ TypeScript paths are configured with `@/*` alias pointing to `src/*` (tsconfig.j
 
 Tailwind CSS v4 is integrated via `@tailwindcss/vite` plugin. Global styles in `src/styles.css`.
 
+**Dark Mode Support:**
+- All components and pages must support both light and dark mode
+- Use Tailwind's `dark:` variant for dark mode styles (e.g., `bg-white dark:bg-slate-900`)
+- Theme is managed by `ThemeProvider` in `src/lib/useTheme.tsx`
+- Dark mode configuration: `@custom-variant dark (&:where(.dark, .dark *))` in `src/styles.css`
+- Common patterns:
+  - Backgrounds: `bg-white dark:bg-slate-900` (page), `bg-gray-100 dark:bg-slate-800` (panels)
+  - Primary text: `text-gray-900 dark:text-white`
+  - Secondary text: `text-gray-600 dark:text-gray-400`
+  - Borders: `border-gray-300 dark:border-slate-700`
+  - Interactive elements: `hover:bg-gray-100 dark:hover:bg-gray-800`
+
 ### Development Tooling
 
 - **Nix**: flake.nix provides Node.js 22, TypeSpec, and language servers

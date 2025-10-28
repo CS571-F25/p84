@@ -47,13 +47,15 @@ export function CardThumbnail({ card, href, onClick }: CardThumbnailProps) {
 				size="normal"
 				className="w-full h-full object-cover rounded-[4.75%/3.5%]"
 			/>
-			<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity">
+			<div className="absolute inset-0 bg-gradient-to-t from-black/80 dark:from-black/90 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity">
 				<div className="absolute bottom-0 left-0 right-0 p-3">
 					<p className="text-white font-semibold text-sm line-clamp-2">
 						{card.name}
 					</p>
 					{card.set_name && (
-						<p className="text-gray-300 text-xs mt-1">{card.set_name}</p>
+						<p className="text-gray-200 dark:text-gray-300 text-xs mt-1">
+							{card.set_name}
+						</p>
 					)}
 				</div>
 			</div>

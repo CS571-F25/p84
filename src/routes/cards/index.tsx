@@ -55,10 +55,12 @@ function CardsPage() {
 	}, [searchQuery, navigate]);
 
 	return (
-		<div className="min-h-screen bg-slate-900">
+		<div className="min-h-screen bg-white dark:bg-slate-900">
 			<div className="max-w-7xl mx-auto px-6 py-8">
 				<div className="mb-8">
-					<h1 className="text-4xl font-bold text-white mb-2">Card Browser</h1>
+					<h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+						Card Browser
+					</h1>
 					<MetadataDisplay />
 				</div>
 
@@ -70,7 +72,7 @@ function CardsPage() {
 							placeholder="Search cards..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors"
+							className="w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors"
 						/>
 					</div>
 					{searchQuery && searchResults && searchResults.cards.length > 0 && (
