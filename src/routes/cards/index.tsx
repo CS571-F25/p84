@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useState } from "react";
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/cards/")({
 
 function CardsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
-	const { data: searchResults } = useSuspenseQuery(
+	const { data: searchResults, isFetching } = useQuery(
 		searchCardsQueryOptions(searchQuery),
 	);
 	const { data: metadata } = useSuspenseQuery(getCardsMetadataQueryOptions());
@@ -42,12 +42,13 @@ function CardsPage() {
 							className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors"
 						/>
 					</div>
-					{searchQuery && searchResults.cards.length > 0 && (
+					{searchQuery && searchResults && searchResults.cards.length > 0 && (
 						<p className="text-sm text-gray-400 mt-2">
 							Found {searchResults.cards.length} results for "{searchQuery}"
+							{isFetching && " • Searching..."}
 						</p>
 					)}
-					{searchQuery && searchResults.cards.length === 0 && (
+					{searchQuery && searchResults && searchResults.cards.length === 0 && (
 						<p className="text-sm text-gray-400 mt-2">
 							No results found for "{searchQuery}"
 						</p>
@@ -57,10 +58,15 @@ function CardsPage() {
 							Enter a search query to find cards
 						</p>
 					)}
+					{searchQuery && !searchResults && (
+						<p className="text-sm text-gray-400 mt-2">Searching...</p>
+					)}
 				</div>
 
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-					{searchResults.cards.map((card) => (
+				<div
+					className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 transition-opacity ${isFetching ? "opacity-50" : "opacity-100"}`}
+				>
+					{searchResults?.cards.map((card) => (
 						<CardThumbnail
 							key={card.id}
 							card={card}

@@ -2,7 +2,6 @@
  * Shared TanStack Query definitions
  */
 
-import type { QueryClient } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import { getCardsWorker, initializeWorker } from "./cards-worker-client";
 import type { Card, OracleId, ScryfallId } from "./scryfall-types";
@@ -77,11 +76,3 @@ export const getCardsMetadataQueryOptions = () =>
 		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});
-
-/**
- * Prefetch cards data into the query client
- * Useful for route loaders that want to preload data
- */
-export async function prefetchCards(queryClient: QueryClient) {
-	await queryClient.prefetchQuery(cardsQueryOptions);
-}

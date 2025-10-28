@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { CardImage, CardPreview } from "../../components/CardImage";
@@ -18,7 +18,7 @@ function CardDetailPage() {
 
 	// Validate ID format but don't return early (hooks must be unconditional)
 	const isValidId = isScryfallId(id);
-	const { data } = useSuspenseQuery(
+	const { data, isLoading } = useQuery(
 		getCardWithPrintingsQueryOptions(isValidId ? id : ("" as ScryfallId)),
 	);
 
@@ -26,6 +26,25 @@ function CardDetailPage() {
 		return (
 			<div className="min-h-screen bg-slate-900 flex items-center justify-center">
 				<p className="text-red-400 text-lg">Invalid card ID format</p>
+			</div>
+		);
+	}
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen bg-slate-900">
+				<div className="max-w-7xl mx-auto px-6 py-8">
+					<Link
+						to="/cards"
+						className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6 transition-colors"
+					>
+						<ArrowLeft className="w-4 h-4" />
+						Back to card browser
+					</Link>
+					<div className="flex items-center justify-center py-20">
+						<p className="text-gray-400 text-lg">Loading card...</p>
+					</div>
+				</div>
 			</div>
 		);
 	}
