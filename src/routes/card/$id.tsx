@@ -78,7 +78,7 @@ function CardDetailPage() {
 						<CardImage
 							card={card}
 							size="large"
-							className="rounded-xl shadow-2xl max-w-full h-auto"
+							className="shadow-[0_20px_50px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)] max-w-full h-auto max-h-[80vh] object-contain"
 						/>
 					</div>
 
