@@ -221,11 +221,15 @@ async function processBulkData(): Promise<CardDataOutput> {
 	);
 
 	// Calculate canonical printing for each oracle ID
-	// Priority (most → least important): highres > non-variant > newer > english > non-UB > paper
+	// Priority (most → least important): english > highres > non-variant > non-full-art > non-UB > paper > newer
 	console.log("Calculating canonical printings...");
 
 	function compareCards(a: Card, b: Card): number {
-		// Highres first
+		// English first
+		if (a.lang === "en" && b.lang !== "en") return -1;
+		if (a.lang !== "en" && b.lang === "en") return 1;
+
+		// Highres
 		if (a.highres_image && !b.highres_image) return -1;
 		if (!a.highres_image && b.highres_image) return 1;
 
@@ -233,14 +237,9 @@ async function processBulkData(): Promise<CardDataOutput> {
 		if (!a.variation && b.variation) return -1;
 		if (a.variation && !b.variation) return 1;
 
-		// Newer
-		if (a.released_at && b.released_at && a.released_at !== b.released_at) {
-			return b.released_at.localeCompare(a.released_at);
-		}
-
-		// English
-		if (a.lang === "en" && b.lang !== "en") return -1;
-		if (a.lang !== "en" && b.lang === "en") return 1;
+		// Non-full-art (prefer normal frames)
+		if (!a.full_art && b.full_art) return -1;
+		if (a.full_art && !b.full_art) return 1;
 
 		// Non-Universes Beyond
 		const aUB = a.promo_types?.includes("universesbeyond");
@@ -253,6 +252,11 @@ async function processBulkData(): Promise<CardDataOutput> {
 		const bPaper = b.games?.includes("paper");
 		if (aPaper && !bPaper) return -1;
 		if (!aPaper && bPaper) return 1;
+
+		// Newer
+		if (a.released_at && b.released_at && a.released_at !== b.released_at) {
+			return b.released_at.localeCompare(a.released_at);
+		}
 
 		return 0;
 	}

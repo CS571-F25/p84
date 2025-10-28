@@ -84,10 +84,11 @@ class CardsWorker implements CardsWorkerAPI {
 		this.data = await response.json();
 		this.cardsArray = Object.values(this.data.cards);
 
-		// Build canonical cards array (one per oracle ID)
+		// Build canonical cards array (one per oracle ID, excluding art cards)
 		this.canonicalCards = Object.values(this.data.canonicalPrintingByOracleId)
 			.map((scryfallId) => this.data.cards[scryfallId])
-			.filter((card): card is Card => card !== undefined);
+			.filter((card): card is Card => card !== undefined)
+			.filter((card) => card.layout !== "art_series");
 	}
 
 	getCards(limit?: number): Card[] {
