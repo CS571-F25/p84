@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Loader2, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CardThumbnail } from "@/components/CardImage";
 import {
 	getCardsMetadataQueryOptions,
@@ -12,6 +12,11 @@ import { useDebounce } from "@/lib/useDebounce";
 export const Route = createFileRoute("/cards/")({
 	ssr: false,
 	component: CardsPage,
+	validateSearch: (search: Record<string, unknown>) => {
+		return {
+			q: (search.q as string) || "",
+		};
+	},
 });
 
 function MetadataDisplay() {
@@ -33,11 +38,21 @@ function MetadataDisplay() {
 }
 
 function CardsPage() {
-	const [searchQuery, setSearchQuery] = useState("");
+	const navigate = Route.useNavigate();
+	const search = Route.useSearch();
+	const [searchQuery, setSearchQuery] = useState(search.q || "");
 	const debouncedSearchQuery = useDebounce(searchQuery, 250);
 	const { data: searchResults, isFetching } = useQuery(
 		searchCardsQueryOptions(debouncedSearchQuery),
 	);
+
+	// Update URL immediately on search query change
+	useEffect(() => {
+		navigate({
+			search: { q: searchQuery },
+			replace: true,
+		});
+	}, [searchQuery, navigate]);
 
 	return (
 		<div className="min-h-screen bg-slate-900">
