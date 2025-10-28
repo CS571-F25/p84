@@ -1,27 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { CardImage, CardPreview } from "../../components/CardImage";
-import { ManaCost } from "../../components/ManaCost";
-import { OracleText } from "../../components/OracleText";
-import { getCardWithPrintingsQueryOptions } from "../../lib/queries";
-import type { ScryfallId } from "../../lib/scryfall-types";
-import { isScryfallId } from "../../lib/scryfall-types";
+import { CardImage, CardPreview } from "@/components/CardImage";
+import { ManaCost } from "@/components/ManaCost";
+import { OracleText } from "@/components/OracleText";
+import { getCardWithPrintingsQueryOptions } from "@/lib/queries";
+import type { ScryfallId } from "@/lib/scryfall-types";
+import { isScryfallId } from "@/lib/scryfall-types";
 
-export const Route = createFileRoute("/cards/$oracleId/$scryfallId")({
+export const Route = createFileRoute("/card/$id")({
 	ssr: false,
 	component: CardDetailPage,
 });
 
 function CardDetailPage() {
-	const { oracleId, scryfallId } = Route.useParams();
+	const { id } = Route.useParams();
 
-	// Validate ID format but don't return early (hooks must be unconditional)
-	const isValidId = isScryfallId(scryfallId);
+	const isValidId = isScryfallId(id);
 	const { data, isLoading } = useQuery(
-		getCardWithPrintingsQueryOptions(
-			isValidId ? scryfallId : ("" as ScryfallId),
-		),
+		getCardWithPrintingsQueryOptions(isValidId ? id : ("" as ScryfallId)),
 	);
 
 	if (!isValidId) {
@@ -164,7 +161,7 @@ function CardDetailPage() {
 											cardId={printing.id}
 											name={printing.name}
 											setName={printing.set_name}
-											href={`/cards/${oracleId}/${printing.id}`}
+											href={`/card/${printing.id}`}
 										/>
 									))}
 								</div>

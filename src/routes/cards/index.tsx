@@ -2,11 +2,11 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useState } from "react";
-import { CardThumbnail } from "../../components/CardImage";
+import { CardThumbnail } from "@/components/CardImage";
 import {
 	getCardsMetadataQueryOptions,
 	searchCardsQueryOptions,
-} from "../../lib/queries";
+} from "@/lib/queries";
 
 export const Route = createFileRoute("/cards/")({
 	ssr: false,
@@ -70,7 +70,7 @@ function CardsPage() {
 						<CardThumbnail
 							key={card.id}
 							card={card}
-							href={`/cards/${card.oracle_id}`}
+							href={`/card/${card.id}`}
 						/>
 					))}
 				</div>

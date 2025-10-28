@@ -59,6 +59,8 @@ Router initialization happens in `src/router.tsx`:
 
 TypeScript paths are configured with `@/*` alias pointing to `src/*` (tsconfig.json + vite-tsconfig-paths plugin).
 
+**IMPORTANT**: Prefer `@/*` imports over relative imports (`../..`). This prevents imports from breaking when files are moved and makes refactoring easier. Use `@/components/Foo` instead of `../../components/Foo`.
+
 ### Typelex/Lexicons
 
 - **Source**: `typelex/*.tsp` - TypeSpec definitions for AT Protocol lexicons
