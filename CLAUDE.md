@@ -32,6 +32,7 @@ vitest run <file>      # Run specific test file
 npm run lint           # Lint code
 npm run format         # Format code
 npm run check          # Check both linting and formatting
+npm run typecheck      # Check TypeScript types
 
 # Typelex (schema generation)
 npm run build:typelex  # Compile lexicons from typelex/*.tsp to lexicons/
@@ -110,7 +111,7 @@ These contain important context about project decisions, API details, and toolin
 - **Avoid unnecessary try/catch blocks** - Don't wrap code in try/catch without a specific reason. It's not defensive coding—it's noisy and masks real errors. If a function can return null/undefined, use that instead of throwing. Let exceptions bubble naturally unless you have a specific recovery strategy
 - **Check `typelex/*.tsp` for DeckBelcher data models** - When confused about deck structure or app schemas, read the `.tsp` files. For card data, see `src/lib/scryfall-types.ts`
 - **NEVER use `-f` flag with rm/git/etc without justification** - Force flags suppress errors and can hide problems. Use `rm -r` not `rm -rf`, let commands fail naturally
-- **ALWAYS run `npm run check` before considering work complete** - Verify linting and formatting pass
+- **ALWAYS run `npm run check` and `npm run typecheck` before considering work complete** - Verify linting, formatting, and types pass
 - **NEVER manually fix formatting issues** - Always use `npm run format -- --write` to apply formatting fixes automatically. Manual formatting edits are error-prone and waste time
 - `src/routeTree.gen.ts` is auto-generated - never edit manually
 - `typelex/externals.tsp` is auto-generated from lexicons folder - add external lexicon JSON to trigger regeneration

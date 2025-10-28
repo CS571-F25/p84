@@ -80,8 +80,6 @@ const KEPT_FIELDS = [
 	"content_warning",
 ] as const;
 
-type KeptField = (typeof KEPT_FIELDS)[number];
-
 interface ScryfallCard {
 	id: string;
 	oracle_id: string;
@@ -162,19 +160,20 @@ async function downloadFile(url: string, outputPath: string): Promise<void> {
 }
 
 function filterCard(card: ScryfallCard): Card {
-	const filtered: Card = {
+	const filtered: Record<string, unknown> = {
 		id: asScryfallId(card.id),
 		oracle_id: asOracleId(card.oracle_id),
 		name: card.name,
 	};
 
 	for (const field of KEPT_FIELDS) {
-		if (card[field] !== undefined) {
-			filtered[field] = card[field];
+		const value = card[field];
+		if (value !== undefined && value !== null) {
+			filtered[field] = value;
 		}
 	}
 
-	return filtered;
+	return filtered as Card;
 }
 
 /**

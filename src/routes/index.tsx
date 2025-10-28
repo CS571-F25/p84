@@ -14,6 +14,7 @@ function App() {
 				</p>
 				<Link
 					to="/cards"
+					search={{ q: "" }}
 					className="inline-block px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors"
 				>
 					Browse Cards

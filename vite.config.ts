@@ -17,7 +17,7 @@ const config = defineConfig({
   server: {
     watch: {
       // Exclude large data files from watching
-      ignored: ['**/public/data/**', '**/public/symbols/**', '**/.cache/**'],
+      ignored: ['**/public/data/**', '**/public/symbols/**', '**/.cache/**', '.direnv/**'],
     },
   },
 })

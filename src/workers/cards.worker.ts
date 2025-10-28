@@ -21,11 +21,6 @@ interface CardsWorkerAPI {
 	initialize(): Promise<void>;
 
 	/**
-	 * Get all cards (up to limit)
-	 */
-	getCards(limit?: number): Card[];
-
-	/**
 	 * Search cards by name
 	 */
 	searchCards(query: string, limit?: number): Card[];
@@ -65,17 +60,8 @@ interface CardsWorkerAPI {
 
 class CardsWorker implements CardsWorkerAPI {
 	private data: CardDataOutput | null = null;
-	private cardsArray: Card[] = [];
 	private canonicalCards: Card[] = [];
 	private searchIndex: MiniSearch<Card> | null = null;
-
-	private ensureInitialized(): asserts this is this & {
-		data: CardDataOutput;
-	} {
-		if (!this.data) {
-			throw new Error("Worker not initialized - call initialize() first");
-		}
-	}
 
 	async initialize(): Promise<void> {
 		// Prevent re-initialization in SharedWorker mode (shared across tabs)
@@ -90,12 +76,12 @@ class CardsWorker implements CardsWorkerAPI {
 			throw new Error("Failed to load card data");
 		}
 
-		this.data = await response.json();
-		this.cardsArray = Object.values(this.data.cards);
+		const data: CardDataOutput = await response.json();
+		this.data = data;
 
 		// Build canonical cards array (one per oracle ID, excluding art cards)
-		this.canonicalCards = Object.values(this.data.canonicalPrintingByOracleId)
-			.map((scryfallId) => this.data.cards[scryfallId])
+		this.canonicalCards = Object.values(data.canonicalPrintingByOracleId)
+			.map((scryfallId) => data.cards[scryfallId])
 			.filter((card): card is Card => card !== undefined)
 			.filter((card) => card.layout !== "art_series");
 
@@ -118,20 +104,13 @@ class CardsWorker implements CardsWorkerAPI {
 		this.searchIndex.addAll(this.canonicalCards);
 
 		console.log(
-			`[CardsWorker] Initialized: ${this.data.cardCount.toLocaleString()} cards, ${this.canonicalCards.length.toLocaleString()} unique`,
+			`[CardsWorker] Initialized: ${data.cardCount.toLocaleString()} cards, ${this.canonicalCards.length.toLocaleString()} unique`,
 		);
 	}
 
-	getCards(limit?: number): Card[] {
-		this.ensureInitialized();
-		return limit ? this.cardsArray.slice(0, limit) : this.cardsArray;
-	}
-
 	searchCards(query: string, limit = 100): Card[] {
-		this.ensureInitialized();
-
-		if (!this.searchIndex) {
-			throw new Error("Search index not initialized");
+		if (!this.data || !this.searchIndex) {
+			throw new Error("Worker not initialized - call initialize() first");
 		}
 
 		// Empty query returns no results
@@ -143,24 +122,31 @@ class CardsWorker implements CardsWorkerAPI {
 		const results = this.searchIndex.search(query);
 
 		// Map search results back to full Card objects and limit
+		const data = this.data;
 		return results
-			.map((result) => this.data.cards[result.id as ScryfallId])
+			.map((result) => data.cards[result.id as ScryfallId])
 			.filter((card): card is Card => card !== undefined)
 			.slice(0, limit);
 	}
 
 	getCardById(id: ScryfallId): Card | undefined {
-		this.ensureInitialized();
+		if (!this.data) {
+			throw new Error("Worker not initialized - call initialize() first");
+		}
 		return this.data.cards[id];
 	}
 
 	getPrintingsByOracleId(oracleId: OracleId): ScryfallId[] {
-		this.ensureInitialized();
+		if (!this.data) {
+			throw new Error("Worker not initialized - call initialize() first");
+		}
 		return this.data.oracleIdToPrintings[oracleId] ?? [];
 	}
 
 	getMetadata(): { version: string; cardCount: number } {
-		this.ensureInitialized();
+		if (!this.data) {
+			throw new Error("Worker not initialized - call initialize() first");
+		}
 		return {
 			version: this.data.version,
 			cardCount: this.data.cardCount,
@@ -168,7 +154,9 @@ class CardsWorker implements CardsWorkerAPI {
 	}
 
 	getCanonicalPrinting(oracleId: OracleId): ScryfallId | undefined {
-		this.ensureInitialized();
+		if (!this.data) {
+			throw new Error("Worker not initialized - call initialize() first");
+		}
 		return this.data.canonicalPrintingByOracleId[oracleId];
 	}
 
@@ -180,7 +168,9 @@ class CardsWorker implements CardsWorkerAPI {
 			set_name?: string;
 		}>;
 	} | null {
-		this.ensureInitialized();
+		if (!this.data) {
+			throw new Error("Worker not initialized - call initialize() first");
+		}
 
 		const card = this.data.cards[id];
 		if (!card) return null;
@@ -188,9 +178,10 @@ class CardsWorker implements CardsWorkerAPI {
 		const allPrintingIds = this.data.oracleIdToPrintings[card.oracle_id] ?? [];
 		const otherPrintingIds = allPrintingIds.filter((printId) => printId !== id);
 
+		const data = this.data;
 		const otherPrintings = otherPrintingIds
 			.map((printId) => {
-				const printing = this.data.cards[printId];
+				const printing = data.cards[printId];
 				if (!printing) return null;
 				return {
 					id: printing.id,
@@ -213,7 +204,9 @@ const worker = new CardsWorker();
 if ("SharedWorkerGlobalScope" in self) {
 	// SharedWorker mode - handle multiple connections
 	console.log("[CardsWorker] Running in SharedWorker mode");
-	self.onconnect = (e: MessageEvent) => {
+	(self as unknown as { onconnect: (e: MessageEvent) => void }).onconnect = (
+		e: MessageEvent,
+	) => {
 		const port = e.ports[0];
 		console.log("[CardsWorker] New tab connected");
 		Comlink.expose(worker, port);

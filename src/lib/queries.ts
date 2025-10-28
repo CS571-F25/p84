@@ -86,7 +86,8 @@ export const getCanonicalPrintingQueryOptions = (oracleId: OracleId) =>
 		queryFn: async (): Promise<ScryfallId | null> => {
 			await initializeWorker();
 			const worker = getCardsWorker();
-			return worker.getCanonicalPrinting(oracleId) ?? null;
+			const result = await worker.getCanonicalPrinting(oracleId);
+			return result ?? null;
 		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});

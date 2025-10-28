@@ -11,6 +11,7 @@
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
+    "typecheck": "tsc --noEmit",
     "build:typelex": "typelex compile com.deckbelcher.*",
     "download:scryfall": "node --experimental-strip-types scripts/download-scryfall.ts"
   },
