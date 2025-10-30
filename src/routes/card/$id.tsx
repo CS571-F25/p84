@@ -8,7 +8,6 @@ import type { ScryfallId } from "@/lib/scryfall-types";
 import { isScryfallId } from "@/lib/scryfall-types";
 
 export const Route = createFileRoute("/card/$id")({
-	ssr: false,
 	component: CardDetailPage,
 });
 

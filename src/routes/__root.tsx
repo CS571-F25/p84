@@ -57,7 +57,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en">
+		// suppressHydrationWarning: blocking script adds theme class before hydration,
+		// so className will differ between server (no class) and client (has dark/light)
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 				{/* Blocking script to set theme class before React hydrates - prevents flash */}
