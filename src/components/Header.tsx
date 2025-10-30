@@ -1,31 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import {
-	Home,
-	Library,
-	LogIn,
-	LogOut,
-	Menu,
-	Moon,
-	Sun,
-	User,
-	X,
-} from "lucide-react";
+import { Home, Library, LogIn, Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
-import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { useAuth } from "@/lib/useAuth";
 import { useTheme } from "@/lib/useTheme";
+import UserMenu from "./UserMenu";
 
 export default function Header() {
 	const [isOpen, setIsOpen] = useState(false);
 	const { theme, toggleTheme } = useTheme();
-	const { session, signOut, isLoading } = useAuth();
-
-	const { data: handle } = useQuery({
-		...didDocumentQueryOptions(session?.info.sub),
-		enabled: !!session,
-		select: extractHandle,
-	});
+	const { session, isLoading } = useAuth();
 
 	return (
 		<>
@@ -46,22 +29,7 @@ export default function Header() {
 				<div className="flex items-center gap-2">
 					{!isLoading &&
 						(session ? (
-							<div className="flex items-center gap-2">
-								<div className="flex items-center gap-2 px-3 py-2 bg-gray-700 dark:bg-gray-800 rounded-lg">
-									<User size={16} />
-									<span className="text-sm">
-										{handle ? `@${handle}` : session.info.sub}
-									</span>
-								</div>
-								<button
-									type="button"
-									onClick={() => signOut()}
-									className="p-2 hover:bg-gray-700 dark:hover:bg-gray-800 rounded-lg transition-colors"
-									aria-label="Sign out"
-								>
-									<LogOut size={20} />
-								</button>
-							</div>
+							<UserMenu />
 						) : (
 							<Link
 								to="/signin"

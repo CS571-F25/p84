@@ -48,10 +48,11 @@ function SignIn() {
 				</p>
 
 				<div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-					<p className="text-sm text-gray-700 dark:text-gray-300">
-						For example, if you have a Bluesky account, enter the handle of that account!
-						You'll use that same identity and handle on Deckbelcher.
-						Bluesky and Deckbelcher are both built on AT Protocol—there's a whole Atmosphere of other apps that can interact.
+					<p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+						For example, if you have a Bluesky account, enter the handle of that
+						account! You'll use that same identity and handle on Deckbelcher.
+						Bluesky and Deckbelcher are both built on AT Protocol—there's a
+						whole Atmosphere of other apps that can interact.
 					</p>
 				</div>
 
