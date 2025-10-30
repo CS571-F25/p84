@@ -9,14 +9,21 @@ export const Route = createFileRoute("/signin")({
 
 function SignIn() {
 	const [handle, setHandle] = useState("");
+	const [isLoading, setIsLoading] = useState(false);
 	const { signIn, session } = useAuth();
 	const navigate = useNavigate();
 	const handleId = useId();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (handle.trim()) {
-			await signIn(handle.trim());
+		if (handle.trim() && !isLoading) {
+			setIsLoading(true);
+			try {
+				await signIn(handle.trim());
+			} catch (error) {
+				console.error("Sign in error:", error);
+				setIsLoading(false);
+			}
 		}
 	};
 
@@ -37,14 +44,21 @@ function SignIn() {
 					Sign In
 				</h1>
 				<p className="text-gray-600 dark:text-gray-400 text-center mb-8">
-					Sign in with your Bluesky account to continue
+					Sign in with your AT Protocol account to continue
 				</p>
+
+				<div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+					<p className="text-sm text-gray-700 dark:text-gray-300">
+						{/* User will add blurb here */}
+					</p>
+				</div>
+
 				<form onSubmit={handleSubmit}>
 					<label
 						htmlFor={handleId}
 						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
 					>
-						Bluesky Handle
+						Handle
 					</label>
 					<input
 						id={handleId}
@@ -52,14 +66,23 @@ function SignIn() {
 						value={handle}
 						onChange={(e) => setHandle(e.target.value)}
 						placeholder="alice.bsky.social"
-						className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-600 mb-6"
+						className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-600 mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
+						disabled={isLoading}
 						required
 					/>
 					<button
 						type="submit"
-						className="w-full px-4 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-medium text-lg"
+						disabled={isLoading}
+						className="w-full px-4 py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium text-lg flex items-center justify-center gap-2"
 					>
-						Continue
+						{isLoading ? (
+							<>
+								<div className="inline-block h-5 w-5 animate-spin rounded-full border-3 border-solid border-white border-r-transparent" />
+								<span>Signing in...</span>
+							</>
+						) : (
+							"Continue"
+						)}
 					</button>
 				</form>
 			</div>

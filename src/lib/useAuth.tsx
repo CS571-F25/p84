@@ -14,6 +14,8 @@ import {
 } from "react";
 import { initializeOAuth } from "./oauth-config";
 
+initializeOAuth();
+
 const STORAGE_KEY = "deckbelcher:last-did";
 
 interface AuthContextValue {
@@ -33,8 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		initializeOAuth();
-
 		const restoreSession = async () => {
 			try {
 				const lastDid = localStorage.getItem(STORAGE_KEY);

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
 	Home,
@@ -11,6 +12,7 @@ import {
 	X,
 } from "lucide-react";
 import { useState } from "react";
+import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { useAuth } from "@/lib/useAuth";
 import { useTheme } from "@/lib/useTheme";
 
@@ -18,6 +20,12 @@ export default function Header() {
 	const [isOpen, setIsOpen] = useState(false);
 	const { theme, toggleTheme } = useTheme();
 	const { session, signOut, isLoading } = useAuth();
+
+	const { data: handle } = useQuery({
+		...didDocumentQueryOptions(session?.info.sub),
+		enabled: !!session,
+		select: extractHandle,
+	});
 
 	return (
 		<>
@@ -41,7 +49,9 @@ export default function Header() {
 							<div className="flex items-center gap-2">
 								<div className="flex items-center gap-2 px-3 py-2 bg-gray-700 dark:bg-gray-800 rounded-lg">
 									<User size={16} />
-									<span className="text-sm">{session.info.sub}</span>
+									<span className="text-sm">
+										{handle ? `@${handle}` : session.info.sub}
+									</span>
 								</div>
 								<button
 									type="button"
