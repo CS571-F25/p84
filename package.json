@@ -16,6 +16,7 @@
     "download:scryfall": "node --experimental-strip-types scripts/download-scryfall.ts"
   },
   "dependencies": {
+    "@atcute/bluesky": "^3.2.8",
     "@atcute/client": "^4.0.5",
     "@atcute/identity-resolver": "^1.1.4",
     "@atcute/oauth-browser-client": "^2.0.1",

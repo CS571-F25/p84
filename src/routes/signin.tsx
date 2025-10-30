@@ -1,6 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LogIn } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { searchActorsQueryOptions } from "@/lib/actor-search";
 import { useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/signin")({
@@ -10,9 +12,97 @@ export const Route = createFileRoute("/signin")({
 function SignIn() {
 	const [handle, setHandle] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+	const [debouncedQuery, setDebouncedQuery] = useState("");
+	const [isFocused, setIsFocused] = useState(false);
+	const [selectedIndex, setSelectedIndex] = useState(-1);
 	const { signIn, session } = useAuth();
 	const navigate = useNavigate();
 	const handleId = useId();
+	const listboxId = useId();
+	const dropdownRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
+	const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+	// Debounce the search query
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setDebouncedQuery(handle);
+		}, 150);
+		return () => clearTimeout(timer);
+	}, [handle]);
+
+	const { data: results = [], isFetching } = useQuery({
+		...searchActorsQueryOptions(debouncedQuery),
+		enabled: debouncedQuery.length >= 2 && isFocused,
+	});
+
+	const showDropdown =
+		isFocused && debouncedQuery.length >= 2 && results.length > 0;
+
+	// Scroll selected option into view
+	useEffect(() => {
+		if (selectedIndex >= 0 && optionRefs.current[selectedIndex]) {
+			optionRefs.current[selectedIndex]?.scrollIntoView({
+				block: "nearest",
+				behavior: "smooth",
+			});
+		}
+	}, [selectedIndex]);
+
+	// Click outside handler
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				dropdownRef.current &&
+				!dropdownRef.current.contains(event.target as Node) &&
+				inputRef.current &&
+				!inputRef.current.contains(event.target as Node)
+			) {
+				setIsFocused(false);
+			}
+		};
+
+		if (isFocused) {
+			document.addEventListener("mousedown", handleClickOutside);
+			return () =>
+				document.removeEventListener("mousedown", handleClickOutside);
+		}
+	}, [isFocused]);
+
+	const selectResult = (selectedHandle: string) => {
+		setHandle(selectedHandle);
+		setIsFocused(false);
+		setSelectedIndex(-1);
+		inputRef.current?.focus();
+	};
+
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (!showDropdown) return;
+
+		switch (e.key) {
+			case "ArrowDown":
+				e.preventDefault();
+				setSelectedIndex((prev) =>
+					prev < results.length - 1 ? prev + 1 : prev,
+				);
+				break;
+			case "ArrowUp":
+				e.preventDefault();
+				setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
+				break;
+			case "Enter":
+				if (selectedIndex >= 0) {
+					e.preventDefault();
+					selectResult(results[selectedIndex].handle);
+				}
+				break;
+			case "Escape":
+				e.preventDefault();
+				setIsFocused(false);
+				setSelectedIndex(-1);
+				break;
+		}
+	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -63,16 +153,88 @@ function SignIn() {
 					>
 						Handle
 					</label>
-					<input
-						id={handleId}
-						type="text"
-						value={handle}
-						onChange={(e) => setHandle(e.target.value)}
-						placeholder="alice.bsky.social"
-						className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-600 mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
-						disabled={isLoading}
-						required
-					/>
+					<div className="relative mb-6">
+						<input
+							ref={inputRef}
+							id={handleId}
+							type="text"
+							value={handle}
+							onChange={(e) => {
+								setHandle(e.target.value);
+								setSelectedIndex(-1);
+							}}
+							onFocus={() => setIsFocused(true)}
+							onKeyDown={handleKeyDown}
+							placeholder="alice.bsky.social"
+							className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed"
+							disabled={isLoading}
+							required
+							role="combobox"
+							aria-autocomplete="list"
+							aria-expanded={showDropdown}
+							aria-controls={showDropdown ? listboxId : undefined}
+							aria-activedescendant={
+								selectedIndex >= 0 ? `${listboxId}-${selectedIndex}` : undefined
+							}
+						/>
+						{showDropdown && (
+							<div
+								ref={dropdownRef}
+								id={listboxId}
+								role="listbox"
+								aria-labelledby={handleId}
+								className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+							>
+								{results.map((result, index) => (
+									<button
+										key={result.did}
+										ref={(el) => {
+											optionRefs.current[index] = el;
+										}}
+										type="button"
+										id={`${listboxId}-${index}`}
+										role="option"
+										aria-selected={index === selectedIndex}
+										onClick={() => selectResult(result.handle)}
+										className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+											index === selectedIndex
+												? "bg-cyan-100 dark:bg-cyan-900/30"
+												: ""
+										}`}
+									>
+										{result.avatar ? (
+											<img
+												src={result.avatar}
+												alt=""
+												className="w-10 h-10 rounded-full"
+											/>
+										) : (
+											<div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600" />
+										)}
+										<div className="flex-1 min-w-0">
+											{result.displayName && (
+												<div className="font-medium text-gray-900 dark:text-white truncate">
+													{result.displayName}
+												</div>
+											)}
+											<div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+												@{result.handle}
+											</div>
+										</div>
+									</button>
+								))}
+							</div>
+						)}
+						{isFetching && debouncedQuery.length >= 2 && (
+							<div className="absolute right-3 top-3">
+								<div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-solid border-cyan-600 border-r-transparent" />
+							</div>
+						)}
+						<output className="sr-only" aria-live="polite">
+							{showDropdown &&
+								`${results.length} ${results.length === 1 ? "result" : "results"} available`}
+						</output>
+					</div>
 					<button
 						type="submit"
 						disabled={isLoading}
