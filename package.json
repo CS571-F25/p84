@@ -16,6 +16,9 @@
     "download:scryfall": "node --experimental-strip-types scripts/download-scryfall.ts"
   },
   "dependencies": {
+    "@atcute/client": "^4.0.5",
+    "@atcute/identity-resolver": "^1.1.4",
+    "@atcute/oauth-browser-client": "^2.0.1",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-devtools": "^0.7.0",
     "@tanstack/react-query": "^5.66.5",

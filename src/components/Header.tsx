@@ -1,11 +1,23 @@
 import { Link } from "@tanstack/react-router";
-import { Home, Library, Menu, Moon, Sun, X } from "lucide-react";
+import {
+	Home,
+	Library,
+	LogIn,
+	LogOut,
+	Menu,
+	Moon,
+	Sun,
+	User,
+	X,
+} from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/lib/useAuth";
 import { useTheme } from "@/lib/useTheme";
 
 export default function Header() {
 	const [isOpen, setIsOpen] = useState(false);
 	const { theme, toggleTheme } = useTheme();
+	const { session, signOut, isLoading } = useAuth();
 
 	return (
 		<>
@@ -23,14 +35,41 @@ export default function Header() {
 						<Link to="/">DeckBelcher</Link>
 					</h1>
 				</div>
-				<button
-					type="button"
-					onClick={toggleTheme}
-					className="p-2 hover:bg-gray-700 dark:hover:bg-gray-800 rounded-lg transition-colors"
-					aria-label="Toggle theme"
-				>
-					{theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-				</button>
+				<div className="flex items-center gap-2">
+					{!isLoading &&
+						(session ? (
+							<div className="flex items-center gap-2">
+								<div className="flex items-center gap-2 px-3 py-2 bg-gray-700 dark:bg-gray-800 rounded-lg">
+									<User size={16} />
+									<span className="text-sm">{session.info.sub}</span>
+								</div>
+								<button
+									type="button"
+									onClick={() => signOut()}
+									className="p-2 hover:bg-gray-700 dark:hover:bg-gray-800 rounded-lg transition-colors"
+									aria-label="Sign out"
+								>
+									<LogOut size={20} />
+								</button>
+							</div>
+						) : (
+							<Link
+								to="/signin"
+								className="flex items-center gap-2 px-3 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
+							>
+								<LogIn size={16} />
+								<span className="text-sm font-medium">Sign In</span>
+							</Link>
+						))}
+					<button
+						type="button"
+						onClick={toggleTheme}
+						className="p-2 hover:bg-gray-700 dark:hover:bg-gray-800 rounded-lg transition-colors"
+						aria-label="Toggle theme"
+					>
+						{theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+					</button>
+				</div>
 			</header>
 
 			<aside

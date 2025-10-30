@@ -9,10 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SigninRouteImport } from './routes/signin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CardsIndexRouteImport } from './routes/cards/index'
+import { Route as OauthCallbackRouteImport } from './routes/oauth/callback'
 import { Route as CardIdRouteImport } from './routes/card/$id'
 
+const SigninRoute = SigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -23,6 +30,11 @@ const CardsIndexRoute = CardsIndexRouteImport.update({
   path: '/cards/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OauthCallbackRoute = OauthCallbackRouteImport.update({
+  id: '/oauth/callback',
+  path: '/oauth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CardIdRoute = CardIdRouteImport.update({
   id: '/card/$id',
   path: '/card/$id',
@@ -31,36 +43,51 @@ const CardIdRoute = CardIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
+  '/oauth/callback': typeof OauthCallbackRoute
   '/cards': typeof CardsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
+  '/oauth/callback': typeof OauthCallbackRoute
   '/cards': typeof CardsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
+  '/oauth/callback': typeof OauthCallbackRoute
   '/cards/': typeof CardsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/card/$id' | '/cards'
+  fullPaths: '/' | '/signin' | '/card/$id' | '/oauth/callback' | '/cards'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/card/$id' | '/cards'
-  id: '__root__' | '/' | '/card/$id' | '/cards/'
+  to: '/' | '/signin' | '/card/$id' | '/oauth/callback' | '/cards'
+  id: '__root__' | '/' | '/signin' | '/card/$id' | '/oauth/callback' | '/cards/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SigninRoute: typeof SigninRoute
   CardIdRoute: typeof CardIdRoute
+  OauthCallbackRoute: typeof OauthCallbackRoute
   CardsIndexRoute: typeof CardsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -75,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CardsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/oauth/callback': {
+      id: '/oauth/callback'
+      path: '/oauth/callback'
+      fullPath: '/oauth/callback'
+      preLoaderRoute: typeof OauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/card/$id': {
       id: '/card/$id'
       path: '/card/$id'
@@ -87,7 +121,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SigninRoute: SigninRoute,
   CardIdRoute: CardIdRoute,
+  OauthCallbackRoute: OauthCallbackRoute,
   CardsIndexRoute: CardsIndexRoute,
 }
 export const routeTree = rootRouteImport
