@@ -12,6 +12,7 @@ function OAuthCallback() {
 	const navigate = useNavigate();
 	const { setAuthSession } = useAuth();
 	const [error, setError] = useState<string | null>(null);
+	const [isCancellation, setIsCancellation] = useState(false);
 	const hasProcessedRef = useRef(false);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: only run once on mount to prevent infinite loop
@@ -31,6 +32,24 @@ function OAuthCallback() {
 		const handleCallback = async () => {
 			try {
 				const params = new URLSearchParams(location.hash.slice(1));
+
+				// Check for OAuth errors (e.g., user denied access)
+				if (params.has("error")) {
+					const error = params.get("error");
+					const errorDescription = params.get("error_description");
+
+					if (error === "access_denied") {
+						setIsCancellation(true);
+						setError("You cancelled the sign in request.");
+					} else {
+						setError(
+							errorDescription ||
+								`Authentication failed: ${error}` ||
+								"An error occurred during sign in",
+						);
+					}
+					return;
+				}
 
 				if (!params.has("state") || !params.has("code")) {
 					setError(
@@ -59,12 +78,32 @@ function OAuthCallback() {
 	}, []);
 
 	if (error) {
+		const colorClasses = isCancellation
+			? {
+					border: "border-blue-300 dark:border-blue-800",
+					headerBg: "bg-blue-50 dark:bg-blue-900/20",
+					headerBorder: "border-blue-200 dark:border-blue-800",
+					headerText: "text-blue-700 dark:text-blue-400",
+					title: "Sign In Cancelled",
+				}
+			: {
+					border: "border-red-300 dark:border-red-800",
+					headerBg: "bg-red-50 dark:bg-red-900/20",
+					headerBorder: "border-red-200 dark:border-red-800",
+					headerText: "text-red-700 dark:text-red-400",
+					title: "Sign In Failed",
+				};
+
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900 p-4">
-				<div className="max-w-md w-full bg-white dark:bg-slate-800 border border-red-300 dark:border-red-800 rounded-lg shadow-lg overflow-hidden">
-					<div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 p-6">
-						<h1 className="text-2xl font-bold text-red-700 dark:text-red-400">
-							Sign In Failed
+				<div
+					className={`max-w-md w-full bg-white dark:bg-slate-800 ${colorClasses.border} rounded-lg shadow-lg overflow-hidden`}
+				>
+					<div
+						className={`${colorClasses.headerBg} border-b ${colorClasses.headerBorder} p-6`}
+					>
+						<h1 className={`text-2xl font-bold ${colorClasses.headerText}`}>
+							{colorClasses.title}
 						</h1>
 					</div>
 					<div className="p-6">
