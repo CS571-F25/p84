@@ -12,9 +12,6 @@ import {
 	useEffect,
 	useState,
 } from "react";
-import { initializeOAuth } from "./oauth-config";
-
-initializeOAuth();
 
 const STORAGE_KEY = "deckbelcher:last-did";
 
