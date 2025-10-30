@@ -8,6 +8,16 @@ import type { ScryfallId } from "@/lib/scryfall-types";
 import { isScryfallId } from "@/lib/scryfall-types";
 
 export const Route = createFileRoute("/card/$id")({
+	loader: async ({ context, params }) => {
+		// Validate ID format
+		if (!isScryfallId(params.id)) {
+			return null;
+		}
+
+		// Prefetch card data during SSR
+		const queryOptions = getCardWithPrintingsQueryOptions(params.id);
+		await context.queryClient.ensureQueryData(queryOptions);
+	},
 	component: CardDetailPage,
 });
 

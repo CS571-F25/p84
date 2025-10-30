@@ -9,7 +9,11 @@
  * - mana symbol SVGs
  *
  * Outputs:
- * - public/data/cards.json - filtered card data with indexes
+ * - public/data/cards.json - filtered card data with indexes (for client worker)
+ * - public/data/by-id/{id}.json - individual cards (for SSR lookups)
+ * - public/data/by-oracle/{oracleId}.json - printing lists (for SSR)
+ * - public/data/canonical/{oracleId}.json - canonical printing IDs (for SSR)
+ * - public/data/metadata.json - version and count info
  * - public/data/migrations.json - ID migration mappings
  * - public/symbols/*.svg - mana symbol images
  */
@@ -341,7 +345,7 @@ async function processBulkData(): Promise<CardDataOutput> {
 		canonicalPrintingByOracleId,
 	};
 
-	// Write output
+	// Write main cards.json (for client worker)
 	await mkdir(OUTPUT_DIR, { recursive: true });
 	const outputPath = join(OUTPUT_DIR, "cards.json");
 	await writeFile(outputPath, JSON.stringify(output));
@@ -350,7 +354,68 @@ async function processBulkData(): Promise<CardDataOutput> {
 	const stats = await stat(outputPath);
 	console.log(`Output size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
 
+	// Write individual card files for SSR
+	console.log("Writing individual card files for SSR...");
+	await writeSSRAssets(output);
+
 	return output;
+}
+
+/**
+ * Write individual card files and indexes for SSR access
+ */
+async function writeSSRAssets(data: CardDataOutput): Promise<void> {
+	// Create directories
+	const byIdDir = join(OUTPUT_DIR, "by-id");
+	const byOracleDir = join(OUTPUT_DIR, "by-oracle");
+	const canonicalDir = join(OUTPUT_DIR, "canonical");
+
+	await Promise.all([
+		mkdir(byIdDir, { recursive: true }),
+		mkdir(byOracleDir, { recursive: true }),
+		mkdir(canonicalDir, { recursive: true }),
+	]);
+
+	// Write metadata (separate file so SSR doesn't need to load cards.json)
+	const metadata = {
+		version: data.version,
+		cardCount: data.cardCount,
+	};
+	await writeFile(
+		join(OUTPUT_DIR, "metadata.json"),
+		JSON.stringify(metadata),
+	);
+	console.log(`Wrote metadata to: ${join(OUTPUT_DIR, "metadata.json")}`);
+
+	// Write individual card files
+	console.log(`Writing ${Object.keys(data.cards).length} individual card files...`);
+	const cardWrites = Object.entries(data.cards).map(([id, card]) => {
+		const cardPath = join(byIdDir, `${id}.json`);
+		return writeFile(cardPath, JSON.stringify(card));
+	});
+
+	// Write oracle ID to printings mappings
+	console.log(`Writing ${Object.keys(data.oracleIdToPrintings).length} oracle printing lists...`);
+	const oracleWrites = Object.entries(data.oracleIdToPrintings).map(
+		([oracleId, printings]) => {
+			const oraclePath = join(byOracleDir, `${oracleId}.json`);
+			return writeFile(oraclePath, JSON.stringify(printings));
+		},
+	);
+
+	// Write canonical printing IDs
+	console.log(`Writing ${Object.keys(data.canonicalPrintingByOracleId).length} canonical mappings...`);
+	const canonicalWrites = Object.entries(data.canonicalPrintingByOracleId).map(
+		([oracleId, scryfallId]) => {
+			const canonicalPath = join(canonicalDir, `${oracleId}.json`);
+			return writeFile(canonicalPath, JSON.stringify({ id: scryfallId }));
+		},
+	);
+
+	// Execute all writes in parallel
+	await Promise.all([...cardWrites, ...oracleWrites, ...canonicalWrites]);
+
+	console.log("✓ SSR assets written successfully");
 }
 
 async function processMigrations(): Promise<MigrationMap> {

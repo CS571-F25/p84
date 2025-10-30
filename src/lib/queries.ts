@@ -3,7 +3,7 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
-import { getCardsWorker, initializeWorker } from "./cards-worker-client";
+import { getCardDataProvider } from "./card-data-provider";
 import type { Card, OracleId, ScryfallId } from "./scryfall-types";
 
 /**
@@ -13,16 +13,20 @@ export const searchCardsQueryOptions = (query: string) =>
 	queryOptions({
 		queryKey: ["cards", "search", query] as const,
 		queryFn: async (): Promise<{ cards: Card[]; totalCount: number }> => {
-			await initializeWorker();
-			const worker = getCardsWorker();
+			const provider = await getCardDataProvider();
 
 			if (!query.trim()) {
 				// No search query - return empty results
 				return { cards: [], totalCount: 0 };
 			}
 
-			const cards = await worker.searchCards(query, 50);
-			const metadata = await worker.getMetadata();
+			// Search may not be available on all providers (e.g., server-side)
+			if (!provider.searchCards) {
+				return { cards: [], totalCount: 0 };
+			}
+
+			const cards = await provider.searchCards(query, 50);
+			const metadata = await provider.getMetadata();
 
 			return {
 				cards,
@@ -39,11 +43,8 @@ export const getCardWithPrintingsQueryOptions = (id: ScryfallId) =>
 	queryOptions({
 		queryKey: ["cards", "withPrintings", id] as const,
 		queryFn: async () => {
-			await initializeWorker();
-			const worker = getCardsWorker();
-
-			const result = await worker.getCardWithPrintings(id);
-			return result;
+			const provider = await getCardDataProvider();
+			return provider.getCardWithPrintings(id);
 		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});
@@ -55,10 +56,8 @@ export const getCardPrintingsQueryOptions = (oracleId: OracleId) =>
 	queryOptions({
 		queryKey: ["cards", "printings", oracleId] as const,
 		queryFn: async (): Promise<ScryfallId[]> => {
-			await initializeWorker();
-			const worker = getCardsWorker();
-
-			return worker.getPrintingsByOracleId(oracleId);
+			const provider = await getCardDataProvider();
+			return provider.getPrintingsByOracleId(oracleId);
 		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});
@@ -70,9 +69,8 @@ export const getCardsMetadataQueryOptions = () =>
 	queryOptions({
 		queryKey: ["cards", "metadata"] as const,
 		queryFn: async () => {
-			await initializeWorker();
-			const worker = getCardsWorker();
-			return worker.getMetadata();
+			const provider = await getCardDataProvider();
+			return provider.getMetadata();
 		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});
@@ -84,9 +82,8 @@ export const getCanonicalPrintingQueryOptions = (oracleId: OracleId) =>
 	queryOptions({
 		queryKey: ["cards", "canonical", oracleId] as const,
 		queryFn: async (): Promise<ScryfallId | null> => {
-			await initializeWorker();
-			const worker = getCardsWorker();
-			const result = await worker.getCanonicalPrinting(oracleId);
+			const provider = await getCardDataProvider();
+			const result = await provider.getCanonicalPrinting(oracleId);
 			return result ?? null;
 		},
 		staleTime: Number.POSITIVE_INFINITY,
