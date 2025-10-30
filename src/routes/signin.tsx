@@ -37,7 +37,13 @@ function SignIn() {
 	});
 
 	const showDropdown =
-		isFocused && debouncedQuery.length >= 2 && results.length > 0;
+		isFocused &&
+		debouncedQuery.length >= 2 &&
+		results.length > 0 &&
+		!(
+			results.length === 1 &&
+			results[0].handle.toLowerCase() === handle.toLowerCase().trim()
+		);
 
 	// Scroll selected option into view
 	useEffect(() => {
@@ -123,7 +129,7 @@ function SignIn() {
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900 p-4">
+		<div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 px-4 py-8">
 			<div className="max-w-md w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg p-8">
 				<div className="flex items-center justify-center mb-6">
 					<div className="p-3 bg-cyan-600 rounded-full">
@@ -136,15 +142,6 @@ function SignIn() {
 				<p className="text-gray-600 dark:text-gray-400 text-center mb-8">
 					Sign in with an Atmosphere account to continue
 				</p>
-
-				<div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-					<p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-						For example, if you have a Bluesky account, enter the handle of that
-						account! You'll use that same identity and handle on Deckbelcher.
-						Bluesky and Deckbelcher are both built on AT Protocol—there's a
-						whole Atmosphere of other apps that can interact.
-					</p>
-				</div>
 
 				<form onSubmit={handleSubmit}>
 					<label
@@ -250,6 +247,17 @@ function SignIn() {
 						)}
 					</button>
 				</form>
+			</div>
+
+			<div className="max-w-md w-full mt-6">
+				<div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+					<p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+						For example, if you have a Bluesky account, enter the handle of that
+						account! You'll use that same identity and handle on Deckbelcher.
+						Bluesky and Deckbelcher are both built on AT Protocol—there's a
+						whole Atmosphere of other apps that can interact.
+					</p>
+				</div>
 			</div>
 		</div>
 	);
