@@ -44,12 +44,14 @@ function SignIn() {
 					Sign In
 				</h1>
 				<p className="text-gray-600 dark:text-gray-400 text-center mb-8">
-					Sign in with your AT Protocol account to continue
+					Sign in with an Atmosphere account to continue
 				</p>
 
 				<div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
 					<p className="text-sm text-gray-700 dark:text-gray-300">
-						{/* User will add blurb here */}
+						For example, if you have a Bluesky account, enter the handle of that account!
+						You'll use that same identity and handle on Deckbelcher.
+						Bluesky and Deckbelcher are both built on AT Protocol—there's a whole Atmosphere of other apps that can interact.
 					</p>
 				</div>
 
