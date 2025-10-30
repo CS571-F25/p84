@@ -9,7 +9,7 @@ import {
 type Theme = "light" | "dark";
 
 interface ThemeContextValue {
-	theme: Theme;
+	theme: Theme | undefined;
 	setTheme: (theme: Theme) => void;
 	toggleTheme: () => void;
 }
@@ -17,21 +17,30 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-	const [theme, setThemeState] = useState<Theme>(() => {
-		// Check localStorage first
-		if (typeof window !== "undefined") {
-			const stored = localStorage.getItem("theme");
-			if (stored === "light" || stored === "dark") {
-				return stored;
-			}
+	/**
+	 * Start with undefined to avoid SSR hydration mismatch.
+	 *
+	 * The blocking script in __root.tsx sets the theme class on <html> before React
+	 * hydrates, which prevents the flash. However, we can't know the theme value during
+	 * SSR (server doesn't have access to localStorage or system preferences).
+	 *
+	 * By starting with undefined on both server and client, we avoid hydration errors.
+	 * Components that depend on theme should handle undefined by not rendering
+	 * theme-specific content until it loads (e.g., theme toggle icon).
+	 *
+	 * This gives us the best of both worlds:
+	 * - No flash (blocking script sets CSS immediately)
+	 * - No hydration error (state is undefined on both sides until client loads)
+	 */
+	const [theme, setThemeState] = useState<Theme | undefined>(undefined);
 
-			// Fall back to system preference
-			if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-				return "dark";
-			}
-		}
-		return "light";
-	});
+	// Read theme from DOM after mount (set by blocking script)
+	useEffect(() => {
+		const currentTheme = document.documentElement.classList.contains("dark")
+			? "dark"
+			: "light";
+		setThemeState(currentTheme);
+	}, []);
 
 	const setTheme = (newTheme: Theme) => {
 		setThemeState(newTheme);
@@ -39,11 +48,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 	};
 
 	const toggleTheme = () => {
+		if (!theme) return; // Don't toggle if theme hasn't loaded yet
 		setTheme(theme === "light" ? "dark" : "light");
 	};
 
 	// Apply theme class to document
 	useEffect(() => {
+		if (!theme) return; // Don't update DOM until theme is loaded
 		const root = document.documentElement;
 		root.classList.remove("light", "dark");
 		root.classList.add(theme);

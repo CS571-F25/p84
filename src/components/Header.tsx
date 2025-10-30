@@ -45,7 +45,13 @@ export default function Header() {
 						className="p-2 hover:bg-gray-700 dark:hover:bg-gray-800 rounded-lg transition-colors"
 						aria-label="Toggle theme"
 					>
-						{theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+						{theme === "dark" ? (
+							<Sun size={20} />
+						) : theme === "light" ? (
+							<Moon size={20} />
+						) : (
+							<div className="w-5 h-5" />
+						)}
 					</button>
 				</div>
 			</header>
