@@ -14,6 +14,37 @@ import { asOracleId, asScryfallId } from "../scryfall-types";
 
 const PUBLIC_DIR = join(process.cwd(), "public");
 
+// Mock cards-worker-client to use real worker code without Comlink/Worker
+vi.mock("../cards-worker-client", () => {
+	// biome-ignore lint/suspicious/noExplicitAny: mock needs to accept any worker instance
+	let workerInstance: any = null;
+
+	return {
+		initializeWorker: async () => {
+			// @ts-expect-error very evil testing only import...
+			const { __CardsWorkerForTestingOnly } = await import(
+				"../../workers/cards.worker"
+			);
+			workerInstance = new __CardsWorkerForTestingOnly();
+			await workerInstance.initialize();
+		},
+		getCardsWorker: () =>
+			new Proxy(workerInstance, {
+				get(target, prop) {
+					const value = target[prop];
+					if (typeof value === "function") {
+						// biome-ignore lint/suspicious/noExplicitAny: proxy needs to handle any function signature
+						return async (...args: any[]) => {
+							const result = await value.apply(target, args);
+							return structuredClone(result);
+						};
+					}
+					return value;
+				},
+			}),
+	};
+});
+
 // Known test IDs from our dataset (using first sample card - Forest from Bloomburrow)
 const TEST_CARD_ID = asScryfallId("0000419b-0bba-4488-8f7a-6194544ce91e");
 const TEST_CARD_ORACLE = asOracleId("b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6");
@@ -76,50 +107,39 @@ const SAMPLE_CARD_IDS = [
 ];
 
 describe("CardDataProvider contract", () => {
-	let clientProvider: ClientCardProvider | undefined;
+	let clientProvider: ClientCardProvider;
 	let serverProvider: ServerCardProvider;
 
 	beforeAll(async () => {
-		// Mock fetch to serve files from filesystem for worker
+		// Mock fetch to serve cards.json from filesystem
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: RequestInfo | URL) => {
 				const url = typeof input === "string" ? input : input.toString();
 
-				// Only intercept /data/ requests
 				if (url.startsWith("/data/")) {
 					const filePath = join(PUBLIC_DIR, url);
-					console.log(filePath)
-
 					try {
 						const content = await readFile(filePath, "utf-8");
 						return new Response(content, {
-							// ok: true,
 							status: 200,
 							headers: { "Content-Type": "application/json" },
 						});
-					} catch {
-						return new Response(null, { status: 404 });
-					}
+					} catch {}
 				}
 
-				// For non-/data/ requests, return a 404
 				return new Response(null, { status: 404 });
 			}),
 		);
 
 		serverProvider = new ServerCardProvider();
-		console.log("new")
 		clientProvider = new ClientCardProvider();
-		console.log("init")
 		await clientProvider.initialize();
-		console.log("init done")
-	}, 90_000);
+	});
 
 	describe.each([
 		["ServerCardProvider", () => serverProvider],
-		// TODO: Unskip when ClientCardProvider works in tests
-		// ["ClientCardProvider", () => clientProvider],
+		["ClientCardProvider", () => clientProvider],
 	])("%s", (_name, getProvider) => {
 		let provider: CardDataProvider;
 
@@ -231,8 +251,7 @@ describe("CardDataProvider contract", () => {
 		});
 	});
 
-	// TODO: Unskip when ClientCardProvider works in tests
-	describe.skip("Cross-provider consistency", () => {
+	describe("Cross-provider consistency", () => {
 		it("returns identical card data", async () => {
 			const [clientCard, serverCard] = await Promise.all([
 				clientProvider.getCardById(TEST_CARD_ID),
@@ -307,8 +326,7 @@ describe("CardDataProvider contract", () => {
 		);
 	});
 
-	// TODO: Unskip when ClientCardProvider works in tests
-	describe.skip("ClientCardProvider specific", () => {
+	describe("ClientCardProvider specific", () => {
 		it("supports searchCards", async () => {
 			expect(clientProvider.searchCards).toBeDefined();
 

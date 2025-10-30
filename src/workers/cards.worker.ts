@@ -218,3 +218,4 @@ if ("SharedWorkerGlobalScope" in self) {
 }
 
 export type { CardsWorkerAPI };
+export { CardsWorker as __CardsWorkerForTestingOnly };

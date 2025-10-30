@@ -12,7 +12,6 @@ export default defineConfig({
 	test: {
 		environment: "jsdom",
 		globals: true,
-		setupFiles: ["@vitest/web-worker"],
-		exclude: [...configDefaults.exclude, '**/.direnv/**']
+		exclude: [...configDefaults.exclude, "**/.direnv/**"],
 	},
 });
