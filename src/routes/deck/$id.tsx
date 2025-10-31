@@ -5,7 +5,8 @@ import { asScryfallId, type ScryfallId } from "@/lib/scryfall-types";
 import { DeckHeader } from "@/components/deck/DeckHeader";
 import { CardPreviewPane } from "@/components/deck/CardPreviewPane";
 import { DeckSection } from "@/components/deck/DeckSection";
-import { getCardsInSection } from "@/lib/deck-types";
+import { CardSearchAutocomplete } from "@/components/deck/CardSearchAutocomplete";
+import { getCardsInSection, addCardToDeck } from "@/lib/deck-types";
 
 export const Route = createFileRoute("/deck/$id")({
 	component: DeckEditorPage,
@@ -44,7 +45,14 @@ function DeckEditorPage() {
 		};
 	});
 
-	const [hoveredCard, setHoveredCard] = useState<ScryfallId | null>(null);
+	const [previewCard, setPreviewCard] = useState<ScryfallId | null>(null);
+
+	const handleCardHover = (cardId: ScryfallId | null) => {
+		// Only update preview if we have a card (persistence - don't clear on null)
+		if (cardId !== null) {
+			setPreviewCard(cardId);
+		}
+	};
 
 	const handleNameChange = (name: string) => {
 		setDeck((prev) => ({ ...prev, name, updatedAt: new Date().toISOString() }));
@@ -56,6 +64,10 @@ function DeckEditorPage() {
 			format,
 			updatedAt: new Date().toISOString(),
 		}));
+	};
+
+	const handleCardSelect = (cardId: ScryfallId) => {
+		setDeck((prev) => addCardToDeck(prev, cardId, "mainboard", 1));
 	};
 
 	return (
@@ -71,30 +83,38 @@ function DeckEditorPage() {
 				<div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 					{/* Left pane: Card preview (40%) */}
 					<div className="lg:col-span-2">
-						<CardPreviewPane cardId={hoveredCard} />
+						<CardPreviewPane cardId={previewCard} />
 					</div>
 
 					{/* Right pane: Deck sections (60%) */}
 					<div className="lg:col-span-3">
+						<div className="mb-4">
+							<CardSearchAutocomplete
+								format={deck.format}
+								onCardSelect={handleCardSelect}
+								onCardHover={handleCardHover}
+							/>
+						</div>
+
 						<DeckSection
 							section="commander"
 							cards={getCardsInSection(deck, "commander")}
-							onCardHover={setHoveredCard}
+							onCardHover={handleCardHover}
 						/>
 						<DeckSection
 							section="mainboard"
 							cards={getCardsInSection(deck, "mainboard")}
-							onCardHover={setHoveredCard}
+							onCardHover={handleCardHover}
 						/>
 						<DeckSection
 							section="sideboard"
 							cards={getCardsInSection(deck, "sideboard")}
-							onCardHover={setHoveredCard}
+							onCardHover={handleCardHover}
 						/>
 						<DeckSection
 							section="maybeboard"
 							cards={getCardsInSection(deck, "maybeboard")}
-							onCardHover={setHoveredCard}
+							onCardHover={handleCardHover}
 						/>
 					</div>
 				</div>

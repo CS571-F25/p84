@@ -79,19 +79,6 @@ export function DeckHeader({
 					<option value="vintage">Vintage</option>
 				</select>
 			</div>
-
-			{/* TODO: Search autocomplete will go here */}
-			<div className="relative">
-				<input
-					type="text"
-					placeholder="Search for cards to add..."
-					className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors"
-					disabled
-				/>
-				<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-					Card search coming soon
-				</p>
-			</div>
 		</div>
 	);
 }
