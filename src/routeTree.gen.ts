@@ -13,6 +13,8 @@ import { Route as SigninRouteImport } from './routes/signin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CardsIndexRouteImport } from './routes/cards/index'
 import { Route as OauthCallbackRouteImport } from './routes/oauth/callback'
+import { Route as DeckNewRouteImport } from './routes/deck/new'
+import { Route as DeckIdRouteImport } from './routes/deck/$id'
 import { Route as CardIdRouteImport } from './routes/card/$id'
 
 const SigninRoute = SigninRouteImport.update({
@@ -35,6 +37,16 @@ const OauthCallbackRoute = OauthCallbackRouteImport.update({
   path: '/oauth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeckNewRoute = DeckNewRouteImport.update({
+  id: '/deck/new',
+  path: '/deck/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeckIdRoute = DeckIdRouteImport.update({
+  id: '/deck/$id',
+  path: '/deck/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CardIdRoute = CardIdRouteImport.update({
   id: '/card/$id',
   path: '/card/$id',
@@ -45,6 +57,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
+  '/deck/$id': typeof DeckIdRoute
+  '/deck/new': typeof DeckNewRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/cards': typeof CardsIndexRoute
 }
@@ -52,6 +66,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
+  '/deck/$id': typeof DeckIdRoute
+  '/deck/new': typeof DeckNewRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/cards': typeof CardsIndexRoute
 }
@@ -60,21 +76,47 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
+  '/deck/$id': typeof DeckIdRoute
+  '/deck/new': typeof DeckNewRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/cards/': typeof CardsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/signin' | '/card/$id' | '/oauth/callback' | '/cards'
+  fullPaths:
+    | '/'
+    | '/signin'
+    | '/card/$id'
+    | '/deck/$id'
+    | '/deck/new'
+    | '/oauth/callback'
+    | '/cards'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/signin' | '/card/$id' | '/oauth/callback' | '/cards'
-  id: '__root__' | '/' | '/signin' | '/card/$id' | '/oauth/callback' | '/cards/'
+  to:
+    | '/'
+    | '/signin'
+    | '/card/$id'
+    | '/deck/$id'
+    | '/deck/new'
+    | '/oauth/callback'
+    | '/cards'
+  id:
+    | '__root__'
+    | '/'
+    | '/signin'
+    | '/card/$id'
+    | '/deck/$id'
+    | '/deck/new'
+    | '/oauth/callback'
+    | '/cards/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SigninRoute: typeof SigninRoute
   CardIdRoute: typeof CardIdRoute
+  DeckIdRoute: typeof DeckIdRoute
+  DeckNewRoute: typeof DeckNewRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
   CardsIndexRoute: typeof CardsIndexRoute
 }
@@ -109,6 +151,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/deck/new': {
+      id: '/deck/new'
+      path: '/deck/new'
+      fullPath: '/deck/new'
+      preLoaderRoute: typeof DeckNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deck/$id': {
+      id: '/deck/$id'
+      path: '/deck/$id'
+      fullPath: '/deck/$id'
+      preLoaderRoute: typeof DeckIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/card/$id': {
       id: '/card/$id'
       path: '/card/$id'
@@ -123,6 +179,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SigninRoute: SigninRoute,
   CardIdRoute: CardIdRoute,
+  DeckIdRoute: DeckIdRoute,
+  DeckNewRoute: DeckNewRoute,
   OauthCallbackRoute: OauthCallbackRoute,
   CardsIndexRoute: CardsIndexRoute,
 }
