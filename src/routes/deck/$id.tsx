@@ -1,12 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import type { Deck } from "@/lib/deck-types";
-import { asScryfallId, type ScryfallId } from "@/lib/scryfall-types";
-import { DeckHeader } from "@/components/deck/DeckHeader";
+import { CardModal } from "@/components/deck/CardModal";
 import { CardPreviewPane } from "@/components/deck/CardPreviewPane";
-import { DeckSection } from "@/components/deck/DeckSection";
 import { CardSearchAutocomplete } from "@/components/deck/CardSearchAutocomplete";
-import { getCardsInSection, addCardToDeck } from "@/lib/deck-types";
+import { DeckHeader } from "@/components/deck/DeckHeader";
+import { DeckSection } from "@/components/deck/DeckSection";
+import type { Deck, Section } from "@/lib/deck-types";
+import {
+	addCardToDeck,
+	type DeckCard,
+	getCardsInSection,
+	moveCardToSection,
+	removeCardFromDeck,
+	updateCardQuantity,
+	updateCardTags,
+} from "@/lib/deck-types";
+import { asScryfallId, type ScryfallId } from "@/lib/scryfall-types";
 
 export const Route = createFileRoute("/deck/$id")({
 	component: DeckEditorPage,
@@ -46,12 +55,69 @@ function DeckEditorPage() {
 	});
 
 	const [previewCard, setPreviewCard] = useState<ScryfallId | null>(null);
+	const [modalCard, setModalCard] = useState<DeckCard | null>(null);
 
 	const handleCardHover = (cardId: ScryfallId | null) => {
 		// Only update preview if we have a card (persistence - don't clear on null)
 		if (cardId !== null) {
 			setPreviewCard(cardId);
 		}
+	};
+
+	const handleCardClick = (card: DeckCard) => {
+		setModalCard(card);
+	};
+
+	const handleModalClose = () => {
+		setModalCard(null);
+	};
+
+	const handleUpdateQuantity = (quantity: number) => {
+		if (!modalCard) return;
+		setDeck((prev) =>
+			updateCardQuantity(
+				prev,
+				modalCard.scryfallId,
+				modalCard.section as Section,
+				quantity,
+			),
+		);
+	};
+
+	const handleUpdateTags = (tags: string[]) => {
+		if (!modalCard) return;
+		setDeck((prev) =>
+			updateCardTags(
+				prev,
+				modalCard.scryfallId,
+				modalCard.section as Section,
+				tags,
+			),
+		);
+	};
+
+	const handleMoveToSection = (newSection: Section) => {
+		if (!modalCard) return;
+		setDeck((prev) =>
+			moveCardToSection(
+				prev,
+				modalCard.scryfallId,
+				modalCard.section as Section,
+				newSection,
+			),
+		);
+		setModalCard((prev) => (prev ? { ...prev, section: newSection } : null));
+	};
+
+	const handleDeleteCard = () => {
+		if (!modalCard) return;
+		setDeck((prev) =>
+			removeCardFromDeck(
+				prev,
+				modalCard.scryfallId,
+				modalCard.section as Section,
+			),
+		);
 	};
 
 	const handleNameChange = (name: string) => {
@@ -72,14 +138,31 @@ function DeckEditorPage() {
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
-			<div className="max-w-7xl mx-auto px-6 py-8">
+			{/* Deck name and format (scrolls away) */}
+			<div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
 				<DeckHeader
 					name={deck.name}
 					format={deck.format}
 					onNameChange={handleNameChange}
 					onFormatChange={handleFormatChange}
 				/>
+			</div>
 
+			{/* Sticky header with search */}
+			<div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
+				<div className="max-w-7xl mx-auto px-6 py-3 flex justify-end">
+					<div className="w-full max-w-md">
+						<CardSearchAutocomplete
+							format={deck.format}
+							onCardSelect={handleCardSelect}
+							onCardHover={handleCardHover}
+						/>
+					</div>
+				</div>
+			</div>
+
+			{/* Main content */}
+			<div className="max-w-7xl mx-auto px-6 py-8">
 				<div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 					{/* Left pane: Card preview (40%) */}
 					<div className="lg:col-span-2">
@@ -88,37 +171,46 @@ function DeckEditorPage() {
 
 					{/* Right pane: Deck sections (60%) */}
 					<div className="lg:col-span-3">
-						<div className="mb-4">
-							<CardSearchAutocomplete
-								format={deck.format}
-								onCardSelect={handleCardSelect}
-								onCardHover={handleCardHover}
-							/>
-						</div>
-
 						<DeckSection
 							section="commander"
 							cards={getCardsInSection(deck, "commander")}
 							onCardHover={handleCardHover}
+							onCardClick={handleCardClick}
 						/>
 						<DeckSection
 							section="mainboard"
 							cards={getCardsInSection(deck, "mainboard")}
 							onCardHover={handleCardHover}
+							onCardClick={handleCardClick}
 						/>
 						<DeckSection
 							section="sideboard"
 							cards={getCardsInSection(deck, "sideboard")}
 							onCardHover={handleCardHover}
+							onCardClick={handleCardClick}
 						/>
 						<DeckSection
 							section="maybeboard"
 							cards={getCardsInSection(deck, "maybeboard")}
 							onCardHover={handleCardHover}
+							onCardClick={handleCardClick}
 						/>
 					</div>
 				</div>
 			</div>
+
+			{/* Card Modal */}
+			{modalCard && (
+				<CardModal
+					card={modalCard}
+					isOpen={true}
+					onClose={handleModalClose}
+					onUpdateQuantity={handleUpdateQuantity}
+					onUpdateTags={handleUpdateTags}
+					onMoveToSection={handleMoveToSection}
+					onDelete={handleDeleteCard}
+				/>
+			)}
 		</div>
 	);
 }

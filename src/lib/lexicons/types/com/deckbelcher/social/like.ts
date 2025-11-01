@@ -1,6 +1,6 @@
 import type {} from "@atcute/lexicons";
-import * as v from "@atcute/lexicons/validations";
 import type {} from "@atcute/lexicons/ambient";
+import * as v from "@atcute/lexicons/validations";
 import * as ComAtprotoRepoStrongRef from "../../atproto/repo/strongRef.js";
 
 const _mainSchema = /*#__PURE__*/ v.record(

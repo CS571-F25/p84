@@ -8,14 +8,16 @@ interface DeckSectionProps {
 	section: Section;
 	cards: DeckCard[];
 	onCardHover?: (cardId: ScryfallId | null) => void;
+	onCardClick?: (card: DeckCard) => void;
 }
 
 interface DeckCardRowProps {
 	card: DeckCard;
 	onCardHover?: (cardId: ScryfallId | null) => void;
+	onCardClick?: (card: DeckCard) => void;
 }
 
-function DeckCardRow({ card, onCardHover }: DeckCardRowProps) {
+function DeckCardRow({ card, onCardHover, onCardClick }: DeckCardRowProps) {
 	const { data, isLoading } = useQuery(
 		getCardWithPrintingsQueryOptions(card.scryfallId),
 	);
@@ -25,6 +27,15 @@ function DeckCardRow({ card, onCardHover }: DeckCardRowProps) {
 			className="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded px-2 py-1 cursor-pointer transition-colors"
 			onMouseEnter={() => onCardHover?.(card.scryfallId)}
 			onMouseLeave={() => onCardHover?.(null)}
+			onClick={() => onCardClick?.(card)}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					onCardClick?.(card);
+				}
+			}}
+			role="button"
+			tabIndex={0}
 		>
 			<div className="flex items-center gap-2">
 				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-6 text-right flex-shrink-0">
@@ -67,7 +78,12 @@ function DeckCardRow({ card, onCardHover }: DeckCardRowProps) {
 	);
 }
 
-export function DeckSection({ section, cards, onCardHover }: DeckSectionProps) {
+export function DeckSection({
+	section,
+	cards,
+	onCardHover,
+	onCardClick,
+}: DeckSectionProps) {
 	const sectionNames: Record<Section, string> = {
 		commander: "Commander",
 		mainboard: "Mainboard",
@@ -101,6 +117,7 @@ export function DeckSection({ section, cards, onCardHover }: DeckSectionProps) {
 							key={`${card.scryfallId}-${index}`}
 							card={card}
 							onCardHover={onCardHover}
+							onCardClick={onCardClick}
 						/>
 					))}
 				</div>

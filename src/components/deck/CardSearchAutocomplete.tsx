@@ -22,6 +22,7 @@ export function CardSearchAutocomplete({
 	const inputRef = useRef<HTMLInputElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 	const prevSearchRef = useRef("");
+	const resultRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 
 	const debouncedSearch = useDebounce(inputValue, 300);
 
@@ -71,6 +72,14 @@ export function CardSearchAutocomplete({
 		document.addEventListener("mousedown", handleClickOutside);
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
+
+	// Scroll selected item into view
+	useEffect(() => {
+		const selectedElement = resultRefs.current.get(selectedIndex);
+		if (selectedElement) {
+			selectedElement.scrollIntoView({ block: "nearest", behavior: "smooth" });
+		}
+	}, [selectedIndex]);
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setInputValue(e.target.value);
@@ -165,6 +174,13 @@ export function CardSearchAutocomplete({
 								<button
 									type="button"
 									key={card.id}
+									ref={(el) => {
+										if (el) {
+											resultRefs.current.set(index, el);
+										} else {
+											resultRefs.current.delete(index);
+										}
+									}}
 									onMouseEnter={() => {
 										handleMouseEnterCard(card);
 										setSelectedIndex(index);

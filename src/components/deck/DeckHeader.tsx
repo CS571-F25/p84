@@ -46,7 +46,6 @@ export function DeckHeader({
 						onBlur={handleNameSubmit}
 						onKeyDown={handleNameKeyDown}
 						className="text-4xl font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-cyan-500 focus:outline-none flex-1"
-						autoFocus
 					/>
 				) : (
 					<h1
@@ -57,7 +56,6 @@ export function DeckHeader({
 								handleNameClick();
 							}
 						}}
-						tabIndex={0}
 					>
 						{name}
 					</h1>

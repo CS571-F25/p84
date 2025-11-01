@@ -3,8 +3,8 @@
  * Based on generated lexicon types from com.deckbelcher.deck.list
  */
 
-import type { ScryfallId } from "./scryfall-types";
 import type { ComDeckbelcherDeckList } from "./lexicons/index";
+import type { ScryfallId } from "./scryfall-types";
 
 export type Section = "commander" | "mainboard" | "sideboard" | "maybeboard";
 
