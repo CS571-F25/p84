@@ -41,12 +41,8 @@ function DeckCardRow({ card, onCardHover, onCardClick }: DeckCardRowProps) {
 				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-6 text-right flex-shrink-0">
 					{card.quantity}x
 				</span>
-				<div className="flex-1 flex items-center gap-1.5 min-w-0">
-					{isLoading ? (
-						<span className="text-gray-500 dark:text-gray-500 font-mono text-xs truncate">
-							{card.scryfallId}
-						</span>
-					) : data ? (
+				<div className="flex-1 flex items-center gap-1.5 min-w-0 min-h-[20px]">
+					{data ? (
 						<>
 							<span className="text-gray-900 dark:text-white text-sm truncate">
 								{data.card.name}
@@ -54,6 +50,11 @@ function DeckCardRow({ card, onCardHover, onCardClick }: DeckCardRowProps) {
 							{data.card.mana_cost && (
 								<ManaCost cost={data.card.mana_cost} size="small" />
 							)}
+						</>
+					) : isLoading ? (
+						<>
+							<div className="h-4 w-32 bg-gray-300 dark:bg-slate-700 rounded animate-pulse" />
+							<div className="h-4 w-12 bg-gray-300 dark:bg-slate-700 rounded animate-pulse" />
 						</>
 					) : (
 						<span className="text-red-600 dark:text-red-400 text-sm">

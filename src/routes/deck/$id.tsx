@@ -15,10 +15,28 @@ import {
 	updateCardQuantity,
 	updateCardTags,
 } from "@/lib/deck-types";
+import { getCardWithPrintingsQueryOptions } from "@/lib/queries";
 import { asScryfallId, type ScryfallId } from "@/lib/scryfall-types";
+
+// Test deck card IDs (TODO: remove when ATProto persistence is implemented)
+const TEST_CARD_IDS = [
+	asScryfallId("adc7f8f3-140d-4dd0-aacc-b81b2b93eb67"),
+	asScryfallId("77c6fa74-5543-42ac-9ead-0e890b188e99"),
+	asScryfallId("7ee610ee-7711-4a6b-b441-d6c73e6ef2b4"),
+] as const;
 
 export const Route = createFileRoute("/deck/$id")({
 	component: DeckEditorPage,
+	loader: async ({ context }) => {
+		// Prefetch card data for test deck cards during SSR
+		await Promise.all(
+			TEST_CARD_IDS.map((id) =>
+				context.queryClient.ensureQueryData(
+					getCardWithPrintingsQueryOptions(id),
+				),
+			),
+		);
+	},
 });
 
 function DeckEditorPage() {
@@ -32,23 +50,35 @@ function DeckEditorPage() {
 			format: "commander",
 			cards: [
 				{
-					scryfallId: asScryfallId("c73ae1f0-60b6-4c4a-975b-13e659a33f50"),
+					scryfallId: TEST_CARD_IDS[0],
 					quantity: 1,
 					section: "commander",
 					tags: [],
 				},
 				{
-					scryfallId: asScryfallId("35d73022-46ed-402b-90a1-e3e4a281ce1e"),
+					scryfallId: TEST_CARD_IDS[1],
 					quantity: 1,
 					section: "mainboard",
 					tags: ["removal", "instant"],
 				},
 				{
-					scryfallId: asScryfallId("2adc7dd4-d9c4-47ce-ac94-bb56dbf4044e"),
+					scryfallId: TEST_CARD_IDS[2],
 					quantity: 1,
 					section: "mainboard",
 					tags: ["ramp"],
 				},
+				{
+					scryfallId: asScryfallId("eb6d8d1c-8d23-4273-9c9b-f3b71eb0e105"),
+					quantity: 2,
+					section: "sideboard",
+					tags: ["would taste good fried"],
+				},
+				{
+					scryfallId: asScryfallId("77c1a141-3955-47f9-bd22-b642728724ab"),
+					quantity: 1,
+					section: "sideboard",
+					tags: ["illegal"],
+				}
 			],
 			createdAt: new Date().toISOString(),
 		};
