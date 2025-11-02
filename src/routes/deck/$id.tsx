@@ -78,7 +78,7 @@ function DeckEditorPage() {
 					quantity: 1,
 					section: "sideboard",
 					tags: ["illegal"],
-				}
+				},
 			],
 			createdAt: new Date().toISOString(),
 		};

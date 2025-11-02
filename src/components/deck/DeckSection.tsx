@@ -38,42 +38,19 @@ function DeckCardRow({ card, onCardHover, onCardClick }: DeckCardRowProps) {
 			tabIndex={0}
 		>
 			<div className="flex items-center gap-2">
-				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-6 text-right flex-shrink-0">
-					{card.quantity}x
+				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-4 text-right flex-shrink-0">
+					{card.quantity}
 				</span>
-				<div className="flex-1 flex items-center gap-1.5 min-w-0 min-h-[20px]">
-					{data ? (
-						<>
-							<span className="text-gray-900 dark:text-white text-sm truncate">
-								{data.card.name}
-							</span>
-							{data.card.mana_cost && (
-								<ManaCost cost={data.card.mana_cost} size="small" />
-							)}
-						</>
+				<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0">
+					{data ? data.card.name : isLoading ? "" : "Unknown Card"}
+				</span>
+				<div className="flex-shrink-0 flex items-center ml-auto">
+					{data?.card.mana_cost ? (
+						<ManaCost cost={data.card.mana_cost} size="small" />
 					) : isLoading ? (
-						<>
-							<div className="h-4 w-32 bg-gray-300 dark:bg-slate-700 rounded animate-pulse" />
-							<div className="h-4 w-12 bg-gray-300 dark:bg-slate-700 rounded animate-pulse" />
-						</>
-					) : (
-						<span className="text-red-600 dark:text-red-400 text-sm">
-							Unknown Card
-						</span>
-					)}
+						<div className="h-5 w-12 bg-gray-300 dark:bg-slate-700 rounded animate-pulse" />
+					) : null}
 				</div>
-				{card.tags && card.tags.length > 0 && (
-					<div className="flex gap-1 flex-shrink-0">
-						{card.tags.map((tag) => (
-							<span
-								key={tag}
-								className="px-1.5 py-0.5 bg-cyan-100 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-200 text-xs rounded"
-							>
-								{tag}
-							</span>
-						))}
-					</div>
-				)}
 			</div>
 		</div>
 	);
@@ -112,7 +89,7 @@ export function DeckSection({
 					</p>
 				</div>
 			) : (
-				<div className="space-y-0.5">
+				<div className="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-0.5">
 					{cards.map((card, index) => (
 						<DeckCardRow
 							key={`${card.scryfallId}-${index}`}
