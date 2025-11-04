@@ -161,6 +161,7 @@ export function updateCardTags(
 
 /**
  * Move a card to a different section
+ * NOTE: This MOVES the card, it does not merge with existing cards in the target section
  */
 export function moveCardToSection(
 	deck: Deck,
@@ -173,23 +174,7 @@ export function moveCardToSection(
 		return deck;
 	}
 
-	const targetCard = findCardInSection(deck, scryfallId, toSection);
-	if (targetCard) {
-		return {
-			...deck,
-			cards: deck.cards
-				.filter(
-					(c) => !(c.scryfallId === scryfallId && c.section === fromSection),
-				)
-				.map((c) =>
-					c.scryfallId === scryfallId && c.section === toSection
-						? { ...c, quantity: c.quantity + card.quantity }
-						: c,
-				),
-			updatedAt: new Date().toISOString(),
-		};
-	}
-
+	// Simply change the section, don't merge with existing cards
 	return {
 		...deck,
 		cards: deck.cards.map((c) =>

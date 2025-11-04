@@ -1,11 +1,18 @@
+import { type DragEndEvent, useDndMonitor } from "@dnd-kit/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { CardDragOverlay } from "@/components/deck/CardDragOverlay";
 import { CardModal } from "@/components/deck/CardModal";
 import { CardPreviewPane } from "@/components/deck/CardPreviewPane";
 import { CardSearchAutocomplete } from "@/components/deck/CardSearchAutocomplete";
+import { CommonTagsOverlay } from "@/components/deck/CommonTagsOverlay";
 import { DeckHeader } from "@/components/deck/DeckHeader";
 import { DeckSection } from "@/components/deck/DeckSection";
+import { DragDropProvider } from "@/components/deck/DragDropProvider";
+import type { DragData } from "@/components/deck/DraggableCard";
+import { TrashDropZone } from "@/components/deck/TrashDropZone";
 import { ViewControls } from "@/components/deck/ViewControls";
 import type { Deck, GroupBy, Section, SortBy } from "@/lib/deck-types";
 import {
@@ -129,6 +136,8 @@ function DeckEditorPage() {
 		deck.cards?.[0]?.scryfallId,
 	);
 	const [modalCard, setModalCard] = useState<DeckCard | null>(null);
+	const [draggedCardId, setDraggedCardId] = useState<ScryfallId | null>(null);
+	const [isDragging, setIsDragging] = useState(false);
 
 	const queryClient = useQueryClient();
 
@@ -220,6 +229,183 @@ function DeckEditorPage() {
 		setDeck((prev) => addCardToDeck(prev, cardId, "mainboard", 1));
 	};
 
+	const handleDragEnd = (event: DragEndEvent) => {
+		const { active, over } = event;
+
+		if (!over) return;
+
+		const dragData = active.data.current as DragData;
+		const dropData = over.data.current as
+			| { type: "section"; section: Section }
+			| { type: "tag"; tagName: string }
+			| { type: "trash" }
+			| undefined;
+
+		if (!dropData || !dragData) return;
+
+		// Handle trash drop
+		if (dropData.type === "trash") {
+			// Find the full card object before deleting
+			const cardToDelete = deck.cards.find(
+				(c) =>
+					c.scryfallId === dragData.scryfallId &&
+					c.section === dragData.section,
+			);
+
+			setDeck((prev) =>
+				removeCardFromDeck(
+					prev,
+					dragData.scryfallId,
+					dragData.section as Section,
+				),
+			);
+
+			// Store the full card for undo
+			if (cardToDelete) {
+				toast.success("Card removed from deck", {
+					action: {
+						label: "Undo",
+						onClick: () => {
+							// Re-insert the exact card that was deleted
+							setDeck((prev) => ({
+								...prev,
+								cards: [...prev.cards, cardToDelete],
+								updatedAt: new Date().toISOString(),
+							}));
+						},
+					},
+				});
+			}
+			return;
+		}
+
+		// Handle section drop
+		if (dropData.type === "section") {
+			if (dropData.section === dragData.section) return; // No-op if same section
+
+			setDeck((prev) =>
+				moveCardToSection(
+					prev,
+					dragData.scryfallId,
+					dragData.section as Section,
+					dropData.section,
+				),
+			);
+			return;
+		}
+
+		// Handle tag drop (additive only)
+		if (dropData.type === "tag") {
+			const newTag = dropData.tagName;
+			if (dragData.tags.includes(newTag)) return; // Already has this tag
+
+			const updatedTags = [...dragData.tags, newTag];
+			setDeck((prev) =>
+				updateCardTags(
+					prev,
+					dragData.scryfallId,
+					dragData.section as Section,
+					updatedTags,
+				),
+			);
+		}
+	};
+
+	return (
+		<DragDropProvider onDragEnd={handleDragEnd}>
+			<DeckEditorInner
+				deck={deck}
+				groupBy={groupBy}
+				sortBy={sortBy}
+				previewCard={previewCard}
+				modalCard={modalCard}
+				draggedCardId={draggedCardId}
+				isDragging={isDragging}
+				setIsDragging={setIsDragging}
+				setDraggedCardId={setDraggedCardId}
+				handleCardHover={handleCardHover}
+				handleCardClick={handleCardClick}
+				handleModalClose={handleModalClose}
+				handleUpdateQuantity={handleUpdateQuantity}
+				handleUpdateTags={handleUpdateTags}
+				handleMoveToSection={handleMoveToSection}
+				handleDeleteCard={handleDeleteCard}
+				handleNameChange={handleNameChange}
+				handleFormatChange={handleFormatChange}
+				handleCardSelect={handleCardSelect}
+				setGroupBy={setGroupBy}
+				setSortBy={setSortBy}
+			/>
+		</DragDropProvider>
+	);
+}
+
+interface DeckEditorInnerProps {
+	deck: Deck;
+	groupBy: GroupBy;
+	sortBy: SortBy;
+	previewCard: ScryfallId;
+	modalCard: DeckCard | null;
+	draggedCardId: ScryfallId | null;
+	isDragging: boolean;
+	setIsDragging: (dragging: boolean) => void;
+	setDraggedCardId: (id: ScryfallId | null) => void;
+	handleCardHover: (cardId: ScryfallId | null) => void;
+	handleCardClick: (card: DeckCard) => void;
+	handleModalClose: () => void;
+	handleUpdateQuantity: (quantity: number) => void;
+	handleUpdateTags: (tags: string[]) => void;
+	handleMoveToSection: (section: Section) => void;
+	handleDeleteCard: () => void;
+	handleNameChange: (name: string) => void;
+	handleFormatChange: (format: string) => void;
+	handleCardSelect: (cardId: ScryfallId) => Promise<void>;
+	setGroupBy: (groupBy: GroupBy) => void;
+	setSortBy: (sortBy: SortBy) => void;
+}
+
+function DeckEditorInner({
+	deck,
+	groupBy,
+	sortBy,
+	previewCard,
+	modalCard,
+	draggedCardId,
+	isDragging,
+	setIsDragging,
+	setDraggedCardId,
+	handleCardHover,
+	handleCardClick,
+	handleModalClose,
+	handleUpdateQuantity,
+	handleUpdateTags,
+	handleMoveToSection,
+	handleDeleteCard,
+	handleNameChange,
+	handleFormatChange,
+	handleCardSelect,
+	setGroupBy,
+	setSortBy,
+}: DeckEditorInnerProps) {
+	// Track drag state globally (must be inside DndContext)
+	useDndMonitor({
+		onDragStart: (event) => {
+			setIsDragging(true);
+			const dragData = event.active.data.current as DragData | undefined;
+			if (dragData) {
+				setDraggedCardId(dragData.scryfallId);
+			}
+		},
+		onDragEnd: () => {
+			setIsDragging(false);
+			setDraggedCardId(null);
+		},
+		onDragCancel: () => {
+			setIsDragging(false);
+			setDraggedCardId(null);
+		},
+	});
+
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
 			{/* Deck name and format (scrolls away) */}
@@ -245,6 +431,12 @@ function DeckEditorPage() {
 				</div>
 			</div>
 
+			{/* Trash drop zone - only show while dragging */}
+			<TrashDropZone isDragging={isDragging} />
+
+			{/* Common tags overlay - only show while dragging */}
+			<CommonTagsOverlay deck={deck} isDragging={isDragging} />
+
 			{/* Main content */}
 			<div className="max-w-7xl mx-auto px-6 py-8">
 				<div className="flex flex-col lg:flex-row gap-6">
@@ -269,6 +461,7 @@ function DeckEditorPage() {
 							sortBy={sortBy}
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
+							isDragging={isDragging}
 						/>
 						<DeckSection
 							section="mainboard"
@@ -277,6 +470,7 @@ function DeckEditorPage() {
 							sortBy={sortBy}
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
+							isDragging={isDragging}
 						/>
 						<DeckSection
 							section="sideboard"
@@ -285,6 +479,7 @@ function DeckEditorPage() {
 							sortBy={sortBy}
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
+							isDragging={isDragging}
 						/>
 						<DeckSection
 							section="maybeboard"
@@ -293,6 +488,7 @@ function DeckEditorPage() {
 							sortBy={sortBy}
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
+							isDragging={isDragging}
 						/>
 					</div>
 				</div>
@@ -310,6 +506,9 @@ function DeckEditorPage() {
 					onDelete={handleDeleteCard}
 				/>
 			)}
+
+			{/* Drag overlay */}
+			<CardDragOverlay draggedCardId={draggedCardId} />
 		</div>
 	);
 }

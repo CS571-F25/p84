@@ -1,10 +1,13 @@
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { ManaCost } from "@/components/ManaCost";
 import { groupCards, sortCards, sortGroupNames } from "@/lib/deck-grouping";
 import type { DeckCard, GroupBy, Section, SortBy } from "@/lib/deck-types";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import type { Card, ScryfallId } from "@/lib/scryfall-types";
+import { DraggableCard } from "./DraggableCard";
+import { DroppableSection } from "./DroppableSection";
+import { DroppableSectionHeader } from "./DroppableSectionHeader";
+import { DroppableTagGroup } from "./DroppableTagGroup";
 
 // Combine function for useQueries - converts query results into a Map
 function combineCardQueries(
@@ -27,44 +30,7 @@ interface DeckSectionProps {
 	sortBy: SortBy;
 	onCardHover?: (cardId: ScryfallId | null) => void;
 	onCardClick?: (card: DeckCard) => void;
-}
-
-interface DeckCardRowProps {
-	card: DeckCard;
-	onCardHover?: (cardId: ScryfallId | null) => void;
-	onCardClick?: (card: DeckCard) => void;
-}
-
-function DeckCardRow({ card, onCardHover, onCardClick }: DeckCardRowProps) {
-	const { data: cardData, isLoading } = useQuery(
-		getCardByIdQueryOptions(card.scryfallId),
-	);
-
-	return (
-		<button
-			type="button"
-			className="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded px-2 py-1 cursor-pointer transition-colors w-full text-left"
-			onMouseEnter={() => onCardHover?.(card.scryfallId)}
-			onMouseLeave={() => onCardHover?.(null)}
-			onClick={() => onCardClick?.(card)}
-		>
-			<div className="flex items-center gap-2">
-				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-4 text-right flex-shrink-0">
-					{card.quantity}
-				</span>
-				<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0">
-					{cardData ? cardData.name : isLoading ? "" : "Unknown Card"}
-				</span>
-				<div className="flex-shrink-0 flex items-center ml-auto">
-					{cardData?.mana_cost ? (
-						<ManaCost cost={cardData.mana_cost} size="small" />
-					) : isLoading ? (
-						<div className="h-5 w-12 bg-gray-300 dark:bg-slate-700 rounded animate-pulse" />
-					) : null}
-				</div>
-			</div>
-		</button>
-	);
+	isDragging: boolean;
 }
 
 export function DeckSection({
@@ -74,6 +40,7 @@ export function DeckSection({
 	sortBy,
 	onCardHover,
 	onCardClick,
+	isDragging,
 }: DeckSectionProps) {
 	const sectionNames: Record<Section, string> = {
 		commander: "Commander",
@@ -116,92 +83,107 @@ export function DeckSection({
 
 	return (
 		<div className="mb-8 pb-8 border-b border-gray-200 dark:border-slate-800 last:border-b-0 last:pb-0">
-			<div className="flex items-center justify-between mb-3">
-				<h2 className="text-xl font-bold text-gray-900 dark:text-white">
-					{sectionNames[section]}
-				</h2>
-				<span className="text-sm text-gray-600 dark:text-gray-400">
-					{totalQuantity} {totalQuantity === 1 ? "card" : "cards"}
-				</span>
-			</div>
+			<DroppableSection section={section} isDragging={isDragging}>
+				<DroppableSectionHeader>
+					<h2 className="text-xl font-bold text-gray-900 dark:text-white">
+						{sectionNames[section]}
+					</h2>
+					<span className="text-sm text-gray-600 dark:text-gray-400">
+						{totalQuantity} {totalQuantity === 1 ? "card" : "cards"}
+					</span>
+				</DroppableSectionHeader>
+				{cards.length === 0 ? (
+					<div className="bg-gray-100 dark:bg-slate-800 rounded-lg p-6 border-2 border-dashed border-gray-300 dark:border-slate-700">
+						<p className="text-gray-500 dark:text-gray-400 text-center">
+							No cards in {sectionNames[section].toLowerCase()}
+						</p>
+					</div>
+				) : groupBy === "none" ? (
+					<div
+						className="gap-x-6 gap-y-1"
+						style={{
+							columnWidth: "16rem",
+							columnGap: "1.5rem",
+						}}
+					>
+						{cardMap
+							? sortCards(
+									cards,
+									(card) => cardMap.get(card.scryfallId),
+									sortBy,
+								).map((card, index) => {
+									const uniqueId = `${card.scryfallId}-${section}-none-${index}`;
+									return (
+										<div key={uniqueId} className="mb-1">
+											<DraggableCard
+												card={card}
+												uniqueId={uniqueId}
+												onCardHover={onCardHover}
+												onCardClick={onCardClick}
+											/>
+										</div>
+									);
+								})
+							: cards.map((card, index) => {
+									const uniqueId = `${card.scryfallId}-${section}-none-${index}`;
+									return (
+										<div key={uniqueId} className="mb-1">
+											<DraggableCard
+												card={card}
+												uniqueId={uniqueId}
+												onCardHover={onCardHover}
+												onCardClick={onCardClick}
+											/>
+										</div>
+									);
+								})}
+					</div>
+				) : (
+					<div
+						className="gap-x-6"
+						style={{
+							columnWidth: "16rem",
+							columnGap: "1.5rem",
+						}}
+					>
+						{sortedGroupNames.map((groupName) => {
+							const groupCards = sortedGroups.get(groupName) ?? [];
+							const groupQuantity = groupCards.reduce(
+								(sum, card) => sum + card.quantity,
+								0,
+							);
 
-			{cards.length === 0 ? (
-				<div className="bg-gray-100 dark:bg-slate-800 rounded-lg p-6 border-2 border-dashed border-gray-300 dark:border-slate-700">
-					<p className="text-gray-500 dark:text-gray-400 text-center">
-						No cards in {sectionNames[section].toLowerCase()}
-					</p>
-				</div>
-			) : groupBy === "none" ? (
-				<div
-					className="gap-x-6 gap-y-1"
-					style={{
-						columnWidth: "16rem",
-						columnGap: "1.5rem",
-					}}
-				>
-					{cardMap
-						? sortCards(
-								cards,
-								(card) => cardMap.get(card.scryfallId),
-								sortBy,
-							).map((card, index) => (
-								<div key={`${card.scryfallId}-${index}`} className="mb-1">
-									<DeckCardRow
-										card={card}
-										onCardHover={onCardHover}
-										onCardClick={onCardClick}
-									/>
-								</div>
-							))
-						: cards.map((card, index) => (
-								<div key={`${card.scryfallId}-${index}`} className="mb-1">
-									<DeckCardRow
-										card={card}
-										onCardHover={onCardHover}
-										onCardClick={onCardClick}
-									/>
-								</div>
-							))}
-				</div>
-			) : (
-				<div
-					className="gap-x-6"
-					style={{
-						columnWidth: "16rem",
-						columnGap: "1.5rem",
-					}}
-				>
-					{sortedGroupNames.map((groupName) => {
-						const groupCards = sortedGroups.get(groupName) ?? [];
-						const groupQuantity = groupCards.reduce(
-							(sum, card) => sum + card.quantity,
-							0,
-						);
-
-						return (
-							<div
-								key={groupName}
-								className="mb-4 break-inside-avoid"
-								style={{ breakInside: "avoid" }}
-							>
-								<div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-									{groupName} ({groupQuantity})
-								</div>
-								<div className="space-y-1">
-									{groupCards.map((card, index) => (
-										<DeckCardRow
-											key={`${card.scryfallId}-${groupName}-${index}`}
-											card={card}
-											onCardHover={onCardHover}
-											onCardClick={onCardClick}
-										/>
-									))}
-								</div>
-							</div>
-						);
-					})}
-				</div>
-			)}
+							return (
+								<DroppableTagGroup
+									key={groupName}
+									tagName={groupName}
+									section={section}
+									enabled={groupBy === "tag"}
+									isDragging={isDragging}
+								>
+									<div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+										{groupName} ({groupQuantity})
+									</div>
+									<div className="space-y-1">
+										{groupCards.map((card, index) => {
+											const uniqueId = `${card.scryfallId}-${section}-${groupName}-${index}`;
+											return (
+												<DraggableCard
+													key={uniqueId}
+													uniqueId={uniqueId}
+													card={card}
+													onCardHover={onCardHover}
+													onCardClick={onCardClick}
+												/>
+											);
+										})}
+									</div>
+								</DroppableTagGroup>
+							);
+						})}
+					</div>
+				)}
+			</DroppableSection>
 		</div>
 	);
 }
