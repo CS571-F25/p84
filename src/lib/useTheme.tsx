@@ -60,6 +60,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 		root.classList.add(theme);
 	}, [theme]);
 
+	// Sync theme changes across tabs
+	useEffect(() => {
+		const handleStorageChange = (e: StorageEvent) => {
+			if (e.key === "theme" && (e.newValue === "light" || e.newValue === "dark")) {
+				setThemeState(e.newValue);
+			}
+		};
+
+		window.addEventListener("storage", handleStorageChange);
+		return () => window.removeEventListener("storage", handleStorageChange);
+	}, []);
+
 	return (
 		<ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
 			{children}
