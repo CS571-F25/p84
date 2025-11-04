@@ -125,7 +125,9 @@ function DeckEditorPage() {
 		};
 	});
 
-	const [previewCard, setPreviewCard] = useState<ScryfallId>(deck.cards?.[0]?.scryfallId);
+	const [previewCard, setPreviewCard] = useState<ScryfallId>(
+		deck.cards?.[0]?.scryfallId,
+	);
 	const [modalCard, setModalCard] = useState<DeckCard | null>(null);
 
 	const queryClient = useQueryClient();
