@@ -114,22 +114,24 @@ describe("getColorIdentityLabel", () => {
 	});
 
 	it("handles mono-color", () => {
-		expect(getColorIdentityLabel(["W"])).toBe("W");
-		expect(getColorIdentityLabel(["U"])).toBe("U");
-		expect(getColorIdentityLabel(["B"])).toBe("B");
-		expect(getColorIdentityLabel(["R"])).toBe("R");
-		expect(getColorIdentityLabel(["G"])).toBe("G");
+		expect(getColorIdentityLabel(["W"])).toBe("White");
+		expect(getColorIdentityLabel(["U"])).toBe("Blue");
+		expect(getColorIdentityLabel(["B"])).toBe("Black");
+		expect(getColorIdentityLabel(["R"])).toBe("Red");
+		expect(getColorIdentityLabel(["G"])).toBe("Green");
 	});
 
 	it("handles multi-color in WUBRG order", () => {
-		expect(getColorIdentityLabel(["W", "U"])).toBe("WU");
-		expect(getColorIdentityLabel(["U", "W"])).toBe("WU"); // Sorts to WUBRG order
-		expect(getColorIdentityLabel(["B", "G"])).toBe("BG");
-		expect(getColorIdentityLabel(["R", "G", "W"])).toBe("WRG");
+		expect(getColorIdentityLabel(["W", "U"])).toBe("Azorius (WU)");
+		expect(getColorIdentityLabel(["U", "W"])).toBe("Azorius (WU)"); // Sorts to WUBRG order
+		expect(getColorIdentityLabel(["B", "G"])).toBe("Golgari (BG)");
+		expect(getColorIdentityLabel(["R", "G", "W"])).toBe("Naya (RGW)");
 	});
 
 	it("handles all five colors", () => {
-		expect(getColorIdentityLabel(["W", "U", "B", "R", "G"])).toBe("WUBRG");
+		expect(getColorIdentityLabel(["W", "U", "B", "R", "G"])).toBe(
+			"Five-Color (WUBRG)",
+		);
 	});
 });
 

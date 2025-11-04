@@ -120,7 +120,7 @@ function CardDetailPage() {
 	}
 
 	const displayCard = hoveredPrintingId
-		? printingsMap?.get(hoveredPrintingId) ?? card
+		? (printingsMap?.get(hoveredPrintingId) ?? card)
 		: card;
 
 	const allPrintings = (printingIds ?? [])
@@ -189,12 +189,20 @@ function CardDetailPage() {
 							</div>
 						)}
 
-						<div className="grid gap-x-8 gap-y-4 text-sm" style={{ gridTemplateColumns: "minmax(50%, auto) minmax(0, 1fr)" }}>
+						<div
+							className="grid gap-x-8 gap-y-4 text-sm"
+							style={{
+								gridTemplateColumns: "minmax(50%, auto) minmax(0, 1fr)",
+							}}
+						>
 							{displayCard.set_name && (
 								<>
 									<div className="min-w-0">
 										<p className="text-gray-600 dark:text-gray-400">Set</p>
-										<p className="text-gray-900 dark:text-white truncate" title={`${displayCard.set_name} (${displayCard.set?.toUpperCase()})`}>
+										<p
+											className="text-gray-900 dark:text-white truncate"
+											title={`${displayCard.set_name} (${displayCard.set?.toUpperCase()})`}
+										>
 											{displayCard.set_name} ({displayCard.set?.toUpperCase()})
 										</p>
 									</div>
@@ -212,7 +220,10 @@ function CardDetailPage() {
 								<>
 									<div className="min-w-0">
 										<p className="text-gray-600 dark:text-gray-400">Artist</p>
-										<p className="text-gray-900 dark:text-white truncate" title={displayCard.artist}>
+										<p
+											className="text-gray-900 dark:text-white truncate"
+											title={displayCard.artist}
+										>
 											{displayCard.artist}
 										</p>
 									</div>
@@ -242,7 +253,9 @@ function CardDetailPage() {
 												key={printing.id}
 												to="/card/$id"
 												params={{ id: printing.id }}
-												ref={printing.id === id ? currentPrintingRef : undefined}
+												ref={
+													printing.id === id ? currentPrintingRef : undefined
+												}
 												onMouseEnter={() => setHoveredPrintingId(printing.id)}
 												onMouseLeave={() => setHoveredPrintingId(null)}
 												className={`px-3 py-1.5 text-sm rounded transition-colors whitespace-nowrap ${

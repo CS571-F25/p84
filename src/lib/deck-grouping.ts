@@ -55,9 +55,56 @@ export function extractSubtypes(typeLine: string | undefined): string[] {
 	return subtypesPart.split(/\s+/).filter((s) => s.length > 0);
 }
 
+// Color combination names (guild/shard/wedge names)
+// Keys are in WUBRG order (how we sort them internally)
+// But we display the canonical MTG order in the UI
+const COLOR_NAMES_BY_SORTED: Record<
+	string,
+	{ name: string; canonical: string }
+> = {
+	// Mono
+	W: { name: "White", canonical: "W" },
+	U: { name: "Blue", canonical: "U" },
+	B: { name: "Black", canonical: "B" },
+	R: { name: "Red", canonical: "R" },
+	G: { name: "Green", canonical: "G" },
+	// Guilds (2-color) - already in WUBRG order
+	WU: { name: "Azorius", canonical: "WU" },
+	WB: { name: "Orzhov", canonical: "WB" },
+	WR: { name: "Boros", canonical: "WR" },
+	WG: { name: "Selesnya", canonical: "WG" },
+	UB: { name: "Dimir", canonical: "UB" },
+	UR: { name: "Izzet", canonical: "UR" },
+	UG: { name: "Simic", canonical: "UG" },
+	BR: { name: "Rakdos", canonical: "BR" },
+	BG: { name: "Golgari", canonical: "BG" },
+	RG: { name: "Gruul", canonical: "RG" },
+	// Shards (3-color, color + 2 allies)
+	WUG: { name: "Bant", canonical: "GWU" }, // Sorted WUG, shown as GWU
+	WUB: { name: "Esper", canonical: "WUB" },
+	UBR: { name: "Grixis", canonical: "UBR" },
+	BRG: { name: "Jund", canonical: "BRG" },
+	WRG: { name: "Naya", canonical: "RGW" }, // Sorted WRG, shown as RGW
+	// Wedges (3-color, color + 2 enemies)
+	WBG: { name: "Abzan", canonical: "WBG" },
+	WUR: { name: "Jeskai", canonical: "URW" }, // Sorted WUR, shown as URW
+	UBG: { name: "Sultai", canonical: "BGU" }, // Sorted UBG, shown as BGU
+	WBR: { name: "Mardu", canonical: "RWB" }, // Sorted WBR, shown as RWB
+	URG: { name: "Temur", canonical: "GUR" }, // Sorted URG, shown as GUR
+	// 4-color
+	WUBR: { name: "Non-Green", canonical: "WUBR" },
+	WUBG: { name: "Non-Red", canonical: "WUBG" },
+	WURG: { name: "Non-Black", canonical: "WURG" },
+	WBRG: { name: "Non-Blue", canonical: "WBRG" },
+	UBRG: { name: "Non-White", canonical: "UBRG" },
+	// 5-color
+	WUBRG: { name: "Five-Color", canonical: "WUBRG" },
+};
+
 /**
  * Get a label for a color identity
- * Example: ["W", "U"] → "WU"
+ * Example: ["W", "U"] → "Azorius (WU)"
+ * Example: ["U"] → "Blue"
  * Example: [] → "Colorless"
  */
 export function getColorIdentityLabel(
@@ -65,13 +112,20 @@ export function getColorIdentityLabel(
 ): string {
 	if (!colorIdentity || colorIdentity.length === 0) return "Colorless";
 
-	// Sort in WUBRG order
+	// Sort in WUBRG order for lookup
 	const order = ["W", "U", "B", "R", "G"];
 	const sorted = [...colorIdentity].sort(
 		(a, b) => order.indexOf(a) - order.indexOf(b),
 	);
 
-	return sorted.join("");
+	const sortedKey = sorted.join("");
+	const colorInfo = COLOR_NAMES_BY_SORTED[sortedKey];
+
+	// For mono-color, just return the name
+	if (sorted.length === 1) return colorInfo?.name ?? sortedKey;
+
+	// For multi-color, return "Name (Canonical)"
+	return colorInfo ? `${colorInfo.name} (${colorInfo.canonical})` : sortedKey;
 }
 
 /**
