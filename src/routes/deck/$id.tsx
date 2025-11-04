@@ -17,10 +17,7 @@ import {
 	updateCardQuantity,
 	updateCardTags,
 } from "@/lib/deck-types";
-import {
-	getCardByIdQueryOptions,
-	getCardWithPrintingsQueryOptions,
-} from "@/lib/queries";
+import { getCardByIdQueryOptions } from "@/lib/queries";
 import { asScryfallId, type ScryfallId } from "@/lib/scryfall-types";
 
 // Test deck card IDs (TODO: remove when ATProto persistence is implemented)
@@ -35,15 +32,10 @@ const TEST_CARD_IDS = [
 export const Route = createFileRoute("/deck/$id")({
 	component: DeckEditorPage,
 	loader: async ({ context }) => {
-		// Prefetch card data during SSR for both grouping/sorting and details
+		// Prefetch card data during SSR for grouping/sorting and display
 		await Promise.all(
 			TEST_CARD_IDS.map((id) =>
-				Promise.all([
-					context.queryClient.ensureQueryData(getCardByIdQueryOptions(id)),
-					context.queryClient.ensureQueryData(
-						getCardWithPrintingsQueryOptions(id),
-					),
-				]),
+				context.queryClient.ensureQueryData(getCardByIdQueryOptions(id)),
 			),
 		);
 	},

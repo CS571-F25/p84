@@ -35,18 +35,6 @@ export class ClientCardProvider implements CardDataProvider {
 		return worker.getCanonicalPrinting(oracleId);
 	}
 
-	async getCardWithPrintings(id: ScryfallId): Promise<{
-		card: Card;
-		otherPrintings: Array<{
-			id: ScryfallId;
-			name: string;
-			set_name?: string;
-		}>;
-	} | null> {
-		const worker = getCardsWorker();
-		return worker.getCardWithPrintings(id);
-	}
-
 	async searchCards(query: string, limit = 100): Promise<Card[]> {
 		const worker = getCardsWorker();
 		return worker.searchCards(query, limit);

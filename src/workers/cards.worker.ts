@@ -44,18 +44,6 @@ interface CardsWorkerAPI {
 	 * Get canonical printing ID for an oracle ID
 	 */
 	getCanonicalPrinting(oracleId: OracleId): ScryfallId | undefined;
-
-	/**
-	 * Get card with all its printings data
-	 */
-	getCardWithPrintings(id: ScryfallId): {
-		card: Card;
-		otherPrintings: Array<{
-			id: ScryfallId;
-			name: string;
-			set_name?: string;
-		}>;
-	} | null;
 }
 
 class CardsWorker implements CardsWorkerAPI {
@@ -158,43 +146,6 @@ class CardsWorker implements CardsWorkerAPI {
 			throw new Error("Worker not initialized - call initialize() first");
 		}
 		return this.data.canonicalPrintingByOracleId[oracleId];
-	}
-
-	getCardWithPrintings(id: ScryfallId): {
-		card: Card;
-		otherPrintings: Array<{
-			id: ScryfallId;
-			name: string;
-			set_name?: string;
-		}>;
-	} | null {
-		if (!this.data) {
-			throw new Error("Worker not initialized - call initialize() first");
-		}
-
-		const card = this.data.cards[id];
-		if (!card) return null;
-
-		const allPrintingIds = this.data.oracleIdToPrintings[card.oracle_id] ?? [];
-		const otherPrintingIds = allPrintingIds.filter((printId) => printId !== id);
-
-		const data = this.data;
-		const otherPrintings = otherPrintingIds
-			.map((printId) => {
-				const printing = data.cards[printId];
-				if (!printing) return null;
-				return {
-					id: printing.id,
-					name: printing.name,
-					set_name: printing.set_name,
-				};
-			})
-			.filter((p): p is NonNullable<typeof p> => p !== null);
-
-		return {
-			card,
-			otherPrintings,
-		};
 	}
 }
 

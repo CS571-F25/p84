@@ -31,18 +31,6 @@ export interface CardDataProvider {
 	getCanonicalPrinting(oracleId: OracleId): Promise<ScryfallId | undefined>;
 
 	/**
-	 * Get card with all its printings data
-	 */
-	getCardWithPrintings(id: ScryfallId): Promise<{
-		card: Card;
-		otherPrintings: Array<{
-			id: ScryfallId;
-			name: string;
-			set_name?: string;
-		}>;
-	} | null>;
-
-	/**
 	 * Search cards by name (optional - may not be available on all providers)
 	 */
 	searchCards?(query: string, limit?: number): Promise<Card[]>;

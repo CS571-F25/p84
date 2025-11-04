@@ -3,7 +3,7 @@ import { Minus, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ManaCost } from "@/components/ManaCost";
 import type { DeckCard, Section } from "@/lib/deck-types";
-import { getCardWithPrintingsQueryOptions } from "@/lib/queries";
+import { getCardByIdQueryOptions } from "@/lib/queries";
 
 interface CardModalProps {
 	card: DeckCard;
@@ -28,7 +28,7 @@ export function CardModal({
 	const [tags, setTags] = useState<string[]>(card.tags ?? []);
 	const [newTag, setNewTag] = useState("");
 
-	const { data } = useQuery(getCardWithPrintingsQueryOptions(card.scryfallId));
+	const { data: cardData } = useQuery(getCardByIdQueryOptions(card.scryfallId));
 
 	useEffect(() => {
 		setQuantity(card.quantity);
@@ -101,18 +101,18 @@ export function CardModal({
 					{/* Header */}
 					<div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-slate-800">
 						<div className="flex-1 min-w-0">
-							{data ? (
+							{cardData ? (
 								<>
 									<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-										{data.card.name}
+										{cardData.name}
 									</h2>
 									<div className="flex items-center gap-2">
-										{data.card.mana_cost && (
-											<ManaCost cost={data.card.mana_cost} size="small" />
+										{cardData.mana_cost && (
+											<ManaCost cost={cardData.mana_cost} size="small" />
 										)}
-										{data.card.type_line && (
+										{cardData.type_line && (
 											<span className="text-sm text-gray-600 dark:text-gray-400">
-												{data.card.type_line}
+												{cardData.type_line}
 											</span>
 										)}
 									</div>

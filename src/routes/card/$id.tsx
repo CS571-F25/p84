@@ -3,7 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CardImage, CardPreview } from "@/components/CardImage";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
-import { getCardWithPrintingsQueryOptions } from "@/lib/queries";
+import {
+	getCardByIdQueryOptions,
+	getCardPrintingsQueryOptions,
+} from "@/lib/queries";
 import type { ScryfallId } from "@/lib/scryfall-types";
 import { isScryfallId } from "@/lib/scryfall-types";
 
@@ -15,8 +18,16 @@ export const Route = createFileRoute("/card/$id")({
 		}
 
 		// Prefetch card data during SSR
-		const queryOptions = getCardWithPrintingsQueryOptions(params.id);
-		await context.queryClient.ensureQueryData(queryOptions);
+		const cardData = await context.queryClient.ensureQueryData(
+			getCardByIdQueryOptions(params.id),
+		);
+
+		// Also prefetch printings if card was found
+		if (cardData) {
+			await context.queryClient.ensureQueryData(
+				getCardPrintingsQueryOptions(cardData.oracle_id),
+			);
+		}
 	},
 	component: CardDetailPage,
 });
@@ -25,9 +36,14 @@ function CardDetailPage() {
 	const { id } = Route.useParams();
 
 	const isValidId = isScryfallId(id);
-	const { data, isLoading } = useQuery(
-		getCardWithPrintingsQueryOptions(isValidId ? id : ("" as ScryfallId)),
+	const { data: card, isLoading: cardLoading } = useQuery(
+		getCardByIdQueryOptions(isValidId ? id : ("" as ScryfallId)),
 	);
+
+	const { data: printingIds } = useQuery({
+		...getCardPrintingsQueryOptions(card?.oracle_id ?? ("" as any)),
+		enabled: !!card,
+	});
 
 	if (!isValidId) {
 		return (
@@ -39,7 +55,7 @@ function CardDetailPage() {
 		);
 	}
 
-	if (isLoading) {
+	if (cardLoading) {
 		return (
 			<div className="min-h-screen bg-white dark:bg-slate-900">
 				<div className="max-w-7xl mx-auto px-6 py-8">
@@ -53,7 +69,7 @@ function CardDetailPage() {
 		);
 	}
 
-	if (!data) {
+	if (!card) {
 		return (
 			<div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center">
 				<p className="text-red-600 dark:text-red-400 text-lg">Card not found</p>
@@ -61,7 +77,7 @@ function CardDetailPage() {
 		);
 	}
 
-	const { card, otherPrintings } = data;
+	const otherPrintingIds = printingIds?.filter((pid) => pid !== id) ?? [];
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
@@ -158,19 +174,18 @@ function CardDetailPage() {
 							)}
 						</div>
 
-						{otherPrintings && otherPrintings.length > 0 && (
+						{otherPrintingIds.length > 0 && (
 							<div>
 								<h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-									Other Printings ({otherPrintings.length})
+									Other Printings ({otherPrintingIds.length})
 								</h2>
 								<div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-									{otherPrintings.slice(0, 12).map((printing) => (
+									{otherPrintingIds.slice(0, 12).map((printingId) => (
 										<CardPreview
-											key={printing.id}
-											cardId={printing.id}
-											name={printing.name}
-											setName={printing.set_name}
-											href={`/card/${printing.id}`}
+											key={printingId}
+											cardId={printingId}
+											name={card.name}
+											href={`/card/${printingId}`}
 										/>
 									))}
 								</div>

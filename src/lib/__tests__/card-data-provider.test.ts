@@ -226,28 +226,6 @@ describe("CardDataProvider contract", () => {
 				expect(canonicalId).toBeUndefined();
 			});
 		});
-
-		describe("getCardWithPrintings", () => {
-			it("returns card with other printings for known ID", async () => {
-				const result = await provider.getCardWithPrintings(TEST_CARD_ID);
-
-				expect(result).toBeDefined();
-				expect(result?.card.id).toBe(TEST_CARD_ID);
-				expect(result?.card.name).toBe(TEST_CARD_NAME);
-				expect(Array.isArray(result?.otherPrintings)).toBe(true);
-			});
-
-			it("returns null for invalid ID", async () => {
-				const result = await provider.getCardWithPrintings(INVALID_ID);
-				expect(result).toBeNull();
-			});
-
-			it("returns null for missing ID", async () => {
-				const missingId = asScryfallId("ffffffff-ffff-ffff-ffff-ffffffffffff");
-				const result = await provider.getCardWithPrintings(missingId);
-				expect(result).toBeNull();
-			});
-		});
 	});
 
 	describe("Cross-provider consistency", () => {
@@ -285,18 +263,6 @@ describe("CardDataProvider contract", () => {
 			]);
 
 			expect(clientCanonical).toEqual(serverCanonical);
-		});
-
-		it("returns identical card with printings", async () => {
-			const [clientResult, serverResult] = await Promise.all([
-				clientProvider.getCardWithPrintings(TEST_CARD_ID),
-				serverProvider.getCardWithPrintings(TEST_CARD_ID),
-			]);
-
-			expect(clientResult?.card).toEqual(serverResult?.card);
-			expect(clientResult?.otherPrintings).toEqual(
-				serverResult?.otherPrintings,
-			);
 		});
 
 		it("returns identical results for missing IDs", async () => {

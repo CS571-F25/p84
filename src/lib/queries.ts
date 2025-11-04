@@ -50,19 +50,6 @@ export const getCardByIdQueryOptions = (id: ScryfallId) =>
 	});
 
 /**
- * Get a single card by ID with all its printings
- */
-export const getCardWithPrintingsQueryOptions = (id: ScryfallId) =>
-	queryOptions({
-		queryKey: ["cards", "withPrintings", id] as const,
-		queryFn: async () => {
-			const provider = await getCardDataProvider();
-			return provider.getCardWithPrintings(id);
-		},
-		staleTime: Number.POSITIVE_INFINITY,
-	});
-
-/**
  * Get all printings for a card's oracle ID
  */
 export const getCardPrintingsQueryOptions = (oracleId: OracleId) =>

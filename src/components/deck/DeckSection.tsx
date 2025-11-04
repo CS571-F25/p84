@@ -3,10 +3,7 @@ import { useMemo } from "react";
 import { ManaCost } from "@/components/ManaCost";
 import { groupCards, sortCards, sortGroupNames } from "@/lib/deck-grouping";
 import type { DeckCard, GroupBy, Section, SortBy } from "@/lib/deck-types";
-import {
-	getCardByIdQueryOptions,
-	getCardWithPrintingsQueryOptions,
-} from "@/lib/queries";
+import { getCardByIdQueryOptions } from "@/lib/queries";
 import type { Card, ScryfallId } from "@/lib/scryfall-types";
 
 // Combine function for useQueries - converts query results into a Map
@@ -39,8 +36,8 @@ interface DeckCardRowProps {
 }
 
 function DeckCardRow({ card, onCardHover, onCardClick }: DeckCardRowProps) {
-	const { data, isLoading } = useQuery(
-		getCardWithPrintingsQueryOptions(card.scryfallId),
+	const { data: cardData, isLoading } = useQuery(
+		getCardByIdQueryOptions(card.scryfallId),
 	);
 
 	return (
@@ -63,11 +60,11 @@ function DeckCardRow({ card, onCardHover, onCardClick }: DeckCardRowProps) {
 					{card.quantity}
 				</span>
 				<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0">
-					{data ? data.card.name : isLoading ? "" : "Unknown Card"}
+					{cardData ? cardData.name : isLoading ? "" : "Unknown Card"}
 				</span>
 				<div className="flex-shrink-0 flex items-center ml-auto">
-					{data?.card.mana_cost ? (
-						<ManaCost cost={data.card.mana_cost} size="small" />
+					{cardData?.mana_cost ? (
+						<ManaCost cost={cardData.mana_cost} size="small" />
 					) : isLoading ? (
 						<div className="h-5 w-12 bg-gray-300 dark:bg-slate-700 rounded animate-pulse" />
 					) : null}
