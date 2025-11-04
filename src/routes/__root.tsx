@@ -6,12 +6,13 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { Toaster } from "sonner";
 import Header from "../components/Header";
 import { WorkerStatusIndicator } from "../components/WorkerStatusIndicator";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import { initializeApp } from "../lib/app-init";
 import { AuthProvider } from "../lib/useAuth";
-import { ThemeProvider } from "../lib/useTheme";
+import { ThemeProvider, useTheme } from "../lib/useTheme";
 import appCss from "../styles.css?url";
 
 initializeApp();
@@ -56,6 +57,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	shellComponent: RootDocument,
 });
 
+function ThemedToaster() {
+	const { theme } = useTheme();
+	return <Toaster theme={theme} />;
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
 		// suppressHydrationWarning: blocking script adds theme class before hydration,
@@ -96,6 +102,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 								TanStackQueryDevtools,
 							]}
 						/>
+						<ThemedToaster />
 					</AuthProvider>
 				</ThemeProvider>
 				<Scripts />

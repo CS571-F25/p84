@@ -1,9 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { searchCardsQueryOptions } from "@/lib/queries";
 import type { Card, ScryfallId } from "@/lib/scryfall-types";
 import { useDebounce } from "@/lib/useDebounce";
 import { ManaCost } from "../ManaCost";
+import { toast } from "sonner";
 
 interface CardSearchAutocompleteProps {
 	format?: string;
@@ -24,6 +25,7 @@ export function CardSearchAutocomplete({
 	const prevSearchRef = useRef("");
 	const resultRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 
+	const queryClient = useQueryClient();
 	const debouncedSearch = useDebounce(inputValue, 300);
 
 	const { data, isFetching } = useQuery(
@@ -87,17 +89,62 @@ export function CardSearchAutocomplete({
 
 	const handleCardSelect = (card: Card) => {
 		onCardSelect?.(card.id);
+		onCardHover?.(card.id);
 		setInputValue("");
 		setIsDropdownOpen(false);
 		setSelectedIndex(0);
 		inputRef.current?.focus();
+		toast.success(`added ${card.name}`);
+	};
+
+	const handleEnter = () => {
+		if (debouncedSearch === inputValue) {
+			if (displayCards[selectedIndex]) {
+				handleCardSelect(displayCards[selectedIndex]);
+			} else {
+				toast.error(`no card found for "${debouncedSearch}"`);
+			}
+			return;
+		}
+
+		const searchTerm = inputValue;
+		setInputValue("");
+		setIsDropdownOpen(false);
+		setSelectedIndex(0);
+
+		const toastId = toast.loading(`searching for "${searchTerm}"...`);
+
+		queryClient
+			.fetchQuery(searchCardsQueryOptions(searchTerm))
+			.then((result) => {
+				const topCard = result.cards[0];
+				if (topCard) {
+					onCardSelect?.(topCard.id);
+					onCardHover?.(topCard.id);
+					toast.success(`added ${topCard.name}`, { id: toastId });
+				} else {
+					toast.error(`no card found for "${searchTerm}"`, { id: toastId });
+				}
+			})
+			.catch(() => {
+				toast.error("search failed", { id: toastId });
+			});
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (!showDropdown || !hasResults) return;
-
 		switch (e.key) {
+			case "Enter":
+				e.preventDefault();
+				if (inputValue.trim().length > 0) {
+					handleEnter();
+				}
+				break;
+			case "Escape":
+				e.preventDefault();
+				setIsDropdownOpen(false);
+				break;
 			case "ArrowDown":
+				if (!showDropdown || !hasResults) return;
 				e.preventDefault();
 				setSelectedIndex((prev) => {
 					const newIndex = prev < displayCards.length - 1 ? prev + 1 : prev;
@@ -108,6 +155,7 @@ export function CardSearchAutocomplete({
 				});
 				break;
 			case "ArrowUp":
+				if (!showDropdown || !hasResults) return;
 				e.preventDefault();
 				setSelectedIndex((prev) => {
 					const newIndex = prev > 0 ? prev - 1 : prev;
@@ -116,16 +164,6 @@ export function CardSearchAutocomplete({
 					}
 					return newIndex;
 				});
-				break;
-			case "Enter":
-				e.preventDefault();
-				if (displayCards[selectedIndex]) {
-					handleCardSelect(displayCards[selectedIndex]);
-				}
-				break;
-			case "Escape":
-				e.preventDefault();
-				setIsDropdownOpen(false);
 				break;
 		}
 	};
