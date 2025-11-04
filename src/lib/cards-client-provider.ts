@@ -18,6 +18,11 @@ export class ClientCardProvider implements CardDataProvider {
 		return worker.getCardById(id);
 	}
 
+	async getCardsByIds(ids: ScryfallId[]): Promise<Map<ScryfallId, Card>> {
+		const worker = getCardsWorker();
+		return worker.getCardsByIds(ids);
+	}
+
 	async getPrintingsByOracleId(oracleId: OracleId): Promise<ScryfallId[]> {
 		const worker = getCardsWorker();
 		return worker.getPrintingsByOracleId(oracleId);

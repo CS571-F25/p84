@@ -20,7 +20,14 @@ export type Deck = Omit<ComDeckbelcherDeckList.Main, "cards"> & {
  * View configuration for deck display
  */
 export type ViewStyle = "text" | "grid" | "stacks";
-export type GroupBy = "tag" | "type" | "manaValue" | "none";
+export type GroupBy =
+	| "tag"
+	| "type"
+	| "typeAndTags"
+	| "subtype"
+	| "manaValue"
+	| "colorIdentity"
+	| "none";
 export type SortBy = "name" | "manaValue" | "rarity";
 
 export interface ViewConfig {

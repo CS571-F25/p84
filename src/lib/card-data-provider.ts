@@ -16,6 +16,11 @@ export interface CardDataProvider {
 	getCardById(id: ScryfallId): Promise<Card | undefined>;
 
 	/**
+	 * Get multiple cards by IDs (bulk fetch for efficient grouping/sorting)
+	 */
+	getCardsByIds(ids: ScryfallId[]): Promise<Map<ScryfallId, Card>>;
+
+	/**
 	 * Get all printings for an oracle ID
 	 */
 	getPrintingsByOracleId(oracleId: OracleId): Promise<ScryfallId[]>;

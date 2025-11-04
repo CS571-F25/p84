@@ -1,12 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { ManaCost } from "@/components/ManaCost";
-import type { DeckCard, Section } from "@/lib/deck-types";
-import { getCardWithPrintingsQueryOptions } from "@/lib/queries";
+import { groupCards, sortCards, sortGroupNames } from "@/lib/deck-grouping";
+import type { DeckCard, GroupBy, Section, SortBy } from "@/lib/deck-types";
+import {
+	getCardsByIdsQueryOptions,
+	getCardWithPrintingsQueryOptions,
+} from "@/lib/queries";
 import type { ScryfallId } from "@/lib/scryfall-types";
 
 interface DeckSectionProps {
 	section: Section;
 	cards: DeckCard[];
+	groupBy: GroupBy;
+	sortBy: SortBy;
 	onCardHover?: (cardId: ScryfallId | null) => void;
 	onCardClick?: (card: DeckCard) => void;
 }
@@ -59,6 +66,8 @@ function DeckCardRow({ card, onCardHover, onCardClick }: DeckCardRowProps) {
 export function DeckSection({
 	section,
 	cards,
+	groupBy,
+	sortBy,
 	onCardHover,
 	onCardClick,
 }: DeckSectionProps) {
@@ -70,6 +79,34 @@ export function DeckSection({
 	};
 
 	const totalQuantity = cards.reduce((sum, card) => sum + card.quantity, 0);
+
+	// Bulk fetch all card data for this section
+	const cardIds = cards.map((c) => c.scryfallId);
+	const { data: cardMap } = useQuery(getCardsByIdsQueryOptions(cardIds));
+
+	// Group and sort cards with memoization
+	const groupedCards = useMemo(() => {
+		if (!cardMap) return new Map([["all", cards]]);
+		const lookup = (card: DeckCard) => cardMap.get(card.scryfallId);
+		return groupCards(cards, lookup, groupBy);
+	}, [cards, cardMap, groupBy]);
+
+	const sortedGroupNames = useMemo(
+		() => sortGroupNames(Array.from(groupedCards.keys()), groupBy),
+		[groupedCards, groupBy],
+	);
+
+	// Sort cards within each group
+	const sortedGroups = useMemo(() => {
+		if (!cardMap) return groupedCards;
+		const lookup = (card: DeckCard) => cardMap.get(card.scryfallId);
+		return new Map(
+			sortedGroupNames.map((groupName) => {
+				const groupCards = groupedCards.get(groupName) ?? [];
+				return [groupName, sortCards(groupCards, lookup, sortBy)];
+			}),
+		);
+	}, [sortedGroupNames, groupedCards, cardMap, sortBy]);
 
 	return (
 		<div className="mb-6">
@@ -88,16 +125,57 @@ export function DeckSection({
 						No cards in {sectionNames[section].toLowerCase()}
 					</p>
 				</div>
+			) : groupBy === "none" ? (
+				<div className="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-2 gap-y-1">
+					{cardMap
+						? sortCards(
+								cards,
+								(card) => cardMap.get(card.scryfallId),
+								sortBy,
+							).map((card, index) => (
+								<DeckCardRow
+									key={`${card.scryfallId}-${index}`}
+									card={card}
+									onCardHover={onCardHover}
+									onCardClick={onCardClick}
+								/>
+							))
+						: cards.map((card, index) => (
+								<DeckCardRow
+									key={`${card.scryfallId}-${index}`}
+									card={card}
+									onCardHover={onCardHover}
+									onCardClick={onCardClick}
+								/>
+							))}
+				</div>
 			) : (
-				<div className="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-0.5">
-					{cards.map((card, index) => (
-						<DeckCardRow
-							key={`${card.scryfallId}-${index}`}
-							card={card}
-							onCardHover={onCardHover}
-							onCardClick={onCardClick}
-						/>
-					))}
+				<div className="space-y-4">
+					{sortedGroupNames.map((groupName) => {
+						const groupCards = sortedGroups.get(groupName) ?? [];
+						const groupQuantity = groupCards.reduce(
+							(sum, card) => sum + card.quantity,
+							0,
+						);
+
+						return (
+							<div key={groupName} className="space-y-1">
+								<div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+									{groupName} ({groupQuantity})
+								</div>
+								<div className="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-2 gap-y-1">
+									{groupCards.map((card, index) => (
+										<DeckCardRow
+											key={`${card.scryfallId}-${groupName}-${index}`}
+											card={card}
+											onCardHover={onCardHover}
+											onCardClick={onCardClick}
+										/>
+									))}
+								</div>
+							</div>
+						);
+					})}
 				</div>
 			)}
 		</div>

@@ -1,11 +1,13 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CardModal } from "@/components/deck/CardModal";
 import { CardPreviewPane } from "@/components/deck/CardPreviewPane";
 import { CardSearchAutocomplete } from "@/components/deck/CardSearchAutocomplete";
 import { DeckHeader } from "@/components/deck/DeckHeader";
 import { DeckSection } from "@/components/deck/DeckSection";
-import type { Deck, Section } from "@/lib/deck-types";
+import { ViewControls } from "@/components/deck/ViewControls";
+import type { Deck, GroupBy, Section, SortBy } from "@/lib/deck-types";
 import {
 	addCardToDeck,
 	type DeckCard,
@@ -38,6 +40,33 @@ export const Route = createFileRoute("/deck/$id")({
 		);
 	},
 });
+
+const VIEW_CONFIG_KEY = "deckbelcher:viewConfig";
+
+interface ViewConfig {
+	groupBy: GroupBy;
+	sortBy: SortBy;
+}
+
+function loadViewConfig(): ViewConfig {
+	try {
+		const stored = localStorage.getItem(VIEW_CONFIG_KEY);
+		if (stored) {
+			return JSON.parse(stored);
+		}
+	} catch (_e) {
+		// Ignore parse errors
+	}
+	return { groupBy: "tag", sortBy: "name" };
+}
+
+function saveViewConfig(config: ViewConfig): void {
+	try {
+		localStorage.setItem(VIEW_CONFIG_KEY, JSON.stringify(config));
+	} catch (_e) {
+		// Ignore storage errors
+	}
+}
 
 function DeckEditorPage() {
 	// Initialize deck with some test data
@@ -86,6 +115,19 @@ function DeckEditorPage() {
 
 	const [previewCard, setPreviewCard] = useState<ScryfallId | null>(null);
 	const [modalCard, setModalCard] = useState<DeckCard | null>(null);
+
+	const queryClient = useQueryClient();
+
+	// View configuration with localStorage persistence
+	const [groupBy, setGroupBy] = useState<GroupBy>(
+		() => loadViewConfig().groupBy,
+	);
+	const [sortBy, setSortBy] = useState<SortBy>(() => loadViewConfig().sortBy);
+
+	// Save view config to localStorage when it changes
+	useEffect(() => {
+		saveViewConfig({ groupBy, sortBy });
+	}, [groupBy, sortBy]);
 
 	const handleCardHover = (cardId: ScryfallId | null) => {
 		// Only update preview if we have a card (persistence - don't clear on null)
@@ -162,7 +204,10 @@ function DeckEditorPage() {
 		}));
 	};
 
-	const handleCardSelect = (cardId: ScryfallId) => {
+	const handleCardSelect = async (cardId: ScryfallId) => {
+		// Prefetch card data before adding to ensure it's in the cache
+		// This prevents the card from jumping around during grouping/sorting
+		await queryClient.prefetchQuery(getCardWithPrintingsQueryOptions(cardId));
 		setDeck((prev) => addCardToDeck(prev, cardId, "mainboard", 1));
 	};
 
@@ -201,27 +246,42 @@ function DeckEditorPage() {
 
 					{/* Right pane: Deck sections (60%) */}
 					<div className="lg:col-span-3">
+						<ViewControls
+							groupBy={groupBy}
+							sortBy={sortBy}
+							onGroupByChange={setGroupBy}
+							onSortByChange={setSortBy}
+						/>
+
 						<DeckSection
 							section="commander"
 							cards={getCardsInSection(deck, "commander")}
+							groupBy={groupBy}
+							sortBy={sortBy}
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
 						/>
 						<DeckSection
 							section="mainboard"
 							cards={getCardsInSection(deck, "mainboard")}
+							groupBy={groupBy}
+							sortBy={sortBy}
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
 						/>
 						<DeckSection
 							section="sideboard"
 							cards={getCardsInSection(deck, "sideboard")}
+							groupBy={groupBy}
+							sortBy={sortBy}
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
 						/>
 						<DeckSection
 							section="maybeboard"
 							cards={getCardsInSection(deck, "maybeboard")}
+							groupBy={groupBy}
+							sortBy={sortBy}
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
 						/>

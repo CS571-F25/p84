@@ -21,7 +21,6 @@ vi.mock("../cards-worker-client", () => {
 
 	return {
 		initializeWorker: async () => {
-			// @ts-expect-error very evil testing only import...
 			const { __CardsWorkerForTestingOnly } = await import(
 				"../../workers/cards.worker"
 			);

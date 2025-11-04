@@ -22,6 +22,15 @@ export class ServerCardProvider implements CardDataProvider {
 		}
 	}
 
+	async getCardsByIds(ids: ScryfallId[]): Promise<Map<ScryfallId, Card>> {
+		const cards = await Promise.all(
+			ids.map(async (id) => [id, await this.getCardById(id)] as const),
+		);
+		return new Map(
+			cards.filter((pair): pair is [ScryfallId, Card] => pair[1] !== undefined),
+		);
+	}
+
 	async getPrintingsByOracleId(oracleId: OracleId): Promise<ScryfallId[]> {
 		try {
 			const filePath = join(DATA_DIR, "by-oracle", `${oracleId}.json`);

@@ -31,6 +31,11 @@ interface CardsWorkerAPI {
 	getCardById(id: ScryfallId): Card | undefined;
 
 	/**
+	 * Get multiple cards by IDs (bulk fetch)
+	 */
+	getCardsByIds(ids: ScryfallId[]): Map<ScryfallId, Card>;
+
+	/**
 	 * Get all printings for an oracle ID
 	 */
 	getPrintingsByOracleId(oracleId: OracleId): ScryfallId[];
@@ -134,6 +139,17 @@ class CardsWorker implements CardsWorkerAPI {
 			throw new Error("Worker not initialized - call initialize() first");
 		}
 		return this.data.cards[id];
+	}
+
+	getCardsByIds(ids: ScryfallId[]): Map<ScryfallId, Card> {
+		if (!this.data) {
+			throw new Error("Worker not initialized - call initialize() first");
+		}
+		return new Map(
+			ids
+				.map((id) => [id, this.data?.cards[id]] as const)
+				.filter((pair): pair is [ScryfallId, Card] => pair[1] !== undefined),
+		);
 	}
 
 	getPrintingsByOracleId(oracleId: OracleId): ScryfallId[] {

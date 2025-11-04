@@ -15,6 +15,8 @@ let initPromise: Promise<void> | null = null;
  * Detect if SharedWorker is supported
  */
 function isSharedWorkerSupported(): boolean {
+	// Disable SharedWorker in development to avoid stale worker issues
+	if (import.meta.env.DEV) return false;
 	return typeof SharedWorker !== "undefined" && !process.env.VITEST;
 }
 
