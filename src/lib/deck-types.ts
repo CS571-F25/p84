@@ -161,7 +161,7 @@ export function updateCardTags(
 
 /**
  * Move a card to a different section
- * NOTE: This MOVES the card, it does not merge with existing cards in the target section
+ * If the card exists in the target section, merge quantities and combine tags
  */
 export function moveCardToSection(
 	deck: Deck,
@@ -169,12 +169,38 @@ export function moveCardToSection(
 	fromSection: Section,
 	toSection: Section,
 ): Deck {
-	const card = findCardInSection(deck, scryfallId, fromSection);
-	if (!card) {
+	const sourceCard = findCardInSection(deck, scryfallId, fromSection);
+	if (!sourceCard) {
 		return deck;
 	}
 
-	// Simply change the section, don't merge with existing cards
+	const targetCard = findCardInSection(deck, scryfallId, toSection);
+
+	// If card exists in target section, merge quantities and combine tags
+	if (targetCard) {
+		const combinedTags = Array.from(
+			new Set([...(targetCard.tags ?? []), ...(sourceCard.tags ?? [])]),
+		);
+		return {
+			...deck,
+			cards: deck.cards
+				.filter(
+					(c) => !(c.scryfallId === scryfallId && c.section === fromSection),
+				)
+				.map((c) =>
+					c.scryfallId === scryfallId && c.section === toSection
+						? {
+								...c,
+								quantity: c.quantity + sourceCard.quantity,
+								tags: combinedTags,
+							}
+						: c,
+				),
+			updatedAt: new Date().toISOString(),
+		};
+	}
+
+	// Otherwise just move the card
 	return {
 		...deck,
 		cards: deck.cards.map((c) =>
