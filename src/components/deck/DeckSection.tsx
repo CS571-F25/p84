@@ -41,19 +41,12 @@ function DeckCardRow({ card, onCardHover, onCardClick }: DeckCardRowProps) {
 	);
 
 	return (
-		<div
-			className="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded px-2 py-1 cursor-pointer transition-colors"
+		<button
+			type="button"
+			className="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded px-2 py-1 cursor-pointer transition-colors w-full text-left"
 			onMouseEnter={() => onCardHover?.(card.scryfallId)}
 			onMouseLeave={() => onCardHover?.(null)}
 			onClick={() => onCardClick?.(card)}
-			onKeyDown={(e) => {
-				if (e.key === "Enter" || e.key === " ") {
-					e.preventDefault();
-					onCardClick?.(card);
-				}
-			}}
-			role="button"
-			tabIndex={0}
 		>
 			<div className="flex items-center gap-2">
 				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-4 text-right flex-shrink-0">
@@ -70,7 +63,7 @@ function DeckCardRow({ card, onCardHover, onCardClick }: DeckCardRowProps) {
 					) : null}
 				</div>
 			</div>
-		</div>
+		</button>
 	);
 }
 

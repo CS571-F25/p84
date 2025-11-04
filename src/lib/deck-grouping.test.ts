@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Card } from "@/lib/scryfall-types";
-import { asScryfallId } from "@/lib/scryfall-types";
+import { asOracleId, asScryfallId } from "@/lib/scryfall-types";
 import {
 	type CardLookup,
 	extractPrimaryType,
@@ -17,7 +17,7 @@ import type { DeckCard } from "./deck-types";
 function mockCard(overrides: Partial<Card> = {}): Card {
 	return {
 		id: asScryfallId("00000000-0000-0000-0000-000000000000"),
-		oracle_id: "00000000-0000-0000-0000-000000000000" as any,
+		oracle_id: asOracleId("00000000-0000-0000-0000-000000000000"),
 		name: "Test Card",
 		...overrides,
 	} as Card;

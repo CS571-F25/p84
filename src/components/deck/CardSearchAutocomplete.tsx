@@ -1,10 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { searchCardsQueryOptions } from "@/lib/queries";
 import type { Card, ScryfallId } from "@/lib/scryfall-types";
 import { useDebounce } from "@/lib/useDebounce";
 import { ManaCost } from "../ManaCost";
-import { toast } from "sonner";
 
 interface CardSearchAutocompleteProps {
 	format?: string;

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 export const Route = createFileRoute("/deck/new")({
 	component: NewDeckPage,
@@ -9,6 +9,8 @@ function NewDeckPage() {
 	const navigate = useNavigate();
 	const [name, setName] = useState("");
 	const [format, setFormat] = useState<string>("commander");
+	const nameId = useId();
+	const formatId = useId();
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -35,13 +37,13 @@ function NewDeckPage() {
 				<form onSubmit={handleSubmit} className="space-y-6">
 					<div>
 						<label
-							htmlFor="name"
+							htmlFor={nameId}
 							className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
 						>
 							Deck Name
 						</label>
 						<input
-							id="name"
+							id={nameId}
 							type="text"
 							value={name}
 							onChange={(e) => setName(e.target.value)}
@@ -52,13 +54,13 @@ function NewDeckPage() {
 
 					<div>
 						<label
-							htmlFor="format"
+							htmlFor={formatId}
 							className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
 						>
 							Format
 						</label>
 						<select
-							id="format"
+							id={formatId}
 							value={format}
 							onChange={(e) => setFormat(e.target.value)}
 							className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors"

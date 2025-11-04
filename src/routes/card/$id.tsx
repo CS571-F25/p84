@@ -9,7 +9,7 @@ import {
 	getCardPrintingsQueryOptions,
 } from "@/lib/queries";
 import type { Card, ScryfallId } from "@/lib/scryfall-types";
-import { isScryfallId } from "@/lib/scryfall-types";
+import { asOracleId, isScryfallId } from "@/lib/scryfall-types";
 
 export const Route = createFileRoute("/card/$id")({
 	loader: async ({ context, params }) => {
@@ -67,7 +67,7 @@ function CardDetailPage() {
 	);
 
 	const { data: printingIds } = useQuery({
-		...getCardPrintingsQueryOptions(card?.oracle_id ?? ("" as any)),
+		...getCardPrintingsQueryOptions(card?.oracle_id ?? asOracleId("")),
 		enabled: !!card,
 	});
 
