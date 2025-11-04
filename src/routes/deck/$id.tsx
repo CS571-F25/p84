@@ -423,6 +423,7 @@ function DeckEditorInner({
 				<div className="max-w-7xl mx-auto px-6 py-3 flex justify-end">
 					<div className="w-full max-w-md">
 						<CardSearchAutocomplete
+							deck={deck}
 							format={deck.format}
 							onCardSelect={handleCardSelect}
 							onCardHover={handleCardHover}

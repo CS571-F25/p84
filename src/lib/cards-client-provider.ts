@@ -6,7 +6,12 @@
 
 import type { CardDataProvider } from "./card-data-provider";
 import { getCardsWorker, initializeWorker } from "./cards-worker-client";
-import type { Card, OracleId, ScryfallId } from "./scryfall-types";
+import type {
+	Card,
+	OracleId,
+	ScryfallId,
+	SearchRestrictions,
+} from "./scryfall-types";
 
 export class ClientCardProvider implements CardDataProvider {
 	async initialize(): Promise<void> {
@@ -35,8 +40,12 @@ export class ClientCardProvider implements CardDataProvider {
 		return worker.getCanonicalPrinting(oracleId);
 	}
 
-	async searchCards(query: string, limit = 100): Promise<Card[]> {
+	async searchCards(
+		query: string,
+		restrictions?: SearchRestrictions,
+		maxResults = 100,
+	): Promise<Card[]> {
 		const worker = getCardsWorker();
-		return worker.searchCards(query, limit);
+		return worker.searchCards(query, restrictions, maxResults);
 	}
 }

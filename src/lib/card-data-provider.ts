@@ -7,7 +7,12 @@
  */
 
 import { ClientCardProvider } from "./cards-client-provider";
-import type { Card, OracleId, ScryfallId } from "./scryfall-types";
+import type {
+	Card,
+	OracleId,
+	ScryfallId,
+	SearchRestrictions,
+} from "./scryfall-types";
 
 export interface CardDataProvider {
 	/**
@@ -31,9 +36,13 @@ export interface CardDataProvider {
 	getCanonicalPrinting(oracleId: OracleId): Promise<ScryfallId | undefined>;
 
 	/**
-	 * Search cards by name (optional - may not be available on all providers)
+	 * Search cards by name with optional restrictions (optional - may not be available on all providers)
 	 */
-	searchCards?(query: string, limit?: number): Promise<Card[]>;
+	searchCards?(
+		query: string,
+		restrictions?: SearchRestrictions,
+		maxResults?: number,
+	): Promise<Card[]>;
 }
 
 let providerPromise: Promise<CardDataProvider> | null = null;

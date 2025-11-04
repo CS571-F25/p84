@@ -10,8 +10,10 @@ import MiniSearch from "minisearch";
 import type {
 	Card,
 	CardDataOutput,
+	ManaColor,
 	OracleId,
 	ScryfallId,
+	SearchRestrictions,
 } from "../lib/scryfall-types";
 
 interface CardsWorkerAPI {
@@ -21,9 +23,13 @@ interface CardsWorkerAPI {
 	initialize(): Promise<void>;
 
 	/**
-	 * Search cards by name
+	 * Search cards by name with optional restrictions
 	 */
-	searchCards(query: string, limit?: number): Card[];
+	searchCards(
+		query: string,
+		restrictions?: SearchRestrictions,
+		maxResults?: number,
+	): Card[];
 
 	/**
 	 * Get card by ID
@@ -96,7 +102,11 @@ class CardsWorker implements CardsWorkerAPI {
 		);
 	}
 
-	searchCards(query: string, limit = 100): Card[] {
+	searchCards(
+		query: string,
+		restrictions?: SearchRestrictions,
+		maxResults = 50,
+	): Card[] {
 		if (!this.data || !this.searchIndex) {
 			throw new Error("Worker not initialized - call initialize() first");
 		}
@@ -107,14 +117,41 @@ class CardsWorker implements CardsWorkerAPI {
 		}
 
 		// Perform fuzzy search with exact-match priority
-		const results = this.searchIndex.search(query);
+		const searchResults = this.searchIndex.search(query);
+		const results: Card[] = [];
 
-		// Map search results back to full Card objects and limit
-		const data = this.data;
-		return results
-			.map((result) => data.cards[result.id as ScryfallId])
-			.filter((card): card is Card => card !== undefined)
-			.slice(0, limit);
+		// Iterate incrementally, applying filters and stopping at maxResults
+		for (const result of searchResults) {
+			const card = this.data.cards[result.id as ScryfallId];
+			if (!card) continue;
+
+			// Apply restrictions
+			if (restrictions) {
+				// Format legality check
+				if (restrictions.format) {
+					const legality = card.legalities?.[restrictions.format];
+					if (legality !== "legal" && legality !== "restricted") {
+						continue;
+					}
+				}
+
+				// Color identity subset check (Scryfall order not guaranteed)
+				if (restrictions.colorIdentity) {
+					const cardIdentity = card.color_identity ?? [];
+					const allowedSet = new Set(restrictions.colorIdentity);
+
+					// Card must be subset of allowed colors
+					if (!cardIdentity.every((c) => allowedSet.has(c as ManaColor))) {
+						continue;
+					}
+				}
+			}
+
+			results.push(card);
+			if (results.length >= maxResults) break; // Early exit
+		}
+
+		return results;
 	}
 
 	getCardById(id: ScryfallId): Card | undefined {

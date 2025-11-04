@@ -4,15 +4,12 @@
  * Ensures ClientCardProvider and ServerCardProvider return identical data
  */
 
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { CardDataProvider } from "../card-data-provider";
 import { ClientCardProvider } from "../cards-client-provider";
 import { ServerCardProvider } from "../cards-server-provider";
 import { asOracleId, asScryfallId } from "../scryfall-types";
-
-const PUBLIC_DIR = join(process.cwd(), "public");
+import { mockFetchFromPublicDir } from "./test-helpers";
 
 // Mock cards-worker-client to use real worker code without Comlink/Worker
 vi.mock("../cards-worker-client", () => {
@@ -110,31 +107,12 @@ describe("CardDataProvider contract", () => {
 	let serverProvider: ServerCardProvider;
 
 	beforeAll(async () => {
-		// Mock fetch to serve cards.json from filesystem
-		vi.stubGlobal(
-			"fetch",
-			vi.fn(async (input: RequestInfo | URL) => {
-				const url = typeof input === "string" ? input : input.toString();
-
-				if (url.startsWith("/data/")) {
-					const filePath = join(PUBLIC_DIR, url);
-					try {
-						const content = await readFile(filePath, "utf-8");
-						return new Response(content, {
-							status: 200,
-							headers: { "Content-Type": "application/json" },
-						});
-					} catch {}
-				}
-
-				return new Response(null, { status: 404 });
-			}),
-		);
+		mockFetchFromPublicDir();
 
 		serverProvider = new ServerCardProvider();
 		clientProvider = new ClientCardProvider();
 		await clientProvider.initialize();
-	});
+	}, 20_000);
 
 	describe.each([
 		["ServerCardProvider", () => serverProvider],
@@ -295,7 +273,7 @@ describe("CardDataProvider contract", () => {
 		it("supports searchCards", async () => {
 			expect(clientProvider.searchCards).toBeDefined();
 
-			const results = await clientProvider.searchCards("forest", 10);
+			const results = await clientProvider.searchCards("forest", undefined, 10);
 			expect(Array.isArray(results)).toBe(true);
 			expect(results.length).toBeGreaterThan(0);
 

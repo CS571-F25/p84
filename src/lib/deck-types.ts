@@ -4,7 +4,7 @@
  */
 
 import type { ComDeckbelcherDeckList } from "./lexicons/index";
-import type { ScryfallId } from "./scryfall-types";
+import type { Card, ManaColor, ScryfallId } from "./scryfall-types";
 
 export type Section = "commander" | "mainboard" | "sideboard" | "maybeboard";
 
@@ -210,4 +210,26 @@ export function moveCardToSection(
 		),
 		updatedAt: new Date().toISOString(),
 	};
+}
+
+/**
+ * Calculate the combined color identity from all commanders in the deck
+ * Uses Scryfall's color_identity field which matches Commander format rules
+ */
+export function getCommanderColorIdentity(
+	deck: Deck,
+	cardLookup: (id: ScryfallId) => Card | undefined,
+): ManaColor[] {
+	const commanders = getCardsInSection(deck, "commander");
+	const colors = new Set<ManaColor>();
+
+	for (const commander of commanders) {
+		const card = cardLookup(commander.scryfallId);
+		const identity = card?.color_identity ?? [];
+		for (const color of identity) {
+			colors.add(color as ManaColor);
+		}
+	}
+
+	return Array.from(colors).sort();
 }

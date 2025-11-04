@@ -117,6 +117,8 @@ export type Game = "paper" | "arena" | "mtgo" | string;
 
 export type Legality = "legal" | "not_legal" | "restricted" | "banned" | string;
 
+export type ManaColor = "W" | "U" | "B" | "R" | "G";
+
 export type ImageSize =
 	| "small"
 	| "normal"
@@ -124,6 +126,11 @@ export type ImageSize =
 	| "png"
 	| "art_crop"
 	| "border_crop";
+
+export interface SearchRestrictions {
+	format?: string; // Formats change over time, keep as string
+	colorIdentity?: ManaColor[]; // Card must be subset of these colors
+}
 
 export interface Card {
 	// Core identity

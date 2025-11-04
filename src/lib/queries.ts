@@ -4,14 +4,23 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { getCardDataProvider } from "./card-data-provider";
-import type { Card, OracleId, ScryfallId } from "./scryfall-types";
+import type {
+	Card,
+	OracleId,
+	ScryfallId,
+	SearchRestrictions,
+} from "./scryfall-types";
 
 /**
- * Search cards by name
+ * Search cards by name with optional restrictions
  */
-export const searchCardsQueryOptions = (query: string) =>
+export const searchCardsQueryOptions = (
+	query: string,
+	restrictions?: SearchRestrictions,
+	maxResults = 50,
+) =>
 	queryOptions({
-		queryKey: ["cards", "search", query] as const,
+		queryKey: ["cards", "search", query, restrictions, maxResults] as const,
 		queryFn: async (): Promise<{ cards: Card[]; totalCount: number }> => {
 			const provider = await getCardDataProvider();
 
@@ -25,7 +34,7 @@ export const searchCardsQueryOptions = (query: string) =>
 				return { cards: [], totalCount: 0 };
 			}
 
-			const cards = await provider.searchCards(query, 50);
+			const cards = await provider.searchCards(query, restrictions, maxResults);
 			const metadata = await provider.getMetadata();
 
 			return {
