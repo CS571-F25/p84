@@ -7,7 +7,7 @@
     "build": "vite build",
     "prebuild": "npm run download:scryfall",
     "serve": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run --silent='passed-only'",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",

@@ -357,9 +357,9 @@ describe("groupCards", () => {
 		const groups = groupCards(cards, lookup, "colorIdentity");
 
 		expect(groups.size).toBe(4);
-		expect(groups.get("W")).toHaveLength(1);
-		expect(groups.get("R")).toHaveLength(1);
-		expect(groups.get("G")).toHaveLength(1);
+		expect(groups.get("White")).toHaveLength(1);
+		expect(groups.get("Red")).toHaveLength(1);
+		expect(groups.get("Green")).toHaveLength(1);
 		expect(groups.get("Colorless")).toHaveLength(1);
 	});
 });
