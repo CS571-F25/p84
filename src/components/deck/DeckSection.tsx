@@ -1,13 +1,27 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { ManaCost } from "@/components/ManaCost";
 import { groupCards, sortCards, sortGroupNames } from "@/lib/deck-grouping";
 import type { DeckCard, GroupBy, Section, SortBy } from "@/lib/deck-types";
 import {
-	getCardsByIdsQueryOptions,
+	getCardByIdQueryOptions,
 	getCardWithPrintingsQueryOptions,
 } from "@/lib/queries";
-import type { ScryfallId } from "@/lib/scryfall-types";
+import type { Card, ScryfallId } from "@/lib/scryfall-types";
+
+// Combine function for useQueries - converts query results into a Map
+function combineCardQueries(
+	results: Array<{ data?: Card | undefined }>,
+): Map<ScryfallId, Card> | undefined {
+	const map = new Map<ScryfallId, Card>();
+	for (const result of results) {
+		if (result.data) {
+			map.set(result.data.id, result.data);
+		}
+	}
+	// Only return the map if all cards are loaded
+	return results.every((r) => r.data) ? map : undefined;
+}
 
 interface DeckSectionProps {
 	section: Section;
@@ -80,9 +94,11 @@ export function DeckSection({
 
 	const totalQuantity = cards.reduce((sum, card) => sum + card.quantity, 0);
 
-	// Bulk fetch all card data for this section
-	const cardIds = cards.map((c) => c.scryfallId);
-	const { data: cardMap } = useQuery(getCardsByIdsQueryOptions(cardIds));
+	// Fetch all card data individually (populates cache for DeckCardRow)
+	const cardMap = useQueries({
+		queries: cards.map((card) => getCardByIdQueryOptions(card.scryfallId)),
+		combine: combineCardQueries,
+	});
 
 	// Group and sort cards with memoization
 	const groupedCards = useMemo(() => {

@@ -17,7 +17,10 @@ import {
 	updateCardQuantity,
 	updateCardTags,
 } from "@/lib/deck-types";
-import { getCardWithPrintingsQueryOptions } from "@/lib/queries";
+import {
+	getCardByIdQueryOptions,
+	getCardWithPrintingsQueryOptions,
+} from "@/lib/queries";
 import { asScryfallId, type ScryfallId } from "@/lib/scryfall-types";
 
 // Test deck card IDs (TODO: remove when ATProto persistence is implemented)
@@ -25,17 +28,22 @@ const TEST_CARD_IDS = [
 	asScryfallId("adc7f8f3-140d-4dd0-aacc-b81b2b93eb67"),
 	asScryfallId("77c6fa74-5543-42ac-9ead-0e890b188e99"),
 	asScryfallId("7ee610ee-7711-4a6b-b441-d6c73e6ef2b4"),
+	asScryfallId("eb6d8d1c-8d23-4273-9c9b-f3b71eb0e105"),
+	asScryfallId("77c1a141-3955-47f9-bd22-b642728724ab"),
 ] as const;
 
 export const Route = createFileRoute("/deck/$id")({
 	component: DeckEditorPage,
 	loader: async ({ context }) => {
-		// Prefetch card data for test deck cards during SSR
+		// Prefetch card data during SSR for both grouping/sorting and details
 		await Promise.all(
 			TEST_CARD_IDS.map((id) =>
-				context.queryClient.ensureQueryData(
-					getCardWithPrintingsQueryOptions(id),
-				),
+				Promise.all([
+					context.queryClient.ensureQueryData(getCardByIdQueryOptions(id)),
+					context.queryClient.ensureQueryData(
+						getCardWithPrintingsQueryOptions(id),
+					),
+				]),
 			),
 		);
 	},
@@ -69,6 +77,18 @@ function saveViewConfig(config: ViewConfig): void {
 }
 
 function DeckEditorPage() {
+	// View configuration with localStorage persistence
+	// Start with defaults to avoid SSR hydration mismatch
+	const [groupBy, setGroupBy] = useState<GroupBy>("tag");
+	const [sortBy, setSortBy] = useState<SortBy>("name");
+
+	// Load from localStorage after mount (client-only)
+	useEffect(() => {
+		const config = loadViewConfig();
+		setGroupBy(config.groupBy);
+		setSortBy(config.sortBy);
+	}, []);
+
 	// Initialize deck with some test data
 	const [deck, setDeck] = useState<Deck>(() => {
 		// TODO: Load from ATProto when persistence is implemented
@@ -117,12 +137,6 @@ function DeckEditorPage() {
 	const [modalCard, setModalCard] = useState<DeckCard | null>(null);
 
 	const queryClient = useQueryClient();
-
-	// View configuration with localStorage persistence
-	const [groupBy, setGroupBy] = useState<GroupBy>(
-		() => loadViewConfig().groupBy,
-	);
-	const [sortBy, setSortBy] = useState<SortBy>(() => loadViewConfig().sortBy);
 
 	// Save view config to localStorage when it changes
 	useEffect(() => {
@@ -205,9 +219,10 @@ function DeckEditorPage() {
 	};
 
 	const handleCardSelect = async (cardId: ScryfallId) => {
-		// Prefetch card data before adding to ensure it's in the cache
+		// Prefetch basic card data before adding to ensure it's in the cache
 		// This prevents the card from jumping around during grouping/sorting
-		await queryClient.prefetchQuery(getCardWithPrintingsQueryOptions(cardId));
+		// Printings data will load async in DeckCardRow
+		await queryClient.prefetchQuery(getCardByIdQueryOptions(cardId));
 		setDeck((prev) => addCardToDeck(prev, cardId, "mainboard", 1));
 	};
 

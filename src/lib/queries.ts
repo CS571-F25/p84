@@ -37,6 +37,19 @@ export const searchCardsQueryOptions = (query: string) =>
 	});
 
 /**
+ * Get a single card by ID
+ */
+export const getCardByIdQueryOptions = (id: ScryfallId) =>
+	queryOptions({
+		queryKey: ["cards", "byId", id] as const,
+		queryFn: async () => {
+			const provider = await getCardDataProvider();
+			return provider.getCardById(id);
+		},
+		staleTime: Number.POSITIVE_INFINITY,
+	});
+
+/**
  * Get a single card by ID with all its printings
  */
 export const getCardWithPrintingsQueryOptions = (id: ScryfallId) =>
@@ -45,19 +58,6 @@ export const getCardWithPrintingsQueryOptions = (id: ScryfallId) =>
 		queryFn: async () => {
 			const provider = await getCardDataProvider();
 			return provider.getCardWithPrintings(id);
-		},
-		staleTime: Number.POSITIVE_INFINITY,
-	});
-
-/**
- * Get multiple cards by IDs (bulk fetch for grouping/sorting)
- */
-export const getCardsByIdsQueryOptions = (ids: ScryfallId[]) =>
-	queryOptions({
-		queryKey: ["cards", "bulk", ids] as const,
-		queryFn: async () => {
-			const provider = await getCardDataProvider();
-			return provider.getCardsByIds(ids);
 		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});
