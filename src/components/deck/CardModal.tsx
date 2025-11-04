@@ -103,19 +103,21 @@ export function CardModal({
 						<div className="flex-1 min-w-0">
 							{cardData ? (
 								<>
-									<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-										{cardData.name}
-									</h2>
-									<div className="flex items-center gap-2">
+									<div className="flex items-baseline gap-2 mb-2 flex-wrap">
+										<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+											{cardData.name}
+										</h2>
 										{cardData.mana_cost && (
-											<ManaCost cost={cardData.mana_cost} size="small" />
-										)}
-										{cardData.type_line && (
-											<span className="text-sm text-gray-600 dark:text-gray-400">
-												{cardData.type_line}
-											</span>
+											<div className="flex-shrink-0">
+												<ManaCost cost={cardData.mana_cost} size="small" />
+											</div>
 										)}
 									</div>
+									{cardData.type_line && (
+										<div className="text-sm text-gray-600 dark:text-gray-400">
+											{cardData.type_line}
+										</div>
+									)}
 								</>
 							) : (
 								<h2 className="text-2xl font-bold text-gray-900 dark:text-white">

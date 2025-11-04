@@ -141,16 +141,18 @@ function CardDetailPage() {
 
 					<div className="space-y-6 min-w-0">
 						<div>
-							<h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-								{card.name}
-							</h1>
-							{card.mana_cost && (
-								<div className="mb-2">
-									<ManaCost cost={card.mana_cost} size="large" />
-								</div>
-							)}
+							<div className="flex items-baseline gap-3 mb-2 flex-wrap">
+								<h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+									{card.name}
+								</h1>
+								{card.mana_cost && (
+									<div className="flex-shrink-0">
+										<ManaCost cost={card.mana_cost} size="large" />
+									</div>
+								)}
+							</div>
 							{card.type_line && (
-								<p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
+								<p className="text-lg text-gray-600 dark:text-gray-400">
 									{card.type_line}
 								</p>
 							)}
