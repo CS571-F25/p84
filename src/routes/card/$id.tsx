@@ -131,11 +131,11 @@ function CardDetailPage() {
 		<div className="min-h-screen bg-white dark:bg-slate-900">
 			<div className="max-w-7xl mx-auto px-6 py-8">
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-					<div className="lg:sticky lg:top-8 flex justify-center lg:justify-end">
+					<div className="sticky top-0 z-10 bg-white dark:bg-slate-900 py-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:top-8 flex justify-center lg:justify-end">
 						<CardImage
 							card={displayCard}
 							size="large"
-							className="shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)] max-w-full h-auto max-h-[80vh] object-contain"
+							className="shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)] max-w-full h-auto max-h-[50vh] lg:max-h-[80vh] object-contain"
 						/>
 					</div>
 
