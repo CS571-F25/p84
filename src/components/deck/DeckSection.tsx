@@ -115,8 +115,8 @@ export function DeckSection({
 	}, [sortedGroupNames, groupedCards, cardMap, sortBy]);
 
 	return (
-		<div className="mb-6">
-			<div className="flex items-center justify-between mb-2">
+		<div className="mb-8 pb-8 border-b border-gray-200 dark:border-slate-800 last:border-b-0 last:pb-0">
+			<div className="flex items-center justify-between mb-3">
 				<h2 className="text-xl font-bold text-gray-900 dark:text-white">
 					{sectionNames[section]}
 				</h2>
@@ -132,31 +132,45 @@ export function DeckSection({
 					</p>
 				</div>
 			) : groupBy === "none" ? (
-				<div className="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-2 gap-y-1">
+				<div
+					className="gap-x-6 gap-y-1"
+					style={{
+						columnWidth: "16rem",
+						columnGap: "1.5rem",
+					}}
+				>
 					{cardMap
 						? sortCards(
 								cards,
 								(card) => cardMap.get(card.scryfallId),
 								sortBy,
 							).map((card, index) => (
-								<DeckCardRow
-									key={`${card.scryfallId}-${index}`}
-									card={card}
-									onCardHover={onCardHover}
-									onCardClick={onCardClick}
-								/>
+								<div key={`${card.scryfallId}-${index}`} className="mb-1">
+									<DeckCardRow
+										card={card}
+										onCardHover={onCardHover}
+										onCardClick={onCardClick}
+									/>
+								</div>
 							))
 						: cards.map((card, index) => (
-								<DeckCardRow
-									key={`${card.scryfallId}-${index}`}
-									card={card}
-									onCardHover={onCardHover}
-									onCardClick={onCardClick}
-								/>
+								<div key={`${card.scryfallId}-${index}`} className="mb-1">
+									<DeckCardRow
+										card={card}
+										onCardHover={onCardHover}
+										onCardClick={onCardClick}
+									/>
+								</div>
 							))}
 				</div>
 			) : (
-				<div className="space-y-4">
+				<div
+					className="gap-x-6"
+					style={{
+						columnWidth: "16rem",
+						columnGap: "1.5rem",
+					}}
+				>
 					{sortedGroupNames.map((groupName) => {
 						const groupCards = sortedGroups.get(groupName) ?? [];
 						const groupQuantity = groupCards.reduce(
@@ -165,11 +179,15 @@ export function DeckSection({
 						);
 
 						return (
-							<div key={groupName} className="space-y-1">
-								<div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+							<div
+								key={groupName}
+								className="mb-4 break-inside-avoid"
+								style={{ breakInside: "avoid" }}
+							>
+								<div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
 									{groupName} ({groupQuantity})
 								</div>
-								<div className="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-2 gap-y-1">
+								<div className="space-y-1">
 									{groupCards.map((card, index) => (
 										<DeckCardRow
 											key={`${card.scryfallId}-${groupName}-${index}`}

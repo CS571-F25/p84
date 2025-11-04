@@ -247,14 +247,14 @@ function DeckEditorPage() {
 
 			{/* Main content */}
 			<div className="max-w-7xl mx-auto px-6 py-8">
-				<div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-					{/* Left pane: Card preview (40%) */}
-					<div className="lg:col-span-2">
+				<div className="flex flex-col lg:flex-row gap-6">
+					{/* Left pane: Card preview (fixed width) */}
+					<div className="lg:w-80 lg:flex-shrink-0">
 						<CardPreviewPane cardId={previewCard} />
 					</div>
 
-					{/* Right pane: Deck sections (60%) */}
-					<div className="lg:col-span-3">
+					{/* Right pane: Deck sections (fills remaining space) */}
+					<div className="flex-1 min-w-0">
 						<ViewControls
 							groupBy={groupBy}
 							sortBy={sortBy}
