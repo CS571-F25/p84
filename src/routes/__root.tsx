@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import Header from "../components/Header";
+import { WorkerStatusIndicator } from "../components/WorkerStatusIndicator";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import { initializeApp } from "../lib/app-init";
 import { AuthProvider } from "../lib/useAuth";
@@ -80,6 +81,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body>
 				<ThemeProvider>
 					<AuthProvider>
+						<WorkerStatusIndicator />
 						<Header />
 						{children}
 						<TanStackDevtools

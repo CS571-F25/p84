@@ -40,3 +40,13 @@ code {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gray-500);
 }
+
+/* Shimmer animation for loading indicator */
+@keyframes shimmer {
+  0%, 100% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+}
