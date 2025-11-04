@@ -85,7 +85,7 @@ function CardDetailPage() {
 				block: "nearest",
 			});
 		}
-	}, [id]);
+	}, []);
 
 	if (!isValidId) {
 		return (

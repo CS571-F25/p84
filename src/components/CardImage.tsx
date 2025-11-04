@@ -7,7 +7,7 @@ import type { Card, ImageSize, ScryfallId } from "../lib/scryfall-types";
 import { getImageUri } from "../lib/scryfall-utils";
 
 interface CardImageProps {
-	card: Card;
+	card: Pick<Card, "name" | "id">;
 	size?: ImageSize;
 	className?: string;
 }

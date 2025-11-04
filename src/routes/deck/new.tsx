@@ -47,7 +47,6 @@ function NewDeckPage() {
 							onChange={(e) => setName(e.target.value)}
 							placeholder="Enter deck name..."
 							className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors"
-							autoFocus
 						/>
 					</div>
 
