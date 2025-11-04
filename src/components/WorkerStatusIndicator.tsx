@@ -30,7 +30,7 @@ export function WorkerStatusIndicator() {
 	return (
 		<div className="fixed top-0 left-0 right-0 h-1 z-50 pointer-events-none">
 			<div
-				className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-[3000ms] ease-out"
+				className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-[7000ms] ease-out"
 				style={{ width: `${width}%` }}
 			/>
 		</div>
