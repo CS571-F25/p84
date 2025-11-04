@@ -21,11 +21,6 @@ interface CardsWorkerAPI {
 	initialize(): Promise<void>;
 
 	/**
-	 * Check if worker has been initialized
-	 */
-	isInitialized(): boolean;
-
-	/**
 	 * Search cards by name
 	 */
 	searchCards(query: string, limit?: number): Card[];
