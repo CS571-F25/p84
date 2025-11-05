@@ -202,6 +202,7 @@ export function sortCards(
 /**
  * Group cards by the specified method
  * Returns a Map of group name → cards in that group
+ * also includes a bool to indicate if the group is based on a user tag
  *
  * Note: Cards with multiple tags will appear in multiple groups
  */
@@ -209,30 +210,24 @@ export function groupCards(
 	cards: DeckCard[],
 	cardLookup: CardLookup,
 	groupBy: GroupBy,
-): Map<string, DeckCard[]> {
-	const groups = new Map<string, DeckCard[]>();
+): Map<
+	string,
+	{
+		cards: DeckCard[];
+		forTag: boolean;
+	}
+> {
+	const groups = new Map<
+		string,
+		{
+			cards: DeckCard[];
+			forTag: boolean;
+		}
+	>();
 
 	switch (groupBy) {
 		case "none": {
-			groups.set("all", cards);
-			break;
-		}
-
-		case "tag": {
-			for (const card of cards) {
-				if (!card.tags || card.tags.length === 0) {
-					const group = groups.get("(No Tags)") ?? [];
-					group.push(card);
-					groups.set("(No Tags)", group);
-				} else {
-					// Add card to each tag group it belongs to
-					for (const tag of card.tags) {
-						const group = groups.get(tag) ?? [];
-						group.push(card);
-						groups.set(tag, group);
-					}
-				}
-			}
+			groups.set("all", { cards, forTag: false });
 			break;
 		}
 
@@ -240,8 +235,8 @@ export function groupCards(
 			for (const card of cards) {
 				const cardData = cardLookup(card);
 				const type = extractPrimaryType(cardData?.type_line);
-				const group = groups.get(type) ?? [];
-				group.push(card);
+				const group = groups.get(type) ?? { cards: [], forTag: false };
+				group.cards.push(card);
 				groups.set(type, group);
 			}
 			break;
@@ -253,14 +248,15 @@ export function groupCards(
 					// No tags → group by type
 					const cardData = cardLookup(card);
 					const type = extractPrimaryType(cardData?.type_line);
-					const group = groups.get(type) ?? [];
-					group.push(card);
+					const group = groups.get(type) ?? { cards: [], forTag: false };
+					group.cards.push(card);
 					groups.set(type, group);
 				} else {
 					// Has tags → add to each tag group
 					for (const tag of card.tags) {
-						const group = groups.get(tag) ?? [];
-						group.push(card);
+						const group = groups.get(tag) ?? { cards: [], forTag: true };
+						group.forTag = true;
+						group.cards.push(card);
 						groups.set(tag, group);
 					}
 				}
@@ -274,14 +270,17 @@ export function groupCards(
 				const subtypes = extractSubtypes(cardData?.type_line);
 
 				if (subtypes.length === 0) {
-					const group = groups.get("(No Subtype)") ?? [];
-					group.push(card);
+					const group = groups.get("(No Subtype)") ?? {
+						cards: [],
+						forTag: false,
+					};
+					group.cards.push(card);
 					groups.set("(No Subtype)", group);
 				} else {
 					// Add card to each subtype group it belongs to
 					for (const subtype of subtypes) {
-						const group = groups.get(subtype) ?? [];
-						group.push(card);
+						const group = groups.get(subtype) ?? { cards: [], forTag: false };
+						group.cards.push(card);
 						groups.set(subtype, group);
 					}
 				}
@@ -293,8 +292,8 @@ export function groupCards(
 			for (const card of cards) {
 				const cardData = cardLookup(card);
 				const bucket = getManaValueBucket(cardData?.cmc);
-				const group = groups.get(bucket) ?? [];
-				group.push(card);
+				const group = groups.get(bucket) ?? { cards: [], forTag: false };
+				group.cards.push(card);
 				groups.set(bucket, group);
 			}
 			break;
@@ -304,8 +303,8 @@ export function groupCards(
 			for (const card of cards) {
 				const cardData = cardLookup(card);
 				const label = getColorIdentityLabel(cardData?.color_identity);
-				const group = groups.get(label) ?? [];
-				group.push(card);
+				const group = groups.get(label) ?? { cards: [], forTag: false };
+				group.cards.push(card);
 				groups.set(label, group);
 			}
 			break;

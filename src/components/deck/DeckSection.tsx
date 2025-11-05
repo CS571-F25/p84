@@ -59,7 +59,7 @@ export function DeckSection({
 
 	// Group and sort cards with memoization
 	const groupedCards = useMemo(() => {
-		if (!cardMap) return new Map([["all", cards]]);
+		if (!cardMap) return new Map([["all", { cards, forTag: false }]]);
 		const lookup = (card: DeckCard) => cardMap.get(card.scryfallId);
 		return groupCards(cards, lookup, groupBy);
 	}, [cards, cardMap, groupBy]);
@@ -71,12 +71,18 @@ export function DeckSection({
 
 	// Sort cards within each group
 	const sortedGroups = useMemo(() => {
-		if (!cardMap) return groupedCards;
+		if (!cardMap)
+			return new Map(
+				Array.from(groupedCards.entries(), ([k, v]) => [k, v.cards]),
+			);
 		const lookup = (card: DeckCard) => cardMap.get(card.scryfallId);
 		return new Map(
 			sortedGroupNames.map((groupName) => {
-				const groupCards = groupedCards.get(groupName) ?? [];
-				return [groupName, sortCards(groupCards, lookup, sortBy)];
+				const groupCards = groupedCards.get(groupName) ?? {
+					cards: [],
+					forTag: false,
+				};
+				return [groupName, sortCards(groupCards.cards, lookup, sortBy)];
 			}),
 		);
 	}, [sortedGroupNames, groupedCards, cardMap, sortBy]);
@@ -158,7 +164,7 @@ export function DeckSection({
 									key={groupName}
 									tagName={groupName}
 									section={section}
-									enabled={groupBy === "tag"}
+									enabled={groupedCards.get(groupName)?.forTag ?? false}
 									isDragging={isDragging}
 								>
 									<div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">

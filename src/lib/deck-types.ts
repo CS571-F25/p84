@@ -21,7 +21,6 @@ export type Deck = Omit<ComDeckbelcherDeckList.Main, "cards"> & {
  */
 export type ViewStyle = "text" | "grid" | "stacks";
 export type GroupBy =
-	| "tag"
 	| "type"
 	| "typeAndTags"
 	| "subtype"

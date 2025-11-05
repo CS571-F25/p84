@@ -1,7 +1,7 @@
 import { type DragEndEvent, useDndMonitor } from "@dnd-kit/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { CardDragOverlay } from "@/components/deck/CardDragOverlay";
 import { CardModal } from "@/components/deck/CardModal";
@@ -26,6 +26,7 @@ import {
 } from "@/lib/deck-types";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import { asScryfallId, type ScryfallId } from "@/lib/scryfall-types";
+import { usePersistedState } from "@/lib/usePersistedState";
 
 // Test deck card IDs (TODO: remove when ATProto persistence is implemented)
 const TEST_CARD_IDS = [
@@ -48,45 +49,15 @@ export const Route = createFileRoute("/deck/$id")({
 	},
 });
 
-const VIEW_CONFIG_KEY = "deckbelcher:viewConfig";
-
-interface ViewConfig {
-	groupBy: GroupBy;
-	sortBy: SortBy;
-}
-
-function loadViewConfig(): ViewConfig {
-	try {
-		const stored = localStorage.getItem(VIEW_CONFIG_KEY);
-		if (stored) {
-			return JSON.parse(stored);
-		}
-	} catch (_e) {
-		// Ignore parse errors
-	}
-	return { groupBy: "tag", sortBy: "name" };
-}
-
-function saveViewConfig(config: ViewConfig): void {
-	try {
-		localStorage.setItem(VIEW_CONFIG_KEY, JSON.stringify(config));
-	} catch (_e) {
-		// Ignore storage errors
-	}
-}
-
 function DeckEditorPage() {
-	// View configuration with localStorage persistence
-	// Start with defaults to avoid SSR hydration mismatch
-	const [groupBy, setGroupBy] = useState<GroupBy>("tag");
-	const [sortBy, setSortBy] = useState<SortBy>("name");
-
-	// Load from localStorage after mount (client-only)
-	useEffect(() => {
-		const config = loadViewConfig();
-		setGroupBy(config.groupBy);
-		setSortBy(config.sortBy);
-	}, []);
+	const [groupBy, setGroupBy] = usePersistedState<GroupBy>(
+		"deckbelcher:viewConfig:groupBy",
+		"typeAndTags",
+	);
+	const [sortBy, setSortBy] = usePersistedState<SortBy>(
+		"deckbelcher:viewConfig:sortBy",
+		"name",
+	);
 
 	// Initialize deck with some test data
 	const [deck, setDeck] = useState<Deck>(() => {
@@ -140,11 +111,6 @@ function DeckEditorPage() {
 	const [isDragging, setIsDragging] = useState(false);
 
 	const queryClient = useQueryClient();
-
-	// Save view config to localStorage when it changes
-	useEffect(() => {
-		saveViewConfig({ groupBy, sortBy });
-	}, [groupBy, sortBy]);
 
 	const handleCardHover = (cardId: ScryfallId | null) => {
 		// Only update preview if we have a card (persistence - don't clear on null)

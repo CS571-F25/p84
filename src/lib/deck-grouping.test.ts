@@ -243,34 +243,7 @@ describe("groupCards", () => {
 		const cards = [mockDeckCard("creature-1"), mockDeckCard("instant-1")];
 		const groups = groupCards(cards, lookup, "none");
 		expect(groups.size).toBe(1);
-		expect(groups.get("all")).toHaveLength(2);
-	});
-
-	it("groups by tag", () => {
-		const cards = [
-			mockDeckCard("creature-1", { tags: ["aggro", "tribal"] }),
-			mockDeckCard("instant-1", { tags: ["removal"] }),
-			mockDeckCard("land-1", { tags: [] }),
-		];
-		const groups = groupCards(cards, lookup, "tag");
-
-		expect(groups.size).toBe(4);
-		expect(groups.get("aggro")).toHaveLength(1);
-		expect(groups.get("tribal")).toHaveLength(1);
-		expect(groups.get("removal")).toHaveLength(1);
-		expect(groups.get("(No Tags)")).toHaveLength(1);
-	});
-
-	it("groups by tag with multi-tag cards appearing in each group", () => {
-		const cards = [mockDeckCard("creature-1", { tags: ["aggro", "tribal"] })];
-		const groups = groupCards(cards, lookup, "tag");
-
-		expect(groups.size).toBe(2);
-		expect(groups.get("aggro")).toHaveLength(1);
-		expect(groups.get("tribal")).toHaveLength(1);
-		// Same card appears in both groups
-		expect(groups.get("aggro")?.[0]).toBe(cards[0]);
-		expect(groups.get("tribal")?.[0]).toBe(cards[0]);
+		expect(groups.get("all")?.cards).toHaveLength(2);
 	});
 
 	it("groups by type", () => {
@@ -283,10 +256,10 @@ describe("groupCards", () => {
 		const groups = groupCards(cards, lookup, "type");
 
 		expect(groups.size).toBe(4);
-		expect(groups.get("Creature")).toHaveLength(1);
-		expect(groups.get("Instant")).toHaveLength(1);
-		expect(groups.get("Land")).toHaveLength(1);
-		expect(groups.get("Artifact")).toHaveLength(1);
+		expect(groups.get("Creature")?.cards).toHaveLength(1);
+		expect(groups.get("Instant")?.cards).toHaveLength(1);
+		expect(groups.get("Land")?.cards).toHaveLength(1);
+		expect(groups.get("Artifact")?.cards).toHaveLength(1);
 	});
 
 	it("groups by typeAndTags", () => {
@@ -298,9 +271,9 @@ describe("groupCards", () => {
 		const groups = groupCards(cards, lookup, "typeAndTags");
 
 		expect(groups.size).toBe(3);
-		expect(groups.get("aggro")).toHaveLength(1); // Tagged creature
-		expect(groups.get("Instant")).toHaveLength(1); // Untagged instant
-		expect(groups.get("Land")).toHaveLength(1); // Untagged land
+		expect(groups.get("aggro")?.cards).toHaveLength(1); // Tagged creature
+		expect(groups.get("Instant")?.cards).toHaveLength(1); // Untagged instant
+		expect(groups.get("Land")?.cards).toHaveLength(1); // Untagged land
 	});
 
 	it("groups by subtype", () => {
@@ -313,22 +286,22 @@ describe("groupCards", () => {
 		const groups = groupCards(cards, lookup, "subtype");
 
 		expect(groups.size).toBe(5);
-		expect(groups.get("Human")).toHaveLength(1);
-		expect(groups.get("Warrior")).toHaveLength(1);
-		expect(groups.get("Forest")).toHaveLength(1);
-		expect(groups.get("Equipment")).toHaveLength(1);
-		expect(groups.get("(No Subtype)")).toHaveLength(1); // instant has no subtypes
+		expect(groups.get("Human")?.cards).toHaveLength(1);
+		expect(groups.get("Warrior")?.cards).toHaveLength(1);
+		expect(groups.get("Forest")?.cards).toHaveLength(1);
+		expect(groups.get("Equipment")?.cards).toHaveLength(1);
+		expect(groups.get("(No Subtype)")?.cards).toHaveLength(1); // instant has no subtypes
 	});
 
 	it("groups by subtype with multi-subtype cards appearing in each group", () => {
 		const cards = [mockDeckCard("creature-1")];
 		const groups = groupCards(cards, lookup, "subtype");
 
-		expect(groups.get("Human")).toHaveLength(1);
-		expect(groups.get("Warrior")).toHaveLength(1);
+		expect(groups.get("Human")?.cards).toHaveLength(1);
+		expect(groups.get("Warrior")?.cards).toHaveLength(1);
 		// Same card appears in both groups
-		expect(groups.get("Human")?.[0]).toBe(cards[0]);
-		expect(groups.get("Warrior")?.[0]).toBe(cards[0]);
+		expect(groups.get("Human")?.cards[0]).toBe(cards[0]);
+		expect(groups.get("Warrior")?.cards[0]).toBe(cards[0]);
 	});
 
 	it("groups by manaValue", () => {
@@ -341,10 +314,10 @@ describe("groupCards", () => {
 		const groups = groupCards(cards, lookup, "manaValue");
 
 		expect(groups.size).toBe(4);
-		expect(groups.get("0")).toHaveLength(1);
-		expect(groups.get("1")).toHaveLength(1);
-		expect(groups.get("2")).toHaveLength(1);
-		expect(groups.get("3")).toHaveLength(1);
+		expect(groups.get("0")?.cards).toHaveLength(1);
+		expect(groups.get("1")?.cards).toHaveLength(1);
+		expect(groups.get("2")?.cards).toHaveLength(1);
+		expect(groups.get("3")?.cards).toHaveLength(1);
 	});
 
 	it("groups by colorIdentity", () => {
@@ -357,10 +330,10 @@ describe("groupCards", () => {
 		const groups = groupCards(cards, lookup, "colorIdentity");
 
 		expect(groups.size).toBe(4);
-		expect(groups.get("White")).toHaveLength(1);
-		expect(groups.get("Red")).toHaveLength(1);
-		expect(groups.get("Green")).toHaveLength(1);
-		expect(groups.get("Colorless")).toHaveLength(1);
+		expect(groups.get("White")?.cards).toHaveLength(1);
+		expect(groups.get("Red")?.cards).toHaveLength(1);
+		expect(groups.get("Green")?.cards).toHaveLength(1);
+		expect(groups.get("Colorless")?.cards).toHaveLength(1);
 	});
 });
 
@@ -385,7 +358,7 @@ describe("sortGroupNames", () => {
 
 	it("sorts special groups to end", () => {
 		const names = ["Zombie", "(No Tags)", "Human", "(No Subtype)"];
-		const sorted = sortGroupNames(names, "tag");
+		const sorted = sortGroupNames(names, "subtype");
 		// Special groups (starting with parentheses) come last, sorted alphabetically among themselves
 		expect(sorted).toEqual(["Human", "Zombie", "(No Subtype)", "(No Tags)"]);
 	});

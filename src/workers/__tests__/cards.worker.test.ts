@@ -13,12 +13,12 @@ describe("CardsWorker searchCards", () => {
 	}, 20_000);
 
 	it("has the same results with and without space", () => {
-		const resultsA = worker.searchCards("mark")
-		const resultsB = worker.searchCards("mark ")
+		const resultsA = worker.searchCards("mark");
+		const resultsB = worker.searchCards("mark ");
 
-		expect(resultsA).toEqual(resultsB)
-	})
-	
+		expect(resultsA).toEqual(resultsB);
+	});
+
 	describe("restrictions", () => {
 		it("applies format legality restriction", () => {
 			// Search for a card that's banned in some formats
