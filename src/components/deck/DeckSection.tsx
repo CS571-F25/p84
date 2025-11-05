@@ -65,7 +65,7 @@ export function DeckSection({
 	}, [cards, cardMap, groupBy]);
 
 	const sortedGroupNames = useMemo(
-		() => sortGroupNames(Array.from(groupedCards.keys()), groupBy),
+		() => sortGroupNames(groupedCards, groupBy),
 		[groupedCards, groupBy],
 	);
 

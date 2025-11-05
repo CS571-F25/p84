@@ -338,34 +338,54 @@ describe("groupCards", () => {
 });
 
 describe("sortGroupNames", () => {
+	// Helper to create a mock groups map from names
+	const mockGroups = (
+		names: string[],
+		forTag = false,
+	): Map<string, { cards: DeckCard[]; forTag: boolean }> => {
+		return new Map(names.map((name) => [name, { cards: [], forTag }]));
+	};
+
 	it("sorts manaValue groups numerically", () => {
-		const names = ["7+", "3", "0", "1", "5"];
-		const sorted = sortGroupNames(names, "manaValue");
+		const groups = mockGroups(["7+", "3", "0", "1", "5"]);
+		const sorted = sortGroupNames(groups, "manaValue");
 		expect(sorted).toEqual(["0", "1", "3", "5", "7+"]);
 	});
 
 	it("sorts colorIdentity groups by WUBRG order", () => {
-		const names = ["G", "Colorless", "WU", "R", "B"];
-		const sorted = sortGroupNames(names, "colorIdentity");
+		const groups = mockGroups(["G", "Colorless", "WU", "R", "B"]);
+		const sorted = sortGroupNames(groups, "colorIdentity");
 		expect(sorted).toEqual(["Colorless", "B", "R", "G", "WU"]);
 	});
 
 	it("sorts colorIdentity multi-color by length then color", () => {
-		const names = ["WUB", "WU", "UB", "W"];
-		const sorted = sortGroupNames(names, "colorIdentity");
+		const groups = mockGroups(["WUB", "WU", "UB", "W"]);
+		const sorted = sortGroupNames(groups, "colorIdentity");
 		expect(sorted).toEqual(["W", "WU", "UB", "WUB"]);
 	});
 
 	it("sorts special groups to end", () => {
-		const names = ["Zombie", "(No Tags)", "Human", "(No Subtype)"];
-		const sorted = sortGroupNames(names, "subtype");
+		const groups = mockGroups(["Zombie", "(No Tags)", "Human", "(No Subtype)"]);
+		const sorted = sortGroupNames(groups, "subtype");
 		// Special groups (starting with parentheses) come last, sorted alphabetically among themselves
 		expect(sorted).toEqual(["Human", "Zombie", "(No Subtype)", "(No Tags)"]);
 	});
 
 	it("sorts alphabetically for type/tag/subtype", () => {
-		const names = ["Zombie", "Human", "Wizard"];
-		const sorted = sortGroupNames(names, "type");
+		const groups = mockGroups(["Zombie", "Human", "Wizard"]);
+		const sorted = sortGroupNames(groups, "type");
 		expect(sorted).toEqual(["Human", "Wizard", "Zombie"]);
+	});
+
+	it("sorts tags before types in typeAndTags mode", () => {
+		const groups = new Map<string, { cards: DeckCard[]; forTag: boolean }>([
+			["aggro", { cards: [], forTag: true }],
+			["Instant", { cards: [], forTag: false }],
+			["removal", { cards: [], forTag: true }],
+			["Creature", { cards: [], forTag: false }],
+		]);
+		const sorted = sortGroupNames(groups, "typeAndTags");
+		// Tags (aggro, removal) come before types (Creature, Instant)
+		expect(sorted).toEqual(["aggro", "removal", "Creature", "Instant"]);
 	});
 });

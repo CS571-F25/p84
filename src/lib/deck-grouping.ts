@@ -318,9 +318,11 @@ export function groupCards(
  * Sort group names for consistent display order
  */
 export function sortGroupNames(
-	groupNames: string[],
+	groups: Map<string, { cards: DeckCard[]; forTag: boolean }>,
 	groupBy: GroupBy,
 ): string[] {
+	const groupNames = Array.from(groups.keys());
+
 	switch (groupBy) {
 		case "manaValue": {
 			// Sort numerically: 0, 1, 2, ..., 7+
@@ -348,8 +350,29 @@ export function sortGroupNames(
 			});
 		}
 
+		case "typeAndTags": {
+			// Sort tags before types, then alphabetically within each category
+			return groupNames.sort((a, b) => {
+				const aIsSpecial = a.startsWith("(");
+				const bIsSpecial = b.startsWith("(");
+				const aIsTag = groups.get(a)?.forTag ?? false;
+				const bIsTag = groups.get(b)?.forTag ?? false;
+
+				// Put special groups at the end
+				if (aIsSpecial && !bIsSpecial) return 1;
+				if (!aIsSpecial && bIsSpecial) return -1;
+
+				// Tags before types
+				if (aIsTag && !bIsTag) return -1;
+				if (!aIsTag && bIsTag) return 1;
+
+				// Both tags, both types, or both special: sort alphabetically
+				return a.localeCompare(b);
+			});
+		}
+
 		default:
-			// Alphabetical for tag, type, subtype, etc
+			// Alphabetical for type, subtype, etc
 			return groupNames.sort((a, b) => {
 				const aIsSpecial = a.startsWith("(");
 				const bIsSpecial = b.startsWith("(");
