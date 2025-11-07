@@ -10,7 +10,7 @@ import {
 } from "@atcute/oauth-browser-client";
 
 export function initializeOAuth() {
-	if (typeof window === "undefined") {
+	if (import.meta.env.SSR || typeof window === "undefined") {
 		return;
 	}
 

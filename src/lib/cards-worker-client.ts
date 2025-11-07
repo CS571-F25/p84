@@ -3,10 +3,14 @@
  *
  * Uses SharedWorker when available (desktop browsers) to share card data across tabs.
  * Gracefully falls back to regular Worker on unsupported browsers (mainly Chrome Android).
+ *
+ * Workers are imported using Vite's query suffix syntax (?worker and ?sharedworker)
  */
 
 import * as Comlink from "comlink";
 import type { CardsWorkerAPI } from "../workers/cards.worker";
+import CardsSharedWorker from "../workers/cards.worker?sharedworker";
+import CardsWorker from "../workers/cards.worker?worker";
 
 let workerInstance: Comlink.Remote<CardsWorkerAPI> | null = null;
 let initPromise: Promise<void> | null = null;
@@ -28,21 +32,19 @@ function isSharedWorkerSupported(): boolean {
  */
 function getWorker(): Comlink.Remote<CardsWorkerAPI> {
 	if (!workerInstance) {
-		const workerUrl = new URL("../workers/cards.worker.ts", import.meta.url);
-
 		if (isSharedWorkerSupported()) {
 			// SharedWorker mode: shared across tabs
 			console.log(
 				"[CardsWorker] Using SharedWorker (card data shared across tabs)",
 			);
-			const sharedWorker = new SharedWorker(workerUrl, { type: "module" });
+			const sharedWorker = new CardsSharedWorker();
 			workerInstance = Comlink.wrap<CardsWorkerAPI>(sharedWorker.port);
 		} else {
 			// Regular Worker mode: per-tab fallback
 			console.log(
 				"[CardsWorker] Using Worker (per-tab, SharedWorker not supported)",
 			);
-			const worker = new Worker(workerUrl, { type: "module" });
+			const worker = new CardsWorker();
 			workerInstance = Comlink.wrap<CardsWorkerAPI>(worker);
 		}
 	}

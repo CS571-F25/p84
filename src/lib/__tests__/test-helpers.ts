@@ -7,6 +7,8 @@ const PUBLIC_DIR = join(process.cwd(), "public");
 /**
  * Mock global fetch to serve files from public directory
  * Use this in tests that need to load cards.json or other static assets
+ *
+ * Handles both relative (/data/...) and absolute (http://localhost:3000/data/...) URLs
  */
 export function mockFetchFromPublicDir() {
 	vi.stubGlobal(
@@ -14,8 +16,17 @@ export function mockFetchFromPublicDir() {
 		vi.fn(async (input: RequestInfo | URL) => {
 			const url = typeof input === "string" ? input : input.toString();
 
-			if (url.startsWith("/data/")) {
-				const filePath = join(PUBLIC_DIR, url);
+			// Extract path from absolute URL or use as-is if relative
+			let path = url;
+			try {
+				const parsed = new URL(url);
+				path = parsed.pathname;
+			} catch {
+				// Already a relative path
+			}
+
+			if (path.startsWith("/data/")) {
+				const filePath = join(PUBLIC_DIR, path);
 				try {
 					const content = await readFile(filePath, "utf-8");
 					return new Response(content, {

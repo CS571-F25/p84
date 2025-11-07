@@ -92,7 +92,10 @@ export async function createDeckRecord(
 		});
 
 		if (!response.success) {
-			return { success: false, error: new Error("Failed to create deck record") };
+			return {
+				success: false,
+				error: new Error("Failed to create deck record"),
+			};
 		}
 
 		// Extract rkey from the URI (at://did:plc:.../collection/rkey)
@@ -136,7 +139,10 @@ export async function updateDeckRecord(
 		});
 
 		if (!response.success) {
-			return { success: false, error: new Error("Failed to update deck record") };
+			return {
+				success: false,
+				error: new Error("Failed to update deck record"),
+			};
 		}
 
 		return { success: true, data: response.data };
@@ -200,7 +206,10 @@ export async function deleteDeckRecord(
 		});
 
 		if (!response.success) {
-			return { success: false, error: new Error("Failed to delete deck record") };
+			return {
+				success: false,
+				error: new Error("Failed to delete deck record"),
+			};
 		}
 
 		return { success: true, data: undefined };

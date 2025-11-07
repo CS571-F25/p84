@@ -22,7 +22,7 @@
             buildInputs = [
               nodejs_22
               typescript
-              # wrangler
+              wrangler
               just
               jq
               # language servers

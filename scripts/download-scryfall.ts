@@ -9,16 +9,16 @@
  * - mana symbol SVGs
  *
  * Outputs:
- * - public/data/cards.json - filtered card data with indexes (for client worker)
- * - public/data/by-id/{id}.json - individual cards (for SSR lookups)
- * - public/data/by-oracle/{oracleId}.json - printing lists (for SSR)
- * - public/data/canonical/{oracleId}.json - canonical printing IDs (for SSR)
+ * - public/data/cards-*.json - chunked card data (for client worker)
+ * - public/data/cards-indexes.json - oracle mappings and canonical printings
+ * - public/data/cards-byteindex.csv - byte-range index for SSR (cardId,chunk,offset,length)
  * - public/data/metadata.json - version and count info
  * - public/data/migrations.json - ID migration mappings
  * - public/symbols/*.svg - mana symbol images
+ * - src/lib/card-chunks.ts - TypeScript chunk manifest
  */
 
-import { writeFile, mkdir, readFile, stat } from "node:fs/promises";
+import { writeFile, mkdir, readFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Card, CardDataOutput } from "../src/lib/scryfall-types.ts";
@@ -291,15 +291,35 @@ async function processBulkData(): Promise<CardDataOutput> {
 		throw new Error("Could not find default_cards bulk data");
 	}
 
-	console.log(`Bulk data updated at: ${defaultCards.updated_at}`);
+	console.log(`Remote version: ${defaultCards.updated_at}`);
 	console.log(
 		`Download size: ${(defaultCards.size / 1024 / 1024).toFixed(2)} MB`,
 	);
 
-	// Download bulk data
+	// Check if we already have this version
 	await mkdir(TEMP_DIR, { recursive: true });
 	const tempFile = join(TEMP_DIR, "cards-bulk.json");
-	await downloadFile(defaultCards.download_uri, tempFile);
+	const indexesPath = join(OUTPUT_DIR, "cards-indexes.json");
+
+	try {
+		const existingIndexes = JSON.parse(
+			await readFile(indexesPath, "utf-8"),
+		) as { version: string; cardCount: number };
+
+		if (existingIndexes.version === defaultCards.updated_at) {
+			console.log(
+				`✓ Already have latest version (${defaultCards.updated_at}), skipping Scryfall download`,
+			);
+			console.log("Using cached data for local processing...");
+		} else {
+			console.log(`Local version: ${existingIndexes.version}`);
+			console.log("Version changed, downloading update...");
+			await downloadFile(defaultCards.download_uri, tempFile);
+		}
+	} catch {
+		console.log("No local version found, downloading...");
+		await downloadFile(defaultCards.download_uri, tempFile);
+	}
 
 	// Parse and filter
 	console.log("Processing cards...");
@@ -345,77 +365,252 @@ async function processBulkData(): Promise<CardDataOutput> {
 		canonicalPrintingByOracleId,
 	};
 
-	// Write main cards.json (for client worker)
 	await mkdir(OUTPUT_DIR, { recursive: true });
-	const outputPath = join(OUTPUT_DIR, "cards.json");
-	await writeFile(outputPath, JSON.stringify(output));
-	console.log(`Wrote cards to: ${outputPath}`);
 
-	const stats = await stat(outputPath);
-	console.log(`Output size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+	// Chunk cards.json for Cloudflare Workers (25MB upload limit)
+	console.log("Chunking cards for Workers deployment...");
+	const chunkFilenames = await chunkCardsForWorkers(output);
 
-	// Write individual card files for SSR
-	console.log("Writing individual card files for SSR...");
-	await writeSSRAssets(output);
+	// Generate byte-range CSV index for SSR
+	console.log("Generating byte-range index for SSR...");
+	await generateByteRangeCSV(chunkFilenames);
 
 	return output;
 }
 
 /**
- * Write individual card files and indexes for SSR access
+ * Chunk cards.json into sub-25MB files for Cloudflare Workers deployment
+ * Returns list of chunk filenames
  */
-async function writeSSRAssets(data: CardDataOutput): Promise<void> {
-	// Create directories
-	const byIdDir = join(OUTPUT_DIR, "by-id");
-	const byOracleDir = join(OUTPUT_DIR, "by-oracle");
-	const canonicalDir = join(OUTPUT_DIR, "canonical");
+async function chunkCardsForWorkers(data: CardDataOutput): Promise<string[]> {
+	const CHUNK_SIZE_TARGET = 20 * 1024 * 1024; // 20MB target (leaving headroom under 25MB limit)
 
-	await Promise.all([
-		mkdir(byIdDir, { recursive: true }),
-		mkdir(byOracleDir, { recursive: true }),
-		mkdir(canonicalDir, { recursive: true }),
-	]);
+	const cardEntries = Object.entries(data.cards);
+	const chunkFilenames: string[] = [];
 
-	// Write metadata (separate file so SSR doesn't need to load cards.json)
-	const metadata = {
+	let currentChunk: [string, Card][] = [];
+	let currentSize = 0;
+	let chunkIndex = 0;
+
+	// Helper to estimate JSON size
+	const estimateSize = (obj: unknown): number => {
+		return JSON.stringify(obj).length;
+	};
+
+	// Initial chunk wrapper overhead
+	const chunkOverhead = estimateSize({ cards: {} });
+
+	for (const [cardId, card] of cardEntries) {
+		const entrySize = estimateSize({ [cardId]: card });
+
+		// Check if adding this card would exceed the target
+		if (
+			currentSize + entrySize + chunkOverhead > CHUNK_SIZE_TARGET &&
+			currentChunk.length > 0
+		) {
+			// Write current chunk
+			const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}.json`;
+			const chunkPath = join(OUTPUT_DIR, chunkFilename);
+			const chunkData = {
+				cards: Object.fromEntries(currentChunk),
+			};
+			const chunkContent = JSON.stringify(chunkData);
+
+			await writeFile(chunkPath, chunkContent);
+			chunkFilenames.push(chunkFilename);
+
+			console.log(
+				`Wrote ${chunkFilename}: ${currentChunk.length} cards, ${(chunkContent.length / 1024 / 1024).toFixed(2)}MB`,
+			);
+
+			// Reset for next chunk
+			currentChunk = [];
+			currentSize = 0;
+			chunkIndex++;
+		}
+
+		currentChunk.push([cardId, card]);
+		currentSize += entrySize;
+	}
+
+	// Write final chunk if there's anything left
+	if (currentChunk.length > 0) {
+		const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}.json`;
+		const chunkPath = join(OUTPUT_DIR, chunkFilename);
+		const chunkData = {
+			cards: Object.fromEntries(currentChunk),
+		};
+		const chunkContent = JSON.stringify(chunkData);
+
+		await writeFile(chunkPath, chunkContent);
+		chunkFilenames.push(chunkFilename);
+
+		console.log(
+			`Wrote ${chunkFilename}: ${currentChunk.length} cards, ${(chunkContent.length / 1024 / 1024).toFixed(2)}MB`,
+		);
+	}
+
+	// Write indexes file (oracle mappings for client)
+	const indexesData = {
 		version: data.version,
 		cardCount: data.cardCount,
+		oracleIdToPrintings: data.oracleIdToPrintings,
+		canonicalPrintingByOracleId: data.canonicalPrintingByOracleId,
 	};
-	await writeFile(
-		join(OUTPUT_DIR, "metadata.json"),
-		JSON.stringify(metadata),
+
+	const indexesPath = join(OUTPUT_DIR, "cards-indexes.json");
+	await writeFile(indexesPath, JSON.stringify(indexesData));
+	console.log(`Wrote indexes: ${indexesPath}`);
+
+	// Write TS file with chunk list (just filenames, not indexes - those are too big)
+	const tsContent = `/**
+ * Auto-generated by scripts/download-scryfall.ts
+ * Contains card data chunk filenames for client loading
+ */
+
+export const CARD_CHUNKS = ${JSON.stringify(chunkFilenames, null, 2)} as const;
+`;
+
+	const tsPath = join(__dirname, "../src/lib/card-chunks.ts");
+	await writeFile(tsPath, tsContent);
+
+	console.log(`\nWrote TS chunk list: ${tsPath}`);
+	console.log(`Total chunks: ${chunkFilenames.length}`);
+
+	return chunkFilenames;
+}
+
+/**
+ * Generate byte-range CSV index for SSR card lookups
+ * Format: Fixed-width records sorted by cardId for O(log n) binary search
+ *
+ * Record format (64 bytes per line including newline):
+ *   cardId (36 chars, UUID) | chunkIndex (2 chars) | offset (10 chars) | length (6 chars)
+ *   Example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890,07,0012345678,012345\n"
+ *
+ * Single-pass O(n) parser - reads each chunk file once to find card byte ranges
+ */
+async function generateByteRangeCSV(chunkFilenames: string[]): Promise<void> {
+	interface CardIndex {
+		cardId: string;
+		chunkIndex: number;
+		offset: number;
+		length: number;
+	}
+
+	const indexes: CardIndex[] = [];
+
+	for (let chunkIndex = 0; chunkIndex < chunkFilenames.length; chunkIndex++) {
+		const chunkFilename = chunkFilenames[chunkIndex];
+		const chunkPath = join(OUTPUT_DIR, chunkFilename);
+		const chunkContent = await readFile(chunkPath, "utf-8");
+
+		// Single-pass parse: find all "cardId":{...} patterns
+		// Format: {"cards":{"card-id-1":{...},"card-id-2":{...}}}
+		let cardCount = 0;
+		let pos = 0;
+
+		// Skip to start of cards object
+		const cardsStart = chunkContent.indexOf('"cards":{');
+		if (cardsStart === -1) {
+			console.warn(`Warning: No cards object found in ${chunkFilename}`);
+			continue;
+		}
+
+		pos = cardsStart + '"cards":{'.length;
+
+		// Parse each card entry
+		while (pos < chunkContent.length) {
+			// Find next card ID (quoted string before colon)
+			const quoteStart = chunkContent.indexOf('"', pos);
+			if (quoteStart === -1) break;
+
+			const quoteEnd = chunkContent.indexOf('"', quoteStart + 1);
+			if (quoteEnd === -1) break;
+
+			const cardId = chunkContent.slice(quoteStart + 1, quoteEnd);
+
+			// Find colon after card ID
+			const colon = chunkContent.indexOf(':', quoteEnd);
+			if (colon === -1) break;
+
+			// Value starts after colon
+			const valueStart = colon + 1;
+
+			// Find matching closing brace for card object
+			// Need to track brace depth since card JSON contains nested objects
+			let depth = 0;
+			let valueEnd = valueStart;
+			let inString = false;
+			let escaped = false;
+
+			for (let i = valueStart; i < chunkContent.length; i++) {
+				const char = chunkContent[i];
+
+				if (escaped) {
+					escaped = false;
+					continue;
+				}
+
+				if (char === '\\') {
+					escaped = true;
+					continue;
+				}
+
+				if (char === '"') {
+					inString = !inString;
+					continue;
+				}
+
+				if (!inString) {
+					if (char === '{') {
+						depth++;
+					} else if (char === '}') {
+						if (depth === 1) {
+							// Found matching closing brace
+							valueEnd = i;
+							break;
+						}
+						depth--;
+					}
+				}
+			}
+
+			if (depth === 1 && valueEnd > valueStart) {
+				const length = valueEnd - valueStart + 1;
+				indexes.push({ cardId, chunkIndex, offset: valueStart, length });
+				cardCount++;
+			}
+
+			// Move past this card entry (skip comma if present)
+			pos = valueEnd + 1;
+			if (chunkContent[pos] === ',') pos++;
+		}
+
+		console.log(`Indexed ${cardCount} cards from ${chunkFilename}`);
+	}
+
+	// Sort by cardId for binary search
+	indexes.sort((a, b) => a.cardId.localeCompare(b.cardId));
+
+	// Write fixed-width records
+	const records: string[] = [];
+	for (const { cardId, chunkIndex, offset, length } of indexes) {
+		// Format: "cardId,CC,OOOOOOOOOO,LLLLLL\n" (36+1+2+1+10+1+6+1 = 58 bytes + padding)
+		const record = `${cardId},${String(chunkIndex).padStart(2, "0")},${String(offset).padStart(10, "0")},${String(length).padStart(6, "0")}`;
+		records.push(record);
+	}
+
+	const csvPath = join(OUTPUT_DIR, "cards-byteindex.csv");
+	await writeFile(csvPath, records.join("\n"));
+
+	const fileSize = records.join("\n").length;
+	console.log(
+		`✓ Wrote byte-range index: ${csvPath} (${indexes.length} cards, ${(fileSize / 1024 / 1024).toFixed(2)}MB)`,
 	);
-	console.log(`Wrote metadata to: ${join(OUTPUT_DIR, "metadata.json")}`);
-
-	// Write individual card files
-	console.log(`Writing ${Object.keys(data.cards).length} individual card files...`);
-	const cardWrites = Object.entries(data.cards).map(([id, card]) => {
-		const cardPath = join(byIdDir, `${id}.json`);
-		return writeFile(cardPath, JSON.stringify(card));
-	});
-
-	// Write oracle ID to printings mappings
-	console.log(`Writing ${Object.keys(data.oracleIdToPrintings).length} oracle printing lists...`);
-	const oracleWrites = Object.entries(data.oracleIdToPrintings).map(
-		([oracleId, printings]) => {
-			const oraclePath = join(byOracleDir, `${oracleId}.json`);
-			return writeFile(oraclePath, JSON.stringify(printings));
-		},
+	console.log(
+		`  Sorted by cardId for O(log n) binary search (${Math.ceil(Math.log2(indexes.length))} max seeks)`,
 	);
-
-	// Write canonical printing IDs
-	console.log(`Writing ${Object.keys(data.canonicalPrintingByOracleId).length} canonical mappings...`);
-	const canonicalWrites = Object.entries(data.canonicalPrintingByOracleId).map(
-		([oracleId, scryfallId]) => {
-			const canonicalPath = join(canonicalDir, `${oracleId}.json`);
-			return writeFile(canonicalPath, JSON.stringify({ id: scryfallId }));
-		},
-	);
-
-	// Execute all writes in parallel
-	await Promise.all([...cardWrites, ...oracleWrites, ...canonicalWrites]);
-
-	console.log("✓ SSR assets written successfully");
 }
 
 async function processMigrations(): Promise<MigrationMap> {
@@ -447,6 +642,30 @@ async function downloadSymbols(): Promise<number> {
 
 	console.log(`Found ${symbology.data.length} symbols`);
 
+	// Check if we already have these symbols
+	const symbolsCachePath = join(TEMP_DIR, "symbols-cache.json");
+	const currentSymbols = symbology.data.map((s) => s.symbol).sort();
+
+	try {
+		const cachedSymbols = JSON.parse(
+			await readFile(symbolsCachePath, "utf-8"),
+		) as string[];
+
+		if (
+			cachedSymbols.length === currentSymbols.length &&
+			cachedSymbols.every((s, i) => s === currentSymbols[i])
+		) {
+			console.log(
+				`✓ Already have latest symbols (${currentSymbols.length}), skipping download`,
+			);
+			return currentSymbols.length;
+		}
+
+		console.log("Symbol list changed, downloading update...");
+	} catch {
+		console.log("No cached symbols found, downloading...");
+	}
+
 	await mkdir(SYMBOLS_DIR, { recursive: true });
 
 	await Promise.all(
@@ -456,6 +675,9 @@ async function downloadSymbols(): Promise<number> {
 			return downloadFile(symbol.svg_uri, outputPath);
 		}),
 	);
+
+	// Cache the symbol list
+	await writeFile(symbolsCachePath, JSON.stringify(currentSymbols));
 
 	console.log(`Downloaded ${symbology.data.length} symbol SVGs to: ${SYMBOLS_DIR}`);
 	return symbology.data.length;

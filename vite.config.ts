@@ -3,6 +3,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
+import { cloudflare } from "@cloudflare/vite-plugin"
 import metadata from './public/client-metadata.json' with { type: 'json' }
 
 const SERVER_HOST = '127.0.0.1'
@@ -10,6 +11,7 @@ const SERVER_PORT = 3000
 
 const config = defineConfig({
   plugins: [
+    cloudflare({ viteEnvironment: { name: 'ssr' } }),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],

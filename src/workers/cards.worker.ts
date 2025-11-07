@@ -7,6 +7,7 @@
 
 import * as Comlink from "comlink";
 import MiniSearch from "minisearch";
+import { CARD_CHUNKS } from "../lib/card-chunks";
 import type {
 	Card,
 	CardDataOutput,
@@ -65,17 +66,50 @@ class CardsWorker implements CardsWorkerAPI {
 		}
 
 		console.log("[CardsWorker] Initializing card data...");
-		const response = await fetch("/data/cards.json");
-		if (!response.ok) {
-			throw new Error("Failed to load card data");
-		}
+		console.log(
+			`[CardsWorker] Loading ${CARD_CHUNKS.length} chunks + indexes...`,
+		);
 
-		const data: CardDataOutput = await response.json();
-		this.data = data;
+		// Fetch everything in parallel
+		const [indexes, ...chunks] = await Promise.all([
+			fetch("/data/cards-indexes.json").then((r) => {
+				if (!r.ok) throw new Error("Failed to load card indexes");
+				return r.json() as Promise<
+					Pick<
+						CardDataOutput,
+						| "version"
+						| "cardCount"
+						| "oracleIdToPrintings"
+						| "canonicalPrintingByOracleId"
+					>
+				>;
+			}),
+			...CARD_CHUNKS.map((filename) =>
+				fetch(`/data/${filename}`).then((r) => {
+					if (!r.ok) throw new Error(`Failed to load chunk: ${filename}`);
+					return r.json() as Promise<{ cards: Record<string, Card> }>;
+				}),
+			),
+		]);
+
+		// Merge all chunks into single cards object
+		const cards = Object.assign({}, ...chunks.map((c) => c.cards));
+
+		console.log(
+			`[CardsWorker] Loaded ${Object.keys(cards).length} cards from ${CARD_CHUNKS.length} chunks`,
+		);
+
+		this.data = {
+			version: indexes.version,
+			cardCount: indexes.cardCount,
+			cards,
+			oracleIdToPrintings: indexes.oracleIdToPrintings,
+			canonicalPrintingByOracleId: indexes.canonicalPrintingByOracleId,
+		};
 
 		// Build canonical cards array (one per oracle ID, excluding art cards)
-		this.canonicalCards = Object.values(data.canonicalPrintingByOracleId)
-			.map((scryfallId) => data.cards[scryfallId])
+		this.canonicalCards = Object.values(this.data.canonicalPrintingByOracleId)
+			.map((scryfallId) => this.data?.cards[scryfallId])
 			.filter((card): card is Card => card !== undefined)
 			.filter((card) => card.layout !== "art_series");
 
@@ -98,7 +132,7 @@ class CardsWorker implements CardsWorkerAPI {
 		this.searchIndex.addAll(this.canonicalCards);
 
 		console.log(
-			`[CardsWorker] Initialized: ${data.cardCount.toLocaleString()} cards, ${this.canonicalCards.length.toLocaleString()} unique`,
+			`[CardsWorker] Initialized: ${this.data.cardCount.toLocaleString()} cards, ${this.canonicalCards.length.toLocaleString()} unique`,
 		);
 	}
 

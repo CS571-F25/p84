@@ -6,7 +6,8 @@
  * - ServerCardProvider: Server-side, reads from filesystem
  */
 
-import { ClientCardProvider } from "./cards-client-provider";
+// import { ClientCardProvider } from "./cards-client-provider";
+import { createIsomorphicFn } from "@tanstack/react-start";
 import type {
 	Card,
 	OracleId,
@@ -51,22 +52,26 @@ let providerPromise: Promise<CardDataProvider> | null = null;
  * Get the card data provider for the current environment
  *
  * - Client: ClientCardProvider (uses Web Worker with full dataset)
- * - Server: ServerCardProvider (fetches from static assets)
+ * - Server: TODO - D1 local dev is flaky, disabled for now
  */
-export async function getCardDataProvider(): Promise<CardDataProvider> {
-	if (!providerPromise) {
-		providerPromise = (async () => {
-			if (typeof window === "undefined") {
-				// Server-side: dynamic import to avoid bundling fs in client
+export const getCardDataProvider = createIsomorphicFn()
+	.client(() => {
+		if (!providerPromise) {
+			providerPromise = (async () => {
+				const { ClientCardProvider } = await import("./cards-client-provider");
+				const provider = new ClientCardProvider();
+				await provider.initialize();
+				return provider;
+			})();
+		}
+		return providerPromise;
+	})
+	.server(() => {
+		if (!providerPromise) {
+			providerPromise = (async () => {
 				const { ServerCardProvider } = await import("./cards-server-provider");
 				return new ServerCardProvider();
-			}
-
-			// Client-side: use worker provider
-			const provider = new ClientCardProvider();
-			await provider.initialize();
-			return provider;
-		})();
-	}
-	return providerPromise;
-}
+			})();
+		}
+		return providerPromise;
+	});

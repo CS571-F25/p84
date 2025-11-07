@@ -18,7 +18,9 @@ const SLINGSHOT_BASE = "https://slingshot.microcosm.blue";
  * Uses Slingshot's cached identity resolver
  */
 export async function resolveMiniDoc(identifier: string): Promise<MiniDoc> {
-	const url = new URL(`${SLINGSHOT_BASE}/xrpc/com.bad-example.identity.resolveMiniDoc`);
+	const url = new URL(
+		`${SLINGSHOT_BASE}/xrpc/com.bad-example.identity.resolveMiniDoc`,
+	);
 	url.searchParams.set("identifier", identifier);
 
 	const response = await fetch(url.toString());
