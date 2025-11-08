@@ -31,7 +31,6 @@ async function fetchAsset(relativePath: string): Promise<Response> {
 }
 
 interface ByteIndexEntry {
-	cardId: ScryfallId;
 	chunkIndex: number;
 	offset: number;
 	length: number;
@@ -65,17 +64,6 @@ function uuidToBytes(uuid: string): Uint8Array {
 	return bytes;
 }
 
-/**
- * Compare two 16-byte UUID arrays
- * Returns: -1 if a < b, 0 if equal, 1 if a > b
- */
-function compareUUIDs(a: Uint8Array, b: Uint8Array): number {
-	for (let i = 0; i < 16; i++) {
-		if (a[i] < b[i]) return -1;
-		if (a[i] > b[i]) return 1;
-	}
-	return 0;
-}
 
 /**
  * Load binary index file (cached)
@@ -100,7 +88,6 @@ async function loadBinaryIndex(): Promise<ArrayBuffer> {
 function parseRecord(
 	buffer: ArrayBuffer,
 	recordIndex: number,
-	cardId: ScryfallId,
 ): ByteIndexEntry {
 	const view = new DataView(buffer);
 	const offset = recordIndex * RECORD_SIZE;
@@ -114,7 +101,7 @@ function parseRecord(
 	// Read length (4 bytes, little-endian)
 	const length = view.getUint32(offset + 21, true);
 
-	return { cardId, chunkIndex, offset: cardOffset, length };
+	return { chunkIndex, offset: cardOffset, length };
 }
 
 /**
@@ -135,7 +122,10 @@ async function loadIndexData(): Promise<IndexData> {
 
 /**
  * Binary search for card ID in binary index
- * Only compares UUID bytes during search, parses full record on match
+ * Uses 64-bit integer comparison for performance (2 comparisons vs 16 byte comparisons)
+ *
+ * UUIDs are 128 bits, stored as big-endian bytes. We read them as two 64-bit integers
+ * (high 64 bits + low 64 bits) for faster comparison on modern CPUs.
  */
 async function findCardInIndex(
 	cardId: ScryfallId,
@@ -144,23 +134,30 @@ async function findCardInIndex(
 	const recordCount = buffer.byteLength / RECORD_SIZE;
 
 	const searchUuid = uuidToBytes(cardId);
+	const searchView = new DataView(searchUuid.buffer);
+	const searchHigh = searchView.getBigUint64(0, false); // big-endian
+	const searchLow = searchView.getBigUint64(8, false);
+
+	const view = new DataView(buffer);
 	let left = 0;
 	let right = recordCount - 1;
 
 	while (left <= right) {
 		const mid = Math.floor((left + right) / 2);
-		const recordOffset = mid * RECORD_SIZE;
+		const offset = mid * RECORD_SIZE;
 
-		// Only extract UUID for comparison (first 16 bytes)
-		const recordUuid = new Uint8Array(buffer, recordOffset, 16);
-		const cmp = compareUUIDs(recordUuid, searchUuid);
+		// Read UUID as two 64-bit integers (always read both for branch predictor)
+		const recordHigh = view.getBigUint64(offset, false);
+		const recordLow = view.getBigUint64(offset + 8, false);
 
-		if (cmp === 0) {
-			// Found it - now parse the full record
-			return parseRecord(buffer, mid, cardId);
-		}
-		if (cmp < 0) {
+		// Three-way comparison: less than, equal, or greater than
+		if (
+			recordHigh < searchHigh ||
+			(recordHigh === searchHigh && recordLow < searchLow)
+		) {
 			left = mid + 1;
+		} else if (recordHigh === searchHigh && recordLow === searchLow) {
+			return parseRecord(buffer, mid);
 		} else {
 			right = mid - 1;
 		}
