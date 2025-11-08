@@ -14,112 +14,20 @@ import type { CardDataProvider } from "./card-data-provider";
 import type { Card, OracleId, ScryfallId } from "./scryfall-types";
 
 /**
- * Get ASSETS binding from Cloudflare environment
- * Returns undefined in dev (uses regular fetch instead)
- * Returns ASSETS binding in production
+ * Fetch asset from public/data
+ * - Dev: uses absolute URL fetch
+ * - Production: uses ASSETS binding
  */
-function getAssetsBinding(): { fetch: typeof fetch } | undefined {
-	try {
-		// In dev, always use regular fetch (ASSETS points to non-existent dist/client/)
-		if (import.meta.env.DEV) {
-			console.log("[ServerCardProvider] DEV mode - skipping ASSETS binding");
-			return undefined;
-		}
-
-		console.log(
-			"[ServerCardProvider] PRODUCTION mode - checking ASSETS binding",
-		);
-		const hasAssets = !!env?.ASSETS;
-		console.log(
-			`[ServerCardProvider] ASSETS binding ${hasAssets ? "found" : "NOT FOUND"}`,
-		);
-		return env?.ASSETS;
-	} catch (error) {
-		console.error("[ServerCardProvider] Error getting ASSETS binding:", error);
-		return undefined;
-	}
-}
-
-/**
- * Load file from public/data
- *
- * Workers: uses ASSETS binding
- * Dev: uses absolute URL fetch
- */
-async function loadDataFile(relativePath: string): Promise<string> {
-	const assets = getAssetsBinding();
-	if (assets) {
-		// Workers: use ASSETS binding with special assets.local URL
-		console.log(
-			`[ServerCardProvider] Fetching ${relativePath} via ASSETS binding`,
-		);
-		const response = await assets.fetch(
-			`https://assets.local/data/${relativePath}`,
-		);
-		console.log(
-			`[ServerCardProvider] ASSETS fetch response: ${response.status} ${response.statusText}`,
-		);
-		if (!response.ok) {
-			throw new Error(`Failed to load ${relativePath}: ${response.statusText}`);
-		}
-		return await response.text();
+async function fetchAsset(relativePath: string): Promise<Response> {
+	// Production: use ASSETS binding with special assets.local URL
+	if (!import.meta.env.DEV && env?.ASSETS) {
+		return env.ASSETS.fetch(`https://assets.local/data/${relativePath}`);
 	}
 
 	// Dev: use absolute URL fetch
 	const baseURL =
 		process.env.DEPLOY_URL || process.env.URL || "http://localhost:3000";
-	const url = `${baseURL}/data/${relativePath}`;
-	console.log(`[ServerCardProvider] Fetching ${relativePath} via URL: ${url}`);
-	const response = await fetch(url);
-	console.log(
-		`[ServerCardProvider] URL fetch response: ${response.status} ${response.statusText}`,
-	);
-	if (!response.ok) {
-		throw new Error(`Failed to load ${relativePath}: ${response.statusText}`);
-	}
-	return await response.text();
-}
-
-/**
- * Load and parse JSON file from public/data
- *
- * Workers: uses ASSETS binding
- * Dev: uses absolute URL fetch
- */
-async function loadDataJSON<T>(relativePath: string): Promise<T> {
-	const assets = getAssetsBinding();
-	if (assets) {
-		// Workers: use ASSETS binding with special assets.local URL
-		console.log(
-			`[ServerCardProvider] Fetching JSON ${relativePath} via ASSETS binding`,
-		);
-		const response = await assets.fetch(
-			`https://assets.local/data/${relativePath}`,
-		);
-		console.log(
-			`[ServerCardProvider] ASSETS JSON fetch response: ${response.status} ${response.statusText}`,
-		);
-		if (!response.ok) {
-			throw new Error(`Failed to load ${relativePath}: ${response.statusText}`);
-		}
-		return (await response.json()) as T;
-	}
-
-	// Dev: use absolute URL fetch
-	const baseURL =
-		process.env.DEPLOY_URL || process.env.URL || "http://localhost:3000";
-	const url = `${baseURL}/data/${relativePath}`;
-	console.log(
-		`[ServerCardProvider] Fetching JSON ${relativePath} via URL: ${url}`,
-	);
-	const response = await fetch(url);
-	console.log(
-		`[ServerCardProvider] URL JSON fetch response: ${response.status} ${response.statusText}`,
-	);
-	if (!response.ok) {
-		throw new Error(`Failed to load ${relativePath}: ${response.statusText}`);
-	}
-	return (await response.json()) as T;
+	return fetch(`${baseURL}/data/${relativePath}`);
 }
 
 interface ByteIndexEntry {
@@ -149,7 +57,13 @@ const chunkCaches: Map<number, string> = new Map();
  */
 async function loadCSVIndex(): Promise<string> {
 	if (!csvIndexCache) {
-		csvIndexCache = await loadDataFile("cards-byteindex.csv");
+		const response = await fetchAsset("cards-byteindex.csv");
+		if (!response.ok) {
+			throw new Error(
+				`Failed to load cards-byteindex.csv: ${response.statusText}`,
+			);
+		}
+		csvIndexCache = await response.text();
 	}
 	return csvIndexCache;
 }
@@ -173,7 +87,13 @@ function parseRecord(record: string): ByteIndexEntry {
 async function loadIndexData(): Promise<IndexData> {
 	if (indexDataCache) return indexDataCache;
 
-	indexDataCache = await loadDataJSON<IndexData>("cards-indexes.json");
+	const response = await fetchAsset("cards-indexes.json");
+	if (!response.ok) {
+		throw new Error(
+			`Failed to load cards-indexes.json: ${response.statusText}`,
+		);
+	}
+	indexDataCache = (await response.json()) as IndexData;
 	return indexDataCache;
 }
 
@@ -223,7 +143,11 @@ async function loadChunk(chunkIndex: number): Promise<string> {
 	}
 
 	const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}.json`;
-	const content = await loadDataFile(chunkFilename);
+	const response = await fetchAsset(chunkFilename);
+	if (!response.ok) {
+		throw new Error(`Failed to load ${chunkFilename}: ${response.statusText}`);
+	}
+	const content = await response.text();
 	chunkCaches.set(chunkIndex, content);
 	return content;
 }
