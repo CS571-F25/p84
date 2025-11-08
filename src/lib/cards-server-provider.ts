@@ -44,41 +44,77 @@ interface IndexData {
 	canonicalPrintingByOracleId: Record<OracleId, ScryfallId>;
 }
 
-// CSV format: fixed-width records (58 bytes each including newline)
-// Format: "cardId,CC,OOOOOOOOOO,LLLLLL\n" (36+1+2+1+10+1+6+1 = 58)
-const RECORD_SIZE = 58;
+// Binary format: fixed-size records (25 bytes each)
+// Format: UUID (16 bytes) + chunk (1 byte) + offset (4 bytes) + length (4 bytes)
+const RECORD_SIZE = 25;
 
-let csvIndexCache: string | null = null;
+let binaryIndexCache: ArrayBuffer | null = null;
 let indexDataCache: IndexData | null = null;
 const chunkCaches: Map<number, string> = new Map();
 
 /**
- * Load CSV index file (cached)
+ * Convert UUID string to Uint8Array for binary comparison
+ * UUID format: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" (36 chars with dashes)
  */
-async function loadCSVIndex(): Promise<string> {
-	if (!csvIndexCache) {
-		const response = await fetchAsset("cards-byteindex.csv");
-		if (!response.ok) {
-			throw new Error(
-				`Failed to load cards-byteindex.csv: ${response.statusText}`,
-			);
-		}
-		csvIndexCache = await response.text();
+function uuidToBytes(uuid: string): Uint8Array {
+	const hex = uuid.replace(/-/g, "");
+	const bytes = new Uint8Array(16);
+	for (let i = 0; i < 16; i++) {
+		bytes[i] = Number.parseInt(hex.substr(i * 2, 2), 16);
 	}
-	return csvIndexCache;
+	return bytes;
 }
 
 /**
- * Parse full record only when found (skips parseInt during search)
+ * Compare two 16-byte UUID arrays
+ * Returns: -1 if a < b, 0 if equal, 1 if a > b
  */
-function parseRecord(record: string): ByteIndexEntry {
-	// Format: "cardId,CC,OOOOOOOOOO,LLLLLL\n"
-	const cardId = record.slice(0, 36) as ScryfallId;
-	const chunkIndex = Number.parseInt(record.slice(37, 39), 10);
-	const offset = Number.parseInt(record.slice(40, 50), 10);
-	const length = Number.parseInt(record.slice(51, 57), 10);
+function compareUUIDs(a: Uint8Array, b: Uint8Array): number {
+	for (let i = 0; i < 16; i++) {
+		if (a[i] < b[i]) return -1;
+		if (a[i] > b[i]) return 1;
+	}
+	return 0;
+}
 
-	return { cardId, chunkIndex, offset, length };
+/**
+ * Load binary index file (cached)
+ */
+async function loadBinaryIndex(): Promise<ArrayBuffer> {
+	if (!binaryIndexCache) {
+		const response = await fetchAsset("cards-byteindex.bin");
+		if (!response.ok) {
+			throw new Error(
+				`Failed to load cards-byteindex.bin: ${response.statusText}`,
+			);
+		}
+		binaryIndexCache = await response.arrayBuffer();
+	}
+	return binaryIndexCache;
+}
+
+/**
+ * Parse full record at given offset (only call when found)
+ * Format: UUID (16 bytes) + chunk (1 byte) + offset (4 bytes) + length (4 bytes)
+ */
+function parseRecord(
+	buffer: ArrayBuffer,
+	recordIndex: number,
+	cardId: ScryfallId,
+): ByteIndexEntry {
+	const view = new DataView(buffer);
+	const offset = recordIndex * RECORD_SIZE;
+
+	// Read chunk index (1 byte)
+	const chunkIndex = view.getUint8(offset + 16);
+
+	// Read offset (4 bytes, little-endian)
+	const cardOffset = view.getUint32(offset + 17, true);
+
+	// Read length (4 bytes, little-endian)
+	const length = view.getUint32(offset + 21, true);
+
+	return { cardId, chunkIndex, offset: cardOffset, length };
 }
 
 /**
@@ -98,30 +134,30 @@ async function loadIndexData(): Promise<IndexData> {
 }
 
 /**
- * Binary search for card ID in fixed-width CSV
- * Only extracts cardId during search, parses full record on match
+ * Binary search for card ID in binary index
+ * Only compares UUID bytes during search, parses full record on match
  */
 async function findCardInIndex(
 	cardId: ScryfallId,
 ): Promise<ByteIndexEntry | undefined> {
-	const csv = await loadCSVIndex();
-	const recordCount = Math.floor(csv.length / RECORD_SIZE);
+	const buffer = await loadBinaryIndex();
+	const recordCount = buffer.byteLength / RECORD_SIZE;
 
+	const searchUuid = uuidToBytes(cardId);
 	let left = 0;
 	let right = recordCount - 1;
 
 	while (left <= right) {
 		const mid = Math.floor((left + right) / 2);
-		const recordStart = mid * RECORD_SIZE;
+		const recordOffset = mid * RECORD_SIZE;
 
-		// Only extract cardId for comparison (first 36 chars)
-		const recordCardId = csv.substring(recordStart, recordStart + 36);
-		const cmp = recordCardId.localeCompare(cardId);
+		// Only extract UUID for comparison (first 16 bytes)
+		const recordUuid = new Uint8Array(buffer, recordOffset, 16);
+		const cmp = compareUUIDs(recordUuid, searchUuid);
 
 		if (cmp === 0) {
 			// Found it - now parse the full record
-			const record = csv.substring(recordStart, recordStart + RECORD_SIZE);
-			return parseRecord(record);
+			return parseRecord(buffer, mid, cardId);
 		}
 		if (cmp < 0) {
 			left = mid + 1;

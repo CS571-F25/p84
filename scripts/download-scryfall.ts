@@ -371,9 +371,9 @@ async function processBulkData(): Promise<CardDataOutput> {
 	console.log("Chunking cards for Workers deployment...");
 	const chunkFilenames = await chunkCardsForWorkers(output);
 
-	// Generate byte-range CSV index for SSR
-	console.log("Generating byte-range index for SSR...");
-	await generateByteRangeCSV(chunkFilenames);
+	// Generate binary byte-range index for SSR
+	console.log("Generating binary byte-range index for SSR...");
+	await generateByteRangeIndex(chunkFilenames);
 
 	return output;
 }
@@ -481,16 +481,27 @@ export const CARD_CHUNKS = [\n${chunkFilenames.map(n => `\t"${n}",\n`).join('')}
 }
 
 /**
- * Generate byte-range CSV index for SSR card lookups
- * Format: Fixed-width records sorted by cardId for O(log n) binary search
+ * Convert UUID string to 16-byte buffer
+ * UUID format: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" (36 chars with dashes)
+ */
+function uuidToBytes(uuid: string): Buffer {
+	const hex = uuid.replace(/-/g, "");
+	return Buffer.from(hex, "hex");
+}
+
+/**
+ * Generate binary byte-range index for SSR card lookups
+ * Format: Fixed-size binary records sorted by UUID for O(log n) binary search
  *
- * Record format (64 bytes per line including newline):
- *   cardId (36 chars, UUID) | chunkIndex (2 chars) | offset (10 chars) | length (6 chars)
- *   Example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890,07,0012345678,012345\n"
+ * Record format (25 bytes per record):
+ *   - UUID: 16 bytes (binary)
+ *   - Chunk index: 1 byte (uint8, max 256 chunks)
+ *   - Offset: 4 bytes (uint32 little-endian)
+ *   - Length: 4 bytes (uint32 little-endian)
  *
  * Single-pass O(n) parser - reads each chunk file once to find card byte ranges
  */
-async function generateByteRangeCSV(chunkFilenames: string[]): Promise<void> {
+async function generateByteRangeIndex(chunkFilenames: string[]): Promise<void> {
 	interface CardIndex {
 		cardId: string;
 		chunkIndex: number;
@@ -531,7 +542,7 @@ async function generateByteRangeCSV(chunkFilenames: string[]): Promise<void> {
 			const cardId = chunkContent.slice(quoteStart + 1, quoteEnd);
 
 			// Find colon after card ID
-			const colon = chunkContent.indexOf(':', quoteEnd);
+			const colon = chunkContent.indexOf(":", quoteEnd);
 			if (colon === -1) break;
 
 			// Value starts after colon
@@ -552,7 +563,7 @@ async function generateByteRangeCSV(chunkFilenames: string[]): Promise<void> {
 					continue;
 				}
 
-				if (char === '\\') {
+				if (char === "\\") {
 					escaped = true;
 					continue;
 				}
@@ -563,9 +574,9 @@ async function generateByteRangeCSV(chunkFilenames: string[]): Promise<void> {
 				}
 
 				if (!inString) {
-					if (char === '{') {
+					if (char === "{") {
 						depth++;
-					} else if (char === '}') {
+					} else if (char === "}") {
 						if (depth === 1) {
 							// Found matching closing brace
 							valueEnd = i;
@@ -584,32 +595,60 @@ async function generateByteRangeCSV(chunkFilenames: string[]): Promise<void> {
 
 			// Move past this card entry (skip comma if present)
 			pos = valueEnd + 1;
-			if (chunkContent[pos] === ',') pos++;
+			if (chunkContent[pos] === ",") pos++;
 		}
 
 		console.log(`Indexed ${cardCount} cards from ${chunkFilename}`);
 	}
 
-	// Sort by cardId for binary search
-	indexes.sort((a, b) => a.cardId.localeCompare(b.cardId));
+	// Sort by UUID bytes (not string!) for binary search
+	indexes.sort((a, b) => {
+		const aBytes = uuidToBytes(a.cardId);
+		const bBytes = uuidToBytes(b.cardId);
+		for (let i = 0; i < 16; i++) {
+			if (aBytes[i] !== bBytes[i]) {
+				return aBytes[i] - bBytes[i];
+			}
+		}
+		return 0;
+	});
 
-	// Write fixed-width records
-	const records: string[] = [];
+	// Write binary format
+	const RECORD_SIZE = 25; // 16 (UUID) + 1 (chunk) + 4 (offset) + 4 (length)
+	const buffer = Buffer.alloc(RECORD_SIZE * indexes.length);
+	let bufferOffset = 0;
+
 	for (const { cardId, chunkIndex, offset, length } of indexes) {
-		// Format: "cardId,CC,OOOOOOOOOO,LLLLLL\n" (36+1+2+1+10+1+6+1 = 58 bytes + padding)
-		const record = `${cardId},${String(chunkIndex).padStart(2, "0")},${String(offset).padStart(10, "0")},${String(length).padStart(6, "0")}`;
-		records.push(record);
+		// Write UUID (16 bytes)
+		const uuidBytes = uuidToBytes(cardId);
+		uuidBytes.copy(buffer, bufferOffset);
+		bufferOffset += 16;
+
+		// Write chunk index (1 byte)
+		buffer.writeUInt8(chunkIndex, bufferOffset);
+		bufferOffset += 1;
+
+		// Write offset (4 bytes, little-endian)
+		buffer.writeUInt32LE(offset, bufferOffset);
+		bufferOffset += 4;
+
+		// Write length (4 bytes, little-endian)
+		buffer.writeUInt32LE(length, bufferOffset);
+		bufferOffset += 4;
 	}
 
-	const csvPath = join(OUTPUT_DIR, "cards-byteindex.csv");
-	await writeFile(csvPath, records.join("\n"));
+	const binPath = join(OUTPUT_DIR, "cards-byteindex.bin");
+	await writeFile(binPath, buffer);
 
-	const fileSize = records.join("\n").length;
+	const fileSize = buffer.length;
 	console.log(
-		`✓ Wrote byte-range index: ${csvPath} (${indexes.length} cards, ${(fileSize / 1024 / 1024).toFixed(2)}MB)`,
+		`✓ Wrote binary byte-range index: ${binPath} (${indexes.length} cards, ${(fileSize / 1024 / 1024).toFixed(2)}MB)`,
 	);
 	console.log(
-		`  Sorted by cardId for O(log n) binary search (${Math.ceil(Math.log2(indexes.length))} max seeks)`,
+		`  Binary format: 25 bytes/record (16 UUID + 1 chunk + 4 offset + 4 length)`,
+	);
+	console.log(
+		`  Sorted by UUID for O(log n) binary search (${Math.ceil(Math.log2(indexes.length))} max seeks)`,
 	);
 }
 

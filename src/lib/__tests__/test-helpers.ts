@@ -28,6 +28,14 @@ export function mockFetchFromPublicDir() {
 			if (path.startsWith("/data/")) {
 				const filePath = join(PUBLIC_DIR, path);
 				try {
+					if (filePath.endsWith(".bin")) {
+						const buffer = await readFile(filePath);
+						return new Response(buffer, {
+							status: 200,
+							headers: { "Content-Type": "application/octet-stream" },
+						});
+					}
+
 					const content = await readFile(filePath, "utf-8");
 					return new Response(content, {
 						status: 200,
