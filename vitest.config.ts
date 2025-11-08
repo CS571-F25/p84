@@ -9,6 +9,15 @@ export default defineConfig({
 		}),
 		viteReact(),
 	],
+	resolve: {
+		alias: {
+			// Mock cloudflare:workers in tests - return empty env so it falls back to fetch
+			"cloudflare:workers": new URL(
+				"./src/lib/__tests__/cloudflare-workers-mock.ts",
+				import.meta.url,
+			).pathname,
+		},
+	},
 	test: {
 		environment: "jsdom",
 		globals: true,

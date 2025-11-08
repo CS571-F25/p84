@@ -7,21 +7,35 @@
  * Uses fetch API in both dev and production (TanStack Start handles SSR fetch)
  */
 
+// Static import of cloudflare:workers - the Cloudflare Vite plugin handles this
+// In dev: provides stub/mock, In production: actual Workers env
+import { env } from "cloudflare:workers";
 import type { CardDataProvider } from "./card-data-provider";
 import type { Card, OracleId, ScryfallId } from "./scryfall-types";
 
 /**
  * Get ASSETS binding from Cloudflare environment
- * Returns undefined in dev or if not available
+ * Returns undefined in dev (uses regular fetch instead)
+ * Returns ASSETS binding in production
  */
-async function getAssetsBinding(): Promise<
-	{ fetch: typeof fetch } | undefined
-> {
+function getAssetsBinding(): { fetch: typeof fetch } | undefined {
 	try {
-		const { getEvent } = await import("@tanstack/start/server");
-		const event = getEvent();
-		return event?.context?.cloudflare?.env?.ASSETS;
-	} catch {
+		// In dev, always use regular fetch (ASSETS points to non-existent dist/client/)
+		if (import.meta.env.DEV) {
+			console.log("[ServerCardProvider] DEV mode - skipping ASSETS binding");
+			return undefined;
+		}
+
+		console.log(
+			"[ServerCardProvider] PRODUCTION mode - checking ASSETS binding",
+		);
+		const hasAssets = !!env?.ASSETS;
+		console.log(
+			`[ServerCardProvider] ASSETS binding ${hasAssets ? "found" : "NOT FOUND"}`,
+		);
+		return env?.ASSETS;
+	} catch (error) {
+		console.error("[ServerCardProvider] Error getting ASSETS binding:", error);
 		return undefined;
 	}
 }
@@ -33,10 +47,18 @@ async function getAssetsBinding(): Promise<
  * Dev: uses absolute URL fetch
  */
 async function loadDataFile(relativePath: string): Promise<string> {
-	const assets = await getAssetsBinding();
+	const assets = getAssetsBinding();
 	if (assets) {
-		// Workers: use ASSETS binding
-		const response = await assets.fetch(`/data/${relativePath}`);
+		// Workers: use ASSETS binding with special assets.local URL
+		console.log(
+			`[ServerCardProvider] Fetching ${relativePath} via ASSETS binding`,
+		);
+		const response = await assets.fetch(
+			`https://assets.local/data/${relativePath}`,
+		);
+		console.log(
+			`[ServerCardProvider] ASSETS fetch response: ${response.status} ${response.statusText}`,
+		);
 		if (!response.ok) {
 			throw new Error(`Failed to load ${relativePath}: ${response.statusText}`);
 		}
@@ -47,7 +69,11 @@ async function loadDataFile(relativePath: string): Promise<string> {
 	const baseURL =
 		process.env.DEPLOY_URL || process.env.URL || "http://localhost:3000";
 	const url = `${baseURL}/data/${relativePath}`;
+	console.log(`[ServerCardProvider] Fetching ${relativePath} via URL: ${url}`);
 	const response = await fetch(url);
+	console.log(
+		`[ServerCardProvider] URL fetch response: ${response.status} ${response.statusText}`,
+	);
 	if (!response.ok) {
 		throw new Error(`Failed to load ${relativePath}: ${response.statusText}`);
 	}
@@ -61,10 +87,18 @@ async function loadDataFile(relativePath: string): Promise<string> {
  * Dev: uses absolute URL fetch
  */
 async function loadDataJSON<T>(relativePath: string): Promise<T> {
-	const assets = await getAssetsBinding();
+	const assets = getAssetsBinding();
 	if (assets) {
-		// Workers: use ASSETS binding
-		const response = await assets.fetch(`/data/${relativePath}`);
+		// Workers: use ASSETS binding with special assets.local URL
+		console.log(
+			`[ServerCardProvider] Fetching JSON ${relativePath} via ASSETS binding`,
+		);
+		const response = await assets.fetch(
+			`https://assets.local/data/${relativePath}`,
+		);
+		console.log(
+			`[ServerCardProvider] ASSETS JSON fetch response: ${response.status} ${response.statusText}`,
+		);
 		if (!response.ok) {
 			throw new Error(`Failed to load ${relativePath}: ${response.statusText}`);
 		}
@@ -75,7 +109,13 @@ async function loadDataJSON<T>(relativePath: string): Promise<T> {
 	const baseURL =
 		process.env.DEPLOY_URL || process.env.URL || "http://localhost:3000";
 	const url = `${baseURL}/data/${relativePath}`;
+	console.log(
+		`[ServerCardProvider] Fetching JSON ${relativePath} via URL: ${url}`,
+	);
 	const response = await fetch(url);
+	console.log(
+		`[ServerCardProvider] URL JSON fetch response: ${response.status} ${response.statusText}`,
+	);
 	if (!response.ok) {
 		throw new Error(`Failed to load ${relativePath}: ${response.statusText}`);
 	}
