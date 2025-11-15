@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s https://raw.githubusercontent.com/bluesky-social/atproto/main/lexicons/app/bsky/feed/post.json)",
+      "Bash(curl -s https://raw.githubusercontent.com/bluesky-social/atproto/main/lexicons/app/bsky/richtext/facet.json)",
+      "Bash(curl -s https://raw.githubusercontent.com/teal-fm/teal/main/lexicons/fm.teal.alpha/actor/profile.json)",
+      "Bash(npm run build:typelex:*)",
+      "WebFetch(domain:scryfall.com)",
+      "Bash(curl -s 'https://tangled.org/@leaflet.pub/leaflet/raw/main/lexicons/pub/leaflet/pages/linearDocument.json')",
+      "Bash(curl -s 'https://tangled.org/@leaflet.pub/leaflet/raw/main/lexicons/pub/leaflet/richtext/facet.json')",
+      "Bash(npm run download:scryfall:*)",
+      "Bash(npm run check)",
+      "Bash(npm run check:*)",
+      "WebFetch(domain:tanstack.com)",
+      "Bash(npm run prebuild:*)",
+      "Bash(npm run format)",
+      "Bash(npm run format:*)",
+      "WebFetch(domain:api.scryfall.com)",
+      "Bash(curl -s 'https://api.scryfall.com/cards/search?q=!\"\"\"\"lightning+bolt\"\"\"\"&unique=prints&order=released')",
+      "Bash(curl -s 'https://api.scryfall.com/cards/search?q=!\"\"\"\"Fabled+Passage\"\"\"\"&unique=prints&order=released')",
+      "Bash(curl -s 'https://api.scryfall.com/cards/search?q=!\"\"\"\"Fabled+Passage\"\"\"\"&unique=cards&order=name')",
+      "Bash(vitest run:*)",
+      "Bash(npm run test:*)",
+      "Bash(curl -s 'https://api.scryfall.com/cards/2adc7dd4-d9c4-47ce-ac94-bb56dbf4044e')",
+      "Bash(curl -s 'https://api.scryfall.com/cards/5e3f2736-9d13-44e3-a4bf-4f64314e5848')",
+      "Bash(curl -s 'https://api.scryfall.com/cards/search?q=oracleid:17a01e89-5700-4d56-a7fe-0c92c6f0b6c9&unique=prints&order=released')",
+      "Bash(curl -s 'https://api.scryfall.com/cards/search?q=oracleid:43fea418-db6f-4953-89d1-6873b2ca41a8&unique=prints&order=released')",
+      "Bash(curl -s 'https://api.scryfall.com/cards/c73ae1f0-60b6-4c4a-975b-13e659a33f50')",
+      "Bash(curl -s 'https://api.scryfall.com/cards/35d73022-46ed-402b-90a1-e3e4a281ce1e')",
+      "Bash(curl -s 'https://api.scryfall.com/cards/search?q=oracleid:30997b43-fc13-41d3-8064-1ccc2cb6fd2b&unique=prints&order=released')",
+      "Bash(curl -s 'https://api.scryfall.com/cards/search?q=oracleid:0129ffe2-389f-4e05-8a04-96461bac39a5&unique=prints&order=released')",
+      "Bash(npm run typecheck)",
+      "Bash(cat:*)",
+      "Bash(npx biome check:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vitest run:*)",
+      "WebFetch(domain:slingshot.microcosm.blue)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
