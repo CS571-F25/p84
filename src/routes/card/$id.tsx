@@ -18,26 +18,12 @@ export const Route = createFileRoute("/card/$id")({
 			return null;
 		}
 
-		// Prefetch card data during SSR
-		const cardData = await context.queryClient.ensureQueryData(
+		// Prefetch only the main card during SSR
+		// Printing IDs and printing cards are loaded client-side to avoid memory bloat
+		// (some cards like Lightning Bolt have 100+ printings)
+		await context.queryClient.ensureQueryData(
 			getCardByIdQueryOptions(params.id),
 		);
-
-		// Also prefetch printings if card was found
-		if (cardData) {
-			const printingIds = await context.queryClient.ensureQueryData(
-				getCardPrintingsQueryOptions(cardData.oracle_id),
-			);
-
-			// Prefetch all printing cards
-			await Promise.all(
-				printingIds.map((printingId) =>
-					context.queryClient.ensureQueryData(
-						getCardByIdQueryOptions(printingId),
-					),
-				),
-			);
-		}
 	},
 	component: CardDetailPage,
 });
@@ -66,7 +52,7 @@ function CardDetailPage() {
 		getCardByIdQueryOptions(isValidId ? id : ("" as ScryfallId)),
 	);
 
-	const { data: printingIds } = useQuery({
+	const { data: printingIds, isLoading: printingIdsLoading } = useQuery({
 		...getCardPrintingsQueryOptions(card?.oracle_id ?? asOracleId("")),
 		enabled: !!card,
 	});
@@ -241,7 +227,23 @@ function CardDetailPage() {
 							)}
 						</div>
 
-						{allPrintings.length > 0 && (
+						{printingIdsLoading ? (
+							<div>
+								<h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+									Printings
+								</h2>
+								<div className="max-h-96 overflow-y-auto border border-gray-300 dark:border-slate-700 rounded-lg p-3 bg-gray-50 dark:bg-slate-800/50">
+									<div className="flex flex-wrap gap-2">
+										{Array.from({ length: 8 }).map((_, i) => (
+											<div
+												key={i}
+												className="h-8 w-32 bg-gray-300 dark:bg-slate-700 rounded animate-pulse"
+											/>
+										))}
+									</div>
+								</div>
+							</div>
+						) : allPrintings.length > 0 ? (
 							<div>
 								<h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
 									Printings ({allPrintings.length})
@@ -275,7 +277,7 @@ function CardDetailPage() {
 									</div>
 								</div>
 							</div>
-						)}
+						) : null}
 					</div>
 				</div>
 			</div>

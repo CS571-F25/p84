@@ -343,6 +343,35 @@ async function processBulkData(): Promise<CardDataOutput> {
 		{},
 	);
 
+	// Sort printings by release date (newest first), then collector number (lowest first)
+	console.log("Sorting printings by release date...");
+	for (const printingIds of Object.values(oracleIdToPrintings)) {
+		printingIds.sort((aId, bId) => {
+			const a = cardById[aId];
+			const b = cardById[bId];
+
+			// Primary: release date (newest first)
+			const dateA = a.released_at ?? "";
+			const dateB = b.released_at ?? "";
+			const dateCompare = dateB.localeCompare(dateA);
+			if (dateCompare !== 0) return dateCompare;
+
+			// Tiebreaker: collector number (numeric part first, then full string)
+			const extractNumber = (cn: string | undefined): number => {
+				if (!cn) return Number.MAX_SAFE_INTEGER;
+				const match = cn.match(/\d+/);
+				return match ? Number.parseInt(match[0], 10) : Number.MAX_SAFE_INTEGER;
+			};
+
+			const numA = extractNumber(a.collector_number);
+			const numB = extractNumber(b.collector_number);
+			if (numA !== numB) return numA - numB;
+
+			// Sub-tiebreaker: full collector number string (handles "141a" vs "141b")
+			return (a.collector_number ?? "").localeCompare(b.collector_number ?? "");
+		});
+	}
+
 	// Calculate canonical printing for each oracle ID
 	// Follows Scryfall's is:default logic: prefer most recent "default" printing
 	// Priority: english > is:default > paper > highres > newer > non-variant > non-UB

@@ -12,4 +12,5 @@ export const CARD_CHUNKS = [
 	"cards-005.json",
 	"cards-006.json",
 	"cards-007.json",
+	"cards-008.json",
 ] as const;
