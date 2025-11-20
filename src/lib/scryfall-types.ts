@@ -132,6 +132,24 @@ export interface SearchRestrictions {
 	colorIdentity?: ManaColor[]; // Card must be subset of these colors
 }
 
+export interface CardFace {
+	object: string;
+	name: string;
+	mana_cost?: string;
+	type_line?: string;
+	oracle_text?: string;
+	power?: string;
+	toughness?: string;
+	loyalty?: string;
+	defense?: string;
+	colors?: string[];
+	flavor_text?: string;
+	artist?: string;
+	artist_id?: string;
+	illustration_id?: string;
+	image_uris?: Record<string, string>;
+}
+
 export interface Card {
 	// Core identity
 	id: ScryfallId;
@@ -164,7 +182,7 @@ export interface Card {
 	artist?: string;
 
 	// Printing selection (image_uris omitted - can reconstruct from ID)
-	card_faces?: unknown[];
+	card_faces?: CardFace[];
 	border_color?: BorderColor;
 	frame?: Frame;
 	frame_effects?: FrameEffect[];
@@ -183,8 +201,6 @@ export interface Card {
 	variation?: boolean;
 	lang?: string;
 	content_warning?: boolean;
-
-	[key: string]: unknown;
 }
 
 export interface CardDataOutput {

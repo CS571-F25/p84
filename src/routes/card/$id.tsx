@@ -10,6 +10,15 @@ import {
 } from "@/lib/queries";
 import type { Card, ScryfallId } from "@/lib/scryfall-types";
 import { asOracleId, isScryfallId } from "@/lib/scryfall-types";
+import { getImageUri } from "@/lib/scryfall-utils";
+
+const NOT_FOUND_META = {
+	meta: [
+		{
+			title: "Card Not Found | DeckBelcher",
+		},
+	],
+};
 
 export const Route = createFileRoute("/card/$id")({
 	loader: async ({ context, params }) => {
@@ -21,9 +30,84 @@ export const Route = createFileRoute("/card/$id")({
 		// Prefetch only the main card during SSR
 		// Printing IDs and printing cards are loaded client-side to avoid memory bloat
 		// (some cards like Lightning Bolt have 100+ printings)
-		await context.queryClient.ensureQueryData(
+		const card = await context.queryClient.ensureQueryData(
 			getCardByIdQueryOptions(params.id),
 		);
+		return card ?? null;
+	},
+	head: ({ loaderData }) => {
+		const card = loaderData;
+		if (!card) return NOT_FOUND_META;
+
+		// Large card image (672x936, readable in Discord/Twitter previews)
+		const cardImageUrl = getImageUri(card.id, "large");
+
+		// Build description from card details
+		let description = card.type_line ?? "";
+		if (card.mana_cost) {
+			description = description
+				? `${description} • ${card.mana_cost}`
+				: card.mana_cost;
+		}
+		if (card.oracle_text) {
+			description = description
+				? `${description} • ${card.oracle_text}`
+				: card.oracle_text;
+		}
+
+		return {
+			meta: [
+				{
+					title: `${card.name} | DeckBelcher`,
+				},
+				{
+					name: "description",
+					content: description,
+				},
+				// Open Graph tags
+				{
+					property: "og:title",
+					content: card.name,
+				},
+				{
+					property: "og:description",
+					content: description,
+				},
+				{
+					property: "og:image",
+					content: cardImageUrl,
+				},
+				{
+					property: "og:image:width",
+					content: "672",
+				},
+				{
+					property: "og:image:height",
+					content: "936",
+				},
+				{
+					property: "og:type",
+					content: "website",
+				},
+				// Twitter Card tags
+				{
+					name: "twitter:card",
+					content: "summary_large_image",
+				},
+				{
+					name: "twitter:title",
+					content: card.name,
+				},
+				{
+					name: "twitter:description",
+					content: description,
+				},
+				{
+					name: "twitter:image",
+					content: cardImageUrl,
+				},
+			],
+		};
 	},
 	component: CardDetailPage,
 });

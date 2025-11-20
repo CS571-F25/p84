@@ -64,7 +64,6 @@ function uuidToBytes(uuid: string): Uint8Array {
 	return bytes;
 }
 
-
 /**
  * Load binary index file (cached)
  */
@@ -85,10 +84,7 @@ async function loadBinaryIndex(): Promise<ArrayBuffer> {
  * Parse full record at given offset (only call when found)
  * Format: UUID (16 bytes) + chunk (1 byte) + offset (4 bytes) + length (4 bytes)
  */
-function parseRecord(
-	buffer: ArrayBuffer,
-	recordIndex: number,
-): ByteIndexEntry {
+function parseRecord(buffer: ArrayBuffer, recordIndex: number): ByteIndexEntry {
 	const view = new DataView(buffer);
 	const offset = recordIndex * RECORD_SIZE;
 
