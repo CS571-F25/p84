@@ -26,7 +26,9 @@ export async function resolveMiniDoc(identifier: string): Promise<MiniDoc> {
 	const response = await fetch(url.toString());
 
 	if (!response.ok) {
-		const error = await response.json().catch(() => ({}));
+		const error = (await response.json().catch(() => ({}))) as {
+			message?: string;
+		};
 		throw new Error(
 			error.message || `Failed to resolve identity: ${response.statusText}`,
 		);

@@ -34,7 +34,9 @@
       "Bash(npx biome check:*)",
       "Bash(npx tsc:*)",
       "Bash(npx vitest run:*)",
-      "WebFetch(domain:slingshot.microcosm.blue)"
+      "WebFetch(domain:slingshot.microcosm.blue)",
+      "Bash(git stash show:*)",
+      "Bash(npm audit)"
     ],
     "deny": [],
     "ask": []

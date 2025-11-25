@@ -24,6 +24,7 @@
               typescript
               just
               jq
+              cacert # CA certificates for TLS verification
               # language servers
               typescript-language-server
               typespec

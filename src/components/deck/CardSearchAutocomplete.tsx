@@ -120,7 +120,6 @@ export function CardSearchAutocomplete({
 		setIsDropdownOpen(false);
 		setSelectedIndex(0);
 		inputRef.current?.focus();
-		toast.success(`added ${card.name}`);
 	};
 
 	const handleEnter = () => {
@@ -147,7 +146,7 @@ export function CardSearchAutocomplete({
 				if (topCard) {
 					onCardSelect?.(topCard.id);
 					onCardHover?.(topCard.id);
-					toast.success(`added ${topCard.name}`, { id: toastId });
+					toast.dismiss(toastId);
 				} else {
 					toast.error(`no card found for "${searchTerm}"`, { id: toastId });
 				}

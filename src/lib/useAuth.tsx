@@ -5,6 +5,7 @@ import {
 	OAuthUserAgent,
 	type Session,
 } from "@atcute/oauth-browser-client";
+import { useNavigate } from "@tanstack/react-router";
 import {
 	createContext,
 	type ReactNode,
@@ -12,6 +13,7 @@ import {
 	useEffect,
 	useState,
 } from "react";
+import { toast } from "sonner";
 
 const STORAGE_KEY = "deckbelcher:last-did";
 
@@ -30,27 +32,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [session, setSession] = useState<Session | null>(null);
 	const [agent, setAgent] = useState<OAuthUserAgent | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const restoreSession = async () => {
 			try {
 				const lastDid = localStorage.getItem(STORAGE_KEY);
 				if (lastDid) {
-					const stored = await getSession(lastDid as Did, { allowStale: true });
+					const stored = await getSession(lastDid as Did);
 					if (stored) {
 						setSession(stored);
 						setAgent(new OAuthUserAgent(stored));
 					}
 				}
 			} catch (error) {
-				console.error("Failed to restore session:", error);
+				console.warn("Session restoration failed:", error);
+				const lastDid = localStorage.getItem(STORAGE_KEY);
+				if (lastDid) {
+					localStorage.removeItem(STORAGE_KEY);
+					toast.error("Your session expired. Please sign in again.", {
+						duration: 5000,
+						action: {
+							label: "Sign In",
+							onClick: () => {
+								navigate({ to: "/signin" });
+							},
+						},
+					});
+				}
 			} finally {
 				setIsLoading(false);
 			}
 		};
 
 		restoreSession();
-	}, []);
+	}, [navigate]);
 
 	const signIn = async (handle: string) => {
 		const authUrl = await createAuthorizationUrl({

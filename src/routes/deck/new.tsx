@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useId, useState } from "react";
+import { useCreateDeckMutation } from "@/lib/deck-queries";
 
 export const Route = createFileRoute("/deck/new")({
 	component: NewDeckPage,
@@ -12,18 +13,17 @@ function NewDeckPage() {
 	const nameId = useId();
 	const formatId = useId();
 
+	const mutation = useCreateDeckMutation();
+
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		// TODO: When ATProto persistence is added, create the record here
-		// and use the actual rkey. For now, use a fixed draft ID.
-		const draftId = "draft";
+		if (!name.trim()) return;
 
-		// TODO: Pass initial deck data (name, format) to editor
-		// For now, just navigate - will implement state passing later
-		navigate({
-			to: "/deck/$id",
-			params: { id: draftId },
+		mutation.mutate({
+			name: name.trim(),
+			format: format || undefined,
+			cards: [],
 		});
 	};
 
@@ -81,9 +81,10 @@ function NewDeckPage() {
 					<div className="flex gap-4 pt-4">
 						<button
 							type="submit"
-							className="flex-1 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors"
+							disabled={mutation.isPending || !name.trim()}
+							className="flex-1 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
 						>
-							Create Deck
+							{mutation.isPending ? "Creating..." : "Create Deck"}
 						</button>
 						<button
 							type="button"

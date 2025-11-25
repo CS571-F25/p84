@@ -3,9 +3,13 @@
  * Reads via Slingshot (cached), writes via PDS (authenticated)
  */
 
-import type { At, Did } from "@atcute/lexicons";
+import type {} from "@atcute/atproto";
+import { Client } from "@atcute/client";
+import type { Did } from "@atcute/lexicons";
 import type { OAuthUserAgent } from "@atcute/oauth-browser-client";
 import type { ComDeckbelcherDeckList } from "./lexicons/index";
+
+type AtUri = `at://${string}`;
 
 const SLINGSHOT_BASE = "https://slingshot.microcosm.blue";
 const COLLECTION = "com.deckbelcher.deck.list";
@@ -26,7 +30,7 @@ export function asRkey(rkey: string): Rkey {
 }
 
 export interface DeckRecordResponse {
-	uri: At.Uri;
+	uri: AtUri;
 	cid: string;
 	value: ComDeckbelcherDeckList.Main;
 }
@@ -56,7 +60,9 @@ export async function getDeckRecord(
 		const response = await fetch(url.toString());
 
 		if (!response.ok) {
-			const error = await response.json().catch(() => ({}));
+			const error = (await response.json().catch(() => ({}))) as {
+				message?: string;
+			};
 			return {
 				success: false,
 				error: new Error(
@@ -65,7 +71,7 @@ export async function getDeckRecord(
 			};
 		}
 
-		const data = await response.json();
+		const data = (await response.json()) as DeckRecordResponse;
 		return { success: true, data };
 	} catch (error) {
 		return {
@@ -81,25 +87,29 @@ export async function getDeckRecord(
 export async function createDeckRecord(
 	agent: OAuthUserAgent,
 	record: ComDeckbelcherDeckList.Main,
-): Promise<Result<{ uri: At.Uri; cid: string; rkey: Rkey }>> {
+): Promise<Result<{ uri: AtUri; cid: string; rkey: Rkey }>> {
 	try {
-		const response = await agent.rpc.call("com.atproto.repo.createRecord", {
-			data: {
-				repo: agent.did,
+		const client = new Client({ handler: agent });
+		const response = await client.post("com.atproto.repo.createRecord", {
+			input: {
+				repo: agent.sub,
 				collection: COLLECTION,
 				record,
 			},
 		});
 
-		if (!response.success) {
+		if (!response.ok) {
 			return {
 				success: false,
-				error: new Error("Failed to create deck record"),
+				error: new Error(
+					response.data.message || "Failed to create deck record",
+				),
 			};
 		}
 
 		// Extract rkey from the URI (at://did:plc:.../collection/rkey)
-		const uri = response.data.uri;
+		const uri = response.data.uri as string;
+		const cid = response.data.cid as string;
 		const rkey = uri.split("/").pop();
 		if (!rkey) {
 			return {
@@ -110,7 +120,7 @@ export async function createDeckRecord(
 
 		return {
 			success: true,
-			data: { ...response.data, rkey: asRkey(rkey) },
+			data: { uri: uri as AtUri, cid, rkey: asRkey(rkey) },
 		};
 	} catch (error) {
 		return {
@@ -127,25 +137,34 @@ export async function updateDeckRecord(
 	agent: OAuthUserAgent,
 	rkey: Rkey,
 	record: ComDeckbelcherDeckList.Main,
-): Promise<Result<{ uri: At.Uri; cid: string }>> {
+): Promise<Result<{ uri: AtUri; cid: string }>> {
 	try {
-		const response = await agent.rpc.call("com.atproto.repo.putRecord", {
-			data: {
-				repo: agent.did,
+		const client = new Client({ handler: agent });
+		const response = await client.post("com.atproto.repo.putRecord", {
+			input: {
+				repo: agent.sub,
 				collection: COLLECTION,
 				rkey,
 				record,
 			},
 		});
 
-		if (!response.success) {
+		if (!response.ok) {
 			return {
 				success: false,
-				error: new Error("Failed to update deck record"),
+				error: new Error(
+					response.data.message || "Failed to update deck record",
+				),
 			};
 		}
 
-		return { success: true, data: response.data };
+		return {
+			success: true,
+			data: {
+				uri: response.data.uri as AtUri,
+				cid: response.data.cid as string,
+			},
+		};
 	} catch (error) {
 		return {
 			success: false,
@@ -170,7 +189,9 @@ export async function listUserDecks(
 		const response = await fetch(url.toString());
 
 		if (!response.ok) {
-			const error = await response.json().catch(() => ({}));
+			const error = (await response.json().catch(() => ({}))) as {
+				message?: string;
+			};
 			return {
 				success: false,
 				error: new Error(
@@ -179,7 +200,7 @@ export async function listUserDecks(
 			};
 		}
 
-		const data = await response.json();
+		const data = (await response.json()) as ListRecordsResponse;
 		return { success: true, data };
 	} catch (error) {
 		return {
@@ -197,18 +218,21 @@ export async function deleteDeckRecord(
 	rkey: Rkey,
 ): Promise<Result<void>> {
 	try {
-		const response = await agent.rpc.call("com.atproto.repo.deleteRecord", {
-			data: {
-				repo: agent.did,
+		const client = new Client({ handler: agent });
+		const response = await client.post("com.atproto.repo.deleteRecord", {
+			input: {
+				repo: agent.sub,
 				collection: COLLECTION,
 				rkey,
 			},
 		});
 
-		if (!response.success) {
+		if (!response.ok) {
 			return {
 				success: false,
-				error: new Error("Failed to delete deck record"),
+				error: new Error(
+					response.data.message || "Failed to delete deck record",
+				),
 			};
 		}
 

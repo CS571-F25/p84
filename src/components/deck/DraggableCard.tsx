@@ -7,9 +7,11 @@ import type { ScryfallId } from "@/lib/scryfall-types";
 
 interface DraggableCardProps {
 	card: DeckCard;
-	uniqueId: string; // Unique ID for this card instance
+	uniqueId: string;
 	onCardHover?: (cardId: ScryfallId | null) => void;
 	onCardClick?: (card: DeckCard) => void;
+	disabled?: boolean;
+	isDraggingGlobal?: boolean;
 }
 
 export interface DragData {
@@ -23,6 +25,8 @@ export function DraggableCard({
 	uniqueId,
 	onCardHover,
 	onCardClick,
+	disabled = false,
+	isDraggingGlobal = false,
 }: DraggableCardProps) {
 	const { data: cardData, isLoading } = useQuery(
 		getCardByIdQueryOptions(card.scryfallId),
@@ -37,23 +41,31 @@ export function DraggableCard({
 	const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
 		id: uniqueId,
 		data: dragData,
+		disabled,
 	});
 
 	return (
 		<button
 			ref={setNodeRef}
 			{...attributes}
-			{...listeners}
+			{...(disabled ? {} : listeners)}
 			type="button"
 			className="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded px-2 py-1 transition-colors w-full text-left touch-none"
 			style={{
 				opacity: isDragging ? 0.5 : 1,
-				cursor: isDragging ? "grabbing" : "grab",
+				cursor: disabled ? "pointer" : isDragging ? "grabbing" : "grab",
 			}}
-			onMouseEnter={() => onCardHover?.(card.scryfallId)}
-			onMouseLeave={() => onCardHover?.(null)}
+			onMouseEnter={() => {
+				if (!isDraggingGlobal) {
+					onCardHover?.(card.scryfallId);
+				}
+			}}
+			onMouseLeave={() => {
+				if (!isDraggingGlobal) {
+					onCardHover?.(null);
+				}
+			}}
 			onClick={() => {
-				// Only trigger click if not dragging
 				if (!isDragging) {
 					onCardClick?.(card);
 				}

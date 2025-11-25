@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CardsIndexRouteImport } from './routes/cards/index'
+import { Route as UHandleRouteImport } from './routes/u/$handle'
 import { Route as OauthCallbackRouteImport } from './routes/oauth/callback'
 import { Route as DeckNewRouteImport } from './routes/deck/new'
-import { Route as DeckIdRouteImport } from './routes/deck/$id'
 import { Route as CardIdRouteImport } from './routes/card/$id'
+import { Route as ProfileDidIndexRouteImport } from './routes/profile/$did/index'
+import { Route as ProfileDidDeckRkeyRouteImport } from './routes/profile/$did/deck/$rkey'
 
 const SigninRoute = SigninRouteImport.update({
   id: '/signin',
@@ -32,6 +34,11 @@ const CardsIndexRoute = CardsIndexRouteImport.update({
   path: '/cards/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UHandleRoute = UHandleRouteImport.update({
+  id: '/u/$handle',
+  path: '/u/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OauthCallbackRoute = OauthCallbackRouteImport.update({
   id: '/oauth/callback',
   path: '/oauth/callback',
@@ -42,14 +49,19 @@ const DeckNewRoute = DeckNewRouteImport.update({
   path: '/deck/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DeckIdRoute = DeckIdRouteImport.update({
-  id: '/deck/$id',
-  path: '/deck/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CardIdRoute = CardIdRouteImport.update({
   id: '/card/$id',
   path: '/card/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileDidIndexRoute = ProfileDidIndexRouteImport.update({
+  id: '/profile/$did/',
+  path: '/profile/$did/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileDidDeckRkeyRoute = ProfileDidDeckRkeyRouteImport.update({
+  id: '/profile/$did/deck/$rkey',
+  path: '/profile/$did/deck/$rkey',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -57,29 +69,35 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
-  '/deck/$id': typeof DeckIdRoute
   '/deck/new': typeof DeckNewRoute
   '/oauth/callback': typeof OauthCallbackRoute
+  '/u/$handle': typeof UHandleRoute
   '/cards': typeof CardsIndexRoute
+  '/profile/$did': typeof ProfileDidIndexRoute
+  '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
-  '/deck/$id': typeof DeckIdRoute
   '/deck/new': typeof DeckNewRoute
   '/oauth/callback': typeof OauthCallbackRoute
+  '/u/$handle': typeof UHandleRoute
   '/cards': typeof CardsIndexRoute
+  '/profile/$did': typeof ProfileDidIndexRoute
+  '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
-  '/deck/$id': typeof DeckIdRoute
   '/deck/new': typeof DeckNewRoute
   '/oauth/callback': typeof OauthCallbackRoute
+  '/u/$handle': typeof UHandleRoute
   '/cards/': typeof CardsIndexRoute
+  '/profile/$did/': typeof ProfileDidIndexRoute
+  '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -87,38 +105,46 @@ export interface FileRouteTypes {
     | '/'
     | '/signin'
     | '/card/$id'
-    | '/deck/$id'
     | '/deck/new'
     | '/oauth/callback'
+    | '/u/$handle'
     | '/cards'
+    | '/profile/$did'
+    | '/profile/$did/deck/$rkey'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/signin'
     | '/card/$id'
-    | '/deck/$id'
     | '/deck/new'
     | '/oauth/callback'
+    | '/u/$handle'
     | '/cards'
+    | '/profile/$did'
+    | '/profile/$did/deck/$rkey'
   id:
     | '__root__'
     | '/'
     | '/signin'
     | '/card/$id'
-    | '/deck/$id'
     | '/deck/new'
     | '/oauth/callback'
+    | '/u/$handle'
     | '/cards/'
+    | '/profile/$did/'
+    | '/profile/$did/deck/$rkey'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SigninRoute: typeof SigninRoute
   CardIdRoute: typeof CardIdRoute
-  DeckIdRoute: typeof DeckIdRoute
   DeckNewRoute: typeof DeckNewRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
+  UHandleRoute: typeof UHandleRoute
   CardsIndexRoute: typeof CardsIndexRoute
+  ProfileDidIndexRoute: typeof ProfileDidIndexRoute
+  ProfileDidDeckRkeyRoute: typeof ProfileDidDeckRkeyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -144,6 +170,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CardsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/u/$handle': {
+      id: '/u/$handle'
+      path: '/u/$handle'
+      fullPath: '/u/$handle'
+      preLoaderRoute: typeof UHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/oauth/callback': {
       id: '/oauth/callback'
       path: '/oauth/callback'
@@ -158,18 +191,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeckNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/deck/$id': {
-      id: '/deck/$id'
-      path: '/deck/$id'
-      fullPath: '/deck/$id'
-      preLoaderRoute: typeof DeckIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/card/$id': {
       id: '/card/$id'
       path: '/card/$id'
       fullPath: '/card/$id'
       preLoaderRoute: typeof CardIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$did/': {
+      id: '/profile/$did/'
+      path: '/profile/$did'
+      fullPath: '/profile/$did'
+      preLoaderRoute: typeof ProfileDidIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$did/deck/$rkey': {
+      id: '/profile/$did/deck/$rkey'
+      path: '/profile/$did/deck/$rkey'
+      fullPath: '/profile/$did/deck/$rkey'
+      preLoaderRoute: typeof ProfileDidDeckRkeyRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -179,10 +219,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SigninRoute: SigninRoute,
   CardIdRoute: CardIdRoute,
-  DeckIdRoute: DeckIdRoute,
   DeckNewRoute: DeckNewRoute,
   OauthCallbackRoute: OauthCallbackRoute,
+  UHandleRoute: UHandleRoute,
   CardsIndexRoute: CardsIndexRoute,
+  ProfileDidIndexRoute: ProfileDidIndexRoute,
+  ProfileDidDeckRkeyRoute: ProfileDidDeckRkeyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

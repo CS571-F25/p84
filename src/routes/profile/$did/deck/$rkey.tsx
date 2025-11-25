@@ -1,5 +1,6 @@
+import type { Did } from "@atcute/lexicons";
 import { type DragEndEvent, useDndMonitor } from "@dnd-kit/core";
-import { useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -14,6 +15,8 @@ import { DragDropProvider } from "@/components/deck/DragDropProvider";
 import type { DragData } from "@/components/deck/DraggableCard";
 import { TrashDropZone } from "@/components/deck/TrashDropZone";
 import { ViewControls } from "@/components/deck/ViewControls";
+import { asRkey } from "@/lib/atproto-client";
+import { getDeckQueryOptions, useUpdateDeckMutation } from "@/lib/deck-queries";
 import type { Deck, GroupBy, Section, SortBy } from "@/lib/deck-types";
 import {
 	addCardToDeck,
@@ -25,31 +28,34 @@ import {
 	updateCardTags,
 } from "@/lib/deck-types";
 import { getCardByIdQueryOptions } from "@/lib/queries";
-import { asScryfallId, type ScryfallId } from "@/lib/scryfall-types";
+import type { ScryfallId } from "@/lib/scryfall-types";
+import { useAuth } from "@/lib/useAuth";
 import { usePersistedState } from "@/lib/usePersistedState";
 
-// Test deck card IDs (TODO: remove when ATProto persistence is implemented)
-const TEST_CARD_IDS = [
-	asScryfallId("adc7f8f3-140d-4dd0-aacc-b81b2b93eb67"),
-	asScryfallId("77c6fa74-5543-42ac-9ead-0e890b188e99"),
-	asScryfallId("7ee610ee-7711-4a6b-b441-d6c73e6ef2b4"),
-	asScryfallId("eb6d8d1c-8d23-4273-9c9b-f3b71eb0e105"),
-	asScryfallId("77c1a141-3955-47f9-bd22-b642728724ab"),
-] as const;
-
-export const Route = createFileRoute("/deck/$id")({
+export const Route = createFileRoute("/profile/$did/deck/$rkey")({
 	component: DeckEditorPage,
-	loader: async ({ context }) => {
-		// Prefetch card data during SSR for grouping/sorting and display
+	loader: async ({ context, params }) => {
+		// Prefetch deck data during SSR
+		const deck = await context.queryClient.ensureQueryData(
+			getDeckQueryOptions(params.did as Did, asRkey(params.rkey)),
+		);
 		await Promise.all(
-			TEST_CARD_IDS.map((id) =>
-				context.queryClient.ensureQueryData(getCardByIdQueryOptions(id)),
+			deck.cards.map((card) =>
+				context.queryClient.ensureQueryData(
+					getCardByIdQueryOptions(card.scryfallId),
+				),
 			),
 		);
 	},
 });
 
 function DeckEditorPage() {
+	const { did, rkey } = Route.useParams();
+	const { session } = useAuth();
+	const { data: deck } = useSuspenseQuery(
+		getDeckQueryOptions(did as Did, asRkey(rkey)),
+	);
+
 	const [groupBy, setGroupBy] = usePersistedState<GroupBy>(
 		"deckbelcher:viewConfig:groupBy",
 		"typeAndTags",
@@ -59,50 +65,6 @@ function DeckEditorPage() {
 		"name",
 	);
 
-	// Initialize deck with some test data
-	const [deck, setDeck] = useState<Deck>(() => {
-		// TODO: Load from ATProto when persistence is implemented
-		// For now, create test deck with hardcoded cards
-		return {
-			$type: "com.deckbelcher.deck.list",
-			name: "Test Commander Deck",
-			format: "commander",
-			cards: [
-				{
-					scryfallId: TEST_CARD_IDS[0],
-					quantity: 1,
-					section: "commander",
-					tags: [],
-				},
-				{
-					scryfallId: TEST_CARD_IDS[1],
-					quantity: 1,
-					section: "mainboard",
-					tags: ["removal", "instant"],
-				},
-				{
-					scryfallId: TEST_CARD_IDS[2],
-					quantity: 1,
-					section: "mainboard",
-					tags: ["ramp"],
-				},
-				{
-					scryfallId: asScryfallId("eb6d8d1c-8d23-4273-9c9b-f3b71eb0e105"),
-					quantity: 2,
-					section: "sideboard",
-					tags: ["would taste good fried"],
-				},
-				{
-					scryfallId: asScryfallId("77c1a141-3955-47f9-bd22-b642728724ab"),
-					quantity: 1,
-					section: "sideboard",
-					tags: ["illegal"],
-				},
-			],
-			createdAt: new Date().toISOString(),
-		};
-	});
-
 	const [previewCard, setPreviewCard] = useState<ScryfallId>(
 		deck.cards?.[0]?.scryfallId,
 	);
@@ -110,7 +72,18 @@ function DeckEditorPage() {
 	const [draggedCardId, setDraggedCardId] = useState<ScryfallId | null>(null);
 	const [isDragging, setIsDragging] = useState(false);
 
-	const queryClient = useQueryClient();
+	const mutation = useUpdateDeckMutation(did as Did, asRkey(rkey));
+	const queryClient = Route.useRouteContext().queryClient;
+
+	// Check if current user is the owner
+	const isOwner = session?.info.sub === did;
+
+	// Helper to update deck via mutation
+	const updateDeck = async (updater: (prev: Deck) => Deck) => {
+		if (!isOwner) return;
+		const updated = updater(deck);
+		await mutation.mutateAsync(updated);
+	};
 
 	const handleCardHover = (cardId: ScryfallId | null) => {
 		// Only update preview if we have a card (persistence - don't clear on null)
@@ -129,7 +102,7 @@ function DeckEditorPage() {
 
 	const handleUpdateQuantity = (quantity: number) => {
 		if (!modalCard) return;
-		setDeck((prev) =>
+		updateDeck((prev) =>
 			updateCardQuantity(
 				prev,
 				modalCard.scryfallId,
@@ -141,7 +114,7 @@ function DeckEditorPage() {
 
 	const handleUpdateTags = (tags: string[]) => {
 		if (!modalCard) return;
-		setDeck((prev) =>
+		updateDeck((prev) =>
 			updateCardTags(
 				prev,
 				modalCard.scryfallId,
@@ -153,7 +126,7 @@ function DeckEditorPage() {
 
 	const handleMoveToSection = (newSection: Section) => {
 		if (!modalCard) return;
-		setDeck((prev) =>
+		updateDeck((prev) =>
 			moveCardToSection(
 				prev,
 				modalCard.scryfallId,
@@ -166,33 +139,68 @@ function DeckEditorPage() {
 
 	const handleDeleteCard = () => {
 		if (!modalCard) return;
-		setDeck((prev) =>
+		const cardToDelete = modalCard;
+		const toastId = toast.loading("Removing card...");
+
+		updateDeck((prev) =>
 			removeCardFromDeck(
 				prev,
 				modalCard.scryfallId,
 				modalCard.section as Section,
 			),
-		);
+		)
+			.then(() => {
+				// Close modal after successful delete
+				setModalCard(null);
+
+				// Update to success with undo action
+				toast.success("Card removed from deck", {
+					id: toastId,
+					action: {
+						label: "Undo",
+						onClick: () => {
+							toast.promise(
+								updateDeck((prev) => ({
+									...prev,
+									cards: [...prev.cards, cardToDelete],
+								})),
+								{
+									loading: "Undoing...",
+									success: "Card restored",
+									error: "Failed to restore card",
+								},
+							);
+						},
+					},
+				});
+			})
+			.catch((err) => {
+				toast.error(`Failed to remove card: ${err.message}`, { id: toastId });
+			});
 	};
 
 	const handleNameChange = (name: string) => {
-		setDeck((prev) => ({ ...prev, name, updatedAt: new Date().toISOString() }));
+		updateDeck((prev) => ({ ...prev, name }));
 	};
 
 	const handleFormatChange = (format: string) => {
-		setDeck((prev) => ({
-			...prev,
-			format,
-			updatedAt: new Date().toISOString(),
-		}));
+		updateDeck((prev) => ({ ...prev, format }));
 	};
 
 	const handleCardSelect = async (cardId: ScryfallId) => {
-		// Prefetch basic card data before adding to ensure it's in the cache
-		// This prevents the card from jumping around during grouping/sorting
-		// Printings data will load async in DeckCardRow
 		await queryClient.prefetchQuery(getCardByIdQueryOptions(cardId));
-		setDeck((prev) => addCardToDeck(prev, cardId, "mainboard", 1));
+		const cardData = queryClient.getQueryData(
+			getCardByIdQueryOptions(cardId).queryKey,
+		);
+
+		await toast.promise(
+			updateDeck((prev) => addCardToDeck(prev, cardId, "mainboard", 1)),
+			{
+				loading: "Adding card...",
+				success: cardData ? `Added ${cardData.name}` : "Card added to deck",
+				error: (err) => `Failed to add card: ${err.message}`,
+			},
+		);
 	};
 
 	const handleDragEnd = (event: DragEndEvent) => {
@@ -218,30 +226,47 @@ function DeckEditorPage() {
 					c.section === dragData.section,
 			);
 
-			setDeck((prev) =>
+			// Show loading toast and track mutation
+			const toastId = toast.loading("Removing card...");
+
+			updateDeck((prev) =>
 				removeCardFromDeck(
 					prev,
 					dragData.scryfallId,
 					dragData.section as Section,
 				),
-			);
-
-			// Store the full card for undo
-			if (cardToDelete) {
-				toast.success("Card removed from deck", {
-					action: {
-						label: "Undo",
-						onClick: () => {
-							// Re-insert the exact card that was deleted
-							setDeck((prev) => ({
-								...prev,
-								cards: [...prev.cards, cardToDelete],
-								updatedAt: new Date().toISOString(),
-							}));
-						},
-					},
+			)
+				.then(() => {
+					// Update to success with undo action
+					if (cardToDelete) {
+						toast.success("Card removed from deck", {
+							id: toastId,
+							action: {
+								label: "Undo",
+								onClick: () => {
+									// Re-insert the exact card that was deleted
+									toast.promise(
+										updateDeck((prev) => ({
+											...prev,
+											cards: [...prev.cards, cardToDelete],
+										})),
+										{
+											loading: "Undoing...",
+											success: "Card restored",
+											error: "Failed to restore card",
+										},
+									);
+								},
+							},
+						});
+					} else {
+						toast.success("Card removed from deck", { id: toastId });
+					}
+				})
+				.catch((err) => {
+					toast.error(`Failed to remove card: ${err.message}`, { id: toastId });
 				});
-			}
+
 			return;
 		}
 
@@ -249,7 +274,7 @@ function DeckEditorPage() {
 		if (dropData.type === "section") {
 			if (dropData.section === dragData.section) return; // No-op if same section
 
-			setDeck((prev) =>
+			updateDeck((prev) =>
 				moveCardToSection(
 					prev,
 					dragData.scryfallId,
@@ -266,7 +291,7 @@ function DeckEditorPage() {
 			if (dragData.tags.includes(newTag)) return; // Already has this tag
 
 			const updatedTags = [...dragData.tags, newTag];
-			setDeck((prev) =>
+			updateDeck((prev) =>
 				updateCardTags(
 					prev,
 					dragData.scryfallId,
@@ -287,6 +312,7 @@ function DeckEditorPage() {
 				modalCard={modalCard}
 				draggedCardId={draggedCardId}
 				isDragging={isDragging}
+				isOwner={isOwner}
 				setIsDragging={setIsDragging}
 				setDraggedCardId={setDraggedCardId}
 				handleCardHover={handleCardHover}
@@ -314,6 +340,7 @@ interface DeckEditorInnerProps {
 	modalCard: DeckCard | null;
 	draggedCardId: ScryfallId | null;
 	isDragging: boolean;
+	isOwner: boolean;
 	setIsDragging: (dragging: boolean) => void;
 	setDraggedCardId: (id: ScryfallId | null) => void;
 	handleCardHover: (cardId: ScryfallId | null) => void;
@@ -338,6 +365,7 @@ function DeckEditorInner({
 	modalCard,
 	draggedCardId,
 	isDragging,
+	isOwner,
 	setIsDragging,
 	setDraggedCardId,
 	handleCardHover,
@@ -374,35 +402,38 @@ function DeckEditorInner({
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
-			{/* Deck name and format (scrolls away) */}
+			{/* Deck name and format */}
 			<div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
 				<DeckHeader
 					name={deck.name}
 					format={deck.format}
 					onNameChange={handleNameChange}
 					onFormatChange={handleFormatChange}
+					readOnly={!isOwner}
 				/>
 			</div>
 
 			{/* Sticky header with search */}
-			<div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
-				<div className="max-w-7xl mx-auto px-6 py-3 flex justify-end">
-					<div className="w-full max-w-md">
-						<CardSearchAutocomplete
-							deck={deck}
-							format={deck.format}
-							onCardSelect={handleCardSelect}
-							onCardHover={handleCardHover}
-						/>
+			{isOwner && (
+				<div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
+					<div className="max-w-7xl mx-auto px-6 py-3 flex justify-end">
+						<div className="w-full max-w-md">
+							<CardSearchAutocomplete
+								deck={deck}
+								format={deck.format}
+								onCardSelect={handleCardSelect}
+								onCardHover={handleCardHover}
+							/>
+						</div>
 					</div>
 				</div>
-			</div>
+			)}
 
 			{/* Trash drop zone - only show while dragging */}
-			<TrashDropZone isDragging={isDragging} />
+			{isOwner && <TrashDropZone isDragging={isDragging} />}
 
 			{/* Common tags overlay - only show while dragging */}
-			<CommonTagsOverlay deck={deck} isDragging={isDragging} />
+			{isOwner && <CommonTagsOverlay deck={deck} isDragging={isDragging} />}
 
 			{/* Main content */}
 			<div className="max-w-7xl mx-auto px-6 py-8">
@@ -429,6 +460,7 @@ function DeckEditorInner({
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
 							isDragging={isDragging}
+							readOnly={!isOwner}
 						/>
 						<DeckSection
 							section="mainboard"
@@ -438,6 +470,7 @@ function DeckEditorInner({
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
 							isDragging={isDragging}
+							readOnly={!isOwner}
 						/>
 						<DeckSection
 							section="sideboard"
@@ -447,6 +480,7 @@ function DeckEditorInner({
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
 							isDragging={isDragging}
+							readOnly={!isOwner}
 						/>
 						<DeckSection
 							section="maybeboard"
@@ -456,6 +490,7 @@ function DeckEditorInner({
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
 							isDragging={isDragging}
+							readOnly={!isOwner}
 						/>
 					</div>
 				</div>
@@ -471,6 +506,7 @@ function DeckEditorInner({
 					onUpdateTags={handleUpdateTags}
 					onMoveToSection={handleMoveToSection}
 					onDelete={handleDeleteCard}
+					readOnly={!isOwner}
 				/>
 			)}
 

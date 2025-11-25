@@ -13,6 +13,7 @@ interface CardModalProps {
 	onUpdateTags: (tags: string[]) => void;
 	onMoveToSection: (section: Section) => void;
 	onDelete: () => void;
+	readOnly?: boolean;
 }
 
 export function CardModal({
@@ -23,6 +24,7 @@ export function CardModal({
 	onUpdateTags,
 	onMoveToSection,
 	onDelete,
+	readOnly = false,
 }: CardModalProps) {
 	const [quantity, setQuantity] = useState(card.quantity);
 	const [tags, setTags] = useState<string[]>(card.tags ?? []);
@@ -139,7 +141,7 @@ export function CardModal({
 								<button
 									type="button"
 									onClick={() => handleQuantityChange(quantity - 1)}
-									disabled={quantity <= 1}
+									disabled={readOnly || quantity <= 1}
 									className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>
 									<Minus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
@@ -153,12 +155,14 @@ export function CardModal({
 											Number.parseInt(e.target.value, 10) || 1,
 										)
 									}
-									className="w-20 px-3 py-2 text-center bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+									disabled={readOnly}
+									className="w-20 px-3 py-2 text-center bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
 								/>
 								<button
 									type="button"
 									onClick={() => handleQuantityChange(quantity + 1)}
-									className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+									disabled={readOnly}
+									className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>
 									<Plus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
 								</button>
@@ -173,7 +177,8 @@ export function CardModal({
 							<select
 								value={card.section}
 								onChange={(e) => onMoveToSection(e.target.value as Section)}
-								className="w-full px-4 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+								disabled={readOnly}
+								className="w-full px-4 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
 							>
 								<option value="commander">Commander</option>
 								<option value="mainboard">Mainboard</option>
@@ -199,12 +204,14 @@ export function CardModal({
 										}
 									}}
 									placeholder="Add tag..."
-									className="flex-1 px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+									disabled={readOnly}
+									className="flex-1 px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
 								/>
 								<button
 									type="button"
 									onClick={handleAddTag}
-									className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
+									disabled={readOnly}
+									className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
 								>
 									Add
 								</button>
@@ -215,11 +222,14 @@ export function CardModal({
 										<button
 											key={tag}
 											type="button"
-											onClick={() => handleRemoveTag(tag)}
-											className="group px-3 py-1 bg-cyan-100 dark:bg-cyan-900 hover:bg-cyan-200 dark:hover:bg-cyan-800 text-cyan-800 dark:text-cyan-200 rounded-lg text-sm transition-colors flex items-center gap-1"
+											onClick={() => !readOnly && handleRemoveTag(tag)}
+											disabled={readOnly}
+											className="group px-3 py-1 bg-cyan-100 dark:bg-cyan-900 hover:bg-cyan-200 dark:hover:bg-cyan-800 disabled:opacity-50 disabled:cursor-not-allowed text-cyan-800 dark:text-cyan-200 rounded-lg text-sm transition-colors flex items-center gap-1"
 										>
 											{tag}
-											<X className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+											{!readOnly && (
+												<X className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+											)}
 										</button>
 									))}
 								</div>
@@ -232,7 +242,8 @@ export function CardModal({
 						<button
 							type="button"
 							onClick={handleDelete}
-							className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2"
+							disabled={readOnly}
+							className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
 						>
 							<Trash2 className="w-4 h-4" />
 							Delete

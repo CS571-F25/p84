@@ -31,6 +31,7 @@ interface DeckSectionProps {
 	onCardHover?: (cardId: ScryfallId | null) => void;
 	onCardClick?: (card: DeckCard) => void;
 	isDragging: boolean;
+	readOnly?: boolean;
 }
 
 export function DeckSection({
@@ -41,6 +42,7 @@ export function DeckSection({
 	onCardHover,
 	onCardClick,
 	isDragging,
+	readOnly = false,
 }: DeckSectionProps) {
 	const sectionNames: Record<Section, string> = {
 		commander: "Commander",
@@ -126,6 +128,8 @@ export function DeckSection({
 												uniqueId={uniqueId}
 												onCardHover={onCardHover}
 												onCardClick={onCardClick}
+												disabled={readOnly}
+												isDraggingGlobal={isDragging}
 											/>
 										</div>
 									);
@@ -139,6 +143,8 @@ export function DeckSection({
 												uniqueId={uniqueId}
 												onCardHover={onCardHover}
 												onCardClick={onCardClick}
+												disabled={readOnly}
+												isDraggingGlobal={isDragging}
 											/>
 										</div>
 									);
@@ -180,6 +186,8 @@ export function DeckSection({
 													card={card}
 													onCardHover={onCardHover}
 													onCardClick={onCardClick}
+													disabled={readOnly}
+													isDraggingGlobal={isDragging}
 												/>
 											);
 										})}
