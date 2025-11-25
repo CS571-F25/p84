@@ -11,6 +11,7 @@
 // In dev: provides stub/mock, In production: actual Workers env
 import { env } from "cloudflare:workers";
 import type { CardDataProvider } from "./card-data-provider";
+import { LRUCache } from "./lru-cache";
 import type { Card, OracleId, ScryfallId } from "./scryfall-types";
 
 /**
@@ -47,9 +48,12 @@ interface IndexData {
 // Format: UUID (16 bytes) + chunk (1 byte) + offset (4 bytes) + length (4 bytes)
 const RECORD_SIZE = 25;
 
+// LRU cache for chunk data (keeps memory under 128MB)
+const MAX_CHUNK_CACHE_SIZE = 4;
+
 let binaryIndexCache: ArrayBuffer | null = null;
 let indexDataCache: IndexData | null = null;
-const chunkCaches: Map<number, string> = new Map();
+const chunkCaches = new LRUCache<number, string>(MAX_CHUNK_CACHE_SIZE);
 
 /**
  * Convert UUID string to Uint8Array for binary comparison
@@ -166,19 +170,16 @@ async function findCardInIndex(
  * Load chunk file into cache
  */
 async function loadChunk(chunkIndex: number): Promise<string> {
-	const cached = chunkCaches.get(chunkIndex);
-	if (cached !== undefined) {
-		return cached;
-	}
-
-	const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}.json`;
-	const response = await fetchAsset(chunkFilename);
-	if (!response.ok) {
-		throw new Error(`Failed to load ${chunkFilename}: ${response.statusText}`);
-	}
-	const content = await response.text();
-	chunkCaches.set(chunkIndex, content);
-	return content;
+	return chunkCaches.getOrSet(chunkIndex, async () => {
+		const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}.json`;
+		const response = await fetchAsset(chunkFilename);
+		if (!response.ok) {
+			throw new Error(
+				`Failed to load ${chunkFilename}: ${response.statusText}`,
+			);
+		}
+		return response.text();
+	});
 }
 
 export class ServerCardProvider implements CardDataProvider {
