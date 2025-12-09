@@ -214,12 +214,21 @@ export function moveCardToSection(
 /**
  * Calculate the combined color identity from all commanders in the deck
  * Uses Scryfall's color_identity field which matches Commander format rules
+ *
+ * Returns undefined if there are no commanders (fail open - no color restriction)
+ * Returns empty array if commanders exist but are colorless
  */
 export function getCommanderColorIdentity(
 	deck: Deck,
 	cardLookup: (id: ScryfallId) => Card | undefined,
-): ManaColor[] {
+): ManaColor[] | undefined {
 	const commanders = getCardsInSection(deck, "commander");
+
+	// No commanders = no color restriction (fail open)
+	if (commanders.length === 0) {
+		return undefined;
+	}
+
 	const colors = new Set<ManaColor>();
 
 	for (const commander of commanders) {

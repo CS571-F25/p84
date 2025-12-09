@@ -49,8 +49,11 @@ export function CardSearchAutocomplete({
 	const restrictions: SearchRestrictions | undefined = useMemo(() => {
 		if (!legalityFilterEnabled || !format) return undefined;
 
+		const hasCommanderColorIdentity =
+			format === "commander" || format === "paupercommander";
+
 		const colorIdentity =
-			format === "commander" && deck
+			hasCommanderColorIdentity && deck
 				? getCommanderColorIdentity(deck, (id) =>
 						queryClient.getQueryData(getCardByIdQueryOptions(id).queryKey),
 					)

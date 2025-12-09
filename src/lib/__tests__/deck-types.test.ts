@@ -82,7 +82,7 @@ describe("getCommanderColorIdentity", () => {
 		expect(result).toEqual(["B", "R", "U", "W"]); // Deduped and sorted
 	});
 
-	it("returns empty array when no commanders", () => {
+	it("returns undefined when no commanders (fail open)", () => {
 		const deck: Deck = {
 			$type: "com.deckbelcher.deck.list",
 			name: "Test Deck",
@@ -94,7 +94,7 @@ describe("getCommanderColorIdentity", () => {
 
 		const result = getCommanderColorIdentity(deck, cardLookup);
 
-		expect(result).toEqual([]);
+		expect(result).toBeUndefined();
 	});
 
 	it("handles missing card data gracefully", () => {
@@ -123,8 +123,8 @@ describe("getCommanderColorIdentity", () => {
 
 		const result = getCommanderColorIdentity(deck, cardLookup);
 
-		// Empty array means colorless-only, which would incorrectly filter out
-		// all colored cards. This is a bug we need to handle in the UI layer.
+		// Empty array means the deck has a commander slot but we don't know
+		// its color identity yet. This is distinct from undefined (no commander).
 		expect(result).toEqual([]);
 	});
 });
