@@ -148,6 +148,13 @@ function BulkEditPage() {
 				updatedAt: new Date().toISOString(),
 			};
 
+			// Prefetch card data for new cards so sectionToText can render them
+			await Promise.all(
+				newCards.map((card) =>
+					queryClient.prefetchQuery(getCardByIdQueryOptions(card.scryfallId)),
+				),
+			);
+
 			await mutation.mutateAsync(updatedDeck);
 			toast.success(`${activeSection} updated`);
 		} catch (err) {
