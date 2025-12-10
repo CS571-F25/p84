@@ -320,6 +320,7 @@ function CardDetailPage() {
 									<div className="flex flex-wrap gap-2">
 										{Array.from({ length: 8 }).map((_, i) => (
 											<div
+												// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
 												key={i}
 												className="h-8 w-32 bg-gray-300 dark:bg-slate-700 rounded animate-pulse"
 											/>

@@ -177,7 +177,7 @@ function filterCard(card: ScryfallCard): Card {
 		}
 	}
 
-	return filtered as Card;
+	return filtered as unknown as Card;
 }
 
 /**

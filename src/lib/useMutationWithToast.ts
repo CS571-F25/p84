@@ -31,7 +31,7 @@ export function useMutationWithToast<
 
 	return useMutation({
 		...mutationOptions,
-		onError: (error, variables, context) => {
+		onError: (error, variables, context, mutation) => {
 			let message: string;
 			if (typeof errorMessage === "function") {
 				message = errorMessage(error);
@@ -46,7 +46,7 @@ export function useMutationWithToast<
 			toast.error(message);
 
 			// Call the original onError if provided
-			onError?.(error, variables, context);
+			onError?.(error, variables, context, mutation);
 		},
 	});
 }
