@@ -13,6 +13,7 @@ export const getRouter = () => {
 		routeTree,
 		context: { ...rqContext },
 		defaultPreload: "intent",
+		pathParamsAllowedCharacters: [":"],
 		Wrap: (props: { children: React.ReactNode }) => {
 			return (
 				<TanstackQuery.Provider {...rqContext}>
