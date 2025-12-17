@@ -48,12 +48,17 @@ interface IndexData {
 // Format: UUID (16 bytes) + chunk (1 byte) + offset (4 bytes) + length (4 bytes)
 const RECORD_SIZE = 25;
 
-// LRU cache for chunk data (keeps memory under 128MB)
-const MAX_CHUNK_CACHE_SIZE = 4;
+// LRU cache for chunk data
+const MAX_CHUNK_CACHE_SIZE = 3;
+
+// LRU cache for parsed Card objects — hot cards hit far more often than needing extra chunks
+// ~2-5KB per card, 10k cards ≈ 40MB — traded one chunk slot for better card hit rate
+const MAX_CARD_CACHE_SIZE = 10_000;
 
 let binaryIndexCache: ArrayBuffer | null = null;
 let indexDataCache: IndexData | null = null;
 const chunkCaches = new LRUCache<number, string>(MAX_CHUNK_CACHE_SIZE);
+const cardCache = new LRUCache<ScryfallId, Card>(MAX_CARD_CACHE_SIZE);
 
 /**
  * Convert UUID string to Uint8Array for binary comparison
@@ -184,21 +189,27 @@ async function loadChunk(chunkIndex: number): Promise<string> {
 
 export class ServerCardProvider implements CardDataProvider {
 	async getCardById(id: ScryfallId): Promise<Card | undefined> {
-		try {
-			const entry = await findCardInIndex(id);
+		const cached = cardCache.get(id);
+		if (cached) {
+			return cached;
+		}
 
+		try {
+			// Binary search is cheap — only cache hits that require chunk loads
+			const entry = await findCardInIndex(id);
 			if (!entry) {
 				return undefined;
 			}
 
-			// Load chunk and extract card JSON
 			const chunkContent = await loadChunk(entry.chunkIndex);
 			const cardJSON = chunkContent.slice(
 				entry.offset,
 				entry.offset + entry.length,
 			);
 
-			return JSON.parse(cardJSON) as Card;
+			const card = JSON.parse(cardJSON) as Card;
+			cardCache.set(id, card);
+			return card;
 		} catch (error) {
 			console.error(`[ServerCardProvider] Error loading card ${id}:`, error);
 			return undefined;
