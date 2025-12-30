@@ -443,17 +443,21 @@ function DeckEditorInner({
 				</div>
 			)}
 
-			{/* Trash drop zone - only show while dragging */}
-			{isOwner && <TrashDropZone isDragging={isDragging} />}
+			{/* Trash drop zone - only show while dragging, hide on mobile */}
+			<div className="hidden md:block">
+				{isOwner && <TrashDropZone isDragging={isDragging} />}
+			</div>
 
-			{/* Common tags overlay - only show while dragging */}
-			{isOwner && <CommonTagsOverlay deck={deck} isDragging={isDragging} />}
+			{/* Common tags overlay - only show while dragging, hide on mobile */}
+			<div className="hidden md:block">
+				{isOwner && <CommonTagsOverlay deck={deck} isDragging={isDragging} />}
+			</div>
 
 			{/* Main content */}
 			<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 py-8">
-				<div className="flex flex-col lg:flex-row gap-6">
+				<div className="flex flex-col md:flex-row gap-6">
 					{/* Left pane: Card preview (fixed width) */}
-					<div className="lg:w-80 lg:flex-shrink-0">
+					<div className="hidden md:block md:w-48 lg:w-60 xl:w-80 md:flex-shrink-0">
 						<CardPreviewPane cardId={previewCard} />
 					</div>
 
@@ -513,6 +517,7 @@ function DeckEditorInner({
 								...getCardsInSection(deck, "mainboard"),
 							]}
 							onCardHover={handleCardHover}
+							onCardClick={handleCardClick}
 						/>
 					</div>
 				</div>

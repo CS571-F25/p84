@@ -21,9 +21,10 @@ import { TypesPieChart } from "./stats/TypesPieChart";
 interface DeckStatsProps {
 	cards: DeckCard[];
 	onCardHover: (cardId: ScryfallId | null) => void;
+	onCardClick?: (card: DeckCard) => void;
 }
 
-export function DeckStats({ cards, onCardHover }: DeckStatsProps) {
+export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 	// Fetch card data for all cards
 	const cardMap = useQueries({
 		queries: cards.map((card) => getCardByIdQueryOptions(card.scryfallId)),
@@ -241,6 +242,7 @@ export function DeckStats({ cards, onCardHover }: DeckStatsProps) {
 							title={selectedTitle}
 							cards={selectedCards}
 							onCardHover={onCardHover}
+							onCardClick={onCardClick}
 						/>
 					</div>
 				)}

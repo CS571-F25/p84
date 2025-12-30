@@ -40,7 +40,7 @@ export function DeckHeader({
 
 	return (
 		<div className="mb-6 space-y-4">
-			<div className="flex items-center gap-4">
+			<div className="flex flex-wrap items-center gap-4">
 				{isEditingName ? (
 					<input
 						type="text"

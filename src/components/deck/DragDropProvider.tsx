@@ -1,5 +1,6 @@
 import {
 	DndContext,
+	type DragCancelEvent,
 	type DragEndEvent,
 	KeyboardSensor,
 	PointerSensor,
@@ -7,37 +8,57 @@ import {
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 interface DragDropProviderProps {
 	children: ReactNode;
 	onDragEnd: (event: DragEndEvent) => void;
+	onDragCancel?: (event: DragCancelEvent) => void;
 }
 
 export function DragDropProvider({
 	children,
 	onDragEnd,
+	onDragCancel,
 }: DragDropProviderProps) {
-	// Configure sensors for different input methods
+	// WARN: Screen size is checked once on mount and never updated.
+	// dnd-kit's useSensors doesn't support dynamic sensor changes.
+	// This will break on foldable phones that change size mid-session.
+	// Fix requires either dnd-kit fix or remounting DndContext on resize.
+	const [isLargeScreen] = useState(() => {
+		if (typeof window === "undefined") return true;
+		return window.matchMedia("(min-width: 768px)").matches;
+	});
+
 	const pointerSensor = useSensor(PointerSensor, {
 		activationConstraint: {
-			distance: 8, // Require 8px movement to start drag (prevents accidental drags)
+			distance: 8,
 		},
 	});
 
 	const touchSensor = useSensor(TouchSensor, {
 		activationConstraint: {
-			delay: 250, // 250ms delay before drag starts on touch
-			tolerance: 5, // 5px tolerance for distinguishing scroll vs drag
+			delay: 250,
+			tolerance: 5,
 		},
 	});
 
 	const keyboardSensor = useSensor(KeyboardSensor);
 
-	const sensors = useSensors(pointerSensor, touchSensor, keyboardSensor);
+	// Only include touch sensor on larger screens (tablets, laptops)
+	// On small screens (<768px), touch scrolls instead of dragging
+	const sensors = useSensors(
+		pointerSensor,
+		...(isLargeScreen ? [touchSensor] : []),
+		keyboardSensor,
+	);
 
 	return (
-		<DndContext sensors={sensors} onDragEnd={onDragEnd}>
+		<DndContext
+			sensors={sensors}
+			onDragEnd={onDragEnd}
+			onDragCancel={onDragCancel}
+		>
 			{children}
 		</DndContext>
 	);

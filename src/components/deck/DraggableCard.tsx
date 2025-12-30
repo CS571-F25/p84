@@ -50,7 +50,7 @@ export function DraggableCard({
 			{...attributes}
 			{...(disabled ? {} : listeners)}
 			type="button"
-			className="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded px-2 py-1 transition-colors w-full text-left touch-none"
+			className="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded px-2 py-1 transition-colors w-full text-left md:touch-none"
 			style={{
 				opacity: isDragging ? 0.5 : 1,
 				cursor: disabled ? "pointer" : isDragging ? "grabbing" : "grab",
