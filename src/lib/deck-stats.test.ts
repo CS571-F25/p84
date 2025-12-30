@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import type { Card, ManaColor } from "@/lib/scryfall-types";
-import type { DeckCard } from "./deck-types";
+import type { Card } from "@/lib/scryfall-types";
 import {
-	type CardWithData,
+	type CardLookup,
+	computeManaCurve,
+	computeSpeedDistribution,
+	computeTypeDistribution,
 	countManaSymbols,
 	extractManaProduction,
 	getSpeedCategory,
 	isPermanent,
-	computeManaCurve,
-	computeTypeDistribution,
-	computeSpeedDistribution,
 } from "./deck-stats";
+import type { DeckCard } from "./deck-types";
 
 function makeCard(overrides: Partial<Card>): Card {
 	return {
@@ -30,14 +30,24 @@ function makeDeckCard(overrides: Partial<DeckCard> = {}): DeckCard {
 	};
 }
 
-function makeCardWithData(
-	cardOverrides: Partial<Card> = {},
-	deckCardOverrides: Partial<DeckCard> = {},
-): CardWithData {
-	return {
-		card: makeCard(cardOverrides),
-		deckCard: makeDeckCard(deckCardOverrides),
-	};
+function createTestData(
+	items: Array<{ card: Partial<Card>; deckCard?: Partial<DeckCard> }>,
+): { cards: DeckCard[]; lookup: CardLookup } {
+	const cardMap = new Map<string, Card>();
+	const deckCards: DeckCard[] = [];
+
+	items.forEach((item, i) => {
+		const id = `test-id-${i}` as DeckCard["scryfallId"];
+		const card = makeCard({ ...item.card, id: id as Card["id"] });
+		const deckCard = makeDeckCard({ ...item.deckCard, scryfallId: id });
+
+		cardMap.set(id, card);
+		deckCards.push(deckCard);
+	});
+
+	const lookup: CardLookup = (dc) => cardMap.get(dc.scryfallId);
+
+	return { cards: deckCards, lookup };
 }
 
 describe("countManaSymbols", () => {
@@ -147,7 +157,13 @@ describe("extractManaProduction", () => {
 			oracle_text: "{T}: Add one mana of any color.",
 			type_line: "Land",
 		});
-		expect(extractManaProduction(card).sort()).toEqual(["B", "G", "R", "U", "W"]);
+		expect(extractManaProduction(card).sort()).toEqual([
+			"B",
+			"G",
+			"R",
+			"U",
+			"W",
+		]);
 	});
 
 	it("handles 'any type' mana", () => {
@@ -155,7 +171,13 @@ describe("extractManaProduction", () => {
 			oracle_text: "{T}: Add two mana of any one color.",
 			type_line: "Land",
 		});
-		expect(extractManaProduction(card).sort()).toEqual(["B", "G", "R", "U", "W"]);
+		expect(extractManaProduction(card).sort()).toEqual([
+			"B",
+			"G",
+			"R",
+			"U",
+			"W",
+		]);
 	});
 
 	it("extracts from mana dorks", () => {
@@ -296,14 +318,14 @@ describe("isPermanent", () => {
 
 describe("computeManaCurve", () => {
 	it("groups cards by CMC bucket", () => {
-		const cards = [
-			makeCardWithData({ cmc: 1, type_line: "Creature" }),
-			makeCardWithData({ cmc: 2, type_line: "Creature" }),
-			makeCardWithData({ cmc: 2, type_line: "Creature" }),
-			makeCardWithData({ cmc: 3, type_line: "Creature" }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { cmc: 1, type_line: "Creature" } },
+			{ card: { cmc: 2, type_line: "Creature" } },
+			{ card: { cmc: 2, type_line: "Creature" } },
+			{ card: { cmc: 3, type_line: "Creature" } },
+		]);
 
-		const curve = computeManaCurve(cards);
+		const curve = computeManaCurve(cards, lookup);
 
 		expect(curve.find((b) => b.bucket === "1")?.permanents).toBe(1);
 		expect(curve.find((b) => b.bucket === "2")?.permanents).toBe(2);
@@ -311,45 +333,47 @@ describe("computeManaCurve", () => {
 	});
 
 	it("separates permanents from spells", () => {
-		const cards = [
-			makeCardWithData({ cmc: 2, type_line: "Creature — Elf" }),
-			makeCardWithData({ cmc: 2, type_line: "Instant" }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { cmc: 2, type_line: "Creature — Elf" } },
+			{ card: { cmc: 2, type_line: "Instant" } },
+		]);
 
-		const curve = computeManaCurve(cards);
-		const bucket2 = curve.find((b) => b.bucket === "2")!;
+		const curve = computeManaCurve(cards, lookup);
+		const bucket2 = curve.find((b) => b.bucket === "2");
 
-		expect(bucket2.permanents).toBe(1);
-		expect(bucket2.spells).toBe(1);
+		expect(bucket2?.permanents).toBe(1);
+		expect(bucket2?.spells).toBe(1);
 	});
 
 	it("handles 7+ bucket", () => {
-		const cards = [
-			makeCardWithData({ cmc: 7, type_line: "Creature" }),
-			makeCardWithData({ cmc: 8, type_line: "Creature" }),
-			makeCardWithData({ cmc: 10, type_line: "Sorcery" }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { cmc: 7, type_line: "Creature" } },
+			{ card: { cmc: 8, type_line: "Creature" } },
+			{ card: { cmc: 10, type_line: "Sorcery" } },
+		]);
 
-		const curve = computeManaCurve(cards);
-		const bucket7Plus = curve.find((b) => b.bucket === "7+")!;
+		const curve = computeManaCurve(cards, lookup);
+		const bucket7Plus = curve.find((b) => b.bucket === "7+");
 
-		expect(bucket7Plus.permanents).toBe(2);
-		expect(bucket7Plus.spells).toBe(1);
+		expect(bucket7Plus?.permanents).toBe(2);
+		expect(bucket7Plus?.spells).toBe(1);
 	});
 
 	it("multiplies by quantity", () => {
-		const cards = [
-			makeCardWithData({ cmc: 1, type_line: "Instant" }, { quantity: 4 }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { cmc: 1, type_line: "Instant" }, deckCard: { quantity: 4 } },
+		]);
 
-		const curve = computeManaCurve(cards);
+		const curve = computeManaCurve(cards, lookup);
 		expect(curve.find((b) => b.bucket === "1")?.spells).toBe(4);
 	});
 
 	it("returns empty buckets for missing CMCs", () => {
-		const cards = [makeCardWithData({ cmc: 5, type_line: "Creature" })];
+		const { cards, lookup } = createTestData([
+			{ card: { cmc: 5, type_line: "Creature" } },
+		]);
 
-		const curve = computeManaCurve(cards);
+		const curve = computeManaCurve(cards, lookup);
 
 		expect(curve.find((b) => b.bucket === "0")?.permanents).toBe(0);
 		expect(curve.find((b) => b.bucket === "1")?.permanents).toBe(0);
@@ -357,31 +381,29 @@ describe("computeManaCurve", () => {
 	});
 
 	it("includes card references in buckets", () => {
-		const cards = [
-			makeCardWithData({ name: "Llanowar Elves", cmc: 1, type_line: "Creature" }),
-			makeCardWithData({ name: "Lightning Bolt", cmc: 1, type_line: "Instant" }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { name: "Llanowar Elves", cmc: 1, type_line: "Creature" } },
+			{ card: { name: "Lightning Bolt", cmc: 1, type_line: "Instant" } },
+		]);
 
-		const curve = computeManaCurve(cards);
-		const bucket1 = curve.find((b) => b.bucket === "1")!;
+		const curve = computeManaCurve(cards, lookup);
+		const bucket1 = curve.find((b) => b.bucket === "1");
 
-		expect(bucket1.permanentCards).toHaveLength(1);
-		expect(bucket1.permanentCards[0].card.name).toBe("Llanowar Elves");
-		expect(bucket1.spellCards).toHaveLength(1);
-		expect(bucket1.spellCards[0].card.name).toBe("Lightning Bolt");
+		expect(bucket1?.permanentCards).toHaveLength(1);
+		expect(bucket1?.spellCards).toHaveLength(1);
 	});
 });
 
 describe("computeTypeDistribution", () => {
 	it("counts cards by primary type", () => {
-		const cards = [
-			makeCardWithData({ type_line: "Creature — Elf" }),
-			makeCardWithData({ type_line: "Creature — Human" }),
-			makeCardWithData({ type_line: "Instant" }),
-			makeCardWithData({ type_line: "Sorcery" }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { type_line: "Creature — Elf" } },
+			{ card: { type_line: "Creature — Human" } },
+			{ card: { type_line: "Instant" } },
+			{ card: { type_line: "Sorcery" } },
+		]);
 
-		const types = computeTypeDistribution(cards);
+		const types = computeTypeDistribution(cards, lookup);
 
 		expect(types.find((t) => t.type === "Creature")?.count).toBe(2);
 		expect(types.find((t) => t.type === "Instant")?.count).toBe(1);
@@ -389,23 +411,23 @@ describe("computeTypeDistribution", () => {
 	});
 
 	it("multiplies by quantity", () => {
-		const cards = [
-			makeCardWithData({ type_line: "Instant" }, { quantity: 4 }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { type_line: "Instant" }, deckCard: { quantity: 4 } },
+		]);
 
-		const types = computeTypeDistribution(cards);
+		const types = computeTypeDistribution(cards, lookup);
 		expect(types.find((t) => t.type === "Instant")?.count).toBe(4);
 	});
 
 	it("sorts by count descending", () => {
-		const cards = [
-			makeCardWithData({ type_line: "Instant" }),
-			makeCardWithData({ type_line: "Creature" }),
-			makeCardWithData({ type_line: "Creature" }),
-			makeCardWithData({ type_line: "Creature" }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { type_line: "Instant" } },
+			{ card: { type_line: "Creature" } },
+			{ card: { type_line: "Creature" } },
+			{ card: { type_line: "Creature" } },
+		]);
 
-		const types = computeTypeDistribution(cards);
+		const types = computeTypeDistribution(cards, lookup);
 
 		expect(types[0].type).toBe("Creature");
 		expect(types[0].count).toBe(3);
@@ -414,51 +436,60 @@ describe("computeTypeDistribution", () => {
 	});
 
 	it("includes card references", () => {
-		const cards = [
-			makeCardWithData({ name: "Bolt", type_line: "Instant" }),
-			makeCardWithData({ name: "Shock", type_line: "Instant" }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { name: "Bolt", type_line: "Instant" } },
+			{ card: { name: "Shock", type_line: "Instant" } },
+		]);
 
-		const types = computeTypeDistribution(cards);
-		const instants = types.find((t) => t.type === "Instant")!;
+		const types = computeTypeDistribution(cards, lookup);
+		const instants = types.find((t) => t.type === "Instant");
 
-		expect(instants.cards).toHaveLength(2);
+		expect(instants?.cards).toHaveLength(2);
 	});
 });
 
 describe("computeSpeedDistribution", () => {
 	it("separates instant and sorcery speed", () => {
-		const cards = [
-			makeCardWithData({ type_line: "Instant", keywords: [] }),
-			makeCardWithData({ type_line: "Creature", keywords: ["Flash"] }),
-			makeCardWithData({ type_line: "Creature", keywords: [] }),
-			makeCardWithData({ type_line: "Sorcery", keywords: [] }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { type_line: "Instant", keywords: [] } },
+			{ card: { type_line: "Creature", keywords: ["Flash"] } },
+			{ card: { type_line: "Creature", keywords: [] } },
+			{ card: { type_line: "Sorcery", keywords: [] } },
+		]);
 
-		const speed = computeSpeedDistribution(cards);
+		const speed = computeSpeedDistribution(cards, lookup);
 
 		expect(speed.find((s) => s.category === "instant")?.count).toBe(2);
 		expect(speed.find((s) => s.category === "sorcery")?.count).toBe(2);
 	});
 
 	it("multiplies by quantity", () => {
-		const cards = [
-			makeCardWithData({ type_line: "Instant", keywords: [] }, { quantity: 4 }),
-		];
+		const { cards, lookup } = createTestData([
+			{
+				card: { type_line: "Instant", keywords: [] },
+				deckCard: { quantity: 4 },
+			},
+		]);
 
-		const speed = computeSpeedDistribution(cards);
+		const speed = computeSpeedDistribution(cards, lookup);
 		expect(speed.find((s) => s.category === "instant")?.count).toBe(4);
 	});
 
 	it("includes card references", () => {
-		const cards = [
-			makeCardWithData({ name: "Bolt", type_line: "Instant", keywords: [] }),
-			makeCardWithData({ name: "Snapcaster", type_line: "Creature", keywords: ["Flash"] }),
-		];
+		const { cards, lookup } = createTestData([
+			{ card: { name: "Bolt", type_line: "Instant", keywords: [] } },
+			{
+				card: {
+					name: "Snapcaster",
+					type_line: "Creature",
+					keywords: ["Flash"],
+				},
+			},
+		]);
 
-		const speed = computeSpeedDistribution(cards);
-		const instant = speed.find((s) => s.category === "instant")!;
+		const speed = computeSpeedDistribution(cards, lookup);
+		const instant = speed.find((s) => s.category === "instant");
 
-		expect(instant.cards).toHaveLength(2);
+		expect(instant?.cards).toHaveLength(2);
 	});
 });

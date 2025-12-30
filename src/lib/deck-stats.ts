@@ -1,20 +1,22 @@
 import type { Card, ManaColor } from "@/lib/scryfall-types";
+import {
+	type CardLookup,
+	extractPrimaryType,
+	extractSubtypes,
+	getManaValueBucket,
+} from "./deck-grouping";
 import type { DeckCard } from "./deck-types";
-import { extractPrimaryType, extractSubtypes, getManaValueBucket } from "./deck-grouping";
 
 export type SpeedCategory = "instant" | "sorcery";
 
-export interface CardWithData {
-	deckCard: DeckCard;
-	card: Card;
-}
+export type { CardLookup };
 
 export interface ManaCurveData {
 	bucket: string;
 	permanents: number;
 	spells: number;
-	permanentCards: CardWithData[];
-	spellCards: CardWithData[];
+	permanentCards: DeckCard[];
+	spellCards: DeckCard[];
 }
 
 export interface ManaSymbolsData {
@@ -23,20 +25,20 @@ export interface ManaSymbolsData {
 	symbolPercent: number;
 	sourceCount: number;
 	sourcePercent: number;
-	symbolCards: CardWithData[];
-	sourceCards: CardWithData[];
+	symbolCards: DeckCard[];
+	sourceCards: DeckCard[];
 }
 
 export interface TypeData {
 	type: string;
 	count: number;
-	cards: CardWithData[];
+	cards: DeckCard[];
 }
 
 export interface SpeedData {
 	category: SpeedCategory;
 	count: number;
-	cards: CardWithData[];
+	cards: DeckCard[];
 }
 
 const MANA_COLORS: ManaColor[] = ["W", "U", "B", "R", "G"];
@@ -53,10 +55,9 @@ export function countManaSymbols(
 	if (!manaCost) return counts;
 
 	// Match all symbols in braces
-	const symbolRegex = /\{([^}]+)\}/g;
-	let match: RegExpExecArray | null;
+	const matches = manaCost.matchAll(/\{([^}]+)\}/g);
 
-	while ((match = symbolRegex.exec(manaCost)) !== null) {
+	for (const match of matches) {
 		const symbol = match[1];
 
 		// Single color symbol (W, U, B, R, G)
@@ -84,7 +85,6 @@ export function countManaSymbols(
 		const hybridPhyrexianMatch = symbol.match(/^2\/([WUBRG])$/);
 		if (hybridPhyrexianMatch) {
 			counts[hybridPhyrexianMatch[1] as ManaColor]++;
-			continue;
 		}
 
 		// Ignore generic mana (numbers), X, C (colorless), S (snow), etc.
@@ -122,10 +122,7 @@ export function extractManaProduction(card: Card): ManaColor[] {
 	for (const line of lines) {
 		if (/\badd\b/i.test(line)) {
 			// Extract all colored mana symbols from this line
-			const symbolRegex = /\{([WUBRG])\}/g;
-			let symbolMatch: RegExpExecArray | null;
-
-			while ((symbolMatch = symbolRegex.exec(line)) !== null) {
+			for (const symbolMatch of line.matchAll(/\{([WUBRG])\}/g)) {
 				colors.add(symbolMatch[1] as ManaColor);
 			}
 		}
@@ -175,13 +172,14 @@ export function isPermanent(typeLine: string | undefined): boolean {
  * Groups cards by CMC bucket and separates permanents from spells.
  */
 export function computeManaCurve(
-	cardsWithData: CardWithData[],
+	cards: DeckCard[],
+	lookup: CardLookup,
 ): ManaCurveData[] {
 	const buckets = new Map<
 		string,
 		{
-			permanentCards: CardWithData[];
-			spellCards: CardWithData[];
+			permanentCards: DeckCard[];
+			spellCards: DeckCard[];
 		}
 	>();
 
@@ -191,17 +189,19 @@ export function computeManaCurve(
 	}
 	buckets.set("7+", { permanentCards: [], spellCards: [] });
 
-	for (const cardData of cardsWithData) {
-		const { card, deckCard } = cardData;
+	for (const deckCard of cards) {
+		const card = lookup(deckCard);
+		if (!card) continue;
+
 		const bucket = getManaValueBucket(card.cmc);
 		const data = buckets.get(bucket) ?? { permanentCards: [], spellCards: [] };
 
 		// Add card quantity times (each copy counts)
 		for (let i = 0; i < deckCard.quantity; i++) {
 			if (isPermanent(card.type_line)) {
-				data.permanentCards.push(cardData);
+				data.permanentCards.push(deckCard);
 			} else {
-				data.spellCards.push(cardData);
+				data.spellCards.push(deckCard);
 			}
 		}
 
@@ -212,7 +212,7 @@ export function computeManaCurve(
 	const result: ManaCurveData[] = [];
 	for (let i = 0; i <= 6; i++) {
 		const bucket = i.toString();
-		const data = buckets.get(bucket)!;
+		const data = buckets.get(bucket) ?? { permanentCards: [], spellCards: [] };
 		result.push({
 			bucket,
 			permanents: data.permanentCards.length,
@@ -222,7 +222,7 @@ export function computeManaCurve(
 		});
 	}
 
-	const sevenPlus = buckets.get("7+")!;
+	const sevenPlus = buckets.get("7+") ?? { permanentCards: [], spellCards: [] };
 	result.push({
 		bucket: "7+",
 		permanents: sevenPlus.permanentCards.length,
@@ -238,7 +238,8 @@ export function computeManaCurve(
  * Compute mana symbols vs mana sources breakdown.
  */
 export function computeManaSymbolsVsSources(
-	cardsWithData: CardWithData[],
+	cards: DeckCard[],
+	lookup: CardLookup,
 ): ManaSymbolsData[] {
 	const symbolCounts: Record<ManaColor, number> = {
 		W: 0,
@@ -254,14 +255,14 @@ export function computeManaSymbolsVsSources(
 		R: 0,
 		G: 0,
 	};
-	const symbolCards: Record<ManaColor, CardWithData[]> = {
+	const symbolCards: Record<ManaColor, DeckCard[]> = {
 		W: [],
 		U: [],
 		B: [],
 		R: [],
 		G: [],
 	};
-	const sourceCards: Record<ManaColor, CardWithData[]> = {
+	const sourceCards: Record<ManaColor, DeckCard[]> = {
 		W: [],
 		U: [],
 		B: [],
@@ -269,15 +270,16 @@ export function computeManaSymbolsVsSources(
 		G: [],
 	};
 
-	for (const cardData of cardsWithData) {
-		const { card, deckCard } = cardData;
+	for (const deckCard of cards) {
+		const card = lookup(deckCard);
+		if (!card) continue;
 
 		// Count mana symbols in cost
 		const symbols = countManaSymbols(card.mana_cost);
 		for (const color of MANA_COLORS) {
 			if (symbols[color] > 0) {
 				symbolCounts[color] += symbols[color] * deckCard.quantity;
-				symbolCards[color].push(cardData);
+				symbolCards[color].push(deckCard);
 			}
 		}
 
@@ -285,7 +287,7 @@ export function computeManaSymbolsVsSources(
 		const producedColors = extractManaProduction(card);
 		for (const color of producedColors) {
 			sourceCounts[color] += deckCard.quantity;
-			sourceCards[color].push(cardData);
+			sourceCards[color].push(deckCard);
 		}
 	}
 
@@ -296,9 +298,11 @@ export function computeManaSymbolsVsSources(
 	return MANA_COLORS.map((color) => ({
 		color,
 		symbolCount: symbolCounts[color],
-		symbolPercent: totalSymbols > 0 ? (symbolCounts[color] / totalSymbols) * 100 : 0,
+		symbolPercent:
+			totalSymbols > 0 ? (symbolCounts[color] / totalSymbols) * 100 : 0,
 		sourceCount: sourceCounts[color],
-		sourcePercent: totalSources > 0 ? (sourceCounts[color] / totalSources) * 100 : 0,
+		sourcePercent:
+			totalSources > 0 ? (sourceCounts[color] / totalSources) * 100 : 0,
 		symbolCards: symbolCards[color],
 		sourceCards: sourceCards[color],
 	}));
@@ -308,17 +312,20 @@ export function computeManaSymbolsVsSources(
  * Compute card type distribution.
  */
 export function computeTypeDistribution(
-	cardsWithData: CardWithData[],
+	cards: DeckCard[],
+	lookup: CardLookup,
 ): TypeData[] {
-	const types = new Map<string, { count: number; cards: CardWithData[] }>();
+	const types = new Map<string, { count: number; cards: DeckCard[] }>();
 
-	for (const cardData of cardsWithData) {
-		const { card, deckCard } = cardData;
+	for (const deckCard of cards) {
+		const card = lookup(deckCard);
+		if (!card) continue;
+
 		const type = extractPrimaryType(card.type_line);
 
 		const data = types.get(type) ?? { count: 0, cards: [] };
 		data.count += deckCard.quantity;
-		data.cards.push(cardData);
+		data.cards.push(deckCard);
 		types.set(type, data);
 	}
 
@@ -337,18 +344,21 @@ export function computeTypeDistribution(
  * Limits to top 10 subtypes with "Other" bucket.
  */
 export function computeSubtypeDistribution(
-	cardsWithData: CardWithData[],
+	cards: DeckCard[],
+	lookup: CardLookup,
 ): TypeData[] {
-	const subtypes = new Map<string, { count: number; cards: CardWithData[] }>();
+	const subtypes = new Map<string, { count: number; cards: DeckCard[] }>();
 
-	for (const cardData of cardsWithData) {
-		const { card, deckCard } = cardData;
+	for (const deckCard of cards) {
+		const card = lookup(deckCard);
+		if (!card) continue;
+
 		const cardSubtypes = extractSubtypes(card.type_line);
 
 		for (const subtype of cardSubtypes) {
 			const data = subtypes.get(subtype) ?? { count: 0, cards: [] };
 			data.count += deckCard.quantity;
-			data.cards.push(cardData);
+			data.cards.push(deckCard);
 			subtypes.set(subtype, data);
 		}
 	}
@@ -388,22 +398,25 @@ export function computeSubtypeDistribution(
  * Compute speed distribution (instant vs sorcery speed).
  */
 export function computeSpeedDistribution(
-	cardsWithData: CardWithData[],
+	cards: DeckCard[],
+	lookup: CardLookup,
 ): SpeedData[] {
-	const instant: CardWithData[] = [];
-	const sorcery: CardWithData[] = [];
+	const instant: DeckCard[] = [];
+	const sorcery: DeckCard[] = [];
 	let instantCount = 0;
 	let sorceryCount = 0;
 
-	for (const cardData of cardsWithData) {
-		const { card, deckCard } = cardData;
+	for (const deckCard of cards) {
+		const card = lookup(deckCard);
+		if (!card) continue;
+
 		const speed = getSpeedCategory(card);
 
 		if (speed === "instant") {
-			instant.push(cardData);
+			instant.push(deckCard);
 			instantCount += deckCard.quantity;
 		} else {
-			sorcery.push(cardData);
+			sorcery.push(deckCard);
 			sorceryCount += deckCard.quantity;
 		}
 	}

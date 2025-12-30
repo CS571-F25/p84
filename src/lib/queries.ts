@@ -12,6 +12,22 @@ import type {
 } from "./scryfall-types";
 
 /**
+ * Combine function for useQueries - converts query results into a Map.
+ * Returns undefined until all cards are loaded.
+ */
+export function combineCardQueries(
+	results: Array<{ data?: Card | undefined }>,
+): Map<ScryfallId, Card> | undefined {
+	const map = new Map<ScryfallId, Card>();
+	for (const result of results) {
+		if (result.data) {
+			map.set(result.data.id, result.data);
+		}
+	}
+	return results.every((r) => r.data) ? map : undefined;
+}
+
+/**
  * Search cards by name with optional restrictions
  */
 export const searchCardsQueryOptions = (

@@ -2,26 +2,12 @@ import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { groupCards, sortCards, sortGroupNames } from "@/lib/deck-grouping";
 import type { DeckCard, GroupBy, Section, SortBy } from "@/lib/deck-types";
-import { getCardByIdQueryOptions } from "@/lib/queries";
-import type { Card, ScryfallId } from "@/lib/scryfall-types";
+import { combineCardQueries, getCardByIdQueryOptions } from "@/lib/queries";
+import type { ScryfallId } from "@/lib/scryfall-types";
 import { DraggableCard } from "./DraggableCard";
 import { DroppableSection } from "./DroppableSection";
 import { DroppableSectionHeader } from "./DroppableSectionHeader";
 import { DroppableTagGroup } from "./DroppableTagGroup";
-
-// Combine function for useQueries - converts query results into a Map
-function combineCardQueries(
-	results: Array<{ data?: Card | undefined }>,
-): Map<ScryfallId, Card> | undefined {
-	const map = new Map<ScryfallId, Card>();
-	for (const result of results) {
-		if (result.data) {
-			map.set(result.data.id, result.data);
-		}
-	}
-	// Only return the map if all cards are loaded
-	return results.every((r) => r.data) ? map : undefined;
-}
 
 interface DeckSectionProps {
 	section: Section;

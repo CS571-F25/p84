@@ -11,6 +11,7 @@ import { CardSearchAutocomplete } from "@/components/deck/CardSearchAutocomplete
 import { CommonTagsOverlay } from "@/components/deck/CommonTagsOverlay";
 import { DeckHeader } from "@/components/deck/DeckHeader";
 import { DeckSection } from "@/components/deck/DeckSection";
+import { DeckStats } from "@/components/deck/DeckStats";
 import { DragDropProvider } from "@/components/deck/DragDropProvider";
 import type { DragData } from "@/components/deck/DraggableCard";
 import { TrashDropZone } from "@/components/deck/TrashDropZone";
@@ -504,6 +505,14 @@ function DeckEditorInner({
 							onCardClick={handleCardClick}
 							isDragging={isDragging}
 							readOnly={!isOwner}
+						/>
+
+						<DeckStats
+							cards={[
+								...getCardsInSection(deck, "commander"),
+								...getCardsInSection(deck, "mainboard"),
+							]}
+							onCardHover={handleCardHover}
 						/>
 					</div>
 				</div>
