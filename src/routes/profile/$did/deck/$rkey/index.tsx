@@ -410,7 +410,7 @@ function DeckEditorInner({
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
 			{/* Deck name and format */}
-			<div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
+			<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 pt-8 pb-4">
 				<DeckHeader
 					name={deck.name}
 					format={deck.format}
@@ -423,7 +423,7 @@ function DeckEditorInner({
 			{/* Sticky header with search */}
 			{isOwner && (
 				<div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
-					<div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+					<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 py-3 flex items-center justify-between gap-4">
 						<Link
 							to="/profile/$did/deck/$rkey/bulk-edit"
 							params={{ did, rkey }}
@@ -450,7 +450,7 @@ function DeckEditorInner({
 			{isOwner && <CommonTagsOverlay deck={deck} isDragging={isDragging} />}
 
 			{/* Main content */}
-			<div className="max-w-7xl mx-auto px-6 py-8">
+			<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 py-8">
 				<div className="flex flex-col lg:flex-row gap-6">
 					{/* Left pane: Card preview (fixed width) */}
 					<div className="lg:w-80 lg:flex-shrink-0">
