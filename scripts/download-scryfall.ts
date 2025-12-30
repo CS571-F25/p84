@@ -252,6 +252,24 @@ export function compareCards(a: Card, b: Card): number {
 	if (aDefault && !bDefault) return -1;
 	if (!aDefault && bDefault) return 1;
 
+	// Prefer black border over white/silver (aesthetic preference)
+	const aBlack = a.border_color === "black";
+	const bBlack = b.border_color === "black";
+	if (aBlack && !bBlack) return -1;
+	if (!aBlack && bBlack) return 1;
+
+	// Prefer modern frames (2015 > 2003 > 1997 > 1993, "future" deprioritized)
+	const getFrameRank = (frame: string | undefined): number => {
+		if (!frame) return 100;
+		if (frame === "future") return 99; // quirky futuresight aesthetic
+		const year = parseInt(frame, 10);
+		if (!isNaN(year)) return -year; // newer years = lower rank = preferred
+		return -10000; // unknown non-numeric frame, assume it's new and prefer it
+	};
+	const aFrameRank = getFrameRank(a.frame);
+	const bFrameRank = getFrameRank(b.frame);
+	if (aFrameRank !== bFrameRank) return aFrameRank - bFrameRank;
+
 	// Paper over digital-only (paper cards are more canonical)
 	const aPaper = a.games?.includes("paper");
 	const bPaper = b.games?.includes("paper");
