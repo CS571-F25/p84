@@ -10,6 +10,7 @@
 // Static import of cloudflare:workers - the Cloudflare Vite plugin handles this
 // In dev: provides stub/mock, In production: actual Workers env
 import { env } from "cloudflare:workers";
+import { CARD_CHUNKS } from "./card-chunks";
 import type { CardDataProvider } from "./card-data-provider";
 import { LRUCache } from "./lru-cache";
 import type { Card, OracleId, ScryfallId } from "./scryfall-types";
@@ -176,7 +177,10 @@ async function findCardInIndex(
  */
 async function loadChunk(chunkIndex: number): Promise<string> {
 	return chunkCaches.getOrSet(chunkIndex, async () => {
-		const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}.json`;
+		const chunkFilename = CARD_CHUNKS[chunkIndex];
+		if (!chunkFilename) {
+			throw new Error(`Invalid chunk index: ${chunkIndex}`);
+		}
 		const response = await fetchAsset(chunkFilename);
 		if (!response.ok) {
 			throw new Error(

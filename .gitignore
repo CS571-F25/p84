@@ -14,4 +14,5 @@ dist-ssr
 # Scryfall data (downloaded during build)
 public/data/
 public/symbols/
+src/lib/card-chunks.ts
 .cache/
