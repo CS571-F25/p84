@@ -18,6 +18,7 @@
  * - src/lib/card-chunks.ts - TypeScript chunk manifest
  */
 
+import { createHash } from "node:crypto";
 import { writeFile, mkdir, readFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -427,12 +428,20 @@ async function processBulkData(): Promise<CardDataOutput> {
 
 /**
  * Chunk cards.json into sub-25MB files for Cloudflare Workers deployment
+ * Cards are sorted by release date (oldest first) so new cards append to later chunks,
+ * improving client cache stability. Chunk filenames include content hashes for immutable caching.
  * Returns list of chunk filenames
  */
 async function chunkCardsForWorkers(data: CardDataOutput): Promise<string[]> {
 	const CHUNK_SIZE_TARGET = 20 * 1024 * 1024; // 20MB target (leaving headroom under 25MB limit)
 
-	const cardEntries = Object.entries(data.cards);
+	// Sort cards by release date (oldest first) so new cards go to later chunks
+	// Cards without dates go to the beginning (ancient weirdness, not future prereleases)
+	const cardEntries = Object.entries(data.cards).sort(([, a], [, b]) => {
+		const dateA = a.released_at ?? "0000-00-00";
+		const dateB = b.released_at ?? "0000-00-00";
+		return dateA.localeCompare(dateB);
+	});
 	const chunkFilenames: string[] = [];
 
 	let currentChunk: [string, Card][] = [];
@@ -455,13 +464,15 @@ async function chunkCardsForWorkers(data: CardDataOutput): Promise<string[]> {
 			currentSize + entrySize + chunkOverhead > CHUNK_SIZE_TARGET &&
 			currentChunk.length > 0
 		) {
-			// Write current chunk
-			const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}.json`;
-			const chunkPath = join(OUTPUT_DIR, chunkFilename);
-			const chunkData = {
-				cards: Object.fromEntries(currentChunk),
-			};
+			// Write current chunk with content hash in filename for immutable caching
+			const chunkData = { cards: Object.fromEntries(currentChunk) };
 			const chunkContent = JSON.stringify(chunkData);
+			const contentHash = createHash("sha256")
+				.update(chunkContent)
+				.digest("hex")
+				.slice(0, 16);
+			const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}-${contentHash}.json`;
+			const chunkPath = join(OUTPUT_DIR, chunkFilename);
 
 			await writeFile(chunkPath, chunkContent);
 			chunkFilenames.push(chunkFilename);
@@ -482,12 +493,14 @@ async function chunkCardsForWorkers(data: CardDataOutput): Promise<string[]> {
 
 	// Write final chunk if there's anything left
 	if (currentChunk.length > 0) {
-		const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}.json`;
-		const chunkPath = join(OUTPUT_DIR, chunkFilename);
-		const chunkData = {
-			cards: Object.fromEntries(currentChunk),
-		};
+		const chunkData = { cards: Object.fromEntries(currentChunk) };
 		const chunkContent = JSON.stringify(chunkData);
+		const contentHash = createHash("sha256")
+			.update(chunkContent)
+			.digest("hex")
+			.slice(0, 16);
+		const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}-${contentHash}.json`;
+		const chunkPath = join(OUTPUT_DIR, chunkFilename);
 
 		await writeFile(chunkPath, chunkContent);
 		chunkFilenames.push(chunkFilename);
