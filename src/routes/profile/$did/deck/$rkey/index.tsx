@@ -12,6 +12,7 @@ import { CommonTagsOverlay } from "@/components/deck/CommonTagsOverlay";
 import { DeckHeader } from "@/components/deck/DeckHeader";
 import { DeckSection } from "@/components/deck/DeckSection";
 import { DeckStats } from "@/components/deck/DeckStats";
+import { GoldfishView } from "@/components/deck/GoldfishView";
 import { DragDropProvider } from "@/components/deck/DragDropProvider";
 import type { DragData } from "@/components/deck/DraggableCard";
 import { TrashDropZone } from "@/components/deck/TrashDropZone";
@@ -564,6 +565,13 @@ function DeckEditorInner({
 							]}
 							onCardHover={handleCardHover}
 							onCardClick={handleCardClick}
+						/>
+
+						<GoldfishView
+							cards={[
+								...getCardsInSection(deck, "commander"),
+								...getCardsInSection(deck, "mainboard"),
+							]}
 						/>
 					</div>
 				</div>
