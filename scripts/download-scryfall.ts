@@ -437,10 +437,13 @@ async function chunkCardsForWorkers(data: CardDataOutput): Promise<string[]> {
 
 	// Sort cards by release date (oldest first) so new cards go to later chunks
 	// Cards without dates go to the beginning (ancient weirdness, not future prereleases)
-	const cardEntries = Object.entries(data.cards).sort(([, a], [, b]) => {
+	const cardEntries = Object.entries(data.cards).sort(([idA, a], [idB, b]) => {
 		const dateA = a.released_at ?? "0000-00-00";
 		const dateB = b.released_at ?? "0000-00-00";
-		return dateA.localeCompare(dateB);
+		const dateCompare = dateA.localeCompare(dateB);
+		if (dateCompare !== 0) return dateCompare;
+		// Stable tiebreaker: card ID (UUID) ensures consistent ordering
+		return idA.localeCompare(idB);
 	});
 	const chunkFilenames: string[] = [];
 
