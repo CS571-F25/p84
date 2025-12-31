@@ -10,9 +10,12 @@ import {
 } from "@/lib/deck-stats";
 import type { DeckCard } from "@/lib/deck-types";
 import { combineCardQueries, getCardByIdQueryOptions } from "@/lib/queries";
-import type { ManaColorWithColorless, ScryfallId } from "@/lib/scryfall-types";
+import type { ScryfallId } from "@/lib/scryfall-types";
+import {
+	ManaBreakdown,
+	type ManaBreakdownSelection,
+} from "./stats/ManaBreakdown";
 import { ManaCurveChart } from "./stats/ManaCurveChart";
-import { ManaSourcesChart } from "./stats/ManaSourcesChart";
 import { SpeedPieChart } from "./stats/SpeedPieChart";
 import { StatsCardList } from "./stats/StatsCardList";
 import { SubtypesPieChart } from "./stats/SubtypesPieChart";
@@ -46,11 +49,8 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 	const [selectedSubtype, setSelectedSubtype] = useState<string | null>(null);
 	const [selectedSpeedCategory, setSelectedSpeedCategory] =
 		useState<SpeedCategory | null>(null);
-	const [selectedManaColor, setSelectedManaColor] =
-		useState<ManaColorWithColorless | null>(null);
-	const [selectedManaType, setSelectedManaType] = useState<
-		"symbol" | "source" | null
-	>(null);
+	const [manaBreakdownSelection, setManaBreakdownSelection] =
+		useState<ManaBreakdownSelection>(null);
 
 	// Compute statistics
 	const manaCurve = useMemo(
@@ -99,8 +99,7 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 		setSelectedType(null);
 		setSelectedSubtype(null);
 		setSelectedSpeedCategory(null);
-		setSelectedManaColor(null);
-		setSelectedManaType(null);
+		setManaBreakdownSelection(null);
 	};
 
 	const handleCurveSelect = (cards: DeckCard[], title: string) => {
@@ -154,28 +153,10 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 		}
 	};
 
-	const handleManaSourcesSelect = (cards: DeckCard[], title: string) => {
+	const handleManaBreakdownSelect = (cards: DeckCard[], title: string) => {
 		clearSelections();
 		setSelectedCards(cards);
 		setSelectedTitle(title);
-
-		// Parse color and type from title like "White Symbols" or "Blue Sources"
-		const colors: Record<string, ManaColorWithColorless> = {
-			White: "W",
-			Blue: "U",
-			Black: "B",
-			Red: "R",
-			Green: "G",
-			Colorless: "C",
-		};
-
-		for (const [name, color] of Object.entries(colors)) {
-			if (title.startsWith(name)) {
-				setSelectedManaColor(color);
-				setSelectedManaType(title.includes("Symbols") ? "symbol" : "source");
-				break;
-			}
-		}
 	};
 
 	if (!cardMap) {
@@ -227,11 +208,11 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 						onSelectCards={handleSubtypeSelect}
 						selectedSubtype={selectedSubtype}
 					/>
-					<ManaSourcesChart
+					<ManaBreakdown
 						data={manaSymbolsVsSources}
-						onSelectCards={handleManaSourcesSelect}
-						selectedColor={selectedManaColor}
-						selectedType={selectedManaType}
+						onSelectCards={handleManaBreakdownSelect}
+						selection={manaBreakdownSelection}
+						onSelectionChange={setManaBreakdownSelection}
 					/>
 				</div>
 
