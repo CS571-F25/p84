@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DeckCard } from "@/lib/deck-types";
 import type { ScryfallId } from "@/lib/scryfall-types";
+import { seededShuffle, useSeededRandom } from "@/lib/useSeededRandom";
 import { CardImage } from "../CardImage";
 
 interface GoldfishViewProps {
@@ -13,22 +14,17 @@ interface CardInstance {
 	instanceId: number;
 }
 
-function shuffle<T>(array: T[]): T[] {
-	const result = [...array];
-	for (let i = result.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[result[i], result[j]] = [result[j], result[i]];
-	}
-	return result;
-}
-
 interface DeckState {
 	hand: CardInstance[];
 	library: CardInstance[];
 }
 
-function dealHand(deck: CardInstance[], handSize = 7): DeckState {
-	const shuffled = shuffle(deck);
+function dealHand(
+	deck: CardInstance[],
+	rng: () => number,
+	handSize = 7,
+): DeckState {
+	const shuffled = seededShuffle(deck, rng);
 	return {
 		hand: shuffled.slice(0, handSize),
 		library: shuffled.slice(handSize),
@@ -37,6 +33,8 @@ function dealHand(deck: CardInstance[], handSize = 7): DeckState {
 
 export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
+	const { rng, SeedEmbed } = useSeededRandom();
+
 	const fullDeck = useMemo(() => {
 		const deck: CardInstance[] = [];
 		let instanceId = 0;
@@ -48,11 +46,15 @@ export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
 		return deck;
 	}, [cards]);
 
-	const [state, setState] = useState(() => dealHand(fullDeck));
+	const [state, setState] = useState(() => dealHand(fullDeck, rng));
 
 	const newHand = useCallback(() => {
-		setState(dealHand(fullDeck));
-	}, [fullDeck]);
+		const shuffled = seededShuffle(fullDeck, rng);
+		setState({
+			hand: shuffled.slice(0, 7),
+			library: shuffled.slice(7),
+		});
+	}, [fullDeck, rng]);
 
 	const shouldScrollRef = useRef(false);
 
@@ -89,6 +91,7 @@ export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
 
 	return (
 		<div className="mt-8 pt-8 border-t border-gray-200 dark:border-slate-700">
+			<SeedEmbed />
 			<div className="flex items-center justify-between mb-4">
 				<h2 className="text-lg font-semibold text-gray-900 dark:text-white">
 					Goldfish
