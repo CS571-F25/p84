@@ -1,6 +1,7 @@
 import type { Did } from "@atcute/lexicons";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ClientDate } from "@/components/ClientDate";
 import { asRkey } from "@/lib/atproto-client";
 import { listUserDecksQueryOptions } from "@/lib/deck-queries";
 import { formatDisplayName } from "@/lib/format-utils";
@@ -57,9 +58,8 @@ function ProfilePage() {
 								(sum, card) => sum + card.quantity,
 								0,
 							);
-							const updatedDate = record.value.updatedAt
-								? new Date(record.value.updatedAt).toLocaleDateString()
-								: new Date(record.value.createdAt).toLocaleDateString();
+							const dateString =
+								record.value.updatedAt ?? record.value.createdAt;
 
 							return (
 								<Link
@@ -78,7 +78,9 @@ function ProfilePage() {
 									)}
 									<div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-500">
 										<span>{cardCount} cards</span>
-										<span>Updated {updatedDate}</span>
+										<span>
+											Updated <ClientDate dateString={dateString} />
+										</span>
 									</div>
 								</Link>
 							);
