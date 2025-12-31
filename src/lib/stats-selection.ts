@@ -118,18 +118,21 @@ export function getSelectedCards(
 
 			const tempoLabels: Record<SourceTempo, string> = {
 				immediate: "Immediate",
+				conditional: "Conditional",
 				delayed: "Delayed",
 				bounce: "Bounce",
 			};
 
 			const cardsByTempo: Record<SourceTempo, DeckCard[]> = {
 				immediate: manaData.immediateSourceCards,
+				conditional: manaData.conditionalSourceCards,
 				delayed: manaData.delayedSourceCards,
 				bounce: manaData.bounceSourceCards,
 			};
 
 			const countByTempo: Record<SourceTempo, number> = {
 				immediate: manaData.immediateSourceCount,
+				conditional: manaData.conditionalSourceCount,
 				delayed: manaData.delayedSourceCount,
 				bounce: manaData.bounceSourceCount,
 			};

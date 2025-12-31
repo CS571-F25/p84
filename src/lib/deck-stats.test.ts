@@ -169,14 +169,8 @@ describe("getSourceTempo", () => {
 			["Tropical Island", "original dual"],
 			// Fetch lands
 			["Misty Rainforest", "fetch land"],
-			// Shock lands (conditional ETB)
+			// Shock lands (you can always pay 2 life = immediate)
 			["Breeding Pool", "shockland"],
-			// Check lands (conditional ETB)
-			["Hinterland Harbor", "checkland"],
-			// Fast lands (conditional ETB)
-			["Botanical Sanctum", "fastland"],
-			// Battle/Tango lands (conditional ETB)
-			["Canopy Vista", "battle land"],
 			// Pain lands
 			["Yavimaya Coast", "pain land"],
 			// Filter lands
@@ -236,6 +230,21 @@ describe("getSourceTempo", () => {
 		])("%s → immediate (%s)", async (name) => {
 			const card = await cards.get(name);
 			expect(getSourceTempo(card)).toBe("immediate");
+		});
+	});
+
+	describe("conditional sources", () => {
+		it.each([
+			// Game-state dependent - you might not meet the condition
+			// Check lands (need a land of the right type)
+			["Hinterland Harbor", "checkland"],
+			// Fast lands (need 2 or fewer lands - bad late game)
+			["Botanical Sanctum", "fastland"],
+			// Battle/Tango lands (need 2+ basics)
+			["Canopy Vista", "battle land"],
+		])("%s → conditional (%s)", async (name) => {
+			const card = await cards.get(name);
+			expect(getSourceTempo(card)).toBe("conditional");
 		});
 	});
 

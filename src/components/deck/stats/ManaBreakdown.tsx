@@ -79,15 +79,33 @@ export function ManaBreakdown({
 			</div>
 			<div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
 				<div className="flex gap-3 text-xs">
-					<span className="flex items-center gap-1">
+					<span
+						className="flex items-center gap-1 cursor-help"
+						title="Untapped lands, fast mana rocks, shocklands (pay life = your choice)"
+					>
 						<span className="w-2 h-2 rounded-full bg-green-500" />
 						<span className="text-gray-600 dark:text-gray-400">Immediate</span>
 					</span>
-					<span className="flex items-center gap-1">
+					<span
+						className="flex items-center gap-1 cursor-help"
+						title="Check lands, fast lands, battle lands - may enter tapped based on game state"
+					>
+						<span className="w-2 h-2 rounded-full bg-yellow-500" />
+						<span className="text-gray-600 dark:text-gray-400">
+							Conditional
+						</span>
+					</span>
+					<span
+						className="flex items-center gap-1 cursor-help"
+						title="Tap lands, mana dorks (summoning sickness)"
+					>
 						<span className="w-2 h-2 rounded-full bg-red-500" />
 						<span className="text-gray-600 dark:text-gray-400">Delayed</span>
 					</span>
-					<span className="flex items-center gap-1">
+					<span
+						className="flex items-center gap-1 cursor-help"
+						title="Bouncelands - enter tapped and return a land"
+					>
 						<span className="w-2 h-2 rounded-full bg-orange-500" />
 						<span className="text-gray-600 dark:text-gray-400">Bounce</span>
 					</span>
@@ -125,6 +143,8 @@ function ManaColumn({
 	const sourceCount = data.sourceCount;
 	const immediatePercent =
 		sourceCount > 0 ? (data.immediateSourceCount / sourceCount) * 100 : 0;
+	const conditionalPercent =
+		sourceCount > 0 ? (data.conditionalSourceCount / sourceCount) * 100 : 0;
 	const delayedPercent =
 		sourceCount > 0 ? (data.delayedSourceCount / sourceCount) * 100 : 0;
 	const bouncePercent =
@@ -195,6 +215,19 @@ function ManaColumn({
 								style={{ width: `${immediatePercent}%` }}
 								title={`Immediate: ${data.immediateSourceCount} of ${sourceCount} ${colorName.toLowerCase()} sources (${Math.round(immediatePercent)}%)\nCan produce mana the turn they enter`}
 								onClick={() => onSelect("immediate")}
+							/>
+						)}
+						{data.conditionalSourceCount > 0 && (
+							<button
+								type="button"
+								className={`bg-yellow-500 transition-opacity ${
+									isSelected("conditional")
+										? "opacity-100"
+										: "opacity-80 hover:opacity-100"
+								}`}
+								style={{ width: `${conditionalPercent}%` }}
+								title={`Conditional: ${data.conditionalSourceCount} of ${sourceCount} ${colorName.toLowerCase()} sources (${Math.round(conditionalPercent)}%)\nMay enter tapped depending on game state`}
+								onClick={() => onSelect("conditional")}
 							/>
 						)}
 						{data.delayedSourceCount > 0 && (

@@ -12,7 +12,7 @@ import {
 import type { DeckCard } from "./deck-types";
 
 export type SpeedCategory = "instant" | "sorcery";
-export type SourceTempo = "immediate" | "delayed" | "bounce";
+export type SourceTempo = "immediate" | "conditional" | "delayed" | "bounce";
 
 export type { CardLookup };
 
@@ -29,12 +29,14 @@ export interface ManaSymbolsData {
 	symbolCount: number;
 	symbolPercent: number;
 	immediateSourceCount: number;
+	conditionalSourceCount: number;
 	delayedSourceCount: number;
 	bounceSourceCount: number;
 	sourceCount: number;
 	sourcePercent: number;
 	symbolCards: DeckCard[];
 	immediateSourceCards: DeckCard[];
+	conditionalSourceCards: DeckCard[];
 	delayedSourceCards: DeckCard[];
 	bounceSourceCards: DeckCard[];
 	symbolDistribution: { bucket: string; count: number }[];
@@ -128,6 +130,7 @@ export function countManaSymbols(
 /**
  * Determine how quickly a mana-producing card can produce mana.
  * - immediate: can tap right away (untapped lands, hasty dorks, normal artifacts)
+ * - conditional: might enter tapped depending on game state (battle lands, check lands, fast lands)
  * - delayed: needs a turn (taplands, summoning sick creatures, ETB-tapped artifacts)
  * - bounce: bouncelands (enters tapped + returns a land)
  */
@@ -135,11 +138,18 @@ export function getSourceTempo(card: Card): SourceTempo {
 	const typeLine = card.type_line ?? "";
 	const oracleText = card.oracle_text ?? "";
 
-	// "This X enters tapped" without "unless" = unconditional
-	// "enters tapped unless" = conditional (checklands/fastlands), treat as untapped
-	// "it enters tapped" after "If you don't" = conditional (shocklands), treat as untapped
+	// Detect enters-tapped patterns
+	// "This X enters tapped" without "unless" = unconditional (always delayed)
+	// "enters tapped unless" = conditional (checklands/fastlands/battlelands - depends on game state)
+	// "As X enters, you may pay" + "If you don't, it enters tapped" = immediate (shocklands - you can always pay life)
 	const entersTappedUnconditional =
 		/this (land|artifact|creature) enters tapped(?! unless)/i.test(oracleText);
+	// Shocklands let you pay life (a choice you always have) - these are immediate
+	const isPayLifeChoice = /as .* enters.*you may pay.*life/i.test(oracleText);
+	// Game-state conditional: battle lands (2+ basics), check lands (land types), fast lands (2 or fewer lands)
+	const entersTappedConditional =
+		!isPayLifeChoice &&
+		/this (land|artifact|creature) enters tapped unless/i.test(oracleText);
 	const returnsLand = /return a land/i.test(oracleText);
 
 	// Bouncelands: enters tapped AND returns a land
@@ -168,9 +178,7 @@ export function getSourceTempo(card: Card): SourceTempo {
 		// Check if any of the creature's types appear in a sacrifice pattern
 		const subtypes = typeLine.split("—")[1]?.trim().split(" ") ?? [];
 		for (const subtype of subtypes) {
-			if (
-				new RegExp(`sacrifice a ${subtype}: add`, "i").test(oracleText)
-			) {
+			if (new RegExp(`sacrifice a ${subtype}: add`, "i").test(oracleText)) {
 				return "immediate";
 			}
 		}
@@ -189,12 +197,16 @@ export function getSourceTempo(card: Card): SourceTempo {
 
 	// Lands (non-creature)
 	if (typeLine.includes("Land")) {
-		return entersTappedUnconditional ? "delayed" : "immediate";
+		if (entersTappedUnconditional) return "delayed";
+		if (entersTappedConditional) return "conditional";
+		return "immediate";
 	}
 
 	// Artifacts can enter tapped
 	if (typeLine.includes("Artifact")) {
-		return entersTappedUnconditional ? "delayed" : "immediate";
+		if (entersTappedUnconditional) return "delayed";
+		if (entersTappedConditional) return "conditional";
+		return "immediate";
 	}
 
 	// Everything else (enchantments, instants, sorceries)
@@ -323,10 +335,12 @@ export function computeManaSymbolsVsSources(
 
 	const symbolCounts = makeColorRecord(() => 0);
 	const immediateCounts = makeColorRecord(() => 0);
+	const conditionalCounts = makeColorRecord(() => 0);
 	const delayedCounts = makeColorRecord(() => 0);
 	const bounceCounts = makeColorRecord(() => 0);
 	const symbolCards = makeColorRecord<DeckCard[]>(() => []);
 	const immediateCards = makeColorRecord<DeckCard[]>(() => []);
+	const conditionalCards = makeColorRecord<DeckCard[]>(() => []);
 	const delayedCards = makeColorRecord<DeckCard[]>(() => []);
 	const bounceCards = makeColorRecord<DeckCard[]>(() => []);
 	const symbolDistributions = makeColorRecord<Map<string, number>>(
@@ -365,6 +379,10 @@ export function computeManaSymbolsVsSources(
 						immediateCounts[color] += qty;
 						immediateCards[color].push(deckCard);
 						break;
+					case "conditional":
+						conditionalCounts[color] += qty;
+						conditionalCards[color].push(deckCard);
+						break;
 					case "delayed":
 						delayedCounts[color] += qty;
 						delayedCards[color].push(deckCard);
@@ -381,13 +399,21 @@ export function computeManaSymbolsVsSources(
 	// Calculate totals for percentages
 	const totalSymbols = Object.values(symbolCounts).reduce((a, b) => a + b, 0);
 	const totalSources = MANA_COLORS_WITH_COLORLESS.reduce(
-		(sum, c) => sum + immediateCounts[c] + delayedCounts[c] + bounceCounts[c],
+		(sum, c) =>
+			sum +
+			immediateCounts[c] +
+			conditionalCounts[c] +
+			delayedCounts[c] +
+			bounceCounts[c],
 		0,
 	);
 
 	return MANA_COLORS_WITH_COLORLESS.map((color) => {
 		const sourceCount =
-			immediateCounts[color] + delayedCounts[color] + bounceCounts[color];
+			immediateCounts[color] +
+			conditionalCounts[color] +
+			delayedCounts[color] +
+			bounceCounts[color];
 
 		// Convert distribution map to array
 		const dist = symbolDistributions[color];
@@ -401,12 +427,14 @@ export function computeManaSymbolsVsSources(
 			symbolPercent:
 				totalSymbols > 0 ? (symbolCounts[color] / totalSymbols) * 100 : 0,
 			immediateSourceCount: immediateCounts[color],
+			conditionalSourceCount: conditionalCounts[color],
 			delayedSourceCount: delayedCounts[color],
 			bounceSourceCount: bounceCounts[color],
 			sourceCount,
 			sourcePercent: totalSources > 0 ? (sourceCount / totalSources) * 100 : 0,
 			symbolCards: symbolCards[color],
 			immediateSourceCards: immediateCards[color],
+			conditionalSourceCards: conditionalCards[color],
 			delayedSourceCards: delayedCards[color],
 			bounceSourceCards: bounceCards[color],
 			symbolDistribution,
