@@ -83,14 +83,14 @@ export function ManaBreakdown({
 						className="flex items-center gap-1 cursor-help"
 						title="Untapped lands, fast mana rocks, shocklands (pay life = your choice)"
 					>
-						<span className="w-2 h-2 rounded-full bg-green-500" />
+						<span className="w-2 h-2 rounded-full bg-emerald-500" />
 						<span className="text-gray-600 dark:text-gray-400">Immediate</span>
 					</span>
 					<span
 						className="flex items-center gap-1 cursor-help"
 						title="Check lands, fast lands, battle lands - may enter tapped based on game state"
 					>
-						<span className="w-2 h-2 rounded-full bg-yellow-500" />
+						<span className="w-2 h-2 rounded-full bg-sky-500" />
 						<span className="text-gray-600 dark:text-gray-400">
 							Conditional
 						</span>
@@ -99,14 +99,14 @@ export function ManaBreakdown({
 						className="flex items-center gap-1 cursor-help"
 						title="Tap lands, mana dorks (summoning sickness)"
 					>
-						<span className="w-2 h-2 rounded-full bg-red-500" />
+						<span className="w-2 h-2 rounded-full bg-rose-500" />
 						<span className="text-gray-600 dark:text-gray-400">Delayed</span>
 					</span>
 					<span
 						className="flex items-center gap-1 cursor-help"
 						title="Bouncelands - enter tapped and return a land"
 					>
-						<span className="w-2 h-2 rounded-full bg-orange-500" />
+						<span className="w-2 h-2 rounded-full bg-violet-500" />
 						<span className="text-gray-600 dark:text-gray-400">Bounce</span>
 					</span>
 				</div>
@@ -207,7 +207,7 @@ function ManaColumn({
 						{data.immediateSourceCount > 0 && (
 							<button
 								type="button"
-								className={`bg-green-500 transition-opacity ${
+								className={`bg-emerald-500 transition-opacity ${
 									isSelected("immediate")
 										? "opacity-100"
 										: "opacity-80 hover:opacity-100"
@@ -220,7 +220,7 @@ function ManaColumn({
 						{data.conditionalSourceCount > 0 && (
 							<button
 								type="button"
-								className={`bg-yellow-500 transition-opacity ${
+								className={`bg-sky-500 transition-opacity ${
 									isSelected("conditional")
 										? "opacity-100"
 										: "opacity-80 hover:opacity-100"
@@ -233,7 +233,7 @@ function ManaColumn({
 						{data.delayedSourceCount > 0 && (
 							<button
 								type="button"
-								className={`bg-red-500 transition-opacity ${
+								className={`bg-rose-500 transition-opacity ${
 									isSelected("delayed")
 										? "opacity-100"
 										: "opacity-80 hover:opacity-100"
@@ -246,7 +246,7 @@ function ManaColumn({
 						{data.bounceSourceCount > 0 && (
 							<button
 								type="button"
-								className={`bg-orange-500 transition-opacity ${
+								className={`bg-violet-500 transition-opacity ${
 									isSelected("bounce")
 										? "opacity-100"
 										: "opacity-80 hover:opacity-100"
