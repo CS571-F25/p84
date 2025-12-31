@@ -159,113 +159,115 @@ describe("getSourceTempo", () => {
 		cards = await setupTestCards();
 	});
 
-	describe("lands", () => {
-		it("returns immediate for basic lands (Forest)", async () => {
-			const card = await cards.get("Forest");
+	describe("immediate sources", () => {
+		it.each([
+			// === LANDS ===
+			// Basic lands
+			["Forest", "basic land"],
+			["Wastes", "colorless basic"],
+			// Dual lands (ABUR)
+			["Tropical Island", "original dual"],
+			// Fetch lands
+			["Misty Rainforest", "fetch land"],
+			// Shock lands (conditional ETB)
+			["Breeding Pool", "shockland"],
+			// Check lands (conditional ETB)
+			["Hinterland Harbor", "checkland"],
+			// Fast lands (conditional ETB)
+			["Botanical Sanctum", "fastland"],
+			// Pain lands
+			["Yavimaya Coast", "pain land"],
+			// Filter lands
+			["Flooded Grove", "filter land"],
+			// Pathway lands (MDFCs)
+			["Barkchannel Pathway", "pathway land"],
+			// Rainbow lands
+			["Command Tower", "commander rainbow"],
+			["Exotic Orchard", "conditional rainbow"],
+			["Mana Confluence", "pain rainbow"],
+			["City of Brass", "pain rainbow"],
+			// Utility lands
+			["Ancient Tomb", "colorless + life loss"],
+			["Gaea's Cradle", "creature-count mana"],
+			["Phyrexian Tower", "sacrifice land"],
+			["Cabal Coffers", "swamp-count mana"],
+			// === ARTIFACTS ===
+			// Fast mana
+			["Mana Crypt", "free mana rock"],
+			["Mana Vault", "burst mana rock"],
+			["Grim Monolith", "burst mana rock"],
+			["Sol Ring", "classic mana rock"],
+			// 0-cost rocks
+			["Chrome Mox", "imprint rock"],
+			["Mox Diamond", "discard rock"],
+			["Lotus Petal", "sac rock"],
+			["Lion's Eye Diamond", "discard-hand rock"],
+			// Larger rocks
+			["Gilded Lotus", "5-mana rock"],
+			["Thran Dynamo", "4-mana rock"],
+			["Arcum's Astrolabe", "cantrip rock"],
+			// === CREATURES ===
+			// Haste creatures
+			["Beastcaller Savant", "hasty mana dork"],
+			["Cormela, Glamour Thief", "hasty mana creature"],
+			// Sacrifice (no tap)
+			["Blood Pet", "sac for mana"],
+			["Skirk Prospector", "sac outlet for mana"],
+			// Exile from hand
+			["Simian Spirit Guide", "exile from hand"],
+			["Elvish Spirit Guide", "exile from hand"],
+			// ETB triggers
+			["Akki Rockspeaker", "ETB add mana"],
+			["Burning-Tree Emissary", "ETB add mana"],
+			["Priest of Gix", "ETB add mana"],
+			["Priest of Urabrask", "ETB add mana"],
+			// Creates sacrifice tokens
+			["Basking Broodscale", "creates Eldrazi Spawn"],
+			// Pay life for mana
+			["Treasonous Ogre", "pay life for mana (no tap)"],
+			// === ENCHANTMENTS ===
+			["Cryptolith Rite", "grants tap abilities"],
+			// === SPELLS ===
+			["Dark Ritual", "ritual"],
+		])("%s → immediate (%s)", async (name) => {
+			const card = await cards.get(name);
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
+	});
 
-		it("returns immediate for Command Tower", async () => {
-			const card = await cards.get("Command Tower");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-
-		it("returns immediate for shocklands (Breeding Pool)", async () => {
-			const card = await cards.get("Breeding Pool");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-
-		it("returns delayed for taplands (Temple of Mystery)", async () => {
-			const card = await cards.get("Temple of Mystery");
+	describe("delayed sources", () => {
+		it.each([
+			// === LANDS ===
+			// Tap lands
+			["Temple of Mystery", "scry land"],
+			["Ketria Triome", "triome"],
+			["Canopy Vista", "battle land (no basics)"],
+			["Undercity Sewers", "surveil land"],
+			// === ARTIFACTS ===
+			["Worn Powerstone", "ETB tapped rock"],
+			["Everflowing Chalice", "ETB tapped (kicked)"],
+			["Hedron Archive", "ETB tapped rock"],
+			// === CREATURES (summoning sickness) ===
+			["Llanowar Elves", "classic mana dork"],
+			["Elvish Mystic", "classic mana dork"],
+			["Fyndhorn Elves", "classic mana dork"],
+			["Birds of Paradise", "flying rainbow dork"],
+			["Selvala, Heart of the Wilds", "big mana dork"],
+			// Land-creature
+			["Dryad Arbor", "land creature (summoning sickness)"],
+		])("%s → delayed (%s)", async (name) => {
+			const card = await cards.get(name);
 			expect(getSourceTempo(card)).toBe("delayed");
 		});
+	});
 
-		it("returns bounce for bouncelands (Simic Growth Chamber)", async () => {
-			const card = await cards.get("Simic Growth Chamber");
+	describe("bounce sources", () => {
+		it.each([
+			["Simic Growth Chamber", "simic bounceland"],
+			["Azorius Chancery", "azorius bounceland"],
+		])("%s → bounce (%s)", async (name) => {
+			const card = await cards.get(name);
 			expect(getSourceTempo(card)).toBe("bounce");
-		});
-
-		it("returns immediate for Wastes (colorless basic)", async () => {
-			const card = await cards.get("Wastes");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-	});
-
-	describe("creatures", () => {
-		it("returns delayed for Llanowar Elves (no haste)", async () => {
-			const card = await cards.get("Llanowar Elves");
-			expect(getSourceTempo(card)).toBe("delayed");
-		});
-
-		it("returns immediate for Beastcaller Savant (hasty dork)", async () => {
-			const card = await cards.get("Beastcaller Savant");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-
-		it("returns immediate for Cormela (hasty creature)", async () => {
-			const card = await cards.get("Cormela, Glamour Thief");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-
-		it("returns delayed for Selvala (no haste, tap ability)", async () => {
-			const card = await cards.get("Selvala, Heart of the Wilds");
-			expect(getSourceTempo(card)).toBe("delayed");
-		});
-
-		it("returns immediate for Blood Pet (sacrifice, no tap)", async () => {
-			const card = await cards.get("Blood Pet");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-
-		it("returns immediate for Akki Rockspeaker (ETB trigger)", async () => {
-			const card = await cards.get("Akki Rockspeaker");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-
-		it("returns immediate for Simian Spirit Guide (exile from hand)", async () => {
-			const card = await cards.get("Simian Spirit Guide");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-
-		it("returns immediate for Basking Broodscale (creates sacrifice tokens)", async () => {
-			const card = await cards.get("Basking Broodscale");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-	});
-
-	describe("artifacts", () => {
-		it("returns immediate for Sol Ring", async () => {
-			const card = await cards.get("Sol Ring");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-
-		it("returns delayed for Worn Powerstone (ETB tapped)", async () => {
-			const card = await cards.get("Worn Powerstone");
-			expect(getSourceTempo(card)).toBe("delayed");
-		});
-
-		it("returns immediate for Arcum's Astrolabe", async () => {
-			const card = await cards.get("Arcum's Astrolabe");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-
-		it("returns immediate for Lotus Petal (tap + sac)", async () => {
-			const card = await cards.get("Lotus Petal");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-	});
-
-	describe("enchantments", () => {
-		it("returns immediate for Cryptolith Rite", async () => {
-			const card = await cards.get("Cryptolith Rite");
-			expect(getSourceTempo(card)).toBe("immediate");
-		});
-	});
-
-	describe("spells", () => {
-		it("returns immediate for Dark Ritual", async () => {
-			const card = await cards.get("Dark Ritual");
-			expect(getSourceTempo(card)).toBe("immediate");
 		});
 	});
 });
