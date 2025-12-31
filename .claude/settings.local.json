@@ -36,7 +36,8 @@
       "Bash(npx vitest run:*)",
       "WebFetch(domain:slingshot.microcosm.blue)",
       "Bash(git stash show:*)",
-      "Bash(npm audit)"
+      "Bash(npm audit)",
+      "WebFetch(domain:developers.cloudflare.com)"
     ],
     "deny": [],
     "ask": []

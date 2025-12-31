@@ -8,7 +8,7 @@ import {
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useId, useState } from "react";
 
 interface DragDropProviderProps {
 	children: ReactNode;
@@ -21,6 +21,8 @@ export function DragDropProvider({
 	onDragEnd,
 	onDragCancel,
 }: DragDropProviderProps) {
+	const dndContextId = useId();
+
 	// WARN: Screen size is checked once on mount and never updated.
 	// dnd-kit's useSensors doesn't support dynamic sensor changes.
 	// This will break on foldable phones that change size mid-session.
@@ -55,6 +57,7 @@ export function DragDropProvider({
 
 	return (
 		<DndContext
+			id={dndContextId}
 			sensors={sensors}
 			onDragEnd={onDragEnd}
 			onDragCancel={onDragCancel}
