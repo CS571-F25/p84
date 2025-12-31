@@ -572,6 +572,7 @@ function DeckEditorInner({
 								...getCardsInSection(deck, "commander"),
 								...getCardsInSection(deck, "mainboard"),
 							]}
+							onCardHover={handleCardHover}
 						/>
 					</div>
 				</div>

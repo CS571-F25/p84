@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DeckCard } from "@/lib/deck-types";
 import type { ScryfallId } from "@/lib/scryfall-types";
 import { CardImage } from "../CardImage";
 
 interface GoldfishViewProps {
 	cards: DeckCard[];
+	onCardHover?: (cardId: ScryfallId | null) => void;
 }
 
 interface CardInstance {
@@ -34,7 +35,8 @@ function dealHand(deck: CardInstance[], handSize = 7): DeckState {
 	};
 }
 
-export function GoldfishView({ cards }: GoldfishViewProps) {
+export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
+	const containerRef = useRef<HTMLDivElement>(null);
 	const fullDeck = useMemo(() => {
 		const deck: CardInstance[] = [];
 		let instanceId = 0;
@@ -52,15 +54,36 @@ export function GoldfishView({ cards }: GoldfishViewProps) {
 		setState(dealHand(fullDeck));
 	}, [fullDeck]);
 
+	const shouldScrollRef = useRef(false);
+
 	const draw = useCallback(() => {
 		setState((prev) => {
 			if (prev.library.length === 0) return prev;
+			shouldScrollRef.current = true;
 			return {
 				hand: [...prev.hand, prev.library[0]],
 				library: prev.library.slice(1),
 			};
 		});
 	}, []);
+
+	// Scroll last card into view after draw renders
+	const handLength = state.hand.length;
+	useEffect(() => {
+		if (handLength > 0 && shouldScrollRef.current && containerRef.current) {
+			shouldScrollRef.current = false;
+			onCardHover?.(state.hand[handLength - 1].cardId);
+			// Wait for layout to settle before scrolling
+			requestAnimationFrame(() => {
+				const lastCard = containerRef.current?.lastElementChild;
+				lastCard?.scrollIntoView({
+					behavior: "smooth",
+					block: "nearest",
+					inline: "nearest",
+				});
+			});
+		}
+	}, [handLength, onCardHover, state.hand]);
 
 	if (cards.length === 0) return null;
 
@@ -89,14 +112,21 @@ export function GoldfishView({ cards }: GoldfishViewProps) {
 				</div>
 			</div>
 
-			<div className="flex flex-wrap gap-2">
+			<div ref={containerRef} className="flex gap-2 overflow-x-auto pb-2">
 				{state.hand.map((card) => (
-					<CardImage
+					<div
 						key={card.instanceId}
-						card={{ id: card.cardId, name: "" }}
-						size="normal"
-						className="h-48 w-auto"
-					/>
+						role="img"
+						className="flex-shrink-0"
+						onMouseEnter={() => onCardHover?.(card.cardId)}
+						onMouseLeave={() => onCardHover?.(null)}
+					>
+						<CardImage
+							card={{ id: card.cardId, name: "" }}
+							size="normal"
+							className="h-52 aspect-[5/7] rounded-lg"
+						/>
+					</div>
 				))}
 			</div>
 		</div>
