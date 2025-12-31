@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { asRkey } from "@/lib/atproto-client";
 import { listUserDecksQueryOptions } from "@/lib/deck-queries";
+import { formatDisplayName } from "@/lib/format-utils";
 import { useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/profile/$did/")({
@@ -71,8 +72,8 @@ function ProfilePage() {
 										{record.value.name}
 									</h2>
 									{record.value.format && (
-										<p className="text-sm text-gray-600 dark:text-gray-400 mb-2 capitalize">
-											{record.value.format}
+										<p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+											{formatDisplayName(record.value.format)}
 										</p>
 									)}
 									<div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-500">

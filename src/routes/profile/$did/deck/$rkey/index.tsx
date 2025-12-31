@@ -29,8 +29,10 @@ import {
 	updateCardQuantity,
 	updateCardTags,
 } from "@/lib/deck-types";
+import { formatDisplayName } from "@/lib/format-utils";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import type { ScryfallId } from "@/lib/scryfall-types";
+import { getImageUri } from "@/lib/scryfall-utils";
 import { useAuth } from "@/lib/useAuth";
 import { usePersistedState } from "@/lib/usePersistedState";
 
@@ -44,6 +46,53 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 
 		const cardIds = deck.cards.map((card) => card.scryfallId);
 		await prefetchCards(context.queryClient, cardIds);
+
+		return deck;
+	},
+	head: ({ loaderData: deck }) => {
+		if (!deck) {
+			return { meta: [{ title: "Deck Not Found | DeckBelcher" }] };
+		}
+
+		const format = formatDisplayName(deck.format);
+		const title = format
+			? `${deck.name} (${format}) | DeckBelcher`
+			: `${deck.name} | DeckBelcher`;
+
+		const ogTitle = format ? `${deck.name} (${format})` : deck.name;
+
+		const cardCount = deck.cards.reduce((sum, c) => sum + c.quantity, 0);
+		const description = `${cardCount} card${cardCount === 1 ? "" : "s"}`;
+
+		// Use first commander's image, or first card if no commanders
+		const commanders = deck.cards.filter((c) => c.section === "commander");
+		const featuredCard = commanders[0] ?? deck.cards[0];
+		const cardImageUrl = featuredCard
+			? getImageUri(featuredCard.scryfallId, "large")
+			: undefined;
+
+		return {
+			meta: [
+				{ title },
+				{ name: "description", content: description },
+				{ property: "og:title", content: ogTitle },
+				{ property: "og:description", content: description },
+				...(cardImageUrl
+					? [
+							{ property: "og:image", content: cardImageUrl },
+							{ property: "og:image:width", content: "672" },
+							{ property: "og:image:height", content: "936" },
+						]
+					: []),
+				{ property: "og:type", content: "website" },
+				{ name: "twitter:card", content: "summary_large_image" },
+				{ name: "twitter:title", content: ogTitle },
+				{ name: "twitter:description", content: description },
+				...(cardImageUrl
+					? [{ name: "twitter:image", content: cardImageUrl }]
+					: []),
+			],
+		};
 	},
 });
 
