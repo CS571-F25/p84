@@ -135,30 +135,25 @@ export function getSourceTempo(card: Card): SourceTempo {
 	const typeLine = card.type_line ?? "";
 	const oracleText = card.oracle_text ?? "";
 
-	// "This X enters tapped" = unconditional
+	// "This X enters tapped" without "unless" = unconditional
+	// "enters tapped unless" = conditional (checklands/fastlands), treat as untapped
 	// "it enters tapped" after "If you don't" = conditional (shocklands), treat as untapped
-	const entersTapped = /this (land|artifact|creature) enters tapped/i.test(
-		oracleText,
-	);
+	const entersTappedUnconditional =
+		/this (land|artifact|creature) enters tapped(?! unless)/i.test(oracleText);
 	const returnsLand = /return a land/i.test(oracleText);
 
 	// Bouncelands: enters tapped AND returns a land
-	if (entersTapped && returnsLand) {
+	if (entersTappedUnconditional && returnsLand) {
 		return "bounce";
 	}
 
-	// Lands
-	if (typeLine.includes("Land")) {
-		return entersTapped ? "delayed" : "immediate";
-	}
-
-	// Creatures: check for ways to produce mana immediately despite summoning sickness
+	// Creatures first (before Land check) - handles Land Creatures like Dryad Arbor
 	if (typeLine.includes("Creature")) {
 		if (card.keywords?.includes("Haste")) {
 			return "immediate";
 		}
 		// Exile from hand doesn't require being on battlefield
-		if (/exile this card from your hand/i.test(oracleText)) {
+		if (/exile this (card|creature) from your hand/i.test(oracleText)) {
 			return "immediate";
 		}
 		// ETB triggers fire immediately
@@ -169,19 +164,37 @@ export function getSourceTempo(card: Card): SourceTempo {
 		if (/sacrifice this creature: add/i.test(oracleText)) {
 			return "immediate";
 		}
+		// Sacrifice by creature type (e.g., "Sacrifice a Goblin: Add")
+		// Check if any of the creature's types appear in a sacrifice pattern
+		const subtypes = typeLine.split("—")[1]?.trim().split(" ") ?? [];
+		for (const subtype of subtypes) {
+			if (
+				new RegExp(`sacrifice a ${subtype}: add`, "i").test(oracleText)
+			) {
+				return "immediate";
+			}
+		}
 		// Creates tokens with sacrifice-for-mana abilities (e.g., Eldrazi Spawn/Scion, Treasure)
-		// Tokens can be sacrificed immediately since they don't need to tap
 		if (
 			/create.*token.*sacrifice this (creature|token): add/is.test(oracleText)
 		) {
 			return "immediate";
 		}
+		// Pay life for mana (no tap required, bypasses summoning sickness)
+		if (/pay \d+ life: add/i.test(oracleText)) {
+			return "immediate";
+		}
 		return "delayed";
+	}
+
+	// Lands (non-creature)
+	if (typeLine.includes("Land")) {
+		return entersTappedUnconditional ? "delayed" : "immediate";
 	}
 
 	// Artifacts can enter tapped
 	if (typeLine.includes("Artifact")) {
-		return entersTapped ? "delayed" : "immediate";
+		return entersTappedUnconditional ? "delayed" : "immediate";
 	}
 
 	// Everything else (enchantments, instants, sorceries)

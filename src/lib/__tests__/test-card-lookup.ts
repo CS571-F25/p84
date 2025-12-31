@@ -55,7 +55,10 @@ export class TestCardLookup {
 			throw new Error(`Card data not found for "${name}" (${scryfallId})`);
 		}
 
-		if (card.name !== name) {
+		// For MDFCs, allow matching either the front face or full name
+		const nameMatches =
+			card.name === name || card.name.startsWith(`${name} //`);
+		if (!nameMatches) {
 			throw new Error(
 				`Name mismatch: expected "${name}" but got "${card.name}". ` +
 					`Oracle ID ${oracleId} may be wrong in test-cards.json`,

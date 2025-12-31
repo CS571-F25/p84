@@ -175,6 +175,8 @@ describe("getSourceTempo", () => {
 			["Hinterland Harbor", "checkland"],
 			// Fast lands (conditional ETB)
 			["Botanical Sanctum", "fastland"],
+			// Battle/Tango lands (conditional ETB)
+			["Canopy Vista", "battle land"],
 			// Pain lands
 			["Yavimaya Coast", "pain land"],
 			// Filter lands
@@ -205,14 +207,16 @@ describe("getSourceTempo", () => {
 			// Larger rocks
 			["Gilded Lotus", "5-mana rock"],
 			["Thran Dynamo", "4-mana rock"],
+			["Hedron Archive", "4-mana rock"],
 			["Arcum's Astrolabe", "cantrip rock"],
+			["Everflowing Chalice", "scaling rock"],
 			// === CREATURES ===
 			// Haste creatures
 			["Beastcaller Savant", "hasty mana dork"],
 			["Cormela, Glamour Thief", "hasty mana creature"],
-			// Sacrifice (no tap)
-			["Blood Pet", "sac for mana"],
-			["Skirk Prospector", "sac outlet for mana"],
+			// Sacrifice self (no tap)
+			["Blood Pet", "sac self for mana"],
+			["Skirk Prospector", "sac by creature type"],
 			// Exile from hand
 			["Simian Spirit Guide", "exile from hand"],
 			["Elvish Spirit Guide", "exile from hand"],
@@ -238,15 +242,12 @@ describe("getSourceTempo", () => {
 	describe("delayed sources", () => {
 		it.each([
 			// === LANDS ===
-			// Tap lands
+			// Tap lands (unconditional)
 			["Temple of Mystery", "scry land"],
 			["Ketria Triome", "triome"],
-			["Canopy Vista", "battle land (no basics)"],
 			["Undercity Sewers", "surveil land"],
 			// === ARTIFACTS ===
 			["Worn Powerstone", "ETB tapped rock"],
-			["Everflowing Chalice", "ETB tapped (kicked)"],
-			["Hedron Archive", "ETB tapped rock"],
 			// === CREATURES (summoning sickness) ===
 			["Llanowar Elves", "classic mana dork"],
 			["Elvish Mystic", "classic mana dork"],
