@@ -169,6 +169,13 @@ export function getSourceTempo(card: Card): SourceTempo {
 		if (/sacrifice this creature: add/i.test(oracleText)) {
 			return "immediate";
 		}
+		// Creates tokens with sacrifice-for-mana abilities (e.g., Eldrazi Spawn/Scion, Treasure)
+		// Tokens can be sacrificed immediately since they don't need to tap
+		if (
+			/create.*token.*sacrifice this (creature|token): add/is.test(oracleText)
+		) {
+			return "immediate";
+		}
 		return "delayed";
 	}
 

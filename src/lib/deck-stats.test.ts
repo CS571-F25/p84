@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type { Card } from "@/lib/scryfall-types";
+import {
+	setupTestCards,
+	type TestCardLookup,
+} from "./__tests__/test-card-lookup";
 import {
 	type CardLookup,
 	computeManaCurve,
@@ -149,186 +153,118 @@ describe("countManaSymbols", () => {
 });
 
 describe("getSourceTempo", () => {
-	// === LANDS ===
+	let cards: TestCardLookup;
+
+	beforeAll(async () => {
+		cards = await setupTestCards();
+	});
+
 	describe("lands", () => {
-		it("returns immediate for basic lands (Forest)", () => {
-			const card = makeCard({
-				type_line: "Basic Land — Forest",
-				oracle_text: "({T}: Add {G}.)",
-			});
+		it("returns immediate for basic lands (Forest)", async () => {
+			const card = await cards.get("Forest");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 
-		it("returns immediate for Command Tower", () => {
-			const card = makeCard({
-				type_line: "Land",
-				oracle_text:
-					"{T}: Add one mana of any color in your commander's color identity.",
-			});
+		it("returns immediate for Command Tower", async () => {
+			const card = await cards.get("Command Tower");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 
-		it("returns immediate for shocklands (can be untapped)", () => {
-			// Shocklands use "it enters tapped" not "enters the battlefield tapped"
-			const card = makeCard({
-				type_line: "Land — Forest Island",
-				oracle_text:
-					"({T}: Add {G} or {U}.)\nAs this land enters, you may pay 2 life. If you don't, it enters tapped.",
-			});
+		it("returns immediate for shocklands (Breeding Pool)", async () => {
+			const card = await cards.get("Breeding Pool");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 
-		it("returns delayed for taplands (Temple of Mystery)", () => {
-			const card = makeCard({
-				type_line: "Land",
-				oracle_text:
-					"This land enters tapped.\nWhen this land enters, scry 1.\n{T}: Add {G} or {U}.",
-			});
+		it("returns delayed for taplands (Temple of Mystery)", async () => {
+			const card = await cards.get("Temple of Mystery");
 			expect(getSourceTempo(card)).toBe("delayed");
 		});
 
-		it("returns bounce for bouncelands (Simic Growth Chamber)", () => {
-			const card = makeCard({
-				type_line: "Land",
-				oracle_text:
-					"This land enters tapped.\nWhen this land enters, return a land you control to its owner's hand.\n{T}: Add {G}{U}.",
-			});
+		it("returns bounce for bouncelands (Simic Growth Chamber)", async () => {
+			const card = await cards.get("Simic Growth Chamber");
 			expect(getSourceTempo(card)).toBe("bounce");
 		});
 
-		it("returns immediate for Wastes (colorless basic)", () => {
-			const card = makeCard({
-				type_line: "Basic Land",
-				oracle_text: "{T}: Add {C}.",
-			});
+		it("returns immediate for Wastes (colorless basic)", async () => {
+			const card = await cards.get("Wastes");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 	});
 
-	// === CREATURES ===
 	describe("creatures", () => {
-		it("returns delayed for Llanowar Elves (no haste)", () => {
-			const card = makeCard({
-				type_line: "Creature — Elf Druid",
-				oracle_text: "{T}: Add {G}.",
-				keywords: [],
-			});
+		it("returns delayed for Llanowar Elves (no haste)", async () => {
+			const card = await cards.get("Llanowar Elves");
 			expect(getSourceTempo(card)).toBe("delayed");
 		});
 
-		it("returns immediate for Beastcaller Savant (hasty dork)", () => {
-			const card = makeCard({
-				type_line: "Creature — Elf Shaman Ally",
-				oracle_text:
-					"Haste\n{T}: Add one mana of any color. Spend this mana only to cast a creature spell.",
-				keywords: ["Haste"],
-			});
+		it("returns immediate for Beastcaller Savant (hasty dork)", async () => {
+			const card = await cards.get("Beastcaller Savant");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 
-		it("returns immediate for Cormela (hasty creature)", () => {
-			const card = makeCard({
-				type_line: "Legendary Creature — Vampire Rogue",
-				oracle_text:
-					"Haste\n{1}, {T}: Add {U}{B}{R}. Spend this mana only to cast instant and/or sorcery spells.\nWhen Cormela dies, return up to one target instant or sorcery card from your graveyard to your hand.",
-				keywords: ["Haste"],
-			});
+		it("returns immediate for Cormela (hasty creature)", async () => {
+			const card = await cards.get("Cormela, Glamour Thief");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 
-		it("returns delayed for Selvala (no haste, tap ability)", () => {
-			const card = makeCard({
-				type_line: "Legendary Creature — Elf Scout",
-				oracle_text:
-					"Whenever another creature enters, its controller may draw a card if its power is greater than each other creature's power.\n{G}, {T}: Add X mana in any combination of colors, where X is the greatest power among creatures you control.",
-				keywords: [],
-			});
+		it("returns delayed for Selvala (no haste, tap ability)", async () => {
+			const card = await cards.get("Selvala, Heart of the Wilds");
 			expect(getSourceTempo(card)).toBe("delayed");
 		});
 
-		it("returns immediate for Blood Pet (sacrifice, no tap)", () => {
-			const card = makeCard({
-				type_line: "Creature — Thrull",
-				oracle_text: "Sacrifice this creature: Add {B}.",
-				keywords: [],
-			});
+		it("returns immediate for Blood Pet (sacrifice, no tap)", async () => {
+			const card = await cards.get("Blood Pet");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 
-		it("returns immediate for Akki Rockspeaker (ETB trigger)", () => {
-			const card = makeCard({
-				type_line: "Creature — Goblin Shaman",
-				oracle_text: "When this creature enters, add {R}.",
-				keywords: [],
-			});
+		it("returns immediate for Akki Rockspeaker (ETB trigger)", async () => {
+			const card = await cards.get("Akki Rockspeaker");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 
-		it("returns immediate for Simian Spirit Guide (exile from hand)", () => {
-			const card = makeCard({
-				type_line: "Creature — Ape Spirit",
-				oracle_text: "Exile this card from your hand: Add {R}.",
-				keywords: [],
-			});
+		it("returns immediate for Simian Spirit Guide (exile from hand)", async () => {
+			const card = await cards.get("Simian Spirit Guide");
+			expect(getSourceTempo(card)).toBe("immediate");
+		});
+
+		it("returns immediate for Basking Broodscale (creates sacrifice tokens)", async () => {
+			const card = await cards.get("Basking Broodscale");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 	});
 
-	// === ARTIFACTS ===
 	describe("artifacts", () => {
-		it("returns immediate for Sol Ring", () => {
-			const card = makeCard({
-				type_line: "Artifact",
-				oracle_text: "{T}: Add {C}{C}.",
-			});
+		it("returns immediate for Sol Ring", async () => {
+			const card = await cards.get("Sol Ring");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 
-		it("returns delayed for Worn Powerstone (ETB tapped)", () => {
-			const card = makeCard({
-				type_line: "Artifact",
-				oracle_text: "This artifact enters tapped.\n{T}: Add {C}{C}.",
-			});
+		it("returns delayed for Worn Powerstone (ETB tapped)", async () => {
+			const card = await cards.get("Worn Powerstone");
 			expect(getSourceTempo(card)).toBe("delayed");
 		});
 
-		it("returns immediate for Arcum's Astrolabe", () => {
-			const card = makeCard({
-				type_line: "Snow Artifact",
-				oracle_text:
-					"({S} can be paid with one mana from a snow source.)\nWhen this artifact enters, draw a card.\n{1}, {T}: Add one mana of any color.",
-			});
+		it("returns immediate for Arcum's Astrolabe", async () => {
+			const card = await cards.get("Arcum's Astrolabe");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 
-		it("returns immediate for Lotus Petal (tap + sac)", () => {
-			const card = makeCard({
-				type_line: "Artifact",
-				oracle_text: "{T}, Sacrifice this artifact: Add one mana of any color.",
-			});
+		it("returns immediate for Lotus Petal (tap + sac)", async () => {
+			const card = await cards.get("Lotus Petal");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 	});
 
-	// === ENCHANTMENTS ===
 	describe("enchantments", () => {
-		it("returns immediate for Cryptolith Rite", () => {
-			const card = makeCard({
-				type_line: "Enchantment",
-				oracle_text:
-					'Creatures you control have "{T}: Add one mana of any color."',
-			});
+		it("returns immediate for Cryptolith Rite", async () => {
+			const card = await cards.get("Cryptolith Rite");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 	});
 
-	// === SPELLS (one-shot mana) ===
 	describe("spells", () => {
-		it("returns immediate for Dark Ritual", () => {
-			const card = makeCard({
-				type_line: "Instant",
-				oracle_text: "Add {B}{B}{B}.",
-			});
+		it("returns immediate for Dark Ritual", async () => {
+			const card = await cards.get("Dark Ritual");
 			expect(getSourceTempo(card)).toBe("immediate");
 		});
 	});
