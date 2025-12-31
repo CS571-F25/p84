@@ -48,6 +48,7 @@ const KEPT_FIELDS = [
 	"toughness",
 	"loyalty",
 	"defense",
+	"produced_mana",
 
 	// Legalities & formats
 	"legalities",

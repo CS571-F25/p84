@@ -118,6 +118,7 @@ export type Game = "paper" | "arena" | "mtgo" | string;
 export type Legality = "legal" | "not_legal" | "restricted" | "banned" | string;
 
 export type ManaColor = "W" | "U" | "B" | "R" | "G";
+export type ManaColorWithColorless = ManaColor | "C";
 
 export type ImageSize =
 	| "small"
@@ -166,6 +167,7 @@ export interface Card {
 	toughness?: string;
 	loyalty?: string;
 	defense?: string;
+	produced_mana?: string[];
 
 	// Legalities & formats
 	legalities?: Record<string, Legality>;

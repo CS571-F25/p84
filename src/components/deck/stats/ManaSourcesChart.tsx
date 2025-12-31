@@ -8,29 +8,31 @@ import {
 } from "recharts";
 import type { ManaSymbolsData } from "@/lib/deck-stats";
 import type { DeckCard } from "@/lib/deck-types";
-import type { ManaColor } from "@/lib/scryfall-types";
+import type { ManaColorWithColorless } from "@/lib/scryfall-types";
 
 interface ManaSourcesChartProps {
 	data: ManaSymbolsData[];
 	onSelectCards: (cards: DeckCard[], title: string) => void;
-	selectedColor: ManaColor | null;
+	selectedColor: ManaColorWithColorless | null;
 	selectedType: "symbol" | "source" | null;
 }
 
-const MANA_COLORS: Record<ManaColor, string> = {
+const MANA_COLORS: Record<ManaColorWithColorless, string> = {
 	W: "#FEF3C7",
 	U: "#3B82F6",
 	B: "#374151",
 	R: "#EF4444",
 	G: "#22C55E",
+	C: "#9CA3AF",
 };
 
-const MANA_NAMES: Record<ManaColor, string> = {
+const MANA_NAMES: Record<ManaColorWithColorless, string> = {
 	W: "White",
 	U: "Blue",
 	B: "Black",
 	R: "Red",
 	G: "Green",
+	C: "Colorless",
 };
 
 export function ManaSourcesChart({
@@ -40,12 +42,28 @@ export function ManaSourcesChart({
 	selectedType,
 }: ManaSourcesChartProps) {
 	const handleBarClick = (
-		color: ManaColor,
+		color: ManaColorWithColorless,
 		type: "symbol" | "source",
 		cards: DeckCard[],
 	) => {
 		const typeName = type === "symbol" ? "Symbols" : "Sources";
 		onSelectCards(cards, `${MANA_NAMES[color]} ${typeName}`);
+	};
+
+	const getAllSourceCards = (entry: ManaSymbolsData): DeckCard[] => {
+		const seen = new Set<string>();
+		const result: DeckCard[] = [];
+		for (const card of [
+			...entry.immediateSourceCards,
+			...entry.delayedSourceCards,
+			...entry.bounceSourceCards,
+		]) {
+			if (!seen.has(card.scryfallId)) {
+				seen.add(card.scryfallId);
+				result.push(card);
+			}
+		}
+		return result;
 	};
 
 	// Filter out colors with no data
@@ -131,7 +149,11 @@ export function ManaSourcesChart({
 											: 0.4
 									}
 									onClick={() =>
-										handleBarClick(entry.color, "source", entry.sourceCards)
+										handleBarClick(
+											entry.color,
+											"source",
+											getAllSourceCards(entry),
+										)
 									}
 								/>
 							))}

@@ -1,4 +1,8 @@
-import type { Card, ManaColor } from "@/lib/scryfall-types";
+import type {
+	Card,
+	ManaColor,
+	ManaColorWithColorless,
+} from "@/lib/scryfall-types";
 import {
 	type CardLookup,
 	extractPrimaryType,
@@ -8,6 +12,7 @@ import {
 import type { DeckCard } from "./deck-types";
 
 export type SpeedCategory = "instant" | "sorcery";
+export type SourceTempo = "immediate" | "delayed" | "bounce";
 
 export type { CardLookup };
 
@@ -20,13 +25,19 @@ export interface ManaCurveData {
 }
 
 export interface ManaSymbolsData {
-	color: ManaColor;
+	color: ManaColorWithColorless;
 	symbolCount: number;
 	symbolPercent: number;
+	immediateSourceCount: number;
+	delayedSourceCount: number;
+	bounceSourceCount: number;
 	sourceCount: number;
 	sourcePercent: number;
 	symbolCards: DeckCard[];
-	sourceCards: DeckCard[];
+	immediateSourceCards: DeckCard[];
+	delayedSourceCards: DeckCard[];
+	bounceSourceCards: DeckCard[];
+	symbolDistribution: { bucket: string; count: number }[];
 }
 
 export interface TypeData {
@@ -42,15 +53,30 @@ export interface SpeedData {
 }
 
 const MANA_COLORS: ManaColor[] = ["W", "U", "B", "R", "G"];
+const MANA_COLORS_WITH_COLORLESS: ManaColorWithColorless[] = [
+	"W",
+	"U",
+	"B",
+	"R",
+	"G",
+	"C",
+];
 
 /**
  * Count mana symbols in a mana cost string.
- * Handles hybrid mana (counts both colors), phyrexian mana, and ignores generic/X costs.
+ * Handles hybrid mana (counts both colors), phyrexian mana, colorless, and ignores generic/X costs.
  */
 export function countManaSymbols(
 	manaCost: string | undefined,
-): Record<ManaColor, number> {
-	const counts: Record<ManaColor, number> = { W: 0, U: 0, B: 0, R: 0, G: 0 };
+): Record<ManaColorWithColorless, number> {
+	const counts: Record<ManaColorWithColorless, number> = {
+		W: 0,
+		U: 0,
+		B: 0,
+		R: 0,
+		G: 0,
+		C: 0,
+	};
 
 	if (!manaCost) return counts;
 
@@ -63,6 +89,12 @@ export function countManaSymbols(
 		// Single color symbol (W, U, B, R, G)
 		if (MANA_COLORS.includes(symbol as ManaColor)) {
 			counts[symbol as ManaColor]++;
+			continue;
+		}
+
+		// Colorless mana requirement (C)
+		if (symbol === "C") {
+			counts.C++;
 			continue;
 		}
 
@@ -87,48 +119,66 @@ export function countManaSymbols(
 			counts[hybridPhyrexianMatch[1] as ManaColor]++;
 		}
 
-		// Ignore generic mana (numbers), X, C (colorless), S (snow), etc.
+		// Ignore generic mana (numbers), X, S (snow), etc.
 	}
 
 	return counts;
 }
 
 /**
- * Extract mana colors a card can produce from its oracle text.
- * Looks for "Add {X}" patterns and handles "any color" text.
+ * Determine how quickly a mana-producing card can produce mana.
+ * - immediate: can tap right away (untapped lands, hasty dorks, normal artifacts)
+ * - delayed: needs a turn (taplands, summoning sick creatures, ETB-tapped artifacts)
+ * - bounce: bouncelands (enters tapped + returns a land)
  */
-export function extractManaProduction(card: Card): ManaColor[] {
-	const oracleText = card.oracle_text;
-	if (!oracleText) return [];
+export function getSourceTempo(card: Card): SourceTempo {
+	const typeLine = card.type_line ?? "";
+	const oracleText = card.oracle_text ?? "";
 
-	const colors = new Set<ManaColor>();
+	// "This X enters tapped" = unconditional
+	// "it enters tapped" after "If you don't" = conditional (shocklands), treat as untapped
+	const entersTapped = /this (land|artifact|creature) enters tapped/i.test(
+		oracleText,
+	);
+	const returnsLand = /return a land/i.test(oracleText);
 
-	// Check for "any color" patterns
-	if (
-		/add\s+(?:one\s+)?mana\s+of\s+any\s+(?:one\s+)?color/i.test(oracleText) ||
-		/add\s+\w+\s+mana\s+(?:of\s+)?(?:any\s+)?(?:one\s+)?(?:color|type)/i.test(
-			oracleText,
-		)
-	) {
-		return [...MANA_COLORS];
+	// Bouncelands: enters tapped AND returns a land
+	if (entersTapped && returnsLand) {
+		return "bounce";
 	}
 
-	// Look for "Add" followed by mana symbols anywhere on the same line
-	// This handles various formats like:
-	// - "{T}: Add {G}."
-	// - "Add {W} or {U}."
-	// - "({T}: Add {G}, {W}, or {U}.)"
-	const lines = oracleText.split("\n");
-	for (const line of lines) {
-		if (/\badd\b/i.test(line)) {
-			// Extract all colored mana symbols from this line
-			for (const symbolMatch of line.matchAll(/\{([WUBRG])\}/g)) {
-				colors.add(symbolMatch[1] as ManaColor);
-			}
+	// Lands
+	if (typeLine.includes("Land")) {
+		return entersTapped ? "delayed" : "immediate";
+	}
+
+	// Creatures: check for ways to produce mana immediately despite summoning sickness
+	if (typeLine.includes("Creature")) {
+		if (card.keywords?.includes("Haste")) {
+			return "immediate";
 		}
+		// Exile from hand doesn't require being on battlefield
+		if (/exile this card from your hand/i.test(oracleText)) {
+			return "immediate";
+		}
+		// ETB triggers fire immediately
+		if (/when (this creature|it) enters.*add/i.test(oracleText)) {
+			return "immediate";
+		}
+		// Sacrifice without tap bypasses summoning sickness
+		if (/sacrifice this creature: add/i.test(oracleText)) {
+			return "immediate";
+		}
+		return "delayed";
 	}
 
-	return [...colors];
+	// Artifacts can enter tapped
+	if (typeLine.includes("Artifact")) {
+		return entersTapped ? "delayed" : "immediate";
+	}
+
+	// Everything else (enchantments, instants, sorceries)
+	return "immediate";
 }
 
 /**
@@ -235,40 +285,33 @@ export function computeManaCurve(
 }
 
 /**
- * Compute mana symbols vs mana sources breakdown.
+ * Compute mana symbols vs mana sources breakdown with tempo analysis.
  */
 export function computeManaSymbolsVsSources(
 	cards: DeckCard[],
 	lookup: CardLookup,
 ): ManaSymbolsData[] {
-	const symbolCounts: Record<ManaColor, number> = {
-		W: 0,
-		U: 0,
-		B: 0,
-		R: 0,
-		G: 0,
-	};
-	const sourceCounts: Record<ManaColor, number> = {
-		W: 0,
-		U: 0,
-		B: 0,
-		R: 0,
-		G: 0,
-	};
-	const symbolCards: Record<ManaColor, DeckCard[]> = {
-		W: [],
-		U: [],
-		B: [],
-		R: [],
-		G: [],
-	};
-	const sourceCards: Record<ManaColor, DeckCard[]> = {
-		W: [],
-		U: [],
-		B: [],
-		R: [],
-		G: [],
-	};
+	type ColorKey = ManaColorWithColorless;
+	const makeColorRecord = <T>(init: () => T): Record<ColorKey, T> => ({
+		W: init(),
+		U: init(),
+		B: init(),
+		R: init(),
+		G: init(),
+		C: init(),
+	});
+
+	const symbolCounts = makeColorRecord(() => 0);
+	const immediateCounts = makeColorRecord(() => 0);
+	const delayedCounts = makeColorRecord(() => 0);
+	const bounceCounts = makeColorRecord(() => 0);
+	const symbolCards = makeColorRecord<DeckCard[]>(() => []);
+	const immediateCards = makeColorRecord<DeckCard[]>(() => []);
+	const delayedCards = makeColorRecord<DeckCard[]>(() => []);
+	const bounceCards = makeColorRecord<DeckCard[]>(() => []);
+	const symbolDistributions = makeColorRecord<Map<string, number>>(
+		() => new Map(),
+	);
 
 	for (const deckCard of cards) {
 		const card = lookup(deckCard);
@@ -276,36 +319,79 @@ export function computeManaSymbolsVsSources(
 
 		// Count mana symbols in cost
 		const symbols = countManaSymbols(card.mana_cost);
-		for (const color of MANA_COLORS) {
+		const bucket = getManaValueBucket(card.cmc);
+		for (const color of MANA_COLORS_WITH_COLORLESS) {
 			if (symbols[color] > 0) {
 				symbolCounts[color] += symbols[color] * deckCard.quantity;
 				symbolCards[color].push(deckCard);
+				// Track distribution by CMC
+				const dist = symbolDistributions[color];
+				dist.set(
+					bucket,
+					(dist.get(bucket) ?? 0) + symbols[color] * deckCard.quantity,
+				);
 			}
 		}
 
-		// Count mana sources
-		const producedColors = extractManaProduction(card);
-		for (const color of producedColors) {
-			sourceCounts[color] += deckCard.quantity;
-			sourceCards[color].push(deckCard);
+		// Count mana sources by tempo
+		const producedColors = (card.produced_mana ?? []) as ColorKey[];
+		if (producedColors.length > 0) {
+			const tempo = getSourceTempo(card);
+			for (const color of producedColors) {
+				if (!MANA_COLORS_WITH_COLORLESS.includes(color)) continue;
+				const qty = deckCard.quantity;
+				switch (tempo) {
+					case "immediate":
+						immediateCounts[color] += qty;
+						immediateCards[color].push(deckCard);
+						break;
+					case "delayed":
+						delayedCounts[color] += qty;
+						delayedCards[color].push(deckCard);
+						break;
+					case "bounce":
+						bounceCounts[color] += qty;
+						bounceCards[color].push(deckCard);
+						break;
+				}
+			}
 		}
 	}
 
 	// Calculate totals for percentages
 	const totalSymbols = Object.values(symbolCounts).reduce((a, b) => a + b, 0);
-	const totalSources = Object.values(sourceCounts).reduce((a, b) => a + b, 0);
+	const totalSources = MANA_COLORS_WITH_COLORLESS.reduce(
+		(sum, c) => sum + immediateCounts[c] + delayedCounts[c] + bounceCounts[c],
+		0,
+	);
 
-	return MANA_COLORS.map((color) => ({
-		color,
-		symbolCount: symbolCounts[color],
-		symbolPercent:
-			totalSymbols > 0 ? (symbolCounts[color] / totalSymbols) * 100 : 0,
-		sourceCount: sourceCounts[color],
-		sourcePercent:
-			totalSources > 0 ? (sourceCounts[color] / totalSources) * 100 : 0,
-		symbolCards: symbolCards[color],
-		sourceCards: sourceCards[color],
-	}));
+	return MANA_COLORS_WITH_COLORLESS.map((color) => {
+		const sourceCount =
+			immediateCounts[color] + delayedCounts[color] + bounceCounts[color];
+
+		// Convert distribution map to array
+		const dist = symbolDistributions[color];
+		const symbolDistribution = ["0", "1", "2", "3", "4", "5", "6", "7+"].map(
+			(bucket) => ({ bucket, count: dist.get(bucket) ?? 0 }),
+		);
+
+		return {
+			color,
+			symbolCount: symbolCounts[color],
+			symbolPercent:
+				totalSymbols > 0 ? (symbolCounts[color] / totalSymbols) * 100 : 0,
+			immediateSourceCount: immediateCounts[color],
+			delayedSourceCount: delayedCounts[color],
+			bounceSourceCount: bounceCounts[color],
+			sourceCount,
+			sourcePercent: totalSources > 0 ? (sourceCount / totalSources) * 100 : 0,
+			symbolCards: symbolCards[color],
+			immediateSourceCards: immediateCards[color],
+			delayedSourceCards: delayedCards[color],
+			bounceSourceCards: bounceCards[color],
+			symbolDistribution,
+		};
+	});
 }
 
 /**

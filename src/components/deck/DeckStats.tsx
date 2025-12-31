@@ -10,7 +10,7 @@ import {
 } from "@/lib/deck-stats";
 import type { DeckCard } from "@/lib/deck-types";
 import { combineCardQueries, getCardByIdQueryOptions } from "@/lib/queries";
-import type { ManaColor, ScryfallId } from "@/lib/scryfall-types";
+import type { ManaColorWithColorless, ScryfallId } from "@/lib/scryfall-types";
 import { ManaCurveChart } from "./stats/ManaCurveChart";
 import { ManaSourcesChart } from "./stats/ManaSourcesChart";
 import { SpeedPieChart } from "./stats/SpeedPieChart";
@@ -46,9 +46,8 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 	const [selectedSubtype, setSelectedSubtype] = useState<string | null>(null);
 	const [selectedSpeedCategory, setSelectedSpeedCategory] =
 		useState<SpeedCategory | null>(null);
-	const [selectedManaColor, setSelectedManaColor] = useState<ManaColor | null>(
-		null,
-	);
+	const [selectedManaColor, setSelectedManaColor] =
+		useState<ManaColorWithColorless | null>(null);
 	const [selectedManaType, setSelectedManaType] = useState<
 		"symbol" | "source" | null
 	>(null);
@@ -161,12 +160,13 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 		setSelectedTitle(title);
 
 		// Parse color and type from title like "White Symbols" or "Blue Sources"
-		const colors: Record<string, ManaColor> = {
+		const colors: Record<string, ManaColorWithColorless> = {
 			White: "W",
 			Blue: "U",
 			Black: "B",
 			Red: "R",
 			Green: "G",
+			Colorless: "C",
 		};
 
 		for (const [name, color] of Object.entries(colors)) {
