@@ -252,6 +252,74 @@ export class ServerCardProvider implements CardDataProvider {
 		}
 	}
 
+	/**
+	 * Batch fetch multiple cards, grouped by chunk to avoid cache thrashing.
+	 *
+	 * Instead of fetching cards one-by-one (which bounces between chunks),
+	 * this groups all IDs by their chunk index and processes chunk-by-chunk.
+	 */
+	async getCardsByIds(ids: ScryfallId[]): Promise<Map<ScryfallId, Card>> {
+		const result = new Map<ScryfallId, Card>();
+		const uncached: Array<{ id: ScryfallId; entry: ByteIndexEntry }> = [];
+
+		// Phase 1: Check cache and collect index entries for misses
+		for (const id of ids) {
+			const cached = cardCache.get(id);
+			if (cached) {
+				result.set(id, cached);
+			} else {
+				const entry = await findCardInIndex(id);
+				if (entry) {
+					uncached.push({ id, entry });
+				}
+			}
+		}
+
+		// Phase 2: Group by chunk index
+		const byChunk = new Map<
+			number,
+			Array<{ id: ScryfallId; entry: ByteIndexEntry }>
+		>();
+		for (const item of uncached) {
+			const group = byChunk.get(item.entry.chunkIndex);
+			if (group) {
+				group.push(item);
+			} else {
+				byChunk.set(item.entry.chunkIndex, [item]);
+			}
+		}
+
+		// Phase 3: Process each chunk (load once, extract all cards)
+		for (const [chunkIndex, items] of byChunk) {
+			try {
+				const chunkContent = await loadChunk(chunkIndex);
+				for (const { id, entry } of items) {
+					try {
+						const cardJSON = chunkContent.slice(
+							entry.offset,
+							entry.offset + entry.length,
+						);
+						const card = JSON.parse(cardJSON) as Card;
+						cardCache.set(id, card);
+						result.set(id, card);
+					} catch (error) {
+						console.error(
+							`[ServerCardProvider] Error parsing card ${id}:`,
+							error,
+						);
+					}
+				}
+			} catch (error) {
+				console.error(
+					`[ServerCardProvider] Error loading chunk ${chunkIndex}:`,
+					error,
+				);
+			}
+		}
+
+		return result;
+	}
+
 	// Search not implemented server-side (client-only feature for now)
 	searchCards = undefined;
 }

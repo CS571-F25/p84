@@ -17,6 +17,7 @@ import type { DragData } from "@/components/deck/DraggableCard";
 import { TrashDropZone } from "@/components/deck/TrashDropZone";
 import { ViewControls } from "@/components/deck/ViewControls";
 import { asRkey } from "@/lib/atproto-client";
+import { prefetchCards } from "@/lib/card-prefetch";
 import { getDeckQueryOptions, useUpdateDeckMutation } from "@/lib/deck-queries";
 import type { Deck, GroupBy, Section, SortBy } from "@/lib/deck-types";
 import {
@@ -40,13 +41,9 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 		const deck = await context.queryClient.ensureQueryData(
 			getDeckQueryOptions(params.did as Did, asRkey(params.rkey)),
 		);
-		await Promise.all(
-			deck.cards.map((card) =>
-				context.queryClient.ensureQueryData(
-					getCardByIdQueryOptions(card.scryfallId),
-				),
-			),
-		);
+
+		const cardIds = deck.cards.map((card) => card.scryfallId);
+		await prefetchCards(context.queryClient, cardIds);
 	},
 });
 
