@@ -49,7 +49,7 @@ export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
 	const [state, setState] = useState(() => dealHand(fullDeck, rng));
 
 	const newHand = useCallback(() => {
-		setState(dealHand(fullDeck, rng))
+		setState(dealHand(fullDeck, rng));
 	}, [fullDeck, rng]);
 
 	const shouldScrollRef = useRef(false);

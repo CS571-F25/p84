@@ -55,6 +55,8 @@ export function ManaBreakdown({
 			<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
 				Mana Breakdown
 			</h3>
+
+			{/* Symbols, pips, sparklines, tempo */}
 			<div
 				className="grid gap-4"
 				style={{
@@ -71,13 +73,46 @@ export function ManaBreakdown({
 							colorName={COLOR_NAMES[color]}
 							totalSymbols={totalSymbols}
 							totalSources={totalSources}
-							totalLands={totalLands}
 							isSelected={(type) => isSelected(color, type)}
 							onSelect={(type) => onSelect({ chart: "mana", color, type })}
 						/>
 					);
 				})}
 			</div>
+
+			{/* Land Production section */}
+			{totalLands > 0 && (
+				<div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700">
+					<div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+						Land Production ({totalLands} lands)
+					</div>
+					<div
+						className="grid gap-4"
+						style={{
+							gridTemplateColumns: `repeat(${activeColors.length}, minmax(0, 1fr))`,
+						}}
+					>
+						{activeColors.map((color) => {
+							const d = byColor.get(color);
+							if (!d) return null;
+							return (
+								<LandBar
+									key={color}
+									data={d}
+									colorName={COLOR_NAMES[color]}
+									totalLands={totalLands}
+									isSelected={isSelected(color, "land")}
+									onSelect={() =>
+										onSelect({ chart: "mana", color, type: "land" })
+									}
+								/>
+							);
+						})}
+					</div>
+				</div>
+			)}
+
+			{/* Legend */}
 			<div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
 				<div className="flex gap-3 text-xs">
 					<span
@@ -129,7 +164,6 @@ interface ManaColumnProps {
 	colorName: string;
 	totalSymbols: number;
 	totalSources: number;
-	totalLands: number;
 	isSelected: (type: ManaSelectionType) => boolean;
 	onSelect: (type: ManaSelectionType) => void;
 }
@@ -139,7 +173,6 @@ function ManaColumn({
 	colorName,
 	totalSymbols,
 	totalSources,
-	totalLands,
 	isSelected,
 	onSelect,
 }: ManaColumnProps) {
@@ -268,37 +301,108 @@ function ManaColumn({
 					</div>
 				</div>
 			)}
+		</div>
+	);
+}
 
-			{/* Land production bar (moxfield-style) */}
-			{totalLands > 0 && (
-				<div className="w-full mt-3 pt-2 border-t border-gray-100 dark:border-slate-800">
-					<div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-1">
-						{colorName} Mana Production
-					</div>
-					<button
-						type="button"
-						className={`relative w-full h-5 rounded overflow-hidden bg-gray-200 dark:bg-slate-700 transition-opacity ${
-							isSelected("land") ? "ring-2 ring-blue-500" : "hover:opacity-90"
-						}`}
-						onClick={() => onSelect("land")}
-						title={`${data.landSourceCount} of ${totalLands} lands produce ${colorName.toLowerCase()}`}
-					>
+interface LandBarProps {
+	data: ManaSymbolsData;
+	colorName: string;
+	totalLands: number;
+	isSelected: boolean;
+	onSelect: () => void;
+}
+
+const MANA_BAR_COLORS: Record<ManaColorWithColorless, string> = {
+	W: "bg-amber-200",
+	U: "bg-blue-400",
+	B: "bg-gray-600",
+	R: "bg-red-400",
+	G: "bg-green-400",
+	C: "bg-gray-400",
+};
+
+function LandBar({
+	data,
+	colorName,
+	totalLands,
+	isSelected,
+	onSelect,
+}: LandBarProps) {
+	const greyedOut = data.symbolCount === 0;
+	const landCount = data.landSourceCount;
+
+	// Calculate tempo percentages for this color's lands
+	const immediatePercent =
+		landCount > 0 ? (data.landImmediateCount / landCount) * 100 : 0;
+	const conditionalPercent =
+		landCount > 0 ? (data.landConditionalCount / landCount) * 100 : 0;
+	const delayedPercent =
+		landCount > 0 ? (data.landDelayedCount / landCount) * 100 : 0;
+	const bouncePercent =
+		landCount > 0 ? (data.landBounceCount / landCount) * 100 : 0;
+
+	return (
+		<div
+			className={`flex flex-col items-center gap-1 ${greyedOut ? "opacity-40" : ""}`}
+		>
+			{/* Coverage bar - mana colored */}
+			<button
+				type="button"
+				className={`relative w-full h-4 rounded overflow-hidden bg-gray-200 dark:bg-slate-700 transition-opacity ${
+					isSelected ? "ring-2 ring-blue-500" : "hover:opacity-90"
+				}`}
+				onClick={onSelect}
+				title={`${landCount} of ${totalLands} lands produce ${colorName.toLowerCase()}`}
+			>
+				<div
+					className={`h-full ${MANA_BAR_COLORS[data.color]}`}
+					style={{ width: `${data.landSourcePercent}%` }}
+				/>
+				<span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300">
+					{Math.round(data.landSourcePercent)}%
+				</span>
+			</button>
+
+			{/* Tempo bar - smaller, shows quality of those lands */}
+			{landCount > 0 && (
+				<div
+					className="w-full h-1.5 rounded-full overflow-hidden bg-gray-200 dark:bg-slate-700 flex cursor-help"
+					title={`Land tempo: ${data.landImmediateCount} immediate, ${data.landConditionalCount} conditional, ${data.landDelayedCount} delayed, ${data.landBounceCount} bounce`}
+				>
+					{data.landImmediateCount > 0 && (
 						<div
-							className="h-full bg-gradient-to-r from-amber-400 to-amber-500"
-							style={{ width: `${data.landSourcePercent}%` }}
+							className="h-full bg-emerald-500"
+							style={{ width: `${immediatePercent}%` }}
 						/>
-						<span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300">
-							{Math.round(data.landSourcePercent)}%
-						</span>
-					</button>
-					<div
-						className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1 cursor-help"
-						title={`${Math.round(data.landProductionPercent)}% of your lands' total mana production is ${colorName.toLowerCase()}`}
-					>
-						{Math.round(data.landProductionPercent)}% of mana on lands
-					</div>
+					)}
+					{data.landConditionalCount > 0 && (
+						<div
+							className="h-full bg-sky-500"
+							style={{ width: `${conditionalPercent}%` }}
+						/>
+					)}
+					{data.landDelayedCount > 0 && (
+						<div
+							className="h-full bg-rose-500"
+							style={{ width: `${delayedPercent}%` }}
+						/>
+					)}
+					{data.landBounceCount > 0 && (
+						<div
+							className="h-full bg-violet-500"
+							style={{ width: `${bouncePercent}%` }}
+						/>
+					)}
 				</div>
 			)}
+
+			<div
+				className="text-xs text-gray-500 dark:text-gray-400 text-center cursor-help"
+				title={`${Math.round(data.landProductionPercent)}% of your lands' total mana production is ${colorName.toLowerCase()}`}
+			>
+				{Math.round(data.landProductionPercent)}% of symbols on lands
+			</div>
 		</div>
 	);
 }

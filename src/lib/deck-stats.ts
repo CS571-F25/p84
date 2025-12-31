@@ -39,6 +39,11 @@ export interface ManaSymbolsData {
 	landSourcePercent: number; // % of lands that produce this color
 	landProductionPercent: number; // % of total land production that is this color
 	totalLandCount: number; // actual count of mana-producing lands (for display)
+	// Land tempo breakdown
+	landImmediateCount: number;
+	landConditionalCount: number;
+	landDelayedCount: number;
+	landBounceCount: number;
 	symbolCards: DeckCard[];
 	immediateSourceCards: DeckCard[];
 	conditionalSourceCards: DeckCard[];
@@ -345,6 +350,10 @@ export function computeManaSymbolsVsSources(
 	const delayedCounts = makeColorRecord(() => 0);
 	const bounceCounts = makeColorRecord(() => 0);
 	const landCounts = makeColorRecord(() => 0);
+	const landImmediateCounts = makeColorRecord(() => 0);
+	const landConditionalCounts = makeColorRecord(() => 0);
+	const landDelayedCounts = makeColorRecord(() => 0);
+	const landBounceCounts = makeColorRecord(() => 0);
 	const symbolCards = makeColorRecord<DeckCard[]>(() => []);
 	const immediateCards = makeColorRecord<DeckCard[]>(() => []);
 	const conditionalCards = makeColorRecord<DeckCard[]>(() => []);
@@ -392,10 +401,24 @@ export function computeManaSymbolsVsSources(
 				if (!MANA_COLORS_WITH_COLORLESS.includes(color)) continue;
 				const qty = deckCard.quantity;
 
-				// Track land sources per color
+				// Track land sources per color with tempo
 				if (isLand) {
 					landCounts[color] += qty;
 					landCards[color].push(deckCard);
+					switch (tempo) {
+						case "immediate":
+							landImmediateCounts[color] += qty;
+							break;
+						case "conditional":
+							landConditionalCounts[color] += qty;
+							break;
+						case "delayed":
+							landDelayedCounts[color] += qty;
+							break;
+						case "bounce":
+							landBounceCounts[color] += qty;
+							break;
+					}
 				}
 
 				switch (tempo) {
@@ -469,6 +492,10 @@ export function computeManaSymbolsVsSources(
 					? (landCounts[color] / totalLandProduction) * 100
 					: 0,
 			totalLandCount,
+			landImmediateCount: landImmediateCounts[color],
+			landConditionalCount: landConditionalCounts[color],
+			landDelayedCount: landDelayedCounts[color],
+			landBounceCount: landBounceCounts[color],
 			symbolCards: symbolCards[color],
 			immediateSourceCards: immediateCards[color],
 			conditionalSourceCards: conditionalCards[color],
