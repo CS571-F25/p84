@@ -7,36 +7,30 @@ import {
 	YAxis,
 } from "recharts";
 import type { ManaCurveData } from "@/lib/deck-stats";
-import type { DeckCard } from "@/lib/deck-types";
+import type { StatsSelection } from "@/lib/stats-selection";
 
 interface ManaCurveChartProps {
 	data: ManaCurveData[];
-	onSelectCards: (cards: DeckCard[], title: string) => void;
-	selectedBucket: string | null;
-	selectedType: "permanent" | "spell" | null;
+	selection: StatsSelection;
+	onSelect: (selection: StatsSelection) => void;
 }
 
 const COLORS = {
-	permanent: "#22C55E", // Green
-	spell: "#3B82F6", // Blue
+	permanent: "#22C55E",
+	spell: "#3B82F6",
 	permanentHover: "#16A34A",
 	spellHover: "#2563EB",
 };
 
 export function ManaCurveChart({
 	data,
-	onSelectCards,
-	selectedBucket,
-	selectedType,
+	selection,
+	onSelect,
 }: ManaCurveChartProps) {
-	const handleBarClick = (
-		bucket: string,
-		type: "permanent" | "spell",
-		cards: DeckCard[],
-	) => {
-		const title = `${type === "permanent" ? "Permanents" : "Spells"} (MV ${bucket})`;
-		onSelectCards(cards, title);
-	};
+	const isSelected = (bucket: string, type: "permanent" | "spell") =>
+		selection?.chart === "curve" &&
+		selection.bucket === bucket &&
+		selection.type === type;
 
 	return (
 		<div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
@@ -68,17 +62,16 @@ export function ManaCurveChart({
 								<Cell
 									key={`perm-${entry.bucket}`}
 									fill={
-										selectedBucket === entry.bucket &&
-										selectedType === "permanent"
+										isSelected(entry.bucket, "permanent")
 											? COLORS.permanentHover
 											: COLORS.permanent
 									}
 									onClick={() =>
-										handleBarClick(
-											entry.bucket,
-											"permanent",
-											entry.permanentCards,
-										)
+										onSelect({
+											chart: "curve",
+											bucket: entry.bucket,
+											type: "permanent",
+										})
 									}
 								/>
 							))}
@@ -93,12 +86,16 @@ export function ManaCurveChart({
 								<Cell
 									key={`spell-${entry.bucket}`}
 									fill={
-										selectedBucket === entry.bucket && selectedType === "spell"
+										isSelected(entry.bucket, "spell")
 											? COLORS.spellHover
 											: COLORS.spell
 									}
 									onClick={() =>
-										handleBarClick(entry.bucket, "spell", entry.spellCards)
+										onSelect({
+											chart: "curve",
+											bucket: entry.bucket,
+											type: "spell",
+										})
 									}
 								/>
 							))}

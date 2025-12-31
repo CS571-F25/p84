@@ -1,11 +1,11 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import type { TypeData } from "@/lib/deck-stats";
-import type { DeckCard } from "@/lib/deck-types";
+import type { StatsSelection } from "@/lib/stats-selection";
 
 interface SubtypesPieChartProps {
 	data: TypeData[];
-	onSelectCards: (cards: DeckCard[], title: string) => void;
-	selectedSubtype: string | null;
+	selection: StatsSelection;
+	onSelect: (selection: StatsSelection) => void;
 }
 
 const COLORS = [
@@ -30,12 +30,11 @@ function getSubtypeColor(subtype: string, index: number): string {
 
 export function SubtypesPieChart({
 	data,
-	onSelectCards,
-	selectedSubtype,
+	selection,
+	onSelect,
 }: SubtypesPieChartProps) {
-	const handleSliceClick = (entry: TypeData) => {
-		onSelectCards(entry.cards, `${entry.type} (${entry.count})`);
-	};
+	const isSelected = (subtype: string) =>
+		selection?.chart === "subtype" && selection.subtype === subtype;
 
 	const total = data.reduce((sum, d) => sum + d.count, 0);
 
@@ -70,16 +69,16 @@ export function SubtypesPieChart({
 								innerRadius={40}
 								outerRadius={70}
 								cursor="pointer"
-								onClick={(_, index) => handleSliceClick(data[index])}
+								onClick={(_, index) =>
+									onSelect({ chart: "subtype", subtype: data[index].type })
+								}
 							>
 								{data.map((entry, index) => (
 									<Cell
 										key={entry.type}
 										fill={getSubtypeColor(entry.type, index)}
-										stroke={
-											selectedSubtype === entry.type ? "#fff" : "transparent"
-										}
-										strokeWidth={selectedSubtype === entry.type ? 2 : 0}
+										stroke={isSelected(entry.type) ? "#fff" : "transparent"}
+										strokeWidth={isSelected(entry.type) ? 2 : 0}
 									/>
 								))}
 							</Pie>
@@ -92,7 +91,9 @@ export function SubtypesPieChart({
 							key={entry.type}
 							type="button"
 							className="flex items-center gap-1 text-left hover:opacity-80 transition-opacity"
-							onClick={() => handleSliceClick(entry)}
+							onClick={() =>
+								onSelect({ chart: "subtype", subtype: entry.type })
+							}
 						>
 							<div
 								className="w-2 h-2 rounded-full flex-shrink-0"

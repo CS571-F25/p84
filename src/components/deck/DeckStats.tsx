@@ -6,15 +6,12 @@ import {
 	computeSpeedDistribution,
 	computeSubtypeDistribution,
 	computeTypeDistribution,
-	type SpeedCategory,
 } from "@/lib/deck-stats";
 import type { DeckCard } from "@/lib/deck-types";
 import { combineCardQueries, getCardByIdQueryOptions } from "@/lib/queries";
 import type { ScryfallId } from "@/lib/scryfall-types";
-import {
-	ManaBreakdown,
-	type ManaBreakdownSelection,
-} from "./stats/ManaBreakdown";
+import { getSelectedCards, type StatsSelection } from "@/lib/stats-selection";
+import { ManaBreakdown } from "./stats/ManaBreakdown";
 import { ManaCurveChart } from "./stats/ManaCurveChart";
 import { SpeedPieChart } from "./stats/SpeedPieChart";
 import { StatsCardList } from "./stats/StatsCardList";
@@ -28,31 +25,14 @@ interface DeckStatsProps {
 }
 
 export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
-	// Fetch card data for all cards
 	const cardMap = useQueries({
 		queries: cards.map((card) => getCardByIdQueryOptions(card.scryfallId)),
 		combine: combineCardQueries,
 	});
 
-	// State for selected cards in the card list panel
-	const [selectedCards, setSelectedCards] = useState<DeckCard[]>([]);
-	const [selectedTitle, setSelectedTitle] = useState<string>("");
+	const [selection, setSelection] = useState<StatsSelection>(null);
 
-	// Chart selection state
-	const [selectedCurveBucket, setSelectedCurveBucket] = useState<string | null>(
-		null,
-	);
-	const [selectedCurveType, setSelectedCurveType] = useState<
-		"permanent" | "spell" | null
-	>(null);
-	const [selectedType, setSelectedType] = useState<string | null>(null);
-	const [selectedSubtype, setSelectedSubtype] = useState<string | null>(null);
-	const [selectedSpeedCategory, setSelectedSpeedCategory] =
-		useState<SpeedCategory | null>(null);
-	const [manaBreakdownSelection, setManaBreakdownSelection] =
-		useState<ManaBreakdownSelection>(null);
-
-	// Compute statistics
+	// Compute all statistics
 	const manaCurve = useMemo(
 		() =>
 			cardMap
@@ -85,7 +65,7 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 		[cards, cardMap],
 	);
 
-	const manaSymbolsVsSources = useMemo(
+	const manaBreakdown = useMemo(
 		() =>
 			cardMap
 				? computeManaSymbolsVsSources(cards, (dc) => cardMap.get(dc.scryfallId))
@@ -93,71 +73,25 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 		[cards, cardMap],
 	);
 
-	const clearSelections = () => {
-		setSelectedCurveBucket(null);
-		setSelectedCurveType(null);
-		setSelectedType(null);
-		setSelectedSubtype(null);
-		setSelectedSpeedCategory(null);
-		setManaBreakdownSelection(null);
-	};
-
-	const handleCurveSelect = (cards: DeckCard[], title: string) => {
-		clearSelections();
-		setSelectedCards(cards);
-		setSelectedTitle(title);
-
-		// Parse bucket and type from title for highlighting
-		const mvMatch = title.match(/\(MV (\d\+?)\)/);
-		if (mvMatch) {
-			setSelectedCurveBucket(mvMatch[1]);
-			setSelectedCurveType(
-				title.startsWith("Permanents") ? "permanent" : "spell",
-			);
-		}
-	};
-
-	const handleTypeSelect = (cards: DeckCard[], title: string) => {
-		clearSelections();
-		setSelectedCards(cards);
-		setSelectedTitle(title);
-
-		// Parse type from title
-		const typeMatch = title.match(/^(\w+)\s*\(/);
-		if (typeMatch) {
-			setSelectedType(typeMatch[1]);
-		}
-	};
-
-	const handleSubtypeSelect = (cards: DeckCard[], title: string) => {
-		clearSelections();
-		setSelectedCards(cards);
-		setSelectedTitle(title);
-
-		// Parse subtype from title
-		const subtypeMatch = title.match(/^(.+?)\s*\(/);
-		if (subtypeMatch) {
-			setSelectedSubtype(subtypeMatch[1]);
-		}
-	};
-
-	const handleSpeedSelect = (cards: DeckCard[], title: string) => {
-		clearSelections();
-		setSelectedCards(cards);
-		setSelectedTitle(title);
-
-		if (title.startsWith("Instant")) {
-			setSelectedSpeedCategory("instant");
-		} else if (title.startsWith("Sorcery")) {
-			setSelectedSpeedCategory("sorcery");
-		}
-	};
-
-	const handleManaBreakdownSelect = (cards: DeckCard[], title: string) => {
-		clearSelections();
-		setSelectedCards(cards);
-		setSelectedTitle(title);
-	};
+	// Derive selected cards from selection + stats
+	const { cards: selectedCards, title: selectedTitle } = useMemo(
+		() =>
+			getSelectedCards(selection, {
+				manaCurve,
+				typeDistribution,
+				subtypeDistribution,
+				speedDistribution,
+				manaBreakdown,
+			}),
+		[
+			selection,
+			manaCurve,
+			typeDistribution,
+			subtypeDistribution,
+			speedDistribution,
+			manaBreakdown,
+		],
+	);
 
 	if (!cardMap) {
 		return (
@@ -189,30 +123,28 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 				<div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 					<ManaCurveChart
 						data={manaCurve}
-						onSelectCards={handleCurveSelect}
-						selectedBucket={selectedCurveBucket}
-						selectedType={selectedCurveType}
+						selection={selection}
+						onSelect={setSelection}
 					/>
 					<TypesPieChart
 						data={typeDistribution}
-						onSelectCards={handleTypeSelect}
-						selectedType={selectedType}
+						selection={selection}
+						onSelect={setSelection}
 					/>
 					<SpeedPieChart
 						data={speedDistribution}
-						onSelectCards={handleSpeedSelect}
-						selectedCategory={selectedSpeedCategory}
+						selection={selection}
+						onSelect={setSelection}
 					/>
 					<SubtypesPieChart
 						data={subtypeDistribution}
-						onSelectCards={handleSubtypeSelect}
-						selectedSubtype={selectedSubtype}
+						selection={selection}
+						onSelect={setSelection}
 					/>
 					<ManaBreakdown
-						data={manaSymbolsVsSources}
-						onSelectCards={handleManaBreakdownSelect}
-						selection={manaBreakdownSelection}
-						onSelectionChange={setManaBreakdownSelection}
+						data={manaBreakdown}
+						selection={selection}
+						onSelect={setSelection}
 					/>
 				</div>
 

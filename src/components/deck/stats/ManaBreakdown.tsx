@@ -1,18 +1,12 @@
 import { CardSymbol } from "@/components/CardSymbol";
 import type { ManaSymbolsData, SourceTempo } from "@/lib/deck-stats";
-import type { DeckCard } from "@/lib/deck-types";
 import type { ManaColorWithColorless } from "@/lib/scryfall-types";
-
-export type ManaBreakdownSelection = {
-	color: ManaColorWithColorless;
-	type: "symbol" | SourceTempo;
-} | null;
+import type { StatsSelection } from "@/lib/stats-selection";
 
 interface ManaBreakdownProps {
 	data: ManaSymbolsData[];
-	onSelectCards: (cards: DeckCard[], title: string) => void;
-	selection: ManaBreakdownSelection;
-	onSelectionChange: (selection: ManaBreakdownSelection) => void;
+	selection: StatsSelection;
+	onSelect: (selection: StatsSelection) => void;
 }
 
 const COLOR_ORDER: ManaColorWithColorless[] = ["W", "U", "B", "R", "G", "C"];
@@ -28,13 +22,11 @@ const COLOR_NAMES: Record<ManaColorWithColorless, string> = {
 
 export function ManaBreakdown({
 	data,
-	onSelectCards,
 	selection,
-	onSelectionChange,
+	onSelect,
 }: ManaBreakdownProps) {
 	const byColor = new Map(data.map((d) => [d.color, d]));
 
-	// Show colors that have symbols OR sources
 	const activeColors = COLOR_ORDER.filter((c) => {
 		const d = byColor.get(c);
 		return d && (d.symbolCount > 0 || d.sourceCount > 0);
@@ -44,12 +36,19 @@ export function ManaBreakdown({
 		return null;
 	}
 
-	// Totals for summary
 	const totalImmediate = data.reduce((s, d) => s + d.immediateSourceCount, 0);
 	const totalSources = data.reduce((s, d) => s + d.sourceCount, 0);
 	const totalSymbols = data.reduce((s, d) => s + d.symbolCount, 0);
 	const immediatePercent =
 		totalSources > 0 ? Math.round((totalImmediate / totalSources) * 100) : 0;
+
+	const isSelected = (
+		color: ManaColorWithColorless,
+		type: "symbol" | SourceTempo,
+	) =>
+		selection?.chart === "mana" &&
+		selection.color === color &&
+		selection.type === type;
 
 	return (
 		<div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 col-span-full xl:col-span-2">
@@ -72,18 +71,12 @@ export function ManaBreakdown({
 							colorName={COLOR_NAMES[color]}
 							totalSymbols={totalSymbols}
 							totalSources={totalSources}
-							isSelected={(type) =>
-								selection?.color === color && selection?.type === type
-							}
-							onSelect={(type, cards, title) => {
-								onSelectionChange({ color, type });
-								onSelectCards(cards, title);
-							}}
+							isSelected={(type) => isSelected(color, type)}
+							onSelect={(type) => onSelect({ chart: "mana", color, type })}
 						/>
 					);
 				})}
 			</div>
-			{/* Legend and summary */}
 			<div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
 				<div className="flex gap-3 text-xs">
 					<span className="flex items-center gap-1">
@@ -118,11 +111,7 @@ interface ManaColumnProps {
 	totalSymbols: number;
 	totalSources: number;
 	isSelected: (type: "symbol" | SourceTempo) => boolean;
-	onSelect: (
-		type: "symbol" | SourceTempo,
-		cards: DeckCard[],
-		title: string,
-	) => void;
+	onSelect: (type: "symbol" | SourceTempo) => void;
 }
 
 function ManaColumn({
@@ -141,7 +130,6 @@ function ManaColumn({
 	const bouncePercent =
 		sourceCount > 0 ? (data.bounceSourceCount / sourceCount) * 100 : 0;
 
-	// Grey out if no symbols (sources only)
 	const hasSymbols = data.symbolCount > 0;
 	const greyedOut = !hasSymbols;
 
@@ -149,16 +137,9 @@ function ManaColumn({
 		<div
 			className={`flex flex-col items-center gap-1 ${greyedOut ? "opacity-40" : ""}`}
 		>
-			{/* Mana symbol with black border in light mode */}
 			<button
 				type="button"
-				onClick={() =>
-					onSelect(
-						"symbol",
-						data.symbolCards,
-						`${colorName} Symbols (${data.symbolCount})`,
-					)
-				}
+				onClick={() => onSelect("symbol")}
 				disabled={!hasSymbols}
 				title={
 					hasSymbols
@@ -178,7 +159,6 @@ function ManaColumn({
 				</div>
 			</button>
 
-			{/* Symbol percentage */}
 			<div
 				className="text-lg font-semibold text-gray-900 dark:text-white cursor-help"
 				title={
@@ -196,10 +176,8 @@ function ManaColumn({
 				{data.symbolCount} pips
 			</div>
 
-			{/* Sparkline */}
 			<Sparkline distribution={data.symbolDistribution} color={data.color} />
 
-			{/* Source tempo bar */}
 			{sourceCount > 0 && (
 				<div className="w-full mt-2">
 					<div
@@ -216,13 +194,7 @@ function ManaColumn({
 								}`}
 								style={{ width: `${immediatePercent}%` }}
 								title={`Immediate: ${data.immediateSourceCount} of ${sourceCount} ${colorName.toLowerCase()} sources (${Math.round(immediatePercent)}%)\nCan produce mana the turn they enter`}
-								onClick={() =>
-									onSelect(
-										"immediate",
-										data.immediateSourceCards,
-										`${colorName} Immediate Sources (${data.immediateSourceCount})`,
-									)
-								}
+								onClick={() => onSelect("immediate")}
 							/>
 						)}
 						{data.delayedSourceCount > 0 && (
@@ -235,13 +207,7 @@ function ManaColumn({
 								}`}
 								style={{ width: `${delayedPercent}%` }}
 								title={`Delayed: ${data.delayedSourceCount} of ${sourceCount} ${colorName.toLowerCase()} sources (${Math.round(delayedPercent)}%)\nEnter tapped or have summoning sickness`}
-								onClick={() =>
-									onSelect(
-										"delayed",
-										data.delayedSourceCards,
-										`${colorName} Delayed Sources (${data.delayedSourceCount})`,
-									)
-								}
+								onClick={() => onSelect("delayed")}
 							/>
 						)}
 						{data.bounceSourceCount > 0 && (
@@ -254,13 +220,7 @@ function ManaColumn({
 								}`}
 								style={{ width: `${bouncePercent}%` }}
 								title={`Bounce: ${data.bounceSourceCount} of ${sourceCount} ${colorName.toLowerCase()} sources (${Math.round(bouncePercent)}%)\nEnter tapped and return a land`}
-								onClick={() =>
-									onSelect(
-										"bounce",
-										data.bounceSourceCards,
-										`${colorName} Bounce Sources (${data.bounceSourceCount})`,
-									)
-								}
+								onClick={() => onSelect("bounce")}
 							/>
 						)}
 					</div>

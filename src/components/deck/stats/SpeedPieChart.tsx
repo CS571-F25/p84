@@ -1,34 +1,30 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
-import type { SpeedData } from "@/lib/deck-stats";
-import type { DeckCard } from "@/lib/deck-types";
+import type { SpeedCategory, SpeedData } from "@/lib/deck-stats";
+import type { StatsSelection } from "@/lib/stats-selection";
 
 interface SpeedPieChartProps {
 	data: SpeedData[];
-	onSelectCards: (cards: DeckCard[], title: string) => void;
-	selectedCategory: "instant" | "sorcery" | null;
+	selection: StatsSelection;
+	onSelect: (selection: StatsSelection) => void;
 }
 
-const SPEED_COLORS = {
+const SPEED_COLORS: Record<SpeedCategory, string> = {
 	instant: "#3B82F6",
 	sorcery: "#EF4444",
 };
 
-const SPEED_LABELS = {
+const SPEED_LABELS: Record<SpeedCategory, string> = {
 	instant: "Instant Speed",
 	sorcery: "Sorcery Speed",
 };
 
 export function SpeedPieChart({
 	data,
-	onSelectCards,
-	selectedCategory,
+	selection,
+	onSelect,
 }: SpeedPieChartProps) {
-	const handleSliceClick = (entry: SpeedData) => {
-		onSelectCards(
-			entry.cards,
-			`${SPEED_LABELS[entry.category]} (${entry.count})`,
-		);
-	};
+	const isSelected = (category: SpeedCategory) =>
+		selection?.chart === "speed" && selection.category === category;
 
 	const total = data.reduce((sum, d) => sum + d.count, 0);
 
@@ -50,18 +46,16 @@ export function SpeedPieChart({
 								innerRadius={40}
 								outerRadius={70}
 								cursor="pointer"
-								onClick={(_, index) => handleSliceClick(data[index])}
+								onClick={(_, index) =>
+									onSelect({ chart: "speed", category: data[index].category })
+								}
 							>
 								{data.map((entry) => (
 									<Cell
 										key={entry.category}
 										fill={SPEED_COLORS[entry.category]}
-										stroke={
-											selectedCategory === entry.category
-												? "#fff"
-												: "transparent"
-										}
-										strokeWidth={selectedCategory === entry.category ? 2 : 0}
+										stroke={isSelected(entry.category) ? "#fff" : "transparent"}
+										strokeWidth={isSelected(entry.category) ? 2 : 0}
 									/>
 								))}
 							</Pie>
@@ -74,7 +68,9 @@ export function SpeedPieChart({
 							key={entry.category}
 							type="button"
 							className="flex items-center gap-1 text-left hover:opacity-80 transition-opacity"
-							onClick={() => handleSliceClick(entry)}
+							onClick={() =>
+								onSelect({ chart: "speed", category: entry.category })
+							}
 						>
 							<div
 								className="w-2 h-2 rounded-full flex-shrink-0"
