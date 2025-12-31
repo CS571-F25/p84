@@ -34,11 +34,17 @@ export interface ManaSymbolsData {
 	bounceSourceCount: number;
 	sourceCount: number;
 	sourcePercent: number;
+	// Land-specific stats (for moxfield-style breakdown)
+	landSourceCount: number;
+	landSourcePercent: number; // % of lands that produce this color
+	landProductionPercent: number; // % of total land production that is this color
+	totalLandCount: number; // actual count of mana-producing lands (for display)
 	symbolCards: DeckCard[];
 	immediateSourceCards: DeckCard[];
 	conditionalSourceCards: DeckCard[];
 	delayedSourceCards: DeckCard[];
 	bounceSourceCards: DeckCard[];
+	landSourceCards: DeckCard[];
 	symbolDistribution: { bucket: string; count: number }[];
 }
 
@@ -338,14 +344,17 @@ export function computeManaSymbolsVsSources(
 	const conditionalCounts = makeColorRecord(() => 0);
 	const delayedCounts = makeColorRecord(() => 0);
 	const bounceCounts = makeColorRecord(() => 0);
+	const landCounts = makeColorRecord(() => 0);
 	const symbolCards = makeColorRecord<DeckCard[]>(() => []);
 	const immediateCards = makeColorRecord<DeckCard[]>(() => []);
 	const conditionalCards = makeColorRecord<DeckCard[]>(() => []);
 	const delayedCards = makeColorRecord<DeckCard[]>(() => []);
 	const bounceCards = makeColorRecord<DeckCard[]>(() => []);
+	const landCards = makeColorRecord<DeckCard[]>(() => []);
 	const symbolDistributions = makeColorRecord<Map<string, number>>(
 		() => new Map(),
 	);
+	let totalLandCount = 0;
 
 	for (const deckCard of cards) {
 		const card = lookup(deckCard);
@@ -369,11 +378,26 @@ export function computeManaSymbolsVsSources(
 
 		// Count mana sources by tempo
 		const producedColors = (card.produced_mana ?? []) as ColorKey[];
+		const isLand = (card.type_line ?? "").includes("Land");
+
 		if (producedColors.length > 0) {
 			const tempo = getSourceTempo(card);
+
+			// Track land sources separately (count each land once, not per color)
+			if (isLand) {
+				totalLandCount += deckCard.quantity;
+			}
+
 			for (const color of producedColors) {
 				if (!MANA_COLORS_WITH_COLORLESS.includes(color)) continue;
 				const qty = deckCard.quantity;
+
+				// Track land sources per color
+				if (isLand) {
+					landCounts[color] += qty;
+					landCards[color].push(deckCard);
+				}
+
 				switch (tempo) {
 					case "immediate":
 						immediateCounts[color] += qty;
@@ -407,6 +431,11 @@ export function computeManaSymbolsVsSources(
 			bounceCounts[c],
 		0,
 	);
+	// Total land production = sum of all land-color pairs (duals count for each color)
+	const totalLandProduction = MANA_COLORS_WITH_COLORLESS.reduce(
+		(sum, c) => sum + landCounts[c],
+		0,
+	);
 
 	return MANA_COLORS_WITH_COLORLESS.map((color) => {
 		const sourceCount =
@@ -432,11 +461,20 @@ export function computeManaSymbolsVsSources(
 			bounceSourceCount: bounceCounts[color],
 			sourceCount,
 			sourcePercent: totalSources > 0 ? (sourceCount / totalSources) * 100 : 0,
+			landSourceCount: landCounts[color],
+			landSourcePercent:
+				totalLandCount > 0 ? (landCounts[color] / totalLandCount) * 100 : 0,
+			landProductionPercent:
+				totalLandProduction > 0
+					? (landCounts[color] / totalLandProduction) * 100
+					: 0,
+			totalLandCount,
 			symbolCards: symbolCards[color],
 			immediateSourceCards: immediateCards[color],
 			conditionalSourceCards: conditionalCards[color],
 			delayedSourceCards: delayedCards[color],
 			bounceSourceCards: bounceCards[color],
+			landSourceCards: landCards[color],
 			symbolDistribution,
 		};
 	});

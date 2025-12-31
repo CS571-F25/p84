@@ -1,7 +1,7 @@
 import { CardSymbol } from "@/components/CardSymbol";
-import type { ManaSymbolsData, SourceTempo } from "@/lib/deck-stats";
+import type { ManaSymbolsData } from "@/lib/deck-stats";
 import type { ManaColorWithColorless } from "@/lib/scryfall-types";
-import type { StatsSelection } from "@/lib/stats-selection";
+import type { ManaSelectionType, StatsSelection } from "@/lib/stats-selection";
 
 interface ManaBreakdownProps {
 	data: ManaSymbolsData[];
@@ -42,10 +42,10 @@ export function ManaBreakdown({
 	const immediatePercent =
 		totalSources > 0 ? Math.round((totalImmediate / totalSources) * 100) : 0;
 
-	const isSelected = (
-		color: ManaColorWithColorless,
-		type: "symbol" | SourceTempo,
-	) =>
+	// Use totalLandCount from any color entry (they all have the same value)
+	const totalLands = data[0]?.totalLandCount ?? 0;
+
+	const isSelected = (color: ManaColorWithColorless, type: ManaSelectionType) =>
 		selection?.chart === "mana" &&
 		selection.color === color &&
 		selection.type === type;
@@ -71,6 +71,7 @@ export function ManaBreakdown({
 							colorName={COLOR_NAMES[color]}
 							totalSymbols={totalSymbols}
 							totalSources={totalSources}
+							totalLands={totalLands}
 							isSelected={(type) => isSelected(color, type)}
 							onSelect={(type) => onSelect({ chart: "mana", color, type })}
 						/>
@@ -128,8 +129,9 @@ interface ManaColumnProps {
 	colorName: string;
 	totalSymbols: number;
 	totalSources: number;
-	isSelected: (type: "symbol" | SourceTempo) => boolean;
-	onSelect: (type: "symbol" | SourceTempo) => void;
+	totalLands: number;
+	isSelected: (type: ManaSelectionType) => boolean;
+	onSelect: (type: ManaSelectionType) => void;
 }
 
 function ManaColumn({
@@ -137,6 +139,7 @@ function ManaColumn({
 	colorName,
 	totalSymbols,
 	totalSources,
+	totalLands,
 	isSelected,
 	onSelect,
 }: ManaColumnProps) {
@@ -262,6 +265,37 @@ function ManaColumn({
 						title={`${sourceCount} cards produce ${colorName.toLowerCase()} mana`}
 					>
 						{sourceCount} sources
+					</div>
+				</div>
+			)}
+
+			{/* Land production bar (moxfield-style) */}
+			{totalLands > 0 && (
+				<div className="w-full mt-3 pt-2 border-t border-gray-100 dark:border-slate-800">
+					<div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-1">
+						{colorName} Mana Production
+					</div>
+					<button
+						type="button"
+						className={`relative w-full h-5 rounded overflow-hidden bg-gray-200 dark:bg-slate-700 transition-opacity ${
+							isSelected("land") ? "ring-2 ring-blue-500" : "hover:opacity-90"
+						}`}
+						onClick={() => onSelect("land")}
+						title={`${data.landSourceCount} of ${totalLands} lands produce ${colorName.toLowerCase()}`}
+					>
+						<div
+							className="h-full bg-gradient-to-r from-amber-400 to-amber-500"
+							style={{ width: `${data.landSourcePercent}%` }}
+						/>
+						<span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300">
+							{Math.round(data.landSourcePercent)}%
+						</span>
+					</button>
+					<div
+						className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1 cursor-help"
+						title={`${Math.round(data.landProductionPercent)}% of your lands' total mana production is ${colorName.toLowerCase()}`}
+					>
+						{Math.round(data.landProductionPercent)}% of mana on lands
 					</div>
 				</div>
 			)}

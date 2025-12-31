@@ -9,6 +9,8 @@ import type {
 import type { DeckCard } from "./deck-types";
 import type { ManaColorWithColorless } from "./scryfall-types";
 
+export type ManaSelectionType = "symbol" | "land" | SourceTempo;
+
 export type StatsSelection =
 	| { chart: "curve"; bucket: string; type: "permanent" | "spell" }
 	| { chart: "type"; type: string }
@@ -17,7 +19,7 @@ export type StatsSelection =
 	| {
 			chart: "mana";
 			color: ManaColorWithColorless;
-			type: "symbol" | SourceTempo;
+			type: ManaSelectionType;
 	  }
 	| null;
 
@@ -113,6 +115,13 @@ export function getSelectedCards(
 				return {
 					cards: manaData.symbolCards,
 					title: `${colorName} Symbols (${manaData.symbolCount})`,
+				};
+			}
+
+			if (selection.type === "land") {
+				return {
+					cards: manaData.landSourceCards,
+					title: `${colorName} Lands (${manaData.landSourceCount})`,
 				};
 			}
 
