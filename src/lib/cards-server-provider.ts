@@ -10,8 +10,8 @@
 // Static import of cloudflare:workers - the Cloudflare Vite plugin handles this
 // In dev: provides stub/mock, In production: actual Workers env
 import { env } from "cloudflare:workers";
-import { CARD_CHUNKS, CARD_INDEXES } from "./card-chunks";
 import type { CardDataProvider } from "./card-data-provider";
+import { CARD_CHUNKS, CARD_INDEXES } from "./card-manifest";
 import { LRUCache } from "./lru-cache";
 import type { Card, OracleId, ScryfallId } from "./scryfall-types";
 
@@ -49,11 +49,12 @@ interface IndexData {
 // Format: UUID (16 bytes) + chunk (1 byte) + offset (4 bytes) + length (4 bytes)
 const RECORD_SIZE = 25;
 
-// LRU cache for chunk data
-const MAX_CHUNK_CACHE_SIZE = 3;
+// LRU cache for chunk data (~5MB per chunk with 4096 cards/chunk)
+// 12 chunks = ~60MB, same budget as before (3 * 20MB), covers ~43% of data
+const MAX_CHUNK_CACHE_SIZE = 12;
 
 // LRU cache for parsed Card objects — hot cards hit far more often than needing extra chunks
-// ~2-5KB per card, 10k cards ≈ 40MB — traded one chunk slot for better card hit rate
+// ~2KB per card (no prices), 10k cards ≈ 20MB
 const MAX_CARD_CACHE_SIZE = 10_000;
 
 let binaryIndexCache: ArrayBuffer | null = null;
@@ -288,7 +289,16 @@ export class ServerCardProvider implements CardDataProvider {
 		}
 
 		// Phase 3: Process each chunk (load once, extract all cards)
-		for (const [chunkIndex, items] of byChunk) {
+		// Sort to process cached chunks first, avoiding unnecessary evictions
+		const sortedChunks = [...byChunk.entries()].sort(([a], [b]) => {
+			const aInCache = chunkCaches.has(a);
+			const bInCache = chunkCaches.has(b);
+			if (aInCache && !bInCache) return -1;
+			if (!aInCache && bInCache) return 1;
+			return 0;
+		});
+
+		for (const [chunkIndex, items] of sortedChunks) {
 			try {
 				const chunkContent = await loadChunk(chunkIndex);
 				for (const { id, entry } of items) {

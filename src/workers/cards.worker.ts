@@ -7,7 +7,7 @@
 
 import * as Comlink from "comlink";
 import MiniSearch from "minisearch";
-import { CARD_CHUNKS, CARD_INDEXES } from "../lib/card-chunks";
+import { CARD_CHUNKS, CARD_INDEXES, CARD_VOLATILE } from "../lib/card-manifest";
 import type {
 	Card,
 	CardDataOutput,
@@ -216,9 +216,9 @@ class CardsWorker implements CardsWorkerAPI {
 		console.log("[CardsWorker] Loading volatile data...");
 
 		try {
-			const response = await fetch("/data/volatile.bin");
+			const response = await fetch(`/data/cards/${CARD_VOLATILE}`);
 			if (!response.ok) {
-				console.warn("[CardsWorker] Failed to load volatile.bin");
+				console.warn("[CardsWorker] Failed to load volatile data");
 				return;
 			}
 

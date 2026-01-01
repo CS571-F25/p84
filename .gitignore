@@ -14,7 +14,7 @@ dist-ssr
 # Scryfall data (downloaded during build)
 public/data/
 public/symbols/
-src/lib/card-chunks.ts
+src/lib/card-manifest.ts
 .cache/
 
 tsconfig.tsbuildinfo

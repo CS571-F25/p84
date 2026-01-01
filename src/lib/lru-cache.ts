@@ -53,4 +53,11 @@ export class LRUCache<K, V> {
 	get size(): number {
 		return this.cache.size;
 	}
+
+	/**
+	 * Check if key exists without affecting LRU order
+	 */
+	has(key: K): boolean {
+		return this.cache.has(key);
+	}
 }
