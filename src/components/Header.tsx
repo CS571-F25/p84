@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Library, LogIn, Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/lib/useAuth";
+import { RETURN_TO_KEY, useAuth } from "@/lib/useAuth";
 import { useTheme } from "@/lib/useTheme";
 import UserMenu from "./UserMenu";
 
@@ -9,6 +9,13 @@ export default function Header() {
 	const [isOpen, setIsOpen] = useState(false);
 	const { theme, toggleTheme } = useTheme();
 	const { session, isLoading } = useAuth();
+	const location = useLocation();
+
+	const handleSignInClick = () => {
+		if (location.pathname !== "/signin") {
+			sessionStorage.setItem(RETURN_TO_KEY, location.href);
+		}
+	};
 
 	return (
 		<>
@@ -33,6 +40,7 @@ export default function Header() {
 						) : (
 							<Link
 								to="/signin"
+								onClick={handleSignInClick}
 								className="flex items-center gap-2 px-3 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
 							>
 								<LogIn size={16} />

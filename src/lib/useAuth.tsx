@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 
 const STORAGE_KEY = "deckbelcher:last-did";
+export const RETURN_TO_KEY = "deckbelcher:return-to";
 
 interface AuthContextValue {
 	session: Session | null;

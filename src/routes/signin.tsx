@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LogIn } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { searchActorsQueryOptions } from "@/lib/actor-search";
-import { useAuth } from "@/lib/useAuth";
+import { RETURN_TO_KEY, useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/signin")({
 	component: SignIn,
@@ -124,7 +124,9 @@ function SignIn() {
 	};
 
 	if (session) {
-		navigate({ to: "/" });
+		const returnTo = sessionStorage.getItem(RETURN_TO_KEY);
+		sessionStorage.removeItem(RETURN_TO_KEY);
+		navigate({ to: returnTo || "/" });
 		return null;
 	}
 

@@ -1,7 +1,7 @@
 import { finalizeAuthorization } from "@atcute/oauth-browser-client";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@/lib/useAuth";
+import { RETURN_TO_KEY, useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/oauth/callback")({
 	component: OAuthCallback,
@@ -63,7 +63,9 @@ function OAuthCallback() {
 				const { session } = await finalizeAuthorization(params);
 				setAuthSession(session);
 
-				navigate({ to: "/" });
+				const returnTo = sessionStorage.getItem(RETURN_TO_KEY);
+				sessionStorage.removeItem(RETURN_TO_KEY);
+				navigate({ to: returnTo || "/" });
 			} catch (err) {
 				console.error("OAuth callback error:", err);
 				const message =
