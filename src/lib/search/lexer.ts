@@ -29,7 +29,20 @@ const WORD_TERMINATORS = new Set([
 	"<",
 	">",
 	'"',
-	"/",
+]);
+
+// Track what token types can precede a regex
+const REGEX_STARTERS = new Set<TokenType>([
+	"COLON",
+	"EQUALS",
+	"NOT_EQUALS",
+	"LT",
+	"GT",
+	"LTE",
+	"GTE",
+	"LPAREN",
+	"NOT",
+	"OR",
 ]);
 
 /**
@@ -218,15 +231,22 @@ export function tokenize(input: string): Result<Token[]> {
 			continue;
 		}
 
-		// Regex
+		// Regex - only after operators/parens, not mid-word
 		if (char === "/") {
-			const result = readRegex();
-			if (!result.ok) return result;
-			tokens.push(makeToken("REGEX", result.value.source, start));
-			// Store the compiled pattern for later use
-			const token = tokens[tokens.length - 1];
-			(token as Token & { pattern?: RegExp }).pattern = result.value.pattern;
-			continue;
+			const lastToken = tokens[tokens.length - 1];
+			const canStartRegex =
+				tokens.length === 0 || REGEX_STARTERS.has(lastToken.type);
+
+			if (canStartRegex) {
+				const result = readRegex();
+				if (!result.ok) return result;
+				tokens.push(makeToken("REGEX", result.value.source, start));
+				// Store the compiled pattern for later use
+				const token = tokens[tokens.length - 1];
+				(token as Token & { pattern?: RegExp }).pattern = result.value.pattern;
+				continue;
+			}
+			// Otherwise fall through to word parsing - / will be part of word
 		}
 
 		// NOT operator (- at word boundary)

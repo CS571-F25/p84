@@ -640,6 +640,15 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 	sorcery: (card) => card.type_line?.toLowerCase().includes("sorcery") ?? false,
 	legendary: (card) =>
 		card.type_line?.toLowerCase().includes("legendary") ?? false,
+	snow: (card) => card.type_line?.toLowerCase().includes("snow") ?? false,
+	historic: (card) => {
+		const types = card.type_line?.toLowerCase() ?? "";
+		return (
+			types.includes("legendary") ||
+			types.includes("artifact") ||
+			types.includes("saga")
+		);
+	},
 };
 
 /**

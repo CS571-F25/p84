@@ -61,10 +61,9 @@ export function isStrictSuperset<T>(a: Set<T>, b: Set<T>): boolean {
 /**
  * Compare card colors against search colors using the given operator
  *
- * @param cardColors - The card's colors (from card.colors or card.color_identity)
- * @param searchColors - The colors from the search query
- * @param operator - The comparison operator
- * @returns Whether the card matches the search
+ * Special handling for colorless (C):
+ * - "C" in search means "colorless" = empty color set
+ * - Colorless cards have [] for colors/color_identity, not ["C"]
  */
 export function compareColors(
 	cardColors: string[] | undefined,
@@ -73,31 +72,53 @@ export function compareColors(
 ): boolean {
 	const cardSet = new Set(cardColors ?? []);
 
+	// Searching for exactly colorless (only C in search)
+	const isColorlessSearch = searchColors.size === 1 && searchColors.has("C");
+	const cardIsColorless = cardSet.size === 0;
+
+	if (isColorlessSearch) {
+		switch (operator) {
+			case ":":
+			case ">=":
+			case "=":
+				return cardIsColorless;
+			case "!=":
+				return !cardIsColorless;
+			case "<=":
+				// id<=c means "can go in colorless deck" = only colorless cards
+				return cardIsColorless;
+			case "<":
+				// Strict subset of empty = impossible
+				return false;
+			case ">":
+				// Strict superset of empty = has any colors
+				return !cardIsColorless;
+		}
+	}
+
+	// Remove C from search - it doesn't appear in actual card data
+	const normalizedSearch = new Set(searchColors);
+	normalizedSearch.delete("C");
+
 	switch (operator) {
 		case ":":
 		case ">=":
-			// Card has at least these colors (superset)
-			return isSuperset(cardSet, searchColors);
+			return isSuperset(cardSet, normalizedSearch);
 
 		case "=":
-			// Card has exactly these colors
-			return setsEqual(cardSet, searchColors);
+			return setsEqual(cardSet, normalizedSearch);
 
 		case "!=":
-			// Card doesn't have exactly these colors
-			return !setsEqual(cardSet, searchColors);
+			return !setsEqual(cardSet, normalizedSearch);
 
 		case "<=":
-			// Card has at most these colors (subset) - commander deckbuilding
-			return isSubset(cardSet, searchColors);
+			return isSubset(cardSet, normalizedSearch);
 
 		case "<":
-			// Card has strictly fewer colors (strict subset)
-			return isStrictSubset(cardSet, searchColors);
+			return isStrictSubset(cardSet, normalizedSearch);
 
 		case ">":
-			// Card has strictly more colors (strict superset)
-			return isStrictSuperset(cardSet, searchColors);
+			return isStrictSuperset(cardSet, normalizedSearch);
 	}
 }
 
