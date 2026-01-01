@@ -3,6 +3,10 @@
 /**
  * Downloads Scryfall bulk data and processes it for client use.
  *
+ * Usage:
+ *   npm run download:scryfall          # Normal mode: fetch + process
+ *   npm run download:scryfall --offline # Offline mode: reprocess cached data only
+ *
  * Fetches:
  * - default_cards bulk data (all English cards)
  * - migrations data (UUID changes)
@@ -300,45 +304,61 @@ export function compareCards(a: Card, b: Card): number {
 	return 0;
 }
 
-async function processBulkData(): Promise<CardDataOutput> {
-	// Get bulk data list
-	const bulkData = await fetchJSON<BulkDataResponse>(
-		"https://api.scryfall.com/bulk-data",
-	);
-	const defaultCards = bulkData.data.find((d) => d.type === "default_cards");
-
-	if (!defaultCards) {
-		throw new Error("Could not find default_cards bulk data");
-	}
-
-	console.log(`Remote version: ${defaultCards.updated_at}`);
-	console.log(
-		`Download size: ${(defaultCards.size / 1024 / 1024).toFixed(2)} MB`,
-	);
-
-	// Check if we already have this version
+async function processBulkData(offline: boolean): Promise<CardDataOutput> {
 	await mkdir(TEMP_DIR, { recursive: true });
 	const tempFile = join(TEMP_DIR, "cards-bulk.json");
 	const versionPath = join(OUTPUT_DIR, "version.json");
 
-	try {
-		const existingVersion = JSON.parse(
-			await readFile(versionPath, "utf-8"),
-		) as { version: string; cardCount: number };
+	let version: string;
 
-		if (existingVersion.version === defaultCards.updated_at) {
-			console.log(
-				`✓ Already have latest version (${defaultCards.updated_at}), skipping Scryfall download`,
-			);
-			console.log("Using cached data for local processing...");
-		} else {
-			console.log(`Local version: ${existingVersion.version}`);
-			console.log("Version changed, downloading update...");
+	if (offline) {
+		console.log("Offline mode: using cached data");
+		try {
+			const existingVersion = JSON.parse(
+				await readFile(versionPath, "utf-8"),
+			) as { version: string; cardCount: number };
+			version = existingVersion.version;
+		} catch {
+			// No version file, use placeholder
+			version = "offline";
+		}
+	} else {
+		// Get bulk data list
+		const bulkData = await fetchJSON<BulkDataResponse>(
+			"https://api.scryfall.com/bulk-data",
+		);
+		const defaultCards = bulkData.data.find((d) => d.type === "default_cards");
+
+		if (!defaultCards) {
+			throw new Error("Could not find default_cards bulk data");
+		}
+
+		console.log(`Remote version: ${defaultCards.updated_at}`);
+		console.log(
+			`Download size: ${(defaultCards.size / 1024 / 1024).toFixed(2)} MB`,
+		);
+
+		version = defaultCards.updated_at;
+
+		try {
+			const existingVersion = JSON.parse(
+				await readFile(versionPath, "utf-8"),
+			) as { version: string; cardCount: number };
+
+			if (existingVersion.version === defaultCards.updated_at) {
+				console.log(
+					`✓ Already have latest version (${defaultCards.updated_at}), skipping Scryfall download`,
+				);
+				console.log("Using cached data for local processing...");
+			} else {
+				console.log(`Local version: ${existingVersion.version}`);
+				console.log("Version changed, downloading update...");
+				await downloadFile(defaultCards.download_uri, tempFile);
+			}
+		} catch {
+			console.log("No local version found, downloading...");
 			await downloadFile(defaultCards.download_uri, tempFile);
 		}
-	} catch {
-		console.log("No local version found, downloading...");
-		await downloadFile(defaultCards.download_uri, tempFile);
 	}
 
 	// Parse and filter
@@ -407,7 +427,7 @@ async function processBulkData(): Promise<CardDataOutput> {
 	);
 
 	const output: CardDataOutput = {
-		version: defaultCards.updated_at,
+		version,
 		cardCount: cards.length,
 		cards: cardById,
 		oracleIdToPrintings,
@@ -920,20 +940,31 @@ async function downloadSymbols(): Promise<number> {
 
 async function main(): Promise<void> {
 	try {
+		const offline = process.argv.includes("--offline");
+
 		console.log("=== Scryfall Data Download ===\n");
 
-		const [cardsData, migrations, symbolCount] = await Promise.all([
-			processBulkData(),
-			processMigrations(),
-			downloadSymbols(),
-		]);
+		if (offline) {
+			console.log("Running in offline mode (reprocessing only)\n");
+			const cardsData = await processBulkData(true);
+			console.log("\n=== Summary ===");
+			console.log(`Cards: ${cardsData.cardCount.toLocaleString()}`);
+			console.log(`Version: ${cardsData.version}`);
+			console.log("\n✓ Done!");
+		} else {
+			const [cardsData, migrations, symbolCount] = await Promise.all([
+				processBulkData(false),
+				processMigrations(),
+				downloadSymbols(),
+			]);
 
-		console.log("\n=== Summary ===");
-		console.log(`Cards: ${cardsData.cardCount.toLocaleString()}`);
-		console.log(`Migrations: ${Object.keys(migrations).length.toLocaleString()}`);
-		console.log(`Symbols: ${symbolCount.toLocaleString()}`);
-		console.log(`Version: ${cardsData.version}`);
-		console.log("\n✓ Done!");
+			console.log("\n=== Summary ===");
+			console.log(`Cards: ${cardsData.cardCount.toLocaleString()}`);
+			console.log(`Migrations: ${Object.keys(migrations).length.toLocaleString()}`);
+			console.log(`Symbols: ${symbolCount.toLocaleString()}`);
+			console.log(`Version: ${cardsData.version}`);
+			console.log("\n✓ Done!");
+		}
 	} catch (error) {
 		console.error(
 			"\n✗ Error:",
