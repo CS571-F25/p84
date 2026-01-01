@@ -16,3 +16,5 @@ public/data/
 public/symbols/
 src/lib/card-chunks.ts
 .cache/
+
+tsconfig.tsbuildinfo

@@ -15,11 +15,10 @@
     "lint": "biome lint",
     "check": "biome check",
     "typecheck": "tsc --noEmit",
+    "typecheck:faster": "npm run typecheck -- --skipLibCheck --incremental",
     "build:typelex": "typelex compile com.deckbelcher.*",
     "build:lexicons": "lex-cli generate -c ./lex.config.js",
-    "download:scryfall": "node --experimental-strip-types scripts/download-scryfall.ts",
-    "load:d1:local": "bash scripts/load-d1-local.sh",
-    "load:d1:remote": "bash scripts/load-d1-remote.sh"
+    "download:scryfall": "node --experimental-strip-types scripts/download-scryfall.ts"
   },
   "dependencies": {
     "@atcute/bluesky": "^3.2.8",
