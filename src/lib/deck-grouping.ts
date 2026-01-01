@@ -130,12 +130,11 @@ export function getColorIdentityLabel(
 
 /**
  * Get mana value bucket for grouping
- * Example: 0 → "0", 3 → "3", 8 → "7+"
+ * Example: 0 → "0", 0.5 → "1", 3 → "3", 8 → "8"
  */
 export function getManaValueBucket(cmc: number | undefined): string {
 	if (cmc === undefined || cmc === 0) return "0";
-	if (cmc >= 7) return "7+";
-	return cmc.toString();
+	return Math.ceil(cmc).toString();
 }
 
 /**

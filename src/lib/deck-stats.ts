@@ -276,17 +276,20 @@ export function computeManaCurve(
 		}
 	>();
 
-	// Initialize buckets 0-7+
-	for (let i = 0; i <= 6; i++) {
-		buckets.set(i.toString(), { permanentCards: [], spellCards: [] });
-	}
-	buckets.set("7+", { permanentCards: [], spellCards: [] });
+	let maxCmc = 0;
 
 	for (const deckCard of cards) {
 		const card = lookup(deckCard);
 		if (!card) continue;
 
+		const typeLine = card.type_line ?? "";
+		// Skip pure lands (but keep land creatures like Dryad Arbor)
+		if (typeLine.includes("Land") && !typeLine.includes("Creature")) continue;
+
 		const bucket = getManaValueBucket(card.cmc);
+		const cmcNum = Number.parseInt(bucket, 10);
+		if (cmcNum > maxCmc) maxCmc = cmcNum;
+
 		const data = buckets.get(bucket) ?? { permanentCards: [], spellCards: [] };
 
 		// Add card quantity times (each copy counts)
@@ -301,9 +304,9 @@ export function computeManaCurve(
 		buckets.set(bucket, data);
 	}
 
-	// Convert to array, preserving order
+	// Build contiguous array from 0 to maxCmc
 	const result: ManaCurveData[] = [];
-	for (let i = 0; i <= 6; i++) {
+	for (let i = 0; i <= maxCmc; i++) {
 		const bucket = i.toString();
 		const data = buckets.get(bucket) ?? { permanentCards: [], spellCards: [] };
 		result.push({
@@ -314,15 +317,6 @@ export function computeManaCurve(
 			spellCards: data.spellCards,
 		});
 	}
-
-	const sevenPlus = buckets.get("7+") ?? { permanentCards: [], spellCards: [] };
-	result.push({
-		bucket: "7+",
-		permanents: sevenPlus.permanentCards.length,
-		spells: sevenPlus.spellCards.length,
-		permanentCards: sevenPlus.permanentCards,
-		spellCards: sevenPlus.spellCards,
-	});
 
 	return result;
 }

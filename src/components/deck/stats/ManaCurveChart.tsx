@@ -27,6 +27,11 @@ export function ManaCurveChart({
 	selection,
 	onSelect,
 }: ManaCurveChartProps) {
+	// Hide 0-CMC bucket when empty (common after excluding lands)
+	const filteredData = data.filter(
+		(d) => d.bucket !== "0" || d.permanents > 0 || d.spells > 0,
+	);
+
 	const isSelected = (bucket: string, type: "permanent" | "spell") =>
 		selection?.chart === "curve" &&
 		selection.bucket === bucket &&
@@ -39,7 +44,7 @@ export function ManaCurveChart({
 			</h3>
 			<div className="h-48">
 				<ResponsiveContainer width="100%" height="100%">
-					<BarChart data={data} barCategoryGap="15%">
+					<BarChart data={filteredData} barCategoryGap="15%">
 						<XAxis
 							dataKey="bucket"
 							tick={{ fill: "#9CA3AF", fontSize: 12 }}
@@ -58,7 +63,7 @@ export function ManaCurveChart({
 							name="Permanents"
 							cursor="pointer"
 						>
-							{data.map((entry) => (
+							{filteredData.map((entry) => (
 								<Cell
 									key={`perm-${entry.bucket}`}
 									fill={
@@ -82,7 +87,7 @@ export function ManaCurveChart({
 							name="Spells"
 							cursor="pointer"
 						>
-							{data.map((entry) => (
+							{filteredData.map((entry) => (
 								<Cell
 									key={`spell-${entry.bucket}`}
 									fill={

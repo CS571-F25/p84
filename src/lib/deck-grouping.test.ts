@@ -144,9 +144,14 @@ describe("getManaValueBucket", () => {
 	});
 
 	it("handles high CMCs", () => {
-		expect(getManaValueBucket(7)).toBe("7+");
-		expect(getManaValueBucket(8)).toBe("7+");
-		expect(getManaValueBucket(12)).toBe("7+");
+		expect(getManaValueBucket(7)).toBe("7");
+		expect(getManaValueBucket(8)).toBe("8");
+		expect(getManaValueBucket(12)).toBe("12");
+	});
+
+	it("rounds up fractional CMCs", () => {
+		expect(getManaValueBucket(0.5)).toBe("1");
+		expect(getManaValueBucket(2.5)).toBe("3");
 	});
 
 	it("handles undefined CMC", () => {
