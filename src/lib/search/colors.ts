@@ -112,23 +112,29 @@ export function compareColors(
  */
 export function parseColors(input: string): Set<string> {
 	const colors = new Set<string>();
-	const upper = input.toUpperCase();
-
-	// Single character parsing
-	for (const char of upper) {
-		if (COLOR_CHARS.has(char)) {
-			colors.add(char);
-		}
-	}
-
-	// Full name parsing
 	const lower = input.toLowerCase();
+
+	// Check full names first (before single char parsing)
 	if (lower.includes("white")) colors.add("W");
 	if (lower.includes("blue")) colors.add("U");
 	if (lower.includes("black")) colors.add("B");
 	if (lower.includes("red")) colors.add("R");
 	if (lower.includes("green")) colors.add("G");
 	if (lower.includes("colorless")) colors.add("C");
+
+	// If we found full names, don't do character parsing
+	// (avoids "blue" matching B from the letter)
+	if (colors.size > 0) {
+		return colors;
+	}
+
+	// Single character parsing for short color codes like "wubrg" or "bg"
+	const upper = input.toUpperCase();
+	for (const char of upper) {
+		if (COLOR_CHARS.has(char)) {
+			colors.add(char);
+		}
+	}
 
 	return colors;
 }

@@ -11,8 +11,7 @@
  *   expect(getSourceTempo(llanowar)).toBe("delayed");
  *
  * To add a new test card:
- *   1. Get the oracle_id from Scryfall: curl 'https://api.scryfall.com/cards/named?exact=Card+Name'
- *   2. Add to test-cards.json: "Card Name": "oracle-id-here"
+ *   ./src/lib/__tests__/add-test-card.sh "Card Name"
  */
 
 import { ServerCardProvider } from "../cards-server-provider";
@@ -37,8 +36,8 @@ export class TestCardLookup {
 				.filter((n) => n !== "$comment")
 				.join(", ");
 			throw new Error(
-				`Card "${name}" not in test fixture. Available: ${available}\n` +
-					`To add: curl 'https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}' | jq .oracle_id`,
+				`Card "${name}" not in test fixture, but it's easy to add! Available: ${available}\n` +
+					`To add: ./src/lib/__tests__/add-test-card.sh "${name}"`,
 			);
 		}
 

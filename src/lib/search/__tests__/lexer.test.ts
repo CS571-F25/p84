@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { tokenize, getRegexPattern } from "../lexer";
+import { describe, expect, it } from "vitest";
+import { getRegexPattern, tokenize } from "../lexer";
 
 describe("tokenize", () => {
 	function expectTokens(
@@ -83,9 +83,7 @@ describe("tokenize", () => {
 
 	describe("quoted strings", () => {
 		it("tokenizes quoted strings", () => {
-			expectTokens('"Serra Angel"', [
-				{ type: "QUOTED", value: "Serra Angel" },
-			]);
+			expectTokens('"Serra Angel"', [{ type: "QUOTED", value: "Serra Angel" }]);
 		});
 
 		it("handles escaped quotes", () => {

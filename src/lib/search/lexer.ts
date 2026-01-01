@@ -5,14 +5,13 @@
  */
 
 import {
-	type Token,
-	type TokenType,
-	type Span,
-	type Result,
-	type ParseError,
-	ok,
 	err,
 	FIELD_ALIASES,
+	ok,
+	type ParseError,
+	type Result,
+	type Token,
+	type TokenType,
 } from "./types";
 
 /**
@@ -241,7 +240,6 @@ export function tokenize(input: string): Result<Token[]> {
 		if (char === "!") {
 			advance();
 			skipWhitespace();
-			const wordStart = pos;
 			// Read until end or quote
 			if (peek() === '"') {
 				const result = readQuoted();

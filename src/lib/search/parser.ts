@@ -11,27 +11,27 @@
  *   name_expr = EXACT_NAME | WORD | QUOTED | REGEX
  */
 
+import { getRegexPattern, tokenize } from "./lexer";
 import {
+	type AndNode,
+	type ComparisonOp,
+	type ExactNameNode,
+	err,
+	FIELD_ALIASES,
+	type FieldName,
+	type FieldNode,
+	type FieldValue,
+	type NameNode,
+	type NotNode,
+	type OrNode,
+	ok,
+	type ParseError,
+	type Result,
+	type SearchNode,
+	type Span,
 	type Token,
 	type TokenType,
-	type Span,
-	type SearchNode,
-	type FieldNode,
-	type NameNode,
-	type ExactNameNode,
-	type AndNode,
-	type OrNode,
-	type NotNode,
-	type ComparisonOp,
-	type FieldName,
-	type FieldValue,
-	type Result,
-	type ParseError,
-	FIELD_ALIASES,
-	ok,
-	err,
 } from "./types";
-import { tokenize, getRegexPattern } from "./lexer";
 
 /**
  * Parser class encapsulates parsing state
@@ -350,7 +350,7 @@ class Parser {
 			// For numeric fields, try to parse as number
 			if (this.isNumericField(field)) {
 				const num = parseFloat(value);
-				if (!isNaN(num)) {
+				if (!Number.isNaN(num)) {
 					return ok({ kind: "number", value: num });
 				}
 				// Could be * for power/toughness
