@@ -28,6 +28,7 @@ import { asScryfallId, asOracleId } from "../src/lib/scryfall-types.ts";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const OUTPUT_DIR = join(__dirname, "../public/data");
+const CARDS_DIR = join(OUTPUT_DIR, "cards");
 const SYMBOLS_DIR = join(__dirname, "../public/symbols");
 const TEMP_DIR = join(__dirname, "../.cache");
 
@@ -61,7 +62,6 @@ const KEPT_FIELDS = [
 	"collector_number",
 	"rarity",
 	"released_at",
-	"prices",
 	"artist",
 
 	// Printing selection (image_uris omitted - can reconstruct from ID)
@@ -79,7 +79,7 @@ const KEPT_FIELDS = [
 	"layout",
 
 	// Nice-to-have (flavor_text omitted - visible on card image)
-	"edhrec_rank",
+	// edhrec_rank omitted - goes in volatile.bin
 	"reprint",
 	"variation",
 	"lang",
@@ -319,20 +319,20 @@ async function processBulkData(): Promise<CardDataOutput> {
 	// Check if we already have this version
 	await mkdir(TEMP_DIR, { recursive: true });
 	const tempFile = join(TEMP_DIR, "cards-bulk.json");
-	const indexesPath = join(OUTPUT_DIR, "cards-indexes.json");
+	const versionPath = join(OUTPUT_DIR, "version.json");
 
 	try {
-		const existingIndexes = JSON.parse(
-			await readFile(indexesPath, "utf-8"),
+		const existingVersion = JSON.parse(
+			await readFile(versionPath, "utf-8"),
 		) as { version: string; cardCount: number };
 
-		if (existingIndexes.version === defaultCards.updated_at) {
+		if (existingVersion.version === defaultCards.updated_at) {
 			console.log(
 				`✓ Already have latest version (${defaultCards.updated_at}), skipping Scryfall download`,
 			);
 			console.log("Using cached data for local processing...");
 		} else {
-			console.log(`Local version: ${existingIndexes.version}`);
+			console.log(`Local version: ${existingVersion.version}`);
 			console.log("Version changed, downloading update...");
 			await downloadFile(defaultCards.download_uri, tempFile);
 		}
@@ -415,6 +415,10 @@ async function processBulkData(): Promise<CardDataOutput> {
 	};
 
 	await mkdir(OUTPUT_DIR, { recursive: true });
+	await mkdir(CARDS_DIR, { recursive: true });
+
+	// Generate volatile.bin from raw data (before filtering strips prices/rank)
+	await generateVolatileData(rawData);
 
 	// Chunk cards.json for Cloudflare Workers (25MB upload limit)
 	console.log("Chunking cards for Workers deployment...");
@@ -429,9 +433,15 @@ async function processBulkData(): Promise<CardDataOutput> {
 
 /**
  * Chunk cards.json into sub-25MB files for Cloudflare Workers deployment
+ *
+ * All files are written to public/data/cards/ with content hashes in filenames
+ * for immutable caching. This subfolder is configured for aggressive edge caching
+ * via Cloudflare rules (TanStack Start doesn't support custom cache headers).
+ *
  * Cards are sorted by release date (oldest first) so new cards append to later chunks,
- * improving client cache stability. Chunk filenames include content hashes for immutable caching.
- * Returns list of chunk filenames
+ * improving client cache stability.
+ *
+ * Returns list of chunk filenames (without path prefix)
  */
 async function chunkCardsForWorkers(data: CardDataOutput): Promise<string[]> {
 	const CHUNK_SIZE_TARGET = 20 * 1024 * 1024; // 20MB target (leaving headroom under 25MB limit)
@@ -476,7 +486,7 @@ async function chunkCardsForWorkers(data: CardDataOutput): Promise<string[]> {
 				.digest("hex")
 				.slice(0, 16);
 			const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}-${contentHash}.json`;
-			const chunkPath = join(OUTPUT_DIR, chunkFilename);
+			const chunkPath = join(CARDS_DIR, chunkFilename);
 
 			await writeFile(chunkPath, chunkContent);
 			chunkFilenames.push(chunkFilename);
@@ -504,7 +514,7 @@ async function chunkCardsForWorkers(data: CardDataOutput): Promise<string[]> {
 			.digest("hex")
 			.slice(0, 16);
 		const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}-${contentHash}.json`;
-		const chunkPath = join(OUTPUT_DIR, chunkFilename);
+		const chunkPath = join(CARDS_DIR, chunkFilename);
 
 		await writeFile(chunkPath, chunkContent);
 		chunkFilenames.push(chunkFilename);
@@ -514,25 +524,40 @@ async function chunkCardsForWorkers(data: CardDataOutput): Promise<string[]> {
 		);
 	}
 
-	// Write indexes file (oracle mappings for client)
+	// Write indexes file with content hash (oracle mappings for client)
 	const indexesData = {
 		version: data.version,
 		cardCount: data.cardCount,
 		oracleIdToPrintings: data.oracleIdToPrintings,
 		canonicalPrintingByOracleId: data.canonicalPrintingByOracleId,
 	};
+	const indexesContent = JSON.stringify(indexesData);
+	const indexesHash = createHash("sha256")
+		.update(indexesContent)
+		.digest("hex")
+		.slice(0, 16);
+	const indexesFilename = `indexes-${indexesHash}.json`;
+	const indexesPath = join(CARDS_DIR, indexesFilename);
+	await writeFile(indexesPath, indexesContent);
+	console.log(`Wrote indexes: ${indexesFilename}`);
 
-	const indexesPath = join(OUTPUT_DIR, "cards-indexes.json");
-	await writeFile(indexesPath, JSON.stringify(indexesData));
-	console.log(`Wrote indexes: ${indexesPath}`);
+	// Write version.json at top level for quick version checks
+	const versionData = { version: data.version, cardCount: data.cardCount };
+	await writeFile(join(OUTPUT_DIR, "version.json"), JSON.stringify(versionData));
+	console.log(`Wrote version.json`);
 
-	// Write TS file with chunk list
+	// Write TS file with chunk list and indexes filename
 	const tsContent = `/**
  * Auto-generated by scripts/download-scryfall.ts
- * Contains card data chunk filenames for client loading
+ *
+ * Files in /data/cards/ have content hashes in filenames for immutable caching.
+ * This subfolder is configured for aggressive edge caching via Cloudflare rules
+ * (TanStack Start doesn't support custom cache headers).
  */
 
-export const CARD_CHUNKS = [\n${chunkFilenames.map(n => `\t"${n}",\n`).join('')}] as const;
+export const CARD_INDEXES = "${indexesFilename}";
+
+export const CARD_CHUNKS = [\n${chunkFilenames.map((n) => `\t"${n}",\n`).join("")}] as const;
 `;
 
 	const tsPath = join(__dirname, "../src/lib/card-chunks.ts");
@@ -551,6 +576,27 @@ export const CARD_CHUNKS = [\n${chunkFilenames.map(n => `\t"${n}",\n`).join('')}
 function uuidToBytes(uuid: string): Buffer {
 	const hex = uuid.replace(/-/g, "");
 	return Buffer.from(hex, "hex");
+}
+
+/**
+ * Create a packer for writing sequential values to a buffer
+ */
+function createBufferPacker(buffer: Buffer) {
+	let offset = 0;
+	return {
+		writeUUID(uuid: string) {
+			uuidToBytes(uuid).copy(buffer, offset);
+			offset += 16;
+		},
+		writeUint32(value: number) {
+			buffer.writeUInt32LE(value, offset);
+			offset += 4;
+		},
+		writeUint8(value: number) {
+			buffer.writeUInt8(value, offset);
+			offset += 1;
+		},
+	};
 }
 
 /**
@@ -577,7 +623,7 @@ async function generateByteRangeIndex(chunkFilenames: string[]): Promise<void> {
 
 	for (let chunkIndex = 0; chunkIndex < chunkFilenames.length; chunkIndex++) {
 		const chunkFilename = chunkFilenames[chunkIndex];
-		const chunkPath = join(OUTPUT_DIR, chunkFilename);
+		const chunkPath = join(CARDS_DIR, chunkFilename);
 		const chunkContent = await readFile(chunkPath, "utf-8");
 
 		// Single-pass parse: find all "cardId":{...} patterns
@@ -680,25 +726,13 @@ async function generateByteRangeIndex(chunkFilenames: string[]): Promise<void> {
 	// Write binary format
 	const RECORD_SIZE = 25; // 16 (UUID) + 1 (chunk) + 4 (offset) + 4 (length)
 	const buffer = Buffer.alloc(RECORD_SIZE * indexes.length);
-	let bufferOffset = 0;
+	const packer = createBufferPacker(buffer);
 
 	for (const { cardId, chunkIndex, offset, length } of indexes) {
-		// Write UUID (16 bytes)
-		const uuidBytes = uuidToBytes(cardId);
-		uuidBytes.copy(buffer, bufferOffset);
-		bufferOffset += 16;
-
-		// Write chunk index (1 byte)
-		buffer.writeUInt8(chunkIndex, bufferOffset);
-		bufferOffset += 1;
-
-		// Write offset (4 bytes, little-endian)
-		buffer.writeUInt32LE(offset, bufferOffset);
-		bufferOffset += 4;
-
-		// Write length (4 bytes, little-endian)
-		buffer.writeUInt32LE(length, bufferOffset);
-		bufferOffset += 4;
+		packer.writeUUID(cardId);
+		packer.writeUint8(chunkIndex);
+		packer.writeUint32(offset);
+		packer.writeUint32(length);
 	}
 
 	const binPath = join(OUTPUT_DIR, "cards-byteindex.bin");
@@ -713,6 +747,104 @@ async function generateByteRangeIndex(chunkFilenames: string[]): Promise<void> {
 	);
 	console.log(
 		`  Sorted by UUID for O(log n) binary search (${Math.ceil(Math.log2(indexes.length))} max seeks)`,
+	);
+}
+
+/**
+ * Generate volatile.bin containing frequently-changing card data
+ *
+ * This data (prices, EDHREC rank) changes often and would cause cache busting
+ * if included in the main card chunks. Stored separately so card data stays stable.
+ *
+ * Format: Fixed-size binary records sorted by UUID for O(log n) binary search
+ * Uses same UUID byte comparison as generateByteRangeIndex for consistency.
+ *
+ * Record format (44 bytes per record):
+ *   - UUID: 16 bytes (binary)
+ *   - edhrec_rank: 4 bytes (uint32 LE, 0xFFFFFFFF = null)
+ *   - usd: 4 bytes (cents as uint32 LE, 0xFFFFFFFF = null)
+ *   - usd_foil: 4 bytes
+ *   - usd_etched: 4 bytes
+ *   - eur: 4 bytes
+ *   - eur_foil: 4 bytes
+ *   - tix: 4 bytes (hundredths, e.g. 0.02 -> 2)
+ */
+async function generateVolatileData(rawCards: ScryfallCard[]): Promise<void> {
+	console.log("Generating volatile.bin...");
+
+	const RECORD_SIZE = 44; // 16 (UUID) + 4 (rank) + 6*4 (prices)
+	const NULL_VALUE = 0xffffffff;
+
+	// Parse price string to cents (hundredths), returns NULL_VALUE if null/invalid
+	const parsePriceToCents = (price: string | null | undefined): number => {
+		if (price == null) return NULL_VALUE;
+		const parsed = parseFloat(price);
+		if (isNaN(parsed)) return NULL_VALUE;
+		return Math.round(parsed * 100);
+	};
+
+	// Extract volatile data from each card
+	interface VolatileRecord {
+		id: string;
+		edhrec_rank: number;
+		usd: number;
+		usd_foil: number;
+		usd_etched: number;
+		eur: number;
+		eur_foil: number;
+		tix: number;
+	}
+
+	const records: VolatileRecord[] = rawCards.map((card) => {
+		const prices = (card.prices ?? {}) as Record<string, string | null>;
+		return {
+			id: card.id,
+			edhrec_rank:
+				typeof card.edhrec_rank === "number" ? card.edhrec_rank : NULL_VALUE,
+			usd: parsePriceToCents(prices.usd),
+			usd_foil: parsePriceToCents(prices.usd_foil),
+			usd_etched: parsePriceToCents(prices.usd_etched),
+			eur: parsePriceToCents(prices.eur),
+			eur_foil: parsePriceToCents(prices.eur_foil),
+			tix: parsePriceToCents(prices.tix),
+		};
+	});
+
+	// Sort by UUID bytes (not string!) for binary search - same as generateByteRangeIndex
+	records.sort((a, b) => {
+		const aBytes = uuidToBytes(a.id);
+		const bBytes = uuidToBytes(b.id);
+		for (let i = 0; i < 16; i++) {
+			if (aBytes[i] !== bBytes[i]) {
+				return aBytes[i] - bBytes[i];
+			}
+		}
+		return 0;
+	});
+
+	// Write binary format
+	const buffer = Buffer.alloc(RECORD_SIZE * records.length);
+	const packer = createBufferPacker(buffer);
+
+	for (const record of records) {
+		packer.writeUUID(record.id);
+		packer.writeUint32(record.edhrec_rank);
+		packer.writeUint32(record.usd);
+		packer.writeUint32(record.usd_foil);
+		packer.writeUint32(record.usd_etched);
+		packer.writeUint32(record.eur);
+		packer.writeUint32(record.eur_foil);
+		packer.writeUint32(record.tix);
+	}
+
+	const binPath = join(OUTPUT_DIR, "volatile.bin");
+	await writeFile(binPath, buffer);
+
+	console.log(
+		`✓ Wrote volatile data: ${binPath} (${records.length} cards, ${(buffer.length / 1024 / 1024).toFixed(2)}MB)`,
+	);
+	console.log(
+		`  Binary format: 44 bytes/record (16 UUID + 4 rank + 24 prices)`,
 	);
 }
 

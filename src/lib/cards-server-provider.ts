@@ -10,7 +10,7 @@
 // Static import of cloudflare:workers - the Cloudflare Vite plugin handles this
 // In dev: provides stub/mock, In production: actual Workers env
 import { env } from "cloudflare:workers";
-import { CARD_CHUNKS } from "./card-chunks";
+import { CARD_CHUNKS, CARD_INDEXES } from "./card-chunks";
 import type { CardDataProvider } from "./card-data-provider";
 import { LRUCache } from "./lru-cache";
 import type { Card, OracleId, ScryfallId } from "./scryfall-types";
@@ -116,11 +116,9 @@ function parseRecord(buffer: ArrayBuffer, recordIndex: number): ByteIndexEntry {
 async function loadIndexData(): Promise<IndexData> {
 	if (indexDataCache) return indexDataCache;
 
-	const response = await fetchAsset("cards-indexes.json");
+	const response = await fetchAsset(`cards/${CARD_INDEXES}`);
 	if (!response.ok) {
-		throw new Error(
-			`Failed to load cards-indexes.json: ${response.statusText}`,
-		);
+		throw new Error(`Failed to load ${CARD_INDEXES}: ${response.statusText}`);
 	}
 	indexDataCache = (await response.json()) as IndexData;
 	return indexDataCache;
@@ -181,7 +179,7 @@ async function loadChunk(chunkIndex: number): Promise<string> {
 		if (!chunkFilename) {
 			throw new Error(`Invalid chunk index: ${chunkIndex}`);
 		}
-		const response = await fetchAsset(chunkFilename);
+		const response = await fetchAsset(`cards/${chunkFilename}`);
 		if (!response.ok) {
 			throw new Error(
 				`Failed to load ${chunkFilename}: ${response.statusText}`,

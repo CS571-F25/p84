@@ -180,7 +180,6 @@ export interface Card {
 	collector_number?: string;
 	rarity?: Rarity;
 	released_at?: string;
-	prices?: Record<string, string | null>;
 	artist?: string;
 
 	// Printing selection (image_uris omitted - can reconstruct from ID)
@@ -198,7 +197,6 @@ export interface Card {
 	layout?: Layout;
 
 	// Nice-to-have
-	edhrec_rank?: number;
 	reprint?: boolean;
 	variation?: boolean;
 	lang?: string;

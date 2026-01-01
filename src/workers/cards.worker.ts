@@ -7,7 +7,7 @@
 
 import * as Comlink from "comlink";
 import MiniSearch from "minisearch";
-import { CARD_CHUNKS } from "../lib/card-chunks";
+import { CARD_CHUNKS, CARD_INDEXES } from "../lib/card-chunks";
 import type {
 	Card,
 	CardDataOutput,
@@ -18,6 +18,30 @@ import type {
 } from "../lib/scryfall-types";
 import { search as parseSearch } from "../lib/search";
 import type { FieldName, SearchNode } from "../lib/search/types";
+
+/**
+ * Volatile data record for a card (prices, EDHREC rank)
+ * Loaded separately to avoid cache busting main card data
+ */
+export interface VolatileData {
+	edhrecRank: number | null;
+	usd: number | null;
+	usdFoil: number | null;
+	usdEtched: number | null;
+	eur: number | null;
+	eurFoil: number | null;
+	tix: number | null;
+}
+
+const VOLATILE_RECORD_SIZE = 44; // 16 (UUID) + 4 (rank) + 6*4 (prices)
+const NULL_VALUE = 0xffffffff;
+
+function bytesToUuid(bytes: Uint8Array): string {
+	const hex = Array.from(bytes)
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("");
+	return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
 
 const PRINTING_FIELDS: Set<FieldName> = new Set([
 	"set",
@@ -88,12 +112,24 @@ interface CardsWorkerAPI {
 	):
 		| { ok: true; cards: Card[] }
 		| { ok: false; error: { message: string; start: number; end: number } };
+
+	/**
+	 * Get volatile data (prices, EDHREC rank) for a card
+	 * Returns null if volatile data hasn't loaded yet
+	 */
+	getVolatileData(id: ScryfallId): VolatileData | null;
+
+	/**
+	 * Check if volatile data has finished loading
+	 */
+	isVolatileDataReady(): boolean;
 }
 
 class CardsWorker implements CardsWorkerAPI {
 	private data: CardDataOutput | null = null;
 	private canonicalCards: Card[] = [];
 	private searchIndex: MiniSearch<Card> | null = null;
+	private volatileData: Map<string, VolatileData> | null = null;
 
 	async initialize(): Promise<void> {
 		// Prevent re-initialization in SharedWorker mode (shared across tabs)
@@ -107,9 +143,9 @@ class CardsWorker implements CardsWorkerAPI {
 			`[CardsWorker] Loading ${CARD_CHUNKS.length} chunks + indexes...`,
 		);
 
-		// Fetch everything in parallel
+		// Fetch card data in parallel (from immutable cache subfolder)
 		const [indexes, ...chunks] = await Promise.all([
-			fetch("/data/cards-indexes.json").then((r) => {
+			fetch(`/data/cards/${CARD_INDEXES}`).then((r) => {
 				if (!r.ok) throw new Error("Failed to load card indexes");
 				return r.json() as Promise<
 					Pick<
@@ -122,7 +158,7 @@ class CardsWorker implements CardsWorkerAPI {
 				>;
 			}),
 			...CARD_CHUNKS.map((filename) =>
-				fetch(`/data/${filename}`).then((r) => {
+				fetch(`/data/cards/${filename}`).then((r) => {
 					if (!r.ok) throw new Error(`Failed to load chunk: ${filename}`);
 					return r.json() as Promise<{ cards: Record<string, Card> }>;
 				}),
@@ -171,6 +207,62 @@ class CardsWorker implements CardsWorkerAPI {
 		console.log(
 			`[CardsWorker] Initialized: ${this.data.cardCount.toLocaleString()} cards, ${this.canonicalCards.length.toLocaleString()} unique`,
 		);
+
+		// Load volatile data in background (non-blocking)
+		this.loadVolatileData();
+	}
+
+	private async loadVolatileData(): Promise<void> {
+		console.log("[CardsWorker] Loading volatile data...");
+
+		try {
+			const response = await fetch("/data/volatile.bin");
+			if (!response.ok) {
+				console.warn("[CardsWorker] Failed to load volatile.bin");
+				return;
+			}
+
+			const buffer = await response.arrayBuffer();
+			const view = new DataView(buffer);
+			const recordCount = buffer.byteLength / VOLATILE_RECORD_SIZE;
+
+			const volatileMap = new Map<string, VolatileData>();
+
+			for (let i = 0; i < recordCount; i++) {
+				const offset = i * VOLATILE_RECORD_SIZE;
+
+				// Read UUID (16 bytes)
+				const uuidBytes = new Uint8Array(buffer, offset, 16);
+				const id = bytesToUuid(uuidBytes);
+
+				// Read values (little-endian uint32)
+				const readValue = (fieldOffset: number): number | null => {
+					const val = view.getUint32(offset + fieldOffset, true);
+					return val === NULL_VALUE ? null : val;
+				};
+
+				// Convert cents back to dollars for prices
+				const centsToPrice = (cents: number | null): number | null =>
+					cents === null ? null : cents / 100;
+
+				volatileMap.set(id, {
+					edhrecRank: readValue(16),
+					usd: centsToPrice(readValue(20)),
+					usdFoil: centsToPrice(readValue(24)),
+					usdEtched: centsToPrice(readValue(28)),
+					eur: centsToPrice(readValue(32)),
+					eurFoil: centsToPrice(readValue(36)),
+					tix: centsToPrice(readValue(40)),
+				});
+			}
+
+			this.volatileData = volatileMap;
+			console.log(
+				`[CardsWorker] Loaded volatile data for ${volatileMap.size.toLocaleString()} cards`,
+			);
+		} catch (error) {
+			console.warn("[CardsWorker] Error loading volatile data:", error);
+		}
 	}
 
 	searchCards(
@@ -301,6 +393,14 @@ class CardsWorker implements CardsWorkerAPI {
 		}
 
 		return { ok: true, cards };
+	}
+
+	getVolatileData(id: ScryfallId): VolatileData | null {
+		return this.volatileData?.get(id) ?? null;
+	}
+
+	isVolatileDataReady(): boolean {
+		return this.volatileData !== null;
 	}
 }
 
