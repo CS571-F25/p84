@@ -61,64 +61,68 @@ export function isStrictSuperset<T>(a: Set<T>, b: Set<T>): boolean {
 /**
  * Compare card colors against search colors using the given operator
  *
- * Special handling for colorless (C):
+ * Special handling for colorless (C) in colors/color_identity:
  * - "C" in search means "colorless" = empty color set
  * - Colorless cards have [] for colors/color_identity, not ["C"]
+ *
+ * For produced_mana, C is literal - set literalColorless=true
  */
 export function compareColors(
 	cardColors: string[] | undefined,
 	searchColors: Set<string>,
 	operator: ComparisonOp,
+	literalColorless = false,
 ): boolean {
 	const cardSet = new Set(cardColors ?? []);
 
-	// Searching for exactly colorless (only C in search)
-	const isColorlessSearch = searchColors.size === 1 && searchColors.has("C");
-	const cardIsColorless = cardSet.size === 0;
+	// For colors/color_identity, colorless means empty array
+	// For produced_mana, C is literal in the array
+	if (!literalColorless) {
+		const isColorlessSearch = searchColors.size === 1 && searchColors.has("C");
+		const cardIsColorless = cardSet.size === 0;
 
-	if (isColorlessSearch) {
-		switch (operator) {
-			case ":":
-			case ">=":
-			case "=":
-				return cardIsColorless;
-			case "!=":
-				return !cardIsColorless;
-			case "<=":
-				// id<=c means "can go in colorless deck" = only colorless cards
-				return cardIsColorless;
-			case "<":
-				// Strict subset of empty = impossible
-				return false;
-			case ">":
-				// Strict superset of empty = has any colors
-				return !cardIsColorless;
+		if (isColorlessSearch) {
+			switch (operator) {
+				case ":":
+				case ">=":
+				case "=":
+					return cardIsColorless;
+				case "!=":
+					return !cardIsColorless;
+				case "<=":
+					return cardIsColorless;
+				case "<":
+					return false;
+				case ">":
+					return !cardIsColorless;
+			}
 		}
-	}
 
-	// Remove C from search - it doesn't appear in actual card data
-	const normalizedSearch = new Set(searchColors);
-	normalizedSearch.delete("C");
+		// Remove C from search - it doesn't appear in colors/color_identity
+		const normalizedSearch = new Set(searchColors);
+		normalizedSearch.delete("C");
+		searchColors = normalizedSearch;
+	}
 
 	switch (operator) {
 		case ":":
 		case ">=":
-			return isSuperset(cardSet, normalizedSearch);
+			return isSuperset(cardSet, searchColors);
 
 		case "=":
-			return setsEqual(cardSet, normalizedSearch);
+			return setsEqual(cardSet, searchColors);
 
 		case "!=":
-			return !setsEqual(cardSet, normalizedSearch);
+			return !setsEqual(cardSet, searchColors);
 
 		case "<=":
-			return isSubset(cardSet, normalizedSearch);
+			return isSubset(cardSet, searchColors);
 
 		case "<":
-			return isStrictSubset(cardSet, normalizedSearch);
+			return isStrictSubset(cardSet, searchColors);
 
 		case ">":
-			return isStrictSuperset(cardSet, normalizedSearch);
+			return isStrictSuperset(cardSet, searchColors);
 	}
 }
 

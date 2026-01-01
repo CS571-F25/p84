@@ -451,7 +451,8 @@ function compileProduces(
 
 	return (card) => {
 		if (!card.produced_mana) return false;
-		return compareColors(card.produced_mana, searchColors, operator);
+		// produced_mana has literal "C" for colorless, unlike colors/color_identity
+		return compareColors(card.produced_mana, searchColors, operator, true);
 	};
 }
 

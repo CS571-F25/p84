@@ -242,4 +242,106 @@ describe("Scryfall search edge cases", () => {
 			}
 		});
 	});
+
+	describe("loyalty matching", () => {
+		it("matches planeswalker loyalty", async () => {
+			const bolas = await cards.get("Nicol Bolas, Planeswalker");
+			expect(bolas.loyalty).toBeDefined();
+
+			const result = search("loy>=5");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(bolas)).toBe(true);
+			}
+		});
+
+		it("non-planeswalkers have no loyalty", async () => {
+			const bolt = await cards.get("Lightning Bolt");
+
+			const result = search("loy>0");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(bolt)).toBe(false);
+			}
+		});
+	});
+
+	describe("multi-face cards", () => {
+		it("searches oracle text across faces", async () => {
+			const delver = await cards.get("Delver of Secrets");
+			// Delver transforms into Insectile Aberration
+
+			// Should match front face
+			const front = search('o:"Look at the top card"');
+			expect(front.ok).toBe(true);
+			if (front.ok) {
+				expect(front.value.match(delver)).toBe(true);
+			}
+		});
+
+		it("is:transform matches transform cards", async () => {
+			const delver = await cards.get("Delver of Secrets");
+			const bolt = await cards.get("Lightning Bolt");
+
+			const result = search("is:transform");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(delver)).toBe(true);
+				expect(result.value.match(bolt)).toBe(false);
+			}
+		});
+	});
+
+	describe("regex edge cases", () => {
+		it("regex at start of query works", async () => {
+			const bolt = await cards.get("Lightning Bolt");
+
+			const result = search("/^lightning/i");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(bolt)).toBe(true);
+			}
+		});
+
+		it("regex after field works", async () => {
+			const bolt = await cards.get("Lightning Bolt");
+
+			const result = search("o:/\\d+ damage/");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(bolt)).toBe(true);
+			}
+		});
+
+		it("invalid regex returns error", () => {
+			const result = search("/[invalid/");
+			expect(result.ok).toBe(false);
+			if (!result.ok) {
+				expect(result.error.message).toContain("Invalid regex");
+			}
+		});
+	});
+
+	describe("produces: mana production", () => {
+		it("matches cards that produce mana", async () => {
+			const solRing = await cards.get("Sol Ring");
+			expect(solRing.produced_mana).toContain("C");
+
+			const result = search("produces:c");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(solRing)).toBe(true);
+			}
+		});
+
+		it("non-mana-producers don't match", async () => {
+			const bolt = await cards.get("Lightning Bolt");
+
+			const result = search("produces:r");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(bolt)).toBe(false);
+			}
+		});
+	});
 });
