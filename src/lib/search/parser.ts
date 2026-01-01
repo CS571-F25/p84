@@ -335,6 +335,22 @@ class Parser {
 			return ok({ kind: "string", value: this.previous().value });
 		}
 
+		// Negative number: NOT followed by WORD that looks numeric
+		if (
+			this.check("NOT") &&
+			this.isNumericField(field) &&
+			this.pos + 1 < this.tokens.length &&
+			this.tokens[this.pos + 1].type === "WORD"
+		) {
+			const nextValue = this.tokens[this.pos + 1].value;
+			const num = parseFloat(nextValue);
+			if (!Number.isNaN(num)) {
+				this.advance(); // consume NOT
+				this.advance(); // consume WORD
+				return ok({ kind: "number", value: -num });
+			}
+		}
+
 		// Word value
 		if (this.match("WORD")) {
 			const value = this.previous().value;
