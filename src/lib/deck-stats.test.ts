@@ -401,7 +401,7 @@ describe("computeManaCurve", () => {
 		expect(bucket2?.spells).toBe(1);
 	});
 
-	it("handles 7+ bucket", () => {
+	it("handles high CMC buckets individually", () => {
 		const { cards, lookup } = createTestData([
 			{ card: { cmc: 7, type_line: "Creature" } },
 			{ card: { cmc: 8, type_line: "Creature" } },
@@ -409,10 +409,12 @@ describe("computeManaCurve", () => {
 		]);
 
 		const curve = computeManaCurve(cards, lookup);
-		const bucket7Plus = curve.find((b) => b.bucket === "7+");
 
-		expect(bucket7Plus?.permanents).toBe(2);
-		expect(bucket7Plus?.spells).toBe(1);
+		expect(curve.find((b) => b.bucket === "7")?.permanents).toBe(1);
+		expect(curve.find((b) => b.bucket === "8")?.permanents).toBe(1);
+		expect(curve.find((b) => b.bucket === "10")?.spells).toBe(1);
+		// Should have buckets 0-10 (with gaps filled)
+		expect(curve.find((b) => b.bucket === "9")?.permanents).toBe(0);
 	});
 
 	it("multiplies by quantity", () => {
