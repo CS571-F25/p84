@@ -48,4 +48,15 @@ export class ClientCardProvider implements CardDataProvider {
 		const worker = getCardsWorker();
 		return worker.searchCards(query, restrictions, maxResults);
 	}
+
+	async syntaxSearch(
+		query: string,
+		maxResults = 100,
+	): Promise<
+		| { ok: true; cards: Card[] }
+		| { ok: false; error: { message: string; start: number; end: number } }
+	> {
+		const worker = getCardsWorker();
+		return worker.syntaxSearch(query, maxResults);
+	}
 }

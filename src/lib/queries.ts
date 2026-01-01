@@ -113,3 +113,32 @@ export const getCanonicalPrintingQueryOptions = (oracleId: OracleId) =>
 		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});
+
+export type SyntaxSearchResult =
+	| { ok: true; cards: Card[] }
+	| { ok: false; error: { message: string; start: number; end: number } };
+
+/**
+ * Search cards using Scryfall-like syntax (e.g., "t:creature cmc<=3 s:lea")
+ */
+export const syntaxSearchQueryOptions = (query: string, maxResults = 100) =>
+	queryOptions({
+		queryKey: ["cards", "syntaxSearch", query, maxResults] as const,
+		queryFn: async (): Promise<SyntaxSearchResult> => {
+			const provider = await getCardDataProvider();
+
+			if (!query.trim()) {
+				return { ok: true, cards: [] };
+			}
+
+			if (!provider.syntaxSearch) {
+				return {
+					ok: false,
+					error: { message: "Syntax search not available", start: 0, end: 0 },
+				};
+			}
+
+			return provider.syntaxSearch(query, maxResults);
+		},
+		staleTime: 5 * 60 * 1000,
+	});

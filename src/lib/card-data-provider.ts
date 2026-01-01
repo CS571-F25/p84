@@ -44,6 +44,18 @@ export interface CardDataProvider {
 		restrictions?: SearchRestrictions,
 		maxResults?: number,
 	): Promise<Card[]>;
+
+	/**
+	 * Search cards using Scryfall-like syntax (e.g., "t:creature cmc<=3 s:lea")
+	 * Returns error info if query is invalid
+	 */
+	syntaxSearch?(
+		query: string,
+		maxResults?: number,
+	): Promise<
+		| { ok: true; cards: Card[] }
+		| { ok: false; error: { message: string; start: number; end: number } }
+	>;
 }
 
 let providerPromise: Promise<CardDataProvider> | null = null;

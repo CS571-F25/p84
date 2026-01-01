@@ -16,6 +16,33 @@ import type {
 	ScryfallId,
 	SearchRestrictions,
 } from "../lib/scryfall-types";
+import { search as parseSearch } from "../lib/search";
+import type { FieldName, SearchNode } from "../lib/search/types";
+
+const PRINTING_FIELDS: Set<FieldName> = new Set([
+	"set",
+	"number",
+	"rarity",
+	"artist",
+	"year",
+	"date",
+	"lang",
+]);
+
+function hasPrintingQuery(node: SearchNode): boolean {
+	switch (node.type) {
+		case "FIELD":
+			return PRINTING_FIELDS.has(node.field);
+		case "AND":
+		case "OR":
+			return node.children.some(hasPrintingQuery);
+		case "NOT":
+			return hasPrintingQuery(node.child);
+		case "NAME":
+		case "EXACT_NAME":
+			return false;
+	}
+}
 
 interface CardsWorkerAPI {
 	/**
@@ -51,6 +78,16 @@ interface CardsWorkerAPI {
 	 * Get canonical printing ID for an oracle ID
 	 */
 	getCanonicalPrinting(oracleId: OracleId): ScryfallId | undefined;
+
+	/**
+	 * Search cards using Scryfall-like syntax
+	 */
+	syntaxSearch(
+		query: string,
+		maxResults?: number,
+	):
+		| { ok: true; cards: Card[] }
+		| { ok: false; error: { message: string; start: number; end: number } };
 }
 
 class CardsWorker implements CardsWorkerAPI {
@@ -217,6 +254,53 @@ class CardsWorker implements CardsWorkerAPI {
 			throw new Error("Worker not initialized - call initialize() first");
 		}
 		return this.data.canonicalPrintingByOracleId[oracleId];
+	}
+
+	syntaxSearch(
+		query: string,
+		maxResults = 100,
+	):
+		| { ok: true; cards: Card[] }
+		| { ok: false; error: { message: string; start: number; end: number } } {
+		if (!this.data) {
+			throw new Error("Worker not initialized - call initialize() first");
+		}
+
+		if (!query.trim()) {
+			return { ok: true, cards: [] };
+		}
+
+		const parseResult = parseSearch(query);
+
+		if (!parseResult.ok) {
+			return {
+				ok: false,
+				error: {
+					message: parseResult.error.message,
+					start: parseResult.error.span.start,
+					end: parseResult.error.span.end,
+				},
+			};
+		}
+
+		const { match, ast } = parseResult.value;
+		const cards: Card[] = [];
+
+		// Search all printings if query includes set/printing fields, otherwise canonical only
+		const searchAll = hasPrintingQuery(ast);
+		const source = searchAll
+			? Object.values(this.data.cards)
+			: this.canonicalCards;
+
+		for (const card of source) {
+			if (card.layout === "art_series") continue;
+			if (match(card)) {
+				cards.push(card);
+				if (cards.length >= maxResults) break;
+			}
+		}
+
+		return { ok: true, cards };
 	}
 }
 
