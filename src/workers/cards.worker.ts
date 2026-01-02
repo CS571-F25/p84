@@ -15,23 +15,10 @@ import type {
 	OracleId,
 	ScryfallId,
 	SearchRestrictions,
+	VolatileData,
 } from "../lib/scryfall-types";
 import { search as parseSearch } from "../lib/search";
 import type { FieldName, SearchNode } from "../lib/search/types";
-
-/**
- * Volatile data record for a card (prices, EDHREC rank)
- * Loaded separately to avoid cache busting main card data
- */
-export interface VolatileData {
-	edhrecRank: number | null;
-	usd: number | null;
-	usdFoil: number | null;
-	usdEtched: number | null;
-	eur: number | null;
-	eurFoil: number | null;
-	tix: number | null;
-}
 
 const VOLATILE_RECORD_SIZE = 44; // 16 (UUID) + 4 (rank) + 6*4 (prices)
 const NULL_VALUE = 0xffffffff;

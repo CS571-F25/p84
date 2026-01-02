@@ -11,6 +11,7 @@ import type {
 	OracleId,
 	ScryfallId,
 	SearchRestrictions,
+	VolatileData,
 } from "./scryfall-types";
 
 export class ClientCardProvider implements CardDataProvider {
@@ -58,5 +59,15 @@ export class ClientCardProvider implements CardDataProvider {
 	> {
 		const worker = getCardsWorker();
 		return worker.syntaxSearch(query, maxResults);
+	}
+
+	async getVolatileData(id: ScryfallId): Promise<VolatileData | null> {
+		const worker = getCardsWorker();
+		return worker.getVolatileData(id);
+	}
+
+	async isVolatileDataReady(): Promise<boolean> {
+		const worker = getCardsWorker();
+		return worker.isVolatileDataReady();
 	}
 }

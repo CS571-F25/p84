@@ -8,7 +8,9 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { CardDataProvider } from "../card-data-provider";
 import { ClientCardProvider } from "../cards-client-provider";
 import { ServerCardProvider } from "../cards-server-provider";
+import type { OracleId, ScryfallId } from "../scryfall-types";
 import { asOracleId, asScryfallId } from "../scryfall-types";
+import { getTestCardOracleId } from "./test-card-lookup";
 import { mockFetchFromPublicDir } from "./test-helpers";
 
 // Mock cards-worker-client to use real worker code without Comlink/Worker
@@ -41,10 +43,13 @@ vi.mock("../cards-worker-client", () => {
 	};
 });
 
-// Known test IDs from our dataset (using first sample card - Forest from Bloomburrow)
-const TEST_CARD_ID = asScryfallId("0000419b-0bba-4488-8f7a-6194544ce91e");
-const TEST_CARD_ORACLE = asOracleId("b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6");
+// Test card from fixture
 const TEST_CARD_NAME = "Forest";
+const TEST_CARD_ORACLE = getTestCardOracleId(TEST_CARD_NAME);
+
+// Resolved at runtime in beforeAll (needs provider)
+let TEST_CARD_ID: ScryfallId;
+
 const INVALID_ID = asScryfallId("00000000-0000-0000-0000-000000000000");
 const INVALID_ORACLE = asOracleId("00000000-0000-0000-0000-000000000000");
 
@@ -112,6 +117,13 @@ describe("CardDataProvider contract", () => {
 		serverProvider = new ServerCardProvider();
 		clientProvider = new ClientCardProvider();
 		await clientProvider.initialize();
+
+		// Resolve test card ID from oracle ID
+		const cardId = await serverProvider.getCanonicalPrinting(TEST_CARD_ORACLE);
+		if (!cardId) {
+			throw new Error(`Failed to resolve test card ID for ${TEST_CARD_NAME}`);
+		}
+		TEST_CARD_ID = cardId;
 	}, 20_000);
 
 	describe.each([
@@ -285,6 +297,36 @@ describe("CardDataProvider contract", () => {
 	describe("ServerCardProvider specific", () => {
 		it("does not support searchCards", () => {
 			expect(serverProvider.searchCards).toBeUndefined();
+		});
+
+		it("does not support volatile data", () => {
+			expect(serverProvider.getVolatileData).toBeUndefined();
+			expect(serverProvider.isVolatileDataReady).toBeUndefined();
+		});
+	});
+
+	describe("Volatile data (ClientCardProvider only)", () => {
+		it("reports volatile data ready after initialization", async () => {
+			const ready = await clientProvider.isVolatileDataReady();
+			expect(ready).toBe(true);
+		});
+
+		it("returns volatile data for known card", async () => {
+			const volatileData = await clientProvider.getVolatileData(TEST_CARD_ID);
+
+			expect(volatileData).not.toBeNull();
+			expect(volatileData).toHaveProperty("edhrecRank");
+			expect(volatileData).toHaveProperty("usd");
+			expect(volatileData).toHaveProperty("usdFoil");
+			expect(volatileData).toHaveProperty("usdEtched");
+			expect(volatileData).toHaveProperty("eur");
+			expect(volatileData).toHaveProperty("eurFoil");
+			expect(volatileData).toHaveProperty("tix");
+		});
+
+		it("returns null for invalid card ID", async () => {
+			const volatileData = await clientProvider.getVolatileData(INVALID_ID);
+			expect(volatileData).toBeNull();
 		});
 	});
 });

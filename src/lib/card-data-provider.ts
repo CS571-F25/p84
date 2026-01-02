@@ -13,6 +13,7 @@ import type {
 	OracleId,
 	ScryfallId,
 	SearchRestrictions,
+	VolatileData,
 } from "./scryfall-types";
 
 export interface CardDataProvider {
@@ -56,6 +57,17 @@ export interface CardDataProvider {
 		| { ok: true; cards: Card[] }
 		| { ok: false; error: { message: string; start: number; end: number } }
 	>;
+
+	/**
+	 * Get volatile data (prices, EDHREC rank) for a card
+	 * Returns null if volatile data isn't available yet
+	 */
+	getVolatileData?(id: ScryfallId): Promise<VolatileData | null>;
+
+	/**
+	 * Check if volatile data has finished loading
+	 */
+	isVolatileDataReady?(): Promise<boolean>;
 }
 
 let providerPromise: Promise<CardDataProvider> | null = null;
@@ -64,7 +76,7 @@ let providerPromise: Promise<CardDataProvider> | null = null;
  * Get the card data provider for the current environment
  *
  * - Client: ClientCardProvider (uses Web Worker with full dataset)
- * - Server: TODO - D1 local dev is flaky, disabled for now
+ * - Server: ServerCardProvider (uses binary searchable index for slice parsing)
  */
 export const getCardDataProvider = createIsomorphicFn()
 	.client(() => {

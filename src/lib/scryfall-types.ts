@@ -210,3 +210,17 @@ export interface CardDataOutput {
 	oracleIdToPrintings: Record<OracleId, ScryfallId[]>;
 	canonicalPrintingByOracleId: Record<OracleId, ScryfallId>;
 }
+
+/**
+ * Volatile data for a card (prices, EDHREC rank)
+ * Stored separately in volatile.bin to avoid cache busting card data
+ */
+export interface VolatileData {
+	edhrecRank: number | null;
+	usd: number | null;
+	usdFoil: number | null;
+	usdEtched: number | null;
+	eur: number | null;
+	eurFoil: number | null;
+	tix: number | null;
+}

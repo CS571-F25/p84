@@ -15,12 +15,30 @@
  */
 
 import { ServerCardProvider } from "../cards-server-provider";
-import type { Card } from "../scryfall-types";
+import type { Card, OracleId } from "../scryfall-types";
 import { asOracleId } from "../scryfall-types";
 import testCardsFixture from "./test-cards.json";
 import { mockFetchFromPublicDir } from "./test-helpers";
 
 const nameToOracleId: Record<string, string> = testCardsFixture;
+
+/**
+ * Get oracle ID for a card name from the test fixture.
+ * Throws if card not in fixture.
+ */
+export function getTestCardOracleId(name: string): OracleId {
+	const oracleIdStr = nameToOracleId[name];
+	if (!oracleIdStr) {
+		const available = Object.keys(nameToOracleId)
+			.filter((n) => n !== "$comment")
+			.join(", ");
+		throw new Error(
+			`Card "${name}" not in test fixture. Available: ${available}\n` +
+				`To add: ./src/lib/__tests__/add-test-card.sh "${name}"`,
+		);
+	}
+	return asOracleId(oracleIdStr);
+}
 
 export class TestCardLookup {
 	private provider: ServerCardProvider;
@@ -30,18 +48,7 @@ export class TestCardLookup {
 	}
 
 	async get(name: string): Promise<Card> {
-		const oracleIdStr = nameToOracleId[name];
-		if (!oracleIdStr) {
-			const available = Object.keys(nameToOracleId)
-				.filter((n) => n !== "$comment")
-				.join(", ");
-			throw new Error(
-				`Card "${name}" not in test fixture, but it's easy to add! Available: ${available}\n` +
-					`To add: ./src/lib/__tests__/add-test-card.sh "${name}"`,
-			);
-		}
-
-		const oracleId = asOracleId(oracleIdStr);
+		const oracleId = getTestCardOracleId(name);
 		const scryfallId = await this.provider.getCanonicalPrinting(oracleId);
 		if (!scryfallId) {
 			throw new Error(
