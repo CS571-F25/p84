@@ -510,16 +510,7 @@ async function chunkCardsForWorkers(
 		);
 	}
 
-	// Build all chunks in memory first
-	const chunks: Array<{
-		index: number;
-		entries: [string, Card][];
-		content: string;
-		hash: string;
-		filename: string;
-	}> = [];
-
-	for (let chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++) {
+	const chunkFilenames = await Promise.all(Array.from({length: chunkCount}, async (_, chunkIndex) => {
 		const start = chunkIndex * CARDS_PER_CHUNK;
 		const end = Math.min(start + CARDS_PER_CHUNK, cardEntries.length);
 		const chunkEntries = cardEntries.slice(start, end);
@@ -531,31 +522,14 @@ async function chunkCardsForWorkers(
 			.digest("hex")
 			.slice(0, 16);
 		const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}-${contentHash}.json`;
-
-		chunks.push({
-			index: chunkIndex,
-			entries: chunkEntries,
-			content: chunkContent,
-			hash: contentHash,
-			filename: chunkFilename,
-		});
-	}
-
-	// Write all chunks in parallel
-	await Promise.all(
-		chunks.map((chunk) =>
-			writeFile(join(CARDS_DIR, chunk.filename), chunk.content),
-		),
-	);
-
-	const chunkFilenames = chunks.map((c) => c.filename);
-
-	// Log results after all writes complete
-	for (const chunk of chunks) {
+		
+		await writeFile(join(CARDS_DIR, chunkFilename), chunkContent)
 		console.log(
-			`Wrote ${chunk.filename}: ${chunk.entries.length} cards, ${(chunk.content.length / 1024 / 1024).toFixed(2)}MB`,
+			`Wrote ${chunkFilename}: ${chunkEntries.length} cards, ${(chunkContent.length / 1024 / 1024).toFixed(2)}MB`,
 		);
-	}
+
+		return chunkFilename
+	}))
 
 	// Write indexes file with content hash (oracle mappings for client)
 	const indexesData = {
