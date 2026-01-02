@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AlertCircle, Loader2, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CardThumbnail } from "@/components/CardImage";
+import { OracleText } from "@/components/OracleText";
 import {
 	getCardsMetadataQueryOptions,
 	unifiedSearchQueryOptions,
@@ -41,7 +42,7 @@ function CardsPage() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
 	const [searchQuery, setSearchQuery] = useState(search.q || "");
-	const debouncedSearchQuery = useDebounce(searchQuery, 250);
+	const debouncedSearchQuery = useDebounce(searchQuery, 400);
 	const { data: searchResult, isFetching } = useQuery(
 		unifiedSearchQueryOptions(debouncedSearchQuery),
 	);
@@ -101,7 +102,7 @@ function CardsPage() {
 					{/* Query description for syntax mode */}
 					{searchResult?.description && !hasError && (
 						<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-							{searchResult.description}
+							<OracleText text={searchResult.description} />
 						</p>
 					)}
 
