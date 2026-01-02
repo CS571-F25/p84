@@ -6,6 +6,7 @@
  */
 
 import type React from "react";
+import { VALID_SYMBOLS } from "@/lib/card-manifest";
 import { CardSymbol } from "./CardSymbol";
 
 interface OracleTextProps {
@@ -27,12 +28,16 @@ function parseLine(line: string): ParsedPart[] {
 		if (line[i] === "{") {
 			const closeIdx = line.indexOf("}", i);
 			if (closeIdx !== -1) {
-				parts.push({
-					type: "symbol",
-					content: line.slice(i + 1, closeIdx),
-				});
-				i = closeIdx + 1;
-				continue;
+				const symbolContent = line.slice(i + 1, closeIdx).toUpperCase();
+				// Only treat as symbol if it's a valid MTG symbol
+				if (VALID_SYMBOLS.has(symbolContent)) {
+					parts.push({
+						type: "symbol",
+						content: symbolContent,
+					});
+					i = closeIdx + 1;
+					continue;
+				}
 			}
 		}
 
