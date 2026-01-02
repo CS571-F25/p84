@@ -26,10 +26,22 @@ describe("describeQuery", () => {
 		["o:flying", 'oracle text includes "flying"'],
 		["kw:trample", 'keyword includes "trample"'],
 		["s:lea", 'set includes "lea"'],
-		["r:rare", 'rarity includes "rare"'],
 		["a:Guay", 'artist includes "guay"'],
 		["f:commander", 'format includes "commander"'],
 	])("text field: `%s` → %s", (query, expected) => {
+		expect(desc(query)).toBe(expected);
+	});
+
+	it.each([
+		["r:c", "rarity includes common"],
+		["r:common", "rarity includes common"],
+		["r:u", "rarity includes uncommon"],
+		["r:r", "rarity includes rare"],
+		["r:m", "rarity includes mythic"],
+		["r>=u", "rarity ≥ uncommon"],
+		["r<=r", "rarity ≤ rare"],
+		["r>c", "rarity > common"],
+	])("rarity field: `%s` → %s", (query, expected) => {
 		expect(desc(query)).toBe(expected);
 	});
 
@@ -87,6 +99,15 @@ describe("describeQuery", () => {
 			'name includes "creature" AND NOT name includes "human"',
 		],
 	])("NOT: `%s` → %s", (query, expected) => {
+		expect(desc(query)).toBe(expected);
+	});
+
+	it.each([
+		["o:/draw/", "oracle text includes /draw/"],
+		["o:/draw/i", "oracle text includes /draw/"],
+		["o:/^Whenever/", "oracle text includes /^Whenever/"],
+		["o:/target.*creature/g", "oracle text includes /target.*creature/g"],
+	])("regex with flags: `%s` → %s", (query, expected) => {
 		expect(desc(query)).toBe(expected);
 	});
 });

@@ -2,6 +2,7 @@
  * Converts a parsed search AST to a human-readable description.
  */
 
+import { RARITY_ALIASES } from "./fields";
 import type {
 	ComparisonOp,
 	FieldName,
@@ -80,7 +81,8 @@ function describeValue(value: FieldValue, quoted = true): string {
 		case "number":
 			return String(value.value);
 		case "regex": {
-			const flags = value.pattern.flags;
+			// Filter out 'i' since case-insensitive is the default
+			const flags = value.pattern.flags.replace("i", "");
 			return `/${value.source}/${flags}`;
 		}
 		case "colors":
@@ -90,12 +92,20 @@ function describeValue(value: FieldValue, quoted = true): string {
 
 function describeField(node: FieldNode): string {
 	const fieldLabel = FIELD_LABELS[node.field];
-	const valueStr = describeValue(node.value);
 	const isColorField = node.field === "color" || node.field === "identity";
 	const opLabel = isColorField
 		? COLOR_OPERATOR_LABELS[node.operator]
 		: OPERATOR_LABELS[node.operator];
 
+	// Expand rarity shorthand
+	if (node.field === "rarity" && node.value.kind === "string") {
+		const expanded = RARITY_ALIASES[node.value.value.toLowerCase()];
+		if (expanded) {
+			return `${fieldLabel} ${opLabel} ${expanded}`;
+		}
+	}
+
+	const valueStr = describeValue(node.value);
 	return `${fieldLabel} ${opLabel} ${valueStr}`;
 }
 

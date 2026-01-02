@@ -69,7 +69,7 @@ export function compileField(
 			return compileTextField((c) => c.collector_number, operator, value);
 
 		case "rarity":
-			return compileTextField((c) => c.rarity, operator, value);
+			return compileRarity(operator, value);
 
 		case "artist":
 			return compileTextField((c) => c.artist, operator, value);
@@ -357,6 +357,83 @@ function compileKeyword(
 			return (card) =>
 				card.keywords?.some((kw) => kw.toLowerCase().includes(searchValue)) ??
 				false;
+	}
+}
+
+/**
+ * Rarity shorthand expansion
+ */
+export const RARITY_ALIASES: Record<string, string> = {
+	c: "common",
+	common: "common",
+	u: "uncommon",
+	uncommon: "uncommon",
+	r: "rare",
+	rare: "rare",
+	m: "mythic",
+	mythic: "mythic",
+	s: "special",
+	special: "special",
+	b: "bonus",
+	bonus: "bonus",
+};
+
+/**
+ * Rarity ordering for comparisons (lower = less rare)
+ */
+const RARITY_ORDER: Record<string, number> = {
+	common: 0,
+	uncommon: 1,
+	rare: 2,
+	mythic: 3,
+	special: 4,
+	bonus: 5,
+};
+
+/**
+ * Compile rarity matcher with shorthand expansion and comparisons
+ */
+function compileRarity(
+	operator: ComparisonOp,
+	value: FieldValue,
+): CardPredicate {
+	if (value.kind !== "string") {
+		return () => false;
+	}
+
+	const expanded = RARITY_ALIASES[value.value.toLowerCase()];
+	if (!expanded) {
+		return () => false;
+	}
+
+	const targetRank = RARITY_ORDER[expanded];
+
+	switch (operator) {
+		case ":":
+		case "=":
+			return (card) => card.rarity === expanded;
+		case "!=":
+			return (card) => card.rarity !== expanded;
+		case "<":
+			return (card) => {
+				const rank = RARITY_ORDER[card.rarity ?? ""];
+				return rank !== undefined && rank < targetRank;
+			};
+		case ">":
+			return (card) => {
+				const rank = RARITY_ORDER[card.rarity ?? ""];
+				return rank !== undefined && rank > targetRank;
+			};
+		case "<=":
+			return (card) => {
+				const rank = RARITY_ORDER[card.rarity ?? ""];
+				return rank !== undefined && rank <= targetRank;
+			};
+		case ">=":
+			return (card) => {
+				const rank = RARITY_ORDER[card.rarity ?? ""];
+				return rank !== undefined && rank >= targetRank;
+			};
 	}
 }
 
