@@ -79,8 +79,10 @@ function describeValue(value: FieldValue, quoted = true): string {
 				: value.value.toLowerCase();
 		case "number":
 			return String(value.value);
-		case "regex":
-			return `/${value.source}/`;
+		case "regex": {
+			const flags = value.pattern.flags;
+			return `/${value.source}/${flags}`;
+		}
 		case "colors":
 			return formatColors(value.colors);
 	}
