@@ -17,8 +17,19 @@ import type {
 	SearchRestrictions,
 	VolatileData,
 } from "../lib/scryfall-types";
-import { search as parseSearch } from "../lib/search";
+import {
+	describeQuery,
+	hasSearchOperators,
+	search as parseSearch,
+} from "../lib/search";
 import type { FieldName, SearchNode } from "../lib/search/types";
+
+interface UnifiedSearchResult {
+	mode: "fuzzy" | "syntax";
+	cards: Card[];
+	description: string | null;
+	error: { message: string; start: number; end: number } | null;
+}
 
 const VOLATILE_RECORD_SIZE = 44; // 16 (UUID) + 4 (rank) + 6*4 (prices)
 const NULL_VALUE = 0xffffffff;
@@ -106,6 +117,15 @@ interface CardsWorkerAPI {
 	 * Returns null if card not found
 	 */
 	getVolatileData(id: ScryfallId): Promise<VolatileData | null>;
+
+	/**
+	 * Unified search that routes to fuzzy or syntax search based on query complexity
+	 */
+	unifiedSearch(
+		query: string,
+		restrictions?: SearchRestrictions,
+		maxResults?: number,
+	): UnifiedSearchResult;
 }
 
 class CardsWorker implements CardsWorkerAPI {
@@ -385,6 +405,91 @@ class CardsWorker implements CardsWorkerAPI {
 		}
 		const volatileData = await this.volatileDataPromise;
 		return volatileData.get(id) ?? null;
+	}
+
+	unifiedSearch(
+		query: string,
+		restrictions?: SearchRestrictions,
+		maxResults = 50,
+	): UnifiedSearchResult {
+		if (!this.data || !this.searchIndex) {
+			throw new Error("Worker not initialized - call initialize() first");
+		}
+
+		const trimmed = query.trim();
+		if (!trimmed) {
+			return { mode: "fuzzy", cards: [], description: null, error: null };
+		}
+
+		// Simple query - use fuzzy search (no parsing needed)
+		if (!hasSearchOperators(trimmed)) {
+			const cards = this.searchCards(trimmed, restrictions, maxResults);
+			return { mode: "fuzzy", cards, description: null, error: null };
+		}
+
+		// Complex query - parse and run syntax search
+		const parseResult = parseSearch(trimmed);
+
+		if (!parseResult.ok) {
+			return {
+				mode: "syntax",
+				cards: [],
+				description: null,
+				error: {
+					message: parseResult.error.message,
+					start: parseResult.error.span.start,
+					end: parseResult.error.span.end,
+				},
+			};
+		}
+
+		const { match, ast } = parseResult.value;
+		const description = describeQuery(ast);
+
+		// Reuse syntaxSearch logic but with restrictions applied
+		const searchAll = hasPrintingQuery(ast);
+		const source = searchAll
+			? Object.values(this.data.cards)
+			: this.canonicalCards;
+
+		// Build restrictions check outside the loop
+		const restrictionCheck = this.buildRestrictionCheck(restrictions);
+		const cards: Card[] = [];
+
+		for (const card of source) {
+			if (card.layout === "art_series") continue;
+			if (!restrictionCheck(card)) continue;
+			if (!match(card)) continue;
+			cards.push(card);
+			if (cards.length >= maxResults) break;
+		}
+
+		return { mode: "syntax", cards, description, error: null };
+	}
+
+	private buildRestrictionCheck(
+		restrictions?: SearchRestrictions,
+	): (card: Card) => boolean {
+		if (!restrictions) return () => true;
+
+		const { format, colorIdentity } = restrictions;
+		const allowedSet = colorIdentity ? new Set(colorIdentity) : null;
+
+		return (card: Card) => {
+			if (format) {
+				const legality = card.legalities?.[format];
+				if (legality !== "legal" && legality !== "restricted") {
+					return false;
+				}
+			}
+			if (allowedSet) {
+				const cardIdentity = card.color_identity ?? [];
+				if (!cardIdentity.every((c) => allowedSet.has(c as ManaColor))) {
+					return false;
+				}
+			}
+			return true;
+		};
 	}
 }
 

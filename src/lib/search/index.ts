@@ -79,7 +79,11 @@ export function filterCards(
 export type { SearchNode, Result, ParseError, CardPredicate };
 export type { CompiledSearch as SearchResult };
 
+export { describeQuery } from "./describe";
 export { tokenize } from "./lexer";
 export { compile } from "./matcher";
+
+// Operator detection and query description
+export { hasSearchOperators } from "./operators";
 // Re-export parsing functions for advanced use
 export { parse } from "./parser";

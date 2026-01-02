@@ -16,6 +16,13 @@ import type {
 	VolatileData,
 } from "./scryfall-types";
 
+export interface UnifiedSearchResult {
+	mode: "fuzzy" | "syntax";
+	cards: Card[];
+	description: string | null;
+	error: { message: string; start: number; end: number } | null;
+}
+
 export interface CardDataProvider {
 	/**
 	 * Get card by ID
@@ -64,6 +71,16 @@ export interface CardDataProvider {
 	 * Returns null if card not found
 	 */
 	getVolatileData(id: ScryfallId): Promise<VolatileData | null>;
+
+	/**
+	 * Unified search that automatically routes to fuzzy or syntax search
+	 * based on query complexity. Returns mode indicator and optional description.
+	 */
+	unifiedSearch?(
+		query: string,
+		restrictions?: SearchRestrictions,
+		maxResults?: number,
+	): Promise<UnifiedSearchResult>;
 }
 
 let providerPromise: Promise<CardDataProvider> | null = null;

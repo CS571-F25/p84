@@ -3,7 +3,10 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
-import { getCardDataProvider } from "./card-data-provider";
+import {
+	getCardDataProvider,
+	type UnifiedSearchResult,
+} from "./card-data-provider";
 import type {
 	Card,
 	OracleId,
@@ -155,4 +158,44 @@ export const getVolatileDataQueryOptions = (id: ScryfallId) =>
 			return provider.getVolatileData(id);
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes - prices change frequently
+	});
+
+export type { UnifiedSearchResult };
+
+/**
+ * Unified search that automatically routes to fuzzy or syntax search
+ * based on query complexity. Returns mode indicator and description for syntax queries.
+ */
+export const unifiedSearchQueryOptions = (
+	query: string,
+	restrictions?: SearchRestrictions,
+	maxResults = 50,
+) =>
+	queryOptions({
+		queryKey: [
+			"cards",
+			"unifiedSearch",
+			query,
+			restrictions,
+			maxResults,
+		] as const,
+		queryFn: async (): Promise<UnifiedSearchResult> => {
+			const provider = await getCardDataProvider();
+
+			if (!query.trim()) {
+				return { mode: "fuzzy", cards: [], description: null, error: null };
+			}
+
+			if (!provider.unifiedSearch) {
+				return {
+					mode: "fuzzy",
+					cards: [],
+					description: null,
+					error: { message: "Unified search not available", start: 0, end: 0 },
+				};
+			}
+
+			return provider.unifiedSearch(query, restrictions, maxResults);
+		},
+		staleTime: 5 * 60 * 1000,
 	});

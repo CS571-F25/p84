@@ -4,7 +4,10 @@
  * Uses Web Worker to load full card dataset and provide search functionality
  */
 
-import type { CardDataProvider } from "./card-data-provider";
+import type {
+	CardDataProvider,
+	UnifiedSearchResult,
+} from "./card-data-provider";
 import { getCardsWorker, initializeWorker } from "./cards-worker-client";
 import type {
 	Card,
@@ -64,5 +67,14 @@ export class ClientCardProvider implements CardDataProvider {
 	async getVolatileData(id: ScryfallId): Promise<VolatileData | null> {
 		const worker = getCardsWorker();
 		return worker.getVolatileData(id);
+	}
+
+	async unifiedSearch(
+		query: string,
+		restrictions?: SearchRestrictions,
+		maxResults = 50,
+	): Promise<UnifiedSearchResult> {
+		const worker = getCardsWorker();
+		return worker.unifiedSearch(query, restrictions, maxResults);
 	}
 }
