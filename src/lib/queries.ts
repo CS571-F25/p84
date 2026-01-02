@@ -9,6 +9,7 @@ import type {
 	OracleId,
 	ScryfallId,
 	SearchRestrictions,
+	VolatileData,
 } from "./scryfall-types";
 
 /**
@@ -141,4 +142,17 @@ export const syntaxSearchQueryOptions = (query: string, maxResults = 100) =>
 			return provider.syntaxSearch(query, maxResults);
 		},
 		staleTime: 5 * 60 * 1000,
+	});
+
+/**
+ * Get volatile data (prices, EDHREC rank) for a card
+ */
+export const getVolatileDataQueryOptions = (id: ScryfallId) =>
+	queryOptions({
+		queryKey: ["cards", "volatile", id] as const,
+		queryFn: async (): Promise<VolatileData | null> => {
+			const provider = await getCardDataProvider();
+			return provider.getVolatileData(id);
+		},
+		staleTime: 5 * 60 * 1000, // 5 minutes - prices change frequently
 	});

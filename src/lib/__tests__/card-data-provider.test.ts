@@ -299,12 +299,6 @@ describe("CardDataProvider contract", () => {
 			expect(serverProvider.searchCards).toBeUndefined();
 		});
 
-		it("does not support volatile data", () => {
-			const provider: CardDataProvider = serverProvider;
-			expect(provider.getVolatileData).toBeUndefined();
-			expect(provider.isVolatileDataReady).toBeUndefined();
-		});
-
 		describe("getCardsByIds (batch fetch)", () => {
 			it("returns cards for valid IDs", async () => {
 				const ids = SAMPLE_CARD_IDS.slice(0, 5).map(asScryfallId);
@@ -351,28 +345,43 @@ describe("CardDataProvider contract", () => {
 		});
 	});
 
-	describe("Volatile data (ClientCardProvider only)", () => {
-		it("reports volatile data ready after initialization", async () => {
-			const ready = await clientProvider.isVolatileDataReady();
-			expect(ready).toBe(true);
+	describe("Volatile data", () => {
+		describe.each([
+			["ServerCardProvider", () => serverProvider],
+			["ClientCardProvider", () => clientProvider],
+		])("%s", (_name, getProvider) => {
+			it("returns volatile data for known card", async () => {
+				const provider = getProvider();
+				const volatileData = await provider.getVolatileData(TEST_CARD_ID);
+
+				expect(volatileData).not.toBeNull();
+				expect(volatileData).toHaveProperty("edhrecRank");
+				expect(volatileData).toHaveProperty("usd");
+				expect(volatileData).toHaveProperty("usdFoil");
+				expect(volatileData).toHaveProperty("usdEtched");
+				expect(volatileData).toHaveProperty("eur");
+				expect(volatileData).toHaveProperty("eurFoil");
+				expect(volatileData).toHaveProperty("tix");
+			});
+
+			it("returns null for invalid card ID", async () => {
+				const provider = getProvider();
+				const volatileData = await provider.getVolatileData(INVALID_ID);
+				expect(volatileData).toBeNull();
+			});
 		});
 
-		it("returns volatile data for known card", async () => {
-			const volatileData = await clientProvider.getVolatileData(TEST_CARD_ID);
+		it.each(SAMPLE_CARD_IDS)(
+			"returns identical volatile data for card %s",
+			async (cardId) => {
+				const id = asScryfallId(cardId);
+				const [clientData, serverData] = await Promise.all([
+					clientProvider.getVolatileData(id),
+					serverProvider.getVolatileData(id),
+				]);
 
-			expect(volatileData).not.toBeNull();
-			expect(volatileData).toHaveProperty("edhrecRank");
-			expect(volatileData).toHaveProperty("usd");
-			expect(volatileData).toHaveProperty("usdFoil");
-			expect(volatileData).toHaveProperty("usdEtched");
-			expect(volatileData).toHaveProperty("eur");
-			expect(volatileData).toHaveProperty("eurFoil");
-			expect(volatileData).toHaveProperty("tix");
-		});
-
-		it("returns null for invalid card ID", async () => {
-			const volatileData = await clientProvider.getVolatileData(INVALID_ID);
-			expect(volatileData).toBeNull();
-		});
+				expect(clientData).toEqual(serverData);
+			},
+		);
 	});
 });

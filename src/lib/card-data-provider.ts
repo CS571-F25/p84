@@ -60,14 +60,10 @@ export interface CardDataProvider {
 
 	/**
 	 * Get volatile data (prices, EDHREC rank) for a card
-	 * Returns null if volatile data isn't available yet
+	 * Waits for volatile data to load if not ready yet
+	 * Returns null if card not found
 	 */
-	getVolatileData?(id: ScryfallId): Promise<VolatileData | null>;
-
-	/**
-	 * Check if volatile data has finished loading
-	 */
-	isVolatileDataReady?(): Promise<boolean>;
+	getVolatileData(id: ScryfallId): Promise<VolatileData | null>;
 }
 
 let providerPromise: Promise<CardDataProvider> | null = null;

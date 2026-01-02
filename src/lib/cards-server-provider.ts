@@ -11,9 +11,14 @@
 // In dev: provides stub/mock, In production: actual Workers env
 import { env } from "cloudflare:workers";
 import type { CardDataProvider } from "./card-data-provider";
-import { CARD_CHUNKS, CARD_INDEXES } from "./card-manifest";
+import { CARD_CHUNKS, CARD_INDEXES, CARD_VOLATILE } from "./card-manifest";
 import { LRUCache } from "./lru-cache";
-import type { Card, OracleId, ScryfallId } from "./scryfall-types";
+import type {
+	Card,
+	OracleId,
+	ScryfallId,
+	VolatileData,
+} from "./scryfall-types";
 
 /**
  * Fetch asset from public/data
@@ -61,6 +66,84 @@ let binaryIndexCache: ArrayBuffer | null = null;
 let indexDataCache: IndexData | null = null;
 const chunkCaches = new LRUCache<number, string>(MAX_CHUNK_CACHE_SIZE);
 const cardCache = new LRUCache<ScryfallId, Card>(MAX_CARD_CACHE_SIZE);
+
+// Volatile data (prices, EDHREC rank) - binary searched, not loaded into memory
+const VOLATILE_RECORD_SIZE = 44; // 16 (UUID) + 4 (rank) + 6*4 (prices)
+const NULL_VALUE = 0xffffffff;
+
+let volatileDataPromise: Promise<ArrayBuffer> | null = null;
+
+async function loadVolatileBuffer(): Promise<ArrayBuffer> {
+	const response = await fetchAsset(`cards/${CARD_VOLATILE}`);
+	if (!response.ok) {
+		throw new Error(`Failed to load volatile data: ${response.statusText}`);
+	}
+	return response.arrayBuffer();
+}
+
+function getVolatileBuffer(): Promise<ArrayBuffer> {
+	if (!volatileDataPromise) {
+		volatileDataPromise = loadVolatileBuffer();
+	}
+	return volatileDataPromise;
+}
+
+function parseVolatileRecord(view: DataView, offset: number): VolatileData {
+	const readValue = (fieldOffset: number): number | null => {
+		const val = view.getUint32(offset + fieldOffset, true);
+		return val === NULL_VALUE ? null : val;
+	};
+
+	const centsToPrice = (cents: number | null): number | null =>
+		cents === null ? null : cents / 100;
+
+	return {
+		edhrecRank: readValue(16),
+		usd: centsToPrice(readValue(20)),
+		usdFoil: centsToPrice(readValue(24)),
+		usdEtched: centsToPrice(readValue(28)),
+		eur: centsToPrice(readValue(32)),
+		eurFoil: centsToPrice(readValue(36)),
+		tix: centsToPrice(readValue(40)),
+	};
+}
+
+async function findVolatileData(
+	cardId: ScryfallId,
+): Promise<VolatileData | null> {
+	const buffer = await getVolatileBuffer();
+	const recordCount = buffer.byteLength / VOLATILE_RECORD_SIZE;
+
+	const searchUuid = uuidToBytes(cardId);
+	const searchView = new DataView(searchUuid.buffer);
+	const searchHigh = searchView.getBigUint64(0, false);
+	const searchLow = searchView.getBigUint64(8, false);
+
+	const view = new DataView(buffer);
+	let left = 0;
+	let right = recordCount - 1;
+
+	while (left <= right) {
+		const mid = Math.floor((left + right) / 2);
+		const offset = mid * VOLATILE_RECORD_SIZE;
+
+		const recordHigh = view.getBigUint64(offset, false);
+		const recordLow = view.getBigUint64(offset + 8, false);
+
+		if (
+			recordHigh < searchHigh ||
+			(recordHigh === searchHigh && recordLow < searchLow)
+		) {
+			left = mid + 1;
+		} else if (recordHigh === searchHigh && recordLow === searchLow) {
+			return parseVolatileRecord(view, offset);
+		} else {
+			right = mid - 1;
+		}
+	}
+
+	return null;
+}
 
 /**
  * Convert UUID string to Uint8Array for binary comparison
@@ -326,6 +409,10 @@ export class ServerCardProvider implements CardDataProvider {
 		}
 
 		return result;
+	}
+
+	async getVolatileData(id: ScryfallId): Promise<VolatileData | null> {
+		return findVolatileData(id);
 	}
 
 	// Search not implemented server-side (client-only feature for now)

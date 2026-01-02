@@ -102,21 +102,17 @@ interface CardsWorkerAPI {
 
 	/**
 	 * Get volatile data (prices, EDHREC rank) for a card
-	 * Returns null if volatile data hasn't loaded yet
+	 * Waits for volatile data to load if not ready yet
+	 * Returns null if card not found
 	 */
-	getVolatileData(id: ScryfallId): VolatileData | null;
-
-	/**
-	 * Check if volatile data has finished loading
-	 */
-	isVolatileDataReady(): boolean;
+	getVolatileData(id: ScryfallId): Promise<VolatileData | null>;
 }
 
 class CardsWorker implements CardsWorkerAPI {
 	private data: CardDataOutput | null = null;
 	private canonicalCards: Card[] = [];
 	private searchIndex: MiniSearch<Card> | null = null;
-	private volatileData: Map<string, VolatileData> | null = null;
+	private volatileDataPromise: Promise<Map<string, VolatileData>> | null = null;
 
 	async initialize(): Promise<void> {
 		// Prevent re-initialization in SharedWorker mode (shared across tabs)
@@ -196,17 +192,17 @@ class CardsWorker implements CardsWorkerAPI {
 		);
 
 		// Load volatile data in background (non-blocking)
-		this.loadVolatileData();
+		this.volatileDataPromise = this.loadVolatileData();
 	}
 
-	private async loadVolatileData(): Promise<void> {
+	private async loadVolatileData(): Promise<Map<string, VolatileData>> {
 		console.log("[CardsWorker] Loading volatile data...");
 
 		try {
 			const response = await fetch(`/data/cards/${CARD_VOLATILE}`);
 			if (!response.ok) {
 				console.warn("[CardsWorker] Failed to load volatile data");
-				return;
+				return new Map();
 			}
 
 			const buffer = await response.arrayBuffer();
@@ -243,12 +239,13 @@ class CardsWorker implements CardsWorkerAPI {
 				});
 			}
 
-			this.volatileData = volatileMap;
 			console.log(
 				`[CardsWorker] Loaded volatile data for ${volatileMap.size.toLocaleString()} cards`,
 			);
+			return volatileMap;
 		} catch (error) {
 			console.warn("[CardsWorker] Error loading volatile data:", error);
+			return new Map();
 		}
 	}
 
@@ -382,12 +379,12 @@ class CardsWorker implements CardsWorkerAPI {
 		return { ok: true, cards };
 	}
 
-	getVolatileData(id: ScryfallId): VolatileData | null {
-		return this.volatileData?.get(id) ?? null;
-	}
-
-	isVolatileDataReady(): boolean {
-		return this.volatileData !== null;
+	async getVolatileData(id: ScryfallId): Promise<VolatileData | null> {
+		if (!this.volatileDataPromise) {
+			return null;
+		}
+		const volatileData = await this.volatileDataPromise;
+		return volatileData.get(id) ?? null;
 	}
 }
 

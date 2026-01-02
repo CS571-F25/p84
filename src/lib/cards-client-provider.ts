@@ -65,9 +65,4 @@ export class ClientCardProvider implements CardDataProvider {
 		const worker = getCardsWorker();
 		return worker.getVolatileData(id);
 	}
-
-	async isVolatileDataReady(): Promise<boolean> {
-		const worker = getCardsWorker();
-		return worker.isVolatileDataReady();
-	}
 }
