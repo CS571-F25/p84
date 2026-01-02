@@ -8,7 +8,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { CardDataProvider } from "../card-data-provider";
 import { ClientCardProvider } from "../cards-client-provider";
 import { ServerCardProvider } from "../cards-server-provider";
-import type { OracleId, ScryfallId } from "../scryfall-types";
+import type { ScryfallId } from "../scryfall-types";
 import { asOracleId, asScryfallId } from "../scryfall-types";
 import { getTestCardOracleId } from "./test-card-lookup";
 import { mockFetchFromPublicDir } from "./test-helpers";
@@ -300,8 +300,54 @@ describe("CardDataProvider contract", () => {
 		});
 
 		it("does not support volatile data", () => {
-			expect(serverProvider.getVolatileData).toBeUndefined();
-			expect(serverProvider.isVolatileDataReady).toBeUndefined();
+			const provider: CardDataProvider = serverProvider;
+			expect(provider.getVolatileData).toBeUndefined();
+			expect(provider.isVolatileDataReady).toBeUndefined();
+		});
+
+		describe("getCardsByIds (batch fetch)", () => {
+			it("returns cards for valid IDs", async () => {
+				const ids = SAMPLE_CARD_IDS.slice(0, 5).map(asScryfallId);
+				const result = await serverProvider.getCardsByIds(ids);
+
+				expect(result.size).toBe(5);
+				for (const id of ids) {
+					expect(result.has(id)).toBe(true);
+					expect(result.get(id)?.id).toBe(id);
+				}
+			});
+
+			it("handles mixed valid and invalid IDs", async () => {
+				const validIds = SAMPLE_CARD_IDS.slice(0, 3).map(asScryfallId);
+				const invalidIds = [INVALID_ID];
+				const result = await serverProvider.getCardsByIds([
+					...validIds,
+					...invalidIds,
+				]);
+
+				expect(result.size).toBe(3);
+				for (const id of validIds) {
+					expect(result.has(id)).toBe(true);
+				}
+				expect(result.has(INVALID_ID)).toBe(false);
+			});
+
+			it("returns same data as individual getCardById calls", async () => {
+				const ids = SAMPLE_CARD_IDS.slice(0, 10).map(asScryfallId);
+				const batchResult = await serverProvider.getCardsByIds(ids);
+				const individualResults = await Promise.all(
+					ids.map((id) => serverProvider.getCardById(id)),
+				);
+
+				for (let i = 0; i < ids.length; i++) {
+					expect(batchResult.get(ids[i])).toEqual(individualResults[i]);
+				}
+			});
+
+			it("handles empty array", async () => {
+				const result = await serverProvider.getCardsByIds([]);
+				expect(result.size).toBe(0);
+			});
 		});
 	});
 
