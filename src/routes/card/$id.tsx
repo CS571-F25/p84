@@ -7,6 +7,7 @@ import { OracleText } from "@/components/OracleText";
 import {
 	getCardByIdQueryOptions,
 	getCardPrintingsQueryOptions,
+	getVolatileDataQueryOptions,
 } from "@/lib/queries";
 import type { Card, ScryfallId } from "@/lib/scryfall-types";
 import { asOracleId, isScryfallId } from "@/lib/scryfall-types";
@@ -27,12 +28,15 @@ export const Route = createFileRoute("/card/$id")({
 			return null;
 		}
 
-		// Prefetch only the main card during SSR
+		// Prefetch card and volatile data in parallel
 		// Printing IDs and printing cards are loaded client-side to avoid memory bloat
 		// (some cards like Lightning Bolt have 100+ printings)
-		const card = await context.queryClient.ensureQueryData(
-			getCardByIdQueryOptions(params.id),
-		);
+		const [card] = await Promise.all([
+			context.queryClient.ensureQueryData(getCardByIdQueryOptions(params.id)),
+			context.queryClient.ensureQueryData(
+				getVolatileDataQueryOptions(params.id),
+			),
+		]);
 		return card ?? null;
 	},
 	head: ({ loaderData }) => {
@@ -146,6 +150,13 @@ function CardDetailPage() {
 			getCardByIdQueryOptions(printingId),
 		),
 		combine: combinePrintingQueries,
+	});
+
+	// Use hovered printing's ID for volatile data, fall back to current card
+	const displayedId = hoveredPrintingId ?? (isValidId ? id : null);
+	const { data: volatileData, isLoading: volatileLoading } = useQuery({
+		...getVolatileDataQueryOptions(displayedId ?? ("" as ScryfallId)),
+		enabled: !!displayedId,
 	});
 
 	useEffect(() => {
@@ -310,6 +321,66 @@ function CardDetailPage() {
 								</>
 							)}
 						</div>
+
+						{volatileLoading ? (
+							<div className="flex flex-wrap gap-3 items-center">
+								<span className="px-2.5 py-1 w-16 bg-gray-200 dark:bg-slate-700 rounded text-sm animate-pulse">
+									&nbsp;
+								</span>
+								<span className="px-2.5 py-1 w-20 bg-gray-200 dark:bg-slate-700 rounded text-sm animate-pulse">
+									&nbsp;
+								</span>
+								<span className="px-2.5 py-1 w-24 bg-gray-200 dark:bg-slate-700 rounded text-sm animate-pulse">
+									&nbsp;
+								</span>
+							</div>
+						) : volatileData &&
+							(volatileData.usd ||
+								volatileData.usdFoil ||
+								volatileData.eur ||
+								volatileData.tix ||
+								volatileData.edhrecRank) ? (
+							<div className="flex flex-wrap gap-3 items-center">
+								{volatileData.usd && (
+									<span className="px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded text-sm">
+										${volatileData.usd.toFixed(2)}
+									</span>
+								)}
+								{volatileData.usdFoil && (
+									<span className="px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded text-sm">
+										${volatileData.usdFoil.toFixed(2)}{" "}
+										<span className="opacity-70">foil</span>
+									</span>
+								)}
+								{volatileData.usdEtched && (
+									<span className="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded text-sm">
+										${volatileData.usdEtched.toFixed(2)}{" "}
+										<span className="opacity-70">etched</span>
+									</span>
+								)}
+								{volatileData.eur && (
+									<span className="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded text-sm">
+										€{volatileData.eur.toFixed(2)}
+									</span>
+								)}
+								{volatileData.eurFoil && (
+									<span className="px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 rounded text-sm">
+										€{volatileData.eurFoil.toFixed(2)}{" "}
+										<span className="opacity-70">foil</span>
+									</span>
+								)}
+								{volatileData.tix && (
+									<span className="px-2.5 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded text-sm">
+										{volatileData.tix.toFixed(2)} tix
+									</span>
+								)}
+								{volatileData.edhrecRank && (
+									<span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded text-sm">
+										#{volatileData.edhrecRank.toLocaleString()} EDHREC
+									</span>
+								)}
+							</div>
+						) : null}
 
 						{printingIdsLoading ? (
 							<div>
