@@ -3,6 +3,7 @@ import {
 	setupTestCards,
 	type TestCardLookup,
 } from "../../__tests__/test-card-lookup";
+import type { Card } from "../../scryfall-types";
 import { search } from "../index";
 
 describe("Scryfall search integration", () => {
@@ -132,6 +133,44 @@ describe("Scryfall search integration", () => {
 				expect(multi.value.match(bolt)).toBe(false);
 			}
 		});
+
+		it("c!= excludes exact color", async () => {
+			const bolt = await cards.get("Lightning Bolt");
+			const elves = await cards.get("Llanowar Elves");
+
+			// Exclude mono-red
+			const notRed = search("c!=r");
+			expect(notRed.ok).toBe(true);
+			if (notRed.ok) {
+				expect(notRed.value.match(bolt)).toBe(false); // R = R, excluded
+				expect(notRed.value.match(elves)).toBe(true); // G != R, included
+			}
+		});
+
+		it("c: differs from id: (color vs color identity)", async () => {
+			const forest = await cards.get("Forest");
+
+			// Forest is colorless (no colored mana in cost)
+			const colorless = search("c:c");
+			expect(colorless.ok).toBe(true);
+			if (colorless.ok) {
+				expect(colorless.value.match(forest)).toBe(true);
+			}
+
+			// But Forest has green color identity (produces green mana)
+			const greenIdentity = search("id:g");
+			expect(greenIdentity.ok).toBe(true);
+			if (greenIdentity.ok) {
+				expect(greenIdentity.value.match(forest)).toBe(true);
+			}
+
+			// Forest is NOT green by color
+			const greenColor = search("c:g");
+			expect(greenColor.ok).toBe(true);
+			if (greenColor.ok) {
+				expect(greenColor.value.match(forest)).toBe(false);
+			}
+		});
 	});
 
 	describe("color identity matching", () => {
@@ -155,6 +194,27 @@ describe("Scryfall search integration", () => {
 			if (simic.ok) {
 				expect(simic.value.match(bolt)).toBe(false); // R doesn't fit
 				expect(simic.value.match(elves)).toBe(true); // G fits
+			}
+		});
+
+		it("id!= excludes exact color identity", async () => {
+			const bolt = await cards.get("Lightning Bolt");
+			const elves = await cards.get("Llanowar Elves");
+
+			// Exclude mono-red identity
+			const notRed = search("id!=r");
+			expect(notRed.ok).toBe(true);
+			if (notRed.ok) {
+				expect(notRed.value.match(bolt)).toBe(false); // R = R, excluded
+				expect(notRed.value.match(elves)).toBe(true); // G != R, included
+			}
+
+			// Exclude mono-green identity
+			const notGreen = search("id!=g");
+			expect(notGreen.ok).toBe(true);
+			if (notGreen.ok) {
+				expect(notGreen.value.match(bolt)).toBe(true); // R != G, included
+				expect(notGreen.value.match(elves)).toBe(false); // G = G, excluded
 			}
 		});
 	});
@@ -268,6 +328,92 @@ describe("Scryfall search integration", () => {
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				expect(result.value.match(bolt)).toBe(true);
+			}
+		});
+	});
+
+	describe("rarity matching", () => {
+		// Use mock cards with explicit rarities to avoid canonical printing variance
+		const mockCommon = { rarity: "common" } as Card;
+		const mockUncommon = { rarity: "uncommon" } as Card;
+		const mockRare = { rarity: "rare" } as Card;
+		const mockMythic = { rarity: "mythic" } as Card;
+
+		it.each([
+			["r:c", mockCommon, true],
+			["r:c", mockUncommon, false],
+			["r:common", mockCommon, true],
+			["r:u", mockUncommon, true],
+			["r:uncommon", mockUncommon, true],
+			["r:r", mockRare, true],
+			["r:rare", mockRare, true],
+			["r:m", mockMythic, true],
+			["r:mythic", mockMythic, true],
+		])("%s matches %s rarity: %s", (query, card, expected) => {
+			const result = search(query);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(expected);
+			}
+		});
+
+		it.each([
+			["r>=c", mockCommon, true],
+			["r>=c", mockUncommon, true],
+			["r>=c", mockRare, true],
+			["r>=u", mockCommon, false],
+			["r>=u", mockUncommon, true],
+			["r>=u", mockRare, true],
+			["r>=r", mockUncommon, false],
+			["r>=r", mockRare, true],
+			["r>=r", mockMythic, true],
+		])("%s matches %s rarity: %s", (query, card, expected) => {
+			const result = search(query);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(expected);
+			}
+		});
+
+		it.each([
+			["r<=m", mockMythic, true],
+			["r<=m", mockRare, true],
+			["r<=r", mockRare, true],
+			["r<=r", mockMythic, false],
+			["r<=u", mockUncommon, true],
+			["r<=u", mockRare, false],
+			["r<=c", mockCommon, true],
+			["r<=c", mockUncommon, false],
+		])("%s matches %s rarity: %s", (query, card, expected) => {
+			const result = search(query);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(expected);
+			}
+		});
+
+		it.each([
+			["r>c", mockCommon, false],
+			["r>c", mockUncommon, true],
+			["r<u", mockCommon, true],
+			["r<u", mockUncommon, false],
+		])("%s matches %s rarity: %s", (query, card, expected) => {
+			const result = search(query);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(expected);
+			}
+		});
+
+		it("r!=c excludes common", () => {
+			const result = search("r!=c");
+			if (!result.ok) {
+				console.log("Parse error:", result.error);
+			}
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(mockCommon)).toBe(false);
+				expect(result.value.match(mockUncommon)).toBe(true);
 			}
 		});
 	});

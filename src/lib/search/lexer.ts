@@ -26,6 +26,7 @@ const WORD_TERMINATORS = new Set([
 	")",
 	":",
 	"=",
+	"!",
 	"<",
 	">",
 	'"',
