@@ -62,6 +62,7 @@ const KEPT_FIELDS = [
 
 	// Search & filtering
 	"set",
+	"set_type",
 	"set_name",
 	"collector_number",
 	"rarity",

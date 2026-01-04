@@ -75,6 +75,26 @@ export function filterCards(
 	return matches;
 }
 
+/**
+ * Check if any node in the AST matches the predicate (like Array.some for AST)
+ */
+export function someNode(
+	node: SearchNode,
+	predicate: (node: SearchNode) => boolean,
+): boolean {
+	if (predicate(node)) return true;
+
+	switch (node.type) {
+		case "AND":
+		case "OR":
+			return node.children.some((child) => someNode(child, predicate));
+		case "NOT":
+			return someNode(node.child, predicate);
+		default:
+			return false;
+	}
+}
+
 // Re-export types
 export type { SearchNode, Result, ParseError, CardPredicate };
 export type { CompiledSearch as SearchResult };

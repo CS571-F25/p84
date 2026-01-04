@@ -25,6 +25,7 @@ const FIELD_LABELS: Record<FieldName, string> = {
 	defense: "defense",
 	keyword: "keyword",
 	set: "set",
+	settype: "set type",
 	number: "collector number",
 	rarity: "rarity",
 	artist: "artist",

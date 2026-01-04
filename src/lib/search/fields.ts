@@ -65,6 +65,9 @@ export function compileField(
 		case "set":
 			return compileTextField((c) => c.set, operator, value);
 
+		case "settype":
+			return compileTextField((c) => c.set_type, operator, value);
+
 		case "number":
 			return compileTextField((c) => c.collector_number, operator, value);
 
@@ -685,6 +688,8 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 	adventure: (card) => card.layout === "adventure",
 	battle: (card) => card.layout === "battle",
 	prototype: (card) => card.layout === "prototype",
+	token: (card) => card.layout === "token",
+	art_series: (card) => card.layout === "art_series",
 
 	// Commander - can this card BE a commander
 	commander: canBeCommander,

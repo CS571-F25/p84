@@ -18,9 +18,12 @@ import type {
 	VolatileData,
 } from "../lib/scryfall-types";
 import {
+	type CardPredicate,
 	describeQuery,
 	hasSearchOperators,
 	search as parseSearch,
+	type SearchNode,
+	someNode,
 } from "../lib/search";
 
 interface UnifiedSearchResult {
@@ -447,25 +450,8 @@ class CardsWorker implements CardsWorkerAPI {
 			};
 		}
 
-		const { match } = parseResult.value;
-
-		// Always search all printings, then dedup to canonical
-		// Filter out art series and tokens by default
-		const allMatches: Card[] = [];
-		for (const card of Object.values(this.data.cards)) {
-			if (card.layout === "art_series" || card.layout === "token") continue;
-			if (match(card)) {
-				allMatches.push(card);
-			}
-		}
-
-		// Collapse to one per oracle_id (most canonical match wins)
-		const dedupedCards = this.collapseToCanonical(allMatches);
-
-		// Sort and limit results
-		sortCards(dedupedCards, sort);
-		const cards = dedupedCards.slice(0, maxResults);
-
+		const { match, ast } = parseResult.value;
+		const cards = this.runParsedQuery(ast, match, maxResults, sort);
 		return { ok: true, cards };
 	}
 
@@ -516,28 +502,56 @@ class CardsWorker implements CardsWorkerAPI {
 
 		const { match, ast } = parseResult.value;
 		const description = describeQuery(ast);
+		const cards = this.runParsedQuery(
+			ast,
+			match,
+			maxResults,
+			sort,
+			restrictions,
+		);
+		return { mode: "syntax", cards, description, error: null };
+	}
 
-		// Build restrictions check outside the loop
+	/**
+	 * Run a parsed query: filter cards, collapse to canonical, sort.
+	 */
+	private runParsedQuery(
+		ast: SearchNode,
+		match: CardPredicate,
+		maxResults: number,
+		sort: SortOption,
+		restrictions?: SearchRestrictions,
+	): Card[] {
+		if (!this.data) return [];
+
+		// Check if query explicitly references layout/set-type (don't filter if so)
+		const referencesLayout = someNode(
+			ast,
+			(n) =>
+				n.type === "FIELD" &&
+				(n.field === "settype" ||
+					(n.field === "is" &&
+						n.value.kind === "string" &&
+						(n.value.value === "token" || n.value.value === "art_series"))),
+		);
+
 		const restrictionCheck = this.buildRestrictionCheck(restrictions);
 
-		// Always search all printings, then dedup to canonical
-		// Filter out art series and tokens by default
+		// Filter cards, skipping art_series/tokens unless explicitly queried
 		const allMatches: Card[] = [];
 		for (const card of Object.values(this.data.cards)) {
-			if (card.layout === "art_series" || card.layout === "token") continue;
+			if (!referencesLayout) {
+				if (card.layout === "art_series" || card.layout === "token") continue;
+			}
 			if (!restrictionCheck(card)) continue;
 			if (!match(card)) continue;
 			allMatches.push(card);
 		}
 
-		// Collapse to one per oracle_id (most canonical match wins)
+		// Collapse to one per oracle_id, sort, and limit
 		const dedupedCards = this.collapseToCanonical(allMatches);
-
-		// Sort and limit results
 		sortCards(dedupedCards, sort);
-		const cards = dedupedCards.slice(0, maxResults);
-
-		return { mode: "syntax", cards, description, error: null };
+		return dedupedCards.slice(0, maxResults);
 	}
 
 	/**
