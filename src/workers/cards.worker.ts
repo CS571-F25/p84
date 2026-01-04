@@ -533,6 +533,7 @@ class CardsWorker implements CardsWorkerAPI {
 			(n) =>
 				n.type === "FIELD" &&
 				(n.field === "settype" ||
+					n.field === "layout" ||
 					(n.field === "is" &&
 						n.value.kind === "string" &&
 						(n.value.value === "token" || n.value.value === "art_series"))),

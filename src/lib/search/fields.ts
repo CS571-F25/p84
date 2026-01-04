@@ -68,6 +68,9 @@ export function compileField(
 		case "settype":
 			return compileTextField((c) => c.set_type, operator, value);
 
+		case "layout":
+			return compileTextField((c) => c.layout, operator, value);
+
 		case "number":
 			return compileTextField((c) => c.collector_number, operator, value);
 

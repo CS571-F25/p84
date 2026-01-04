@@ -82,6 +82,7 @@ export type FieldName =
 	// Set/printing
 	| "set"
 	| "settype"
+	| "layout"
 	| "number"
 	| "rarity"
 	| "artist"
@@ -140,6 +141,7 @@ export const FIELD_ALIASES: Record<string, FieldName> = {
 	edition: "set",
 	st: "settype",
 	settype: "settype",
+	layout: "layout",
 	cn: "number",
 	number: "number",
 	r: "rarity",
