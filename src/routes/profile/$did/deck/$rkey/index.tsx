@@ -558,16 +558,20 @@ function DeckEditorInner({
 							onSortByChange={setSortBy}
 						/>
 
-						<DeckSection
-							section="commander"
-							cards={getCardsInSection(deck, "commander")}
-							groupBy={groupBy}
-							sortBy={sortBy}
-							onCardHover={handleCardHover}
-							onCardClick={handleCardClick}
-							isDragging={isDragging}
-							readOnly={!isOwner}
-						/>
+						{(deck.format === "commander" ||
+							deck.format === "paupercommander" ||
+							deck.cards.some((card) => card.section === "commander")) && (
+							<DeckSection
+								section="commander"
+								cards={getCardsInSection(deck, "commander")}
+								groupBy={groupBy}
+								sortBy={sortBy}
+								onCardHover={handleCardHover}
+								onCardClick={handleCardClick}
+								isDragging={isDragging}
+								readOnly={!isOwner}
+							/>
+						)}
 						<DeckSection
 							section="mainboard"
 							cards={getCardsInSection(deck, "mainboard")}
