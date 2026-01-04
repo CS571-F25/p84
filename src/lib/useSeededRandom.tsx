@@ -1,15 +1,15 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 /**
  * Seeded PRNG (mulberry32)
  */
-export function createSeededRng(seed: number): () => number {
-	let s = seed;
+export function createSeededRng(stateRef: { current: number }): () => number {
 	return () => {
-		s |= 0;
+		let s = stateRef.current | 0;
 		s = (s + 0x6d2b79f5) | 0;
 		let t = Math.imul(s ^ (s >>> 15), 1 | s);
 		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+		stateRef.current = s;
 		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 	};
 }
@@ -50,7 +50,8 @@ export function useSeededRandom(): {
 		return Math.floor(Math.random() * 2147483647);
 	});
 
-	const rng = createSeededRng(seed);
+	const stateRef = useRef(seed);
+	const rng = createSeededRng(stateRef);
 	const SeedEmbed = () => <span id={id} data-seed={seed} hidden />;
 
 	return { seed, rng, SeedEmbed };
