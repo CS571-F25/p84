@@ -94,6 +94,20 @@ interface ScryfallCard {
 	id: string;
 	oracle_id: string;
 	name: string;
+	// Fields used for canonical printing comparison (before filtering)
+	lang?: string;
+	set?: string;
+	frame?: string;
+	border_color?: string;
+	frame_effects?: string[];
+	full_art?: boolean;
+	promo_types?: string[];
+	finishes?: string[];
+	games?: string[];
+	security_stamp?: string;
+	highres_image?: boolean;
+	released_at?: string;
+	variation?: boolean;
 	[key: string]: unknown;
 }
 
@@ -190,7 +204,7 @@ function filterCard(card: ScryfallCard): Card {
  * Determines if a card printing matches Scryfall's is:default criteria.
  * Default = traditional frames (1993/1997/2003/2015), standard borders, no special treatments
  */
-export function isDefaultPrinting(card: Card): boolean {
+export function isDefaultPrinting(card: ScryfallCard): boolean {
 	// Frame must be traditional (1993, 1997, 2003, or 2015)
 	const validFrames = ["1993", "1997", "2003", "2015"];
 	if (!card.frame || !validFrames.includes(card.frame)) {
@@ -245,9 +259,11 @@ export function isDefaultPrinting(card: Card): boolean {
 
 /**
  * Comparator for selecting canonical card printings.
- * Priority: english > is:default > paper > highres > newer > non-variant > non-UB
+ * Priority: english > is:default > paper > highres > non-UB > black border > modern frame > newer > non-variant
+ *
+ * Accepts ScryfallCard (raw) to access fields like security_stamp before filtering.
  */
-export function compareCards(a: Card, b: Card): number {
+export function compareCards(a: ScryfallCard, b: ScryfallCard): number {
 	// English first (essential for our use case)
 	if (a.lang === "en" && b.lang !== "en") return -1;
 	if (a.lang !== "en" && b.lang === "en") return 1;
@@ -257,6 +273,26 @@ export function compareCards(a: Card, b: Card): number {
 	const bDefault = isDefaultPrinting(b);
 	if (aDefault && !bDefault) return -1;
 	if (!aDefault && bDefault) return 1;
+
+	// Paper over digital-only (paper cards are more canonical)
+	const aPaper = a.games?.includes("paper");
+	const bPaper = b.games?.includes("paper");
+	if (aPaper && !bPaper) return -1;
+	if (!aPaper && bPaper) return 1;
+
+	// Highres (image quality - digital-only may have better scans)
+	if (a.highres_image && !b.highres_image) return -1;
+	if (!a.highres_image && b.highres_image) return 1;
+
+	// Non-Universes Beyond / non-planeswalker stamp (triangle = UB/crossover products)
+	const aUB =
+		a.promo_types?.includes("universesbeyond") ||
+		a.security_stamp === "triangle";
+	const bUB =
+		b.promo_types?.includes("universesbeyond") ||
+		b.security_stamp === "triangle";
+	if (!aUB && bUB) return -1;
+	if (aUB && !bUB) return 1;
 
 	// Prefer black border over white/silver (aesthetic preference)
 	const aBlack = a.border_color === "black";
@@ -276,15 +312,12 @@ export function compareCards(a: Card, b: Card): number {
 	const bFrameRank = getFrameRank(b.frame);
 	if (aFrameRank !== bFrameRank) return aFrameRank - bFrameRank;
 
-	// Paper over digital-only (paper cards are more canonical)
-	const aPaper = a.games?.includes("paper");
-	const bPaper = b.games?.includes("paper");
-	if (aPaper && !bPaper) return -1;
-	if (!aPaper && bPaper) return 1;
-
-	// Highres (image quality matters more than recency)
-	if (a.highres_image && !b.highres_image) return -1;
-	if (!a.highres_image && b.highres_image) return 1;
+	// Deprioritize The List (plst) and Secret Lair (sld) - specialty products
+	const deprioritizedSets = ["plst", "sld"];
+	const aDeprio = deprioritizedSets.includes(a.set ?? "");
+	const bDeprio = deprioritizedSets.includes(b.set ?? "");
+	if (!aDeprio && bDeprio) return -1;
+	if (aDeprio && !bDeprio) return 1;
 
 	// Newer (tiebreaker among similar quality printings)
 	if (a.released_at && b.released_at && a.released_at !== b.released_at) {
@@ -294,12 +327,6 @@ export function compareCards(a: Card, b: Card): number {
 	// Non-variant (variants are weird alternate versions)
 	if (!a.variation && b.variation) return -1;
 	if (a.variation && !b.variation) return 1;
-
-	// Non-Universes Beyond (subjective UX preference)
-	const aUB = a.promo_types?.includes("universesbeyond");
-	const bUB = b.promo_types?.includes("universesbeyond");
-	if (!aUB && bUB) return -1;
-	if (aUB && !bUB) return 1;
 
 	return 0;
 }
@@ -409,6 +436,9 @@ async function processBulkData(offline: boolean): Promise<ProcessedCards> {
 	console.log("Processing cards...");
 	const rawData: ScryfallCard[] = JSON.parse(await readFile(tempFile, "utf-8"));
 
+	// Build raw card map for sorting (before filtering strips fields like security_stamp)
+	const rawCardById = Object.fromEntries(rawData.map((card) => [card.id, card]));
+
 	const cards = rawData.map(filterCard);
 	console.log(`Filtered ${cards.length} cards`);
 
@@ -416,7 +446,7 @@ async function processBulkData(offline: boolean): Promise<ProcessedCards> {
 	console.log("Building indexes...");
 	const cardById = Object.fromEntries(cards.map((card) => [card.id, card]));
 
-	const oracleIdToPrintings = cards.reduce<CardDataOutput['oracleIdToPrintings']>(
+	const oracleIdToPrintings = cards.reduce<CardDataOutput["oracleIdToPrintings"]>(
 		(acc, card) => {
 			if (!acc[card.oracle_id]) {
 				acc[card.oracle_id] = [];
@@ -428,12 +458,14 @@ async function processBulkData(offline: boolean): Promise<ProcessedCards> {
 	);
 
 	// Sort printings by canonical order (most canonical first)
-	// Priority: english > is:default > black border > modern frame > paper > highres > newest > non-variant > non-UB
+	// Uses raw cards for comparison (has fields like security_stamp that get stripped)
 	// First element of each array is the canonical printing for that oracle ID
 	// UI layers that need release date order (e.g., card detail page) can re-sort before rendering
 	console.log("Sorting printings by canonical order...");
 	for (const printingIds of Object.values(oracleIdToPrintings)) {
-		printingIds.sort((aId, bId) => compareCards(cardById[aId], cardById[bId]));
+		printingIds.sort((aId, bId) =>
+			compareCards(rawCardById[aId], rawCardById[bId]),
+		);
 	}
 
 	const output: CardDataOutput = {

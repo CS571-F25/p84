@@ -3,7 +3,9 @@ import { isDefaultPrinting, compareCards } from "./download-scryfall.ts";
 import type { Card } from "../src/lib/scryfall-types.ts";
 import { asScryfallId, asOracleId } from "../src/lib/scryfall-types.ts";
 
-function createCard(overrides: Partial<Card>): Card {
+type TestCard = Card & { security_stamp?: string; [key: string]: unknown };
+
+function createCard(overrides: Partial<TestCard>): TestCard {
 	return {
 		id: asScryfallId("00000000-0000-0000-0000-000000000000"),
 		oracle_id: asOracleId("00000000-0000-0000-0000-000000000000"),
@@ -164,16 +166,62 @@ describe("compareCards canonical printing selection", () => {
 		expect(isDefaultPrinting(ubDefault)).toBe(true);
 	});
 
-	it("uses UB status as tiebreaker within same default status and date", () => {
+	it("prefers non-UB over UB (by promo_types)", () => {
 		const nonUB = createCard({
 			released_at: "2024-01-01",
+			games: ["paper"],
 		});
 		const ub = createCard({
 			released_at: "2024-01-01",
+			games: ["paper"],
 			promo_types: ["universesbeyond"],
 		});
 		expect(compareCards(nonUB, ub)).toBe(-1);
 		expect(compareCards(ub, nonUB)).toBe(1);
+	});
+
+	it("prefers non-UB over UB (by security_stamp triangle)", () => {
+		const nonUB = createCard({
+			released_at: "2024-01-01",
+			games: ["paper"],
+		});
+		const ub = createCard({
+			released_at: "2024-01-01",
+			games: ["paper"],
+			security_stamp: "triangle",
+		});
+		expect(compareCards(nonUB, ub)).toBe(-1);
+		expect(compareCards(ub, nonUB)).toBe(1);
+	});
+
+	it("deprioritizes The List (plst) printings", () => {
+		const normal = createCard({
+			set: "ddj",
+			released_at: "2012-01-01",
+			games: ["paper"],
+		});
+		const theList = createCard({
+			set: "plst",
+			released_at: "2024-01-01",
+			games: ["paper"],
+		});
+		expect(compareCards(normal, theList)).toBe(-1);
+		expect(compareCards(theList, normal)).toBe(1);
+	});
+
+	it("deprioritizes Secret Lair (sld) printings", () => {
+		const normal = createCard({
+			set: "m21",
+			released_at: "2020-01-01",
+			games: ["paper"],
+		});
+		const secretLair = createCard({
+			set: "sld",
+			released_at: "2024-01-01",
+			games: ["paper"],
+		});
+		expect(compareCards(normal, secretLair)).toBe(-1);
+		expect(compareCards(secretLair, normal)).toBe(1);
 	});
 
 	it("prefers paper over digital-only (even if digital is newer)", () => {
@@ -283,7 +331,7 @@ describe("compareCards canonical printing selection", () => {
 		expect(compareCards(normal, serialized)).toBe(-1);
 	});
 
-	it("correctly prioritizes: english > is:default > paper > highres > newer", () => {
+	it("correctly prioritizes: english > is:default > paper > highres > non-UB > frame > newer", () => {
 		const cards = [
 			createCard({
 				id: asScryfallId("00000000-0000-0000-0000-000000000001"),
@@ -333,11 +381,11 @@ describe("compareCards canonical printing selection", () => {
 		];
 
 		const sorted = [...cards].sort(compareCards);
-		// Priority: english > is:default > paper > highres > newer
+		// Priority: english > is:default > paper > highres > non-UB > black border > modern frame > newer
 		expect(sorted[0].id).toBe(cards[2].id); // en, default, paper, highres, 2020 (best)
-		expect(sorted[1].id).toBe(cards[0].id); // en, default, paper, lowres, 2024
-		expect(sorted[2].id).toBe(cards[1].id); // en, default, digital, highres, 2025 (is:default beats paper)
-		expect(sorted[3].id).toBe(cards[3].id); // en, non-default, paper, highres, 2025
+		expect(sorted[1].id).toBe(cards[0].id); // en, default, paper, lowres, 2024 (paper > digital even with lowres)
+		expect(sorted[2].id).toBe(cards[1].id); // en, default, digital, highres, 2025
+		expect(sorted[3].id).toBe(cards[3].id); // en, non-default (borderless), paper, highres, 2025
 		expect(sorted[4].id).toBe(cards[4].id); // ja, default, paper, highres, 2025
 	});
 });
