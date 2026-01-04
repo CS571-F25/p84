@@ -193,4 +193,114 @@ describe("CardsWorker syntaxSearch", () => {
 			}
 		});
 	});
+
+	describe("deduplication", () => {
+		it("returns one result per oracle_id", () => {
+			// Lightning Bolt has many printings across sets
+			const result = worker.syntaxSearch('!"Lightning Bolt"', 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				// Should only have one result despite many printings
+				expect(result.cards.length).toBe(1);
+				expect(result.cards[0].name).toBe("Lightning Bolt");
+			}
+		});
+
+		it("returns most canonical printing when multiple match", () => {
+			// Search for rarity:common which matches many printings of Lightning Bolt
+			// Should return the most canonical (English, black border, modern frame, etc.)
+			const result = worker.syntaxSearch(
+				'!"Lightning Bolt" rarity:common',
+				100,
+			);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(1);
+				expect(result.cards[0].name).toBe("Lightning Bolt");
+				// The returned printing should be English
+				expect(result.cards[0].lang).toBe("en");
+			}
+		});
+
+		it("dedups across different set queries", () => {
+			// Llanowar Elves appears in many sets - should only return one per oracle_id
+			const result = worker.syntaxSearch('!"Llanowar Elves"', 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				// Only one unique card despite many printings
+				expect(result.cards.length).toBe(1);
+				expect(result.cards[0].name).toBe("Llanowar Elves");
+			}
+		});
+	});
+
+	describe("sorting", () => {
+		it("sorts alphabetically by name by default", () => {
+			const result = worker.syntaxSearch("s:lea t:creature", 10);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				const names = result.cards.map((c) => c.name);
+				const sorted = [...names].sort((a, b) => a.localeCompare(b));
+				expect(names).toEqual(sorted);
+			}
+		});
+
+		it("sorts by mana value ascending", () => {
+			const result = worker.syntaxSearch("s:lea t:creature", 20, {
+				field: "mv",
+				direction: "asc",
+			});
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				const cmcs = result.cards.map((c) => c.cmc ?? 0);
+				expect(cmcs).toEqual([...cmcs].sort((a, b) => a - b));
+			}
+		});
+
+		it("sorts by mana value descending", () => {
+			const result = worker.syntaxSearch("s:lea t:creature", 20, {
+				field: "mv",
+				direction: "desc",
+			});
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				const cmcs = result.cards.map((c) => c.cmc ?? 0);
+				expect(cmcs).toEqual([...cmcs].sort((a, b) => b - a));
+			}
+		});
+
+		it("uses name as tiebreaker when sorting by mv", () => {
+			const result = worker.syntaxSearch("s:lea cmc=1", 100, {
+				field: "mv",
+				direction: "asc",
+			});
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				// All cards have mv=1, so should be sorted by name
+				const names = result.cards.map((c) => c.name);
+				const sorted = [...names].sort((a, b) => a.localeCompare(b));
+				expect(names).toEqual(sorted);
+			}
+		});
+
+		it("sorts by rarity descending (mythic first)", () => {
+			const result = worker.syntaxSearch("s:dom rarity>=rare", 50, {
+				field: "rarity",
+				direction: "desc",
+			});
+			expect(result.ok).toBe(true);
+			if (result.ok && result.cards.length > 0) {
+				// Mythics should come before rares
+				const mythicIndex = result.cards.findIndex(
+					(c) => c.rarity === "mythic",
+				);
+				const lastRareIndex = result.cards.findIndex(
+					(c) => c.rarity === "rare",
+				);
+				if (mythicIndex >= 0 && lastRareIndex >= 0) {
+					expect(mythicIndex).toBeLessThan(lastRareIndex);
+				}
+			}
+		});
+	});
 });

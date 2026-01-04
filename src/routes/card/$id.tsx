@@ -204,9 +204,12 @@ function CardDetailPage() {
 		? (printingsMap?.get(hoveredPrintingId) ?? card)
 		: card;
 
+	// Sort printings by release date (newest first) for display
+	// oracleIdToPrintings is canonical order, but users expect chronological when browsing
 	const allPrintings = (printingIds ?? [])
 		.map((pid) => printingsMap?.get(pid))
-		.filter((c): c is Card => c !== undefined);
+		.filter((c): c is Card => c !== undefined)
+		.sort((a, b) => (b.released_at ?? "").localeCompare(a.released_at ?? ""));
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">

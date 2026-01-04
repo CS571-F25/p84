@@ -30,6 +30,87 @@ interface UnifiedSearchResult {
 	error: { message: string; start: number; end: number } | null;
 }
 
+export type SortField = "name" | "mv" | "released" | "rarity" | "color";
+export type SortDirection = "asc" | "desc" | "auto";
+
+export interface SortOption {
+	field: SortField;
+	direction: SortDirection;
+}
+
+// Rarity ordering (higher = more rare, matches fields.ts RARITY_ORDER)
+const RARITY_ORDER: Record<string, number> = {
+	common: 0,
+	uncommon: 1,
+	rare: 2,
+	mythic: 3,
+	special: 4,
+	bonus: 5,
+};
+
+// WUBRG ordering
+const WUBRG_ORDER = ["W", "U", "B", "R", "G"];
+
+function resolveDirection(
+	field: SortField,
+	dir: SortDirection,
+): "asc" | "desc" {
+	if (dir !== "auto") return dir;
+	switch (field) {
+		case "name":
+			return "asc";
+		case "mv":
+			return "asc";
+		case "released":
+			return "desc";
+		case "rarity":
+			return "desc";
+		case "color":
+			return "asc";
+	}
+}
+
+function colorIdentityRank(colors: string[] | undefined): number {
+	if (!colors || colors.length === 0) return 100; // colorless last
+	// Primary sort by number of colors, secondary by first color in WUBRG
+	return (
+		colors.length * 10 +
+		Math.min(...colors.map((c) => WUBRG_ORDER.indexOf(c)).filter((i) => i >= 0))
+	);
+}
+
+function sortCards(cards: Card[], sort: SortOption): void {
+	const dir = resolveDirection(sort.field, sort.direction);
+	const mult = dir === "desc" ? -1 : 1;
+
+	cards.sort((a, b) => {
+		let cmp = 0;
+		switch (sort.field) {
+			case "name":
+				cmp = a.name.localeCompare(b.name);
+				break;
+			case "mv":
+				cmp = (a.cmc ?? 0) - (b.cmc ?? 0);
+				break;
+			case "released":
+				cmp = (a.released_at ?? "").localeCompare(b.released_at ?? "");
+				break;
+			case "rarity":
+				cmp =
+					(RARITY_ORDER[a.rarity ?? ""] ?? 99) -
+					(RARITY_ORDER[b.rarity ?? ""] ?? 99);
+				break;
+			case "color":
+				cmp =
+					colorIdentityRank(a.color_identity) -
+					colorIdentityRank(b.color_identity);
+				break;
+		}
+		cmp *= mult;
+		return cmp !== 0 ? cmp : a.name.localeCompare(b.name);
+	});
+}
+
 const VOLATILE_RECORD_SIZE = 44; // 16 (UUID) + 4 (rank) + 6*4 (prices)
 const NULL_VALUE = 0xffffffff;
 
@@ -86,6 +167,7 @@ interface CardsWorkerAPI {
 	syntaxSearch(
 		query: string,
 		maxResults?: number,
+		sort?: SortOption,
 	):
 		| { ok: true; cards: Card[] }
 		| { ok: false; error: { message: string; start: number; end: number } };
@@ -104,6 +186,7 @@ interface CardsWorkerAPI {
 		query: string,
 		restrictions?: SearchRestrictions,
 		maxResults?: number,
+		sort?: SortOption,
 	): UnifiedSearchResult;
 }
 
@@ -339,6 +422,7 @@ class CardsWorker implements CardsWorkerAPI {
 	syntaxSearch(
 		query: string,
 		maxResults = 100,
+		sort: SortOption = { field: "name", direction: "auto" },
 	):
 		| { ok: true; cards: Card[] }
 		| { ok: false; error: { message: string; start: number; end: number } } {
@@ -366,9 +450,10 @@ class CardsWorker implements CardsWorkerAPI {
 		const { match } = parseResult.value;
 
 		// Always search all printings, then dedup to canonical
+		// Filter out art series and tokens by default
 		const allMatches: Card[] = [];
 		for (const card of Object.values(this.data.cards)) {
-			if (card.layout === "art_series") continue;
+			if (card.layout === "art_series" || card.layout === "token") continue;
 			if (match(card)) {
 				allMatches.push(card);
 			}
@@ -377,8 +462,8 @@ class CardsWorker implements CardsWorkerAPI {
 		// Collapse to one per oracle_id (most canonical match wins)
 		const dedupedCards = this.collapseToCanonical(allMatches);
 
-		// Sort alphabetically by name and limit results
-		dedupedCards.sort((a, b) => a.name.localeCompare(b.name));
+		// Sort and limit results
+		sortCards(dedupedCards, sort);
 		const cards = dedupedCards.slice(0, maxResults);
 
 		return { ok: true, cards };
@@ -396,6 +481,7 @@ class CardsWorker implements CardsWorkerAPI {
 		query: string,
 		restrictions?: SearchRestrictions,
 		maxResults = 50,
+		sort: SortOption = { field: "name", direction: "auto" },
 	): UnifiedSearchResult {
 		if (!this.data || !this.searchIndex) {
 			throw new Error("Worker not initialized - call initialize() first");
@@ -435,9 +521,10 @@ class CardsWorker implements CardsWorkerAPI {
 		const restrictionCheck = this.buildRestrictionCheck(restrictions);
 
 		// Always search all printings, then dedup to canonical
+		// Filter out art series and tokens by default
 		const allMatches: Card[] = [];
 		for (const card of Object.values(this.data.cards)) {
-			if (card.layout === "art_series") continue;
+			if (card.layout === "art_series" || card.layout === "token") continue;
 			if (!restrictionCheck(card)) continue;
 			if (!match(card)) continue;
 			allMatches.push(card);
@@ -446,8 +533,8 @@ class CardsWorker implements CardsWorkerAPI {
 		// Collapse to one per oracle_id (most canonical match wins)
 		const dedupedCards = this.collapseToCanonical(allMatches);
 
-		// Sort alphabetically by name and limit results
-		dedupedCards.sort((a, b) => a.name.localeCompare(b.name));
+		// Sort and limit results
+		sortCards(dedupedCards, sort);
 		const cards = dedupedCards.slice(0, maxResults);
 
 		return { mode: "syntax", cards, description, error: null };
