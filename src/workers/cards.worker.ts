@@ -361,6 +361,9 @@ class CardsWorker implements CardsWorkerAPI {
 			const card = this.data.cards[result.id as ScryfallId];
 			if (!card) continue;
 
+			// Skip tokens and art series in fuzzy search
+			if (card.layout === "art_series" || card.layout === "token") continue;
+
 			// Apply restrictions
 			if (restrictions) {
 				// Format legality check
