@@ -46,8 +46,8 @@ interface ByteIndexEntry {
 interface IndexData {
 	version: string;
 	cardCount: number;
+	// Sorted by canonical order - first element is the canonical printing
 	oracleIdToPrintings: Record<OracleId, ScryfallId[]>;
-	canonicalPrintingByOracleId: Record<OracleId, ScryfallId>;
 }
 
 // Binary format: fixed-size records (25 bytes each)
@@ -328,7 +328,8 @@ export class ServerCardProvider implements CardDataProvider {
 	): Promise<ScryfallId | undefined> {
 		try {
 			const indexData = await loadIndexData();
-			return indexData.canonicalPrintingByOracleId[oracleId];
+			// First element of oracleIdToPrintings is the canonical printing
+			return indexData.oracleIdToPrintings[oracleId]?.[0];
 		} catch {
 			return undefined;
 		}

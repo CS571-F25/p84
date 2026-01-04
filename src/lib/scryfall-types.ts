@@ -207,8 +207,8 @@ export interface CardDataOutput {
 	version: string;
 	cardCount: number;
 	cards: Record<ScryfallId, Card>;
+	// Sorted by canonical order - first element is the canonical printing
 	oracleIdToPrintings: Record<OracleId, ScryfallId[]>;
-	canonicalPrintingByOracleId: Record<OracleId, ScryfallId>;
 }
 
 /**

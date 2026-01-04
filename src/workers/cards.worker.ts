@@ -22,7 +22,6 @@ import {
 	hasSearchOperators,
 	search as parseSearch,
 } from "../lib/search";
-import type { FieldName, SearchNode } from "../lib/search/types";
 
 interface UnifiedSearchResult {
 	mode: "fuzzy" | "syntax";
@@ -41,30 +40,10 @@ function bytesToUuid(bytes: Uint8Array): string {
 	return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-const PRINTING_FIELDS: Set<FieldName> = new Set([
-	"set",
-	"number",
-	"rarity",
-	"artist",
-	"year",
-	"date",
-	"lang",
-]);
-
-function hasPrintingQuery(node: SearchNode): boolean {
-	switch (node.type) {
-		case "FIELD":
-			return PRINTING_FIELDS.has(node.field);
-		case "AND":
-		case "OR":
-			return node.children.some(hasPrintingQuery);
-		case "NOT":
-			return hasPrintingQuery(node.child);
-		case "NAME":
-		case "EXACT_NAME":
-			return false;
-	}
-}
+// NOTE: We always search all printings and dedup to canonical.
+// If this proves slow, we could reintroduce hasPrintingQuery() to optimize
+// queries without printing-specific fields (set, rarity, artist, etc.)
+// by searching only canonical cards. The dedup logic would remain unchanged.
 
 interface CardsWorkerAPI {
 	/**
@@ -131,6 +110,7 @@ interface CardsWorkerAPI {
 class CardsWorker implements CardsWorkerAPI {
 	private data: CardDataOutput | null = null;
 	private canonicalCards: Card[] = [];
+	private canonicalRank: Map<ScryfallId, number> = new Map();
 	private searchIndex: MiniSearch<Card> | null = null;
 	private volatileDataPromise: Promise<Map<string, VolatileData>> | null = null;
 
@@ -151,13 +131,7 @@ class CardsWorker implements CardsWorkerAPI {
 			fetch(`/data/cards/${CARD_INDEXES}`).then((r) => {
 				if (!r.ok) throw new Error("Failed to load card indexes");
 				return r.json() as Promise<
-					Pick<
-						CardDataOutput,
-						| "version"
-						| "cardCount"
-						| "oracleIdToPrintings"
-						| "canonicalPrintingByOracleId"
-					>
+					Pick<CardDataOutput, "version" | "cardCount" | "oracleIdToPrintings">
 				>;
 			}),
 			...CARD_CHUNKS.map((filename) =>
@@ -180,14 +154,23 @@ class CardsWorker implements CardsWorkerAPI {
 			cardCount: indexes.cardCount,
 			cards,
 			oracleIdToPrintings: indexes.oracleIdToPrintings,
-			canonicalPrintingByOracleId: indexes.canonicalPrintingByOracleId,
 		};
 
 		// Build canonical cards array (one per oracle ID, excluding art cards)
-		this.canonicalCards = Object.values(this.data.canonicalPrintingByOracleId)
-			.map((scryfallId) => this.data?.cards[scryfallId])
+		// First element of each oracleIdToPrintings array is the canonical printing
+		this.canonicalCards = Object.values(this.data.oracleIdToPrintings)
+			.map((printingIds) => this.data?.cards[printingIds[0]])
 			.filter((card): card is Card => card !== undefined)
 			.filter((card) => card.layout !== "art_series");
+
+		// Build canonical rank map for O(1) lookup during search dedup
+		// Lower rank = more canonical (first in oracleIdToPrintings = rank 0)
+		this.canonicalRank.clear();
+		for (const printingIds of Object.values(this.data.oracleIdToPrintings)) {
+			for (let rank = 0; rank < printingIds.length; rank++) {
+				this.canonicalRank.set(printingIds[rank], rank);
+			}
+		}
 
 		// Build fuzzy search index
 		console.log("[CardsWorker] Building search index...");
@@ -349,7 +332,8 @@ class CardsWorker implements CardsWorkerAPI {
 		if (!this.data) {
 			throw new Error("Worker not initialized - call initialize() first");
 		}
-		return this.data.canonicalPrintingByOracleId[oracleId];
+		// First element of oracleIdToPrintings is the canonical printing
+		return this.data.oracleIdToPrintings[oracleId]?.[0];
 	}
 
 	syntaxSearch(
@@ -379,22 +363,23 @@ class CardsWorker implements CardsWorkerAPI {
 			};
 		}
 
-		const { match, ast } = parseResult.value;
-		const cards: Card[] = [];
+		const { match } = parseResult.value;
 
-		// Search all printings if query includes set/printing fields, otherwise canonical only
-		const searchAll = hasPrintingQuery(ast);
-		const source = searchAll
-			? Object.values(this.data.cards)
-			: this.canonicalCards;
-
-		for (const card of source) {
+		// Always search all printings, then dedup to canonical
+		const allMatches: Card[] = [];
+		for (const card of Object.values(this.data.cards)) {
 			if (card.layout === "art_series") continue;
 			if (match(card)) {
-				cards.push(card);
-				if (cards.length >= maxResults) break;
+				allMatches.push(card);
 			}
 		}
+
+		// Collapse to one per oracle_id (most canonical match wins)
+		const dedupedCards = this.collapseToCanonical(allMatches);
+
+		// Sort alphabetically by name and limit results
+		dedupedCards.sort((a, b) => a.name.localeCompare(b.name));
+		const cards = dedupedCards.slice(0, maxResults);
 
 		return { ok: true, cards };
 	}
@@ -446,25 +431,44 @@ class CardsWorker implements CardsWorkerAPI {
 		const { match, ast } = parseResult.value;
 		const description = describeQuery(ast);
 
-		// Reuse syntaxSearch logic but with restrictions applied
-		const searchAll = hasPrintingQuery(ast);
-		const source = searchAll
-			? Object.values(this.data.cards)
-			: this.canonicalCards;
-
 		// Build restrictions check outside the loop
 		const restrictionCheck = this.buildRestrictionCheck(restrictions);
-		const cards: Card[] = [];
 
-		for (const card of source) {
+		// Always search all printings, then dedup to canonical
+		const allMatches: Card[] = [];
+		for (const card of Object.values(this.data.cards)) {
 			if (card.layout === "art_series") continue;
 			if (!restrictionCheck(card)) continue;
 			if (!match(card)) continue;
-			cards.push(card);
-			if (cards.length >= maxResults) break;
+			allMatches.push(card);
 		}
 
+		// Collapse to one per oracle_id (most canonical match wins)
+		const dedupedCards = this.collapseToCanonical(allMatches);
+
+		// Sort alphabetically by name and limit results
+		dedupedCards.sort((a, b) => a.name.localeCompare(b.name));
+		const cards = dedupedCards.slice(0, maxResults);
+
 		return { mode: "syntax", cards, description, error: null };
+	}
+
+	/**
+	 * Collapse multiple printings to one per oracle_id.
+	 * Picks the most canonical (lowest rank) match for each oracle.
+	 */
+	private collapseToCanonical(cards: Card[]): Card[] {
+		const best = new Map<OracleId, { card: Card; rank: number }>();
+
+		for (const card of cards) {
+			const rank = this.canonicalRank.get(card.id) ?? Number.MAX_SAFE_INTEGER;
+			const existing = best.get(card.oracle_id);
+			if (!existing || rank < existing.rank) {
+				best.set(card.oracle_id, { card, rank });
+			}
+		}
+
+		return Array.from(best.values()).map((b) => b.card);
 	}
 
 	private buildRestrictionCheck(

@@ -427,55 +427,20 @@ async function processBulkData(offline: boolean): Promise<ProcessedCards> {
 		{},
 	);
 
-	// Sort printings by release date (newest first), then collector number (lowest first)
-	console.log("Sorting printings by release date...");
+	// Sort printings by canonical order (most canonical first)
+	// Priority: english > is:default > black border > modern frame > paper > highres > newest > non-variant > non-UB
+	// First element of each array is the canonical printing for that oracle ID
+	// UI layers that need release date order (e.g., card detail page) can re-sort before rendering
+	console.log("Sorting printings by canonical order...");
 	for (const printingIds of Object.values(oracleIdToPrintings)) {
-		printingIds.sort((aId, bId) => {
-			const a = cardById[aId];
-			const b = cardById[bId];
-
-			// Primary: release date (newest first)
-			const dateA = a.released_at ?? "";
-			const dateB = b.released_at ?? "";
-			const dateCompare = dateB.localeCompare(dateA);
-			if (dateCompare !== 0) return dateCompare;
-
-			// Tiebreaker: collector number (numeric part first, then full string)
-			const extractNumber = (cn: string | undefined): number => {
-				if (!cn) return Number.MAX_SAFE_INTEGER;
-				const match = cn.match(/\d+/);
-				return match ? Number.parseInt(match[0], 10) : Number.MAX_SAFE_INTEGER;
-			};
-
-			const numA = extractNumber(a.collector_number);
-			const numB = extractNumber(b.collector_number);
-			if (numA !== numB) return numA - numB;
-
-			// Sub-tiebreaker: full collector number string (handles "141a" vs "141b")
-			return (a.collector_number ?? "").localeCompare(b.collector_number ?? "");
-		});
+		printingIds.sort((aId, bId) => compareCards(cardById[aId], cardById[bId]));
 	}
-
-	// Calculate canonical printing for each oracle ID
-	// Follows Scryfall's is:default logic: prefer most recent "default" printing
-	// Priority: english > is:default > paper > highres > newer > non-variant > non-UB
-	console.log("Calculating canonical printings...");
-
-	const canonicalPrintingByOracleId = Object.fromEntries(
-		Object.entries(oracleIdToPrintings).map(([oracleId, printingIds]) => {
-			const sortedIds = [...printingIds].sort((aId, bId) => {
-				return compareCards(cardById[aId], cardById[bId]);
-			});
-			return [oracleId, sortedIds[0]];
-		}),
-	);
 
 	const output: CardDataOutput = {
 		version,
 		cardCount: cards.length,
 		cards: cardById,
 		oracleIdToPrintings,
-		canonicalPrintingByOracleId,
 	};
 
 	await mkdir(OUTPUT_DIR, { recursive: true });
@@ -556,11 +521,11 @@ async function chunkCardsForWorkers(
 	}))
 
 	// Write indexes file with content hash (oracle mappings for client)
+	// oracleIdToPrintings is sorted by canonical order - first element is the canonical printing
 	const indexesData = {
 		version: data.version,
 		cardCount: data.cardCount,
 		oracleIdToPrintings: data.oracleIdToPrintings,
-		canonicalPrintingByOracleId: data.canonicalPrintingByOracleId,
 	};
 	const indexesContent = JSON.stringify(indexesData);
 	const indexesHash = createHash("sha256")
