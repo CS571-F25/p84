@@ -61,15 +61,15 @@ export function compileField(
 		case "keyword":
 			return compileKeyword(operator, value);
 
-		// Set/printing
+		// Set/printing (discrete fields use exact match for ':')
 		case "set":
-			return compileTextField((c) => c.set, operator, value);
+			return compileTextField((c) => c.set, operator, value, true);
 
 		case "settype":
-			return compileTextField((c) => c.set_type, operator, value);
+			return compileTextField((c) => c.set_type, operator, value, true);
 
 		case "layout":
-			return compileTextField((c) => c.layout, operator, value);
+			return compileTextField((c) => c.layout, operator, value, true);
 
 		case "number":
 			return compileTextField((c) => c.collector_number, operator, value);
@@ -104,7 +104,7 @@ export function compileField(
 			return compileDate(operator, value);
 
 		case "lang":
-			return compileTextField((c) => c.lang, operator, value);
+			return compileTextField((c) => c.lang, operator, value, true);
 
 		// Boolean predicates
 		case "is":
@@ -120,11 +120,13 @@ export function compileField(
 
 /**
  * Compile text field matcher
+ * @param discrete - If true, ':' means exact match instead of substring
  */
 function compileTextField(
 	getter: (card: Card) => string | undefined,
 	operator: ComparisonOp,
 	value: FieldValue,
+	discrete = false,
 ): CardPredicate {
 	if (value.kind === "regex") {
 		const pattern = value.pattern;
@@ -142,6 +144,13 @@ function compileTextField(
 
 	switch (operator) {
 		case ":":
+			// Discrete fields use exact match, text fields use substring
+			if (discrete) {
+				return (card) => {
+					const cardValue = getter(card);
+					return cardValue ? cardValue.toLowerCase() === searchValue : false;
+				};
+			}
 			return (card) => {
 				const cardValue = getter(card);
 				return cardValue

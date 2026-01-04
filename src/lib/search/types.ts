@@ -101,6 +101,22 @@ export type FieldName =
 	| "not";
 
 /**
+ * Fields where ':' means exact match (is) rather than substring (includes).
+ * These are discrete/enumerated values, not free-form text.
+ */
+export const DISCRETE_FIELDS: ReadonlySet<FieldName> = new Set([
+	"set",
+	"settype",
+	"layout",
+	"rarity",
+	"game",
+	"lang",
+	"format",
+	"banned",
+	"restricted",
+]);
+
+/**
  * Map of field aliases to canonical names
  */
 export const FIELD_ALIASES: Record<string, FieldName> = {

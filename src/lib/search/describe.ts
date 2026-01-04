@@ -3,12 +3,13 @@
  */
 
 import { RARITY_ALIASES } from "./fields";
-import type {
-	ComparisonOp,
-	FieldName,
-	FieldNode,
-	FieldValue,
-	SearchNode,
+import {
+	type ComparisonOp,
+	DISCRETE_FIELDS,
+	type FieldName,
+	type FieldNode,
+	type FieldValue,
+	type SearchNode,
 } from "./types";
 
 const FIELD_LABELS: Record<FieldName, string> = {
@@ -95,9 +96,21 @@ function describeValue(value: FieldValue, quoted = true): string {
 function describeField(node: FieldNode): string {
 	const fieldLabel = FIELD_LABELS[node.field];
 	const isColorField = node.field === "color" || node.field === "identity";
-	const opLabel = isColorField
-		? COLOR_OPERATOR_LABELS[node.operator]
-		: OPERATOR_LABELS[node.operator];
+
+	// Pick operator label: discrete fields use "is" instead of "includes" for ":"
+	// But regex always uses "includes" since it's a pattern match, not exact
+	let opLabel: string;
+	if (isColorField) {
+		opLabel = COLOR_OPERATOR_LABELS[node.operator];
+	} else if (
+		node.operator === ":" &&
+		DISCRETE_FIELDS.has(node.field) &&
+		node.value.kind !== "regex"
+	) {
+		opLabel = "is";
+	} else {
+		opLabel = OPERATOR_LABELS[node.operator];
+	}
 
 	// Expand rarity shorthand
 	if (node.field === "rarity" && node.value.kind === "string") {

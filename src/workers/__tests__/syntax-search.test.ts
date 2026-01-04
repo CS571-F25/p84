@@ -303,4 +303,60 @@ describe("CardsWorker syntaxSearch", () => {
 			}
 		});
 	});
+
+	describe("discrete fields", () => {
+		it("layout: uses exact match, not substring", () => {
+			// "token" should not match "double_faced_token"
+			const result = worker.syntaxSearch("layout:token", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				for (const card of result.cards) {
+					expect(card.layout).toBe("token");
+				}
+			}
+		});
+
+		it("layout: with regex still works", () => {
+			// Regex should match partial values
+			const result = worker.syntaxSearch("layout:/dfc/", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBeGreaterThan(0);
+				for (const card of result.cards) {
+					expect(card.layout).toMatch(/dfc/);
+				}
+			}
+		});
+
+		it("set: uses exact match", () => {
+			// "lea" should not match "pleaf" or similar
+			const result = worker.syntaxSearch("s:lea", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				for (const card of result.cards) {
+					expect(card.set).toBe("lea");
+				}
+			}
+		});
+
+		it("settype: uses exact match", () => {
+			const result = worker.syntaxSearch("st:core", 50);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				for (const card of result.cards) {
+					expect(card.set_type).toBe("core");
+				}
+			}
+		});
+
+		it("lang: uses exact match", () => {
+			const result = worker.syntaxSearch("lang:en s:lea", 50);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				for (const card of result.cards) {
+					expect(card.lang).toBe("en");
+				}
+			}
+		});
+	});
 });

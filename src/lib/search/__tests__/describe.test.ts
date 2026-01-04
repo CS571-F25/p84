@@ -25,19 +25,38 @@ describe("describeQuery", () => {
 		["t:creature", 'type includes "creature"'],
 		["o:flying", 'oracle text includes "flying"'],
 		["kw:trample", 'keyword includes "trample"'],
-		["s:lea", 'set includes "lea"'],
 		["a:Guay", 'artist includes "guay"'],
-		["f:commander", 'format includes "commander"'],
 	])("text field: `%s` → %s", (query, expected) => {
 		expect(desc(query)).toBe(expected);
 	});
 
 	it.each([
-		["r:c", "rarity includes common"],
-		["r:common", "rarity includes common"],
-		["r:u", "rarity includes uncommon"],
-		["r:r", "rarity includes rare"],
-		["r:m", "rarity includes mythic"],
+		["s:lea", 'set is "lea"'],
+		["st:core", 'set type is "core"'],
+		["layout:token", 'layout is "token"'],
+		["lang:en", 'language is "en"'],
+		["game:paper", 'game is "paper"'],
+		["f:commander", 'format is "commander"'],
+	])("discrete field uses 'is': `%s` → %s", (query, expected) => {
+		expect(desc(query)).toBe(expected);
+	});
+
+	it.each([
+		["layout:/dfc/", "layout includes /dfc/"],
+		["s:/^m2/", "set includes /^m2/"],
+	])(
+		"discrete field with regex still shows regex: `%s` → %s",
+		(query, expected) => {
+			expect(desc(query)).toBe(expected);
+		},
+	);
+
+	it.each([
+		["r:c", "rarity is common"],
+		["r:common", "rarity is common"],
+		["r:u", "rarity is uncommon"],
+		["r:r", "rarity is rare"],
+		["r:m", "rarity is mythic"],
 		["r>=u", "rarity ≥ uncommon"],
 		["r<=r", "rarity ≤ rare"],
 		["r>c", "rarity > common"],
