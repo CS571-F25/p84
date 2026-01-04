@@ -34,7 +34,7 @@ export function StatsCardList({
 	});
 
 	return (
-		<div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4 min-w-48 max-h-80 overflow-y-auto">
+		<div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4 min-w-48">
 			<h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
 				{title}
 			</h4>

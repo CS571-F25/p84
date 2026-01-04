@@ -11,7 +11,7 @@ export function CardPreviewPane({ cardId }: CardPreviewPaneProps) {
 	const { data } = useQuery(getCardByIdQueryOptions(cardId));
 
 	return (
-		<div className="sticky top-20 flex items-center justify-center">
+		<div className="flex items-center justify-center">
 			{cardId && (
 				<CardImage
 					card={{ id: cardId, name: data?.name ?? "" }}

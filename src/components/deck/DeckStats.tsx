@@ -1,99 +1,28 @@
-import { useQueries } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import {
-	computeManaCurve,
-	computeManaSymbolsVsSources,
-	computeSpeedDistribution,
-	computeSubtypeDistribution,
-	computeTypeDistribution,
-} from "@/lib/deck-stats";
-import type { DeckCard } from "@/lib/deck-types";
-import { combineCardQueries, getCardByIdQueryOptions } from "@/lib/queries";
-import type { ScryfallId } from "@/lib/scryfall-types";
-import { getSelectedCards, type StatsSelection } from "@/lib/stats-selection";
+import type { StatsSelection } from "@/lib/stats-selection";
+import type { DeckStatsData } from "@/lib/useDeckStats";
 import { ManaBreakdown } from "./stats/ManaBreakdown";
 import { ManaCurveChart } from "./stats/ManaCurveChart";
 import { SpeedPieChart } from "./stats/SpeedPieChart";
-import { StatsCardList } from "./stats/StatsCardList";
 import { SubtypesPieChart } from "./stats/SubtypesPieChart";
 import { TypesPieChart } from "./stats/TypesPieChart";
 
 interface DeckStatsProps {
-	cards: DeckCard[];
-	onCardHover: (cardId: ScryfallId | null) => void;
-	onCardClick?: (card: DeckCard) => void;
+	stats: DeckStatsData;
+	selection: StatsSelection;
+	onSelect: (selection: StatsSelection) => void;
 }
 
-export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
-	const cardMap = useQueries({
-		queries: cards.map((card) => getCardByIdQueryOptions(card.scryfallId)),
-		combine: combineCardQueries,
-	});
+export function DeckStats({ stats, selection, onSelect }: DeckStatsProps) {
+	const {
+		manaCurve,
+		typeDistribution,
+		subtypeDistribution,
+		speedDistribution,
+		manaBreakdown,
+		isLoading,
+	} = stats;
 
-	const [selection, setSelection] = useState<StatsSelection>(null);
-
-	// Compute all statistics
-	const manaCurve = useMemo(
-		() =>
-			cardMap
-				? computeManaCurve(cards, (dc) => cardMap.get(dc.scryfallId))
-				: [],
-		[cards, cardMap],
-	);
-
-	const typeDistribution = useMemo(
-		() =>
-			cardMap
-				? computeTypeDistribution(cards, (dc) => cardMap.get(dc.scryfallId))
-				: [],
-		[cards, cardMap],
-	);
-
-	const subtypeDistribution = useMemo(
-		() =>
-			cardMap
-				? computeSubtypeDistribution(cards, (dc) => cardMap.get(dc.scryfallId))
-				: [],
-		[cards, cardMap],
-	);
-
-	const speedDistribution = useMemo(
-		() =>
-			cardMap
-				? computeSpeedDistribution(cards, (dc) => cardMap.get(dc.scryfallId))
-				: [],
-		[cards, cardMap],
-	);
-
-	const manaBreakdown = useMemo(
-		() =>
-			cardMap
-				? computeManaSymbolsVsSources(cards, (dc) => cardMap.get(dc.scryfallId))
-				: [],
-		[cards, cardMap],
-	);
-
-	// Derive selected cards from selection + stats
-	const { cards: selectedCards, title: selectedTitle } = useMemo(
-		() =>
-			getSelectedCards(selection, {
-				manaCurve,
-				typeDistribution,
-				subtypeDistribution,
-				speedDistribution,
-				manaBreakdown,
-			}),
-		[
-			selection,
-			manaCurve,
-			typeDistribution,
-			subtypeDistribution,
-			speedDistribution,
-			manaBreakdown,
-		],
-	);
-
-	if (!cardMap) {
+	if (isLoading) {
 		return (
 			<div className="mt-8 pt-8 border-t border-gray-200 dark:border-slate-700">
 				<h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -108,7 +37,14 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 		);
 	}
 
-	if (cards.length === 0) {
+	const hasData =
+		manaCurve.length > 0 ||
+		typeDistribution.length > 0 ||
+		subtypeDistribution.length > 0 ||
+		speedDistribution.length > 0 ||
+		manaBreakdown.length > 0;
+
+	if (!hasData) {
 		return null;
 	}
 
@@ -118,47 +54,32 @@ export function DeckStats({ cards, onCardHover, onCardClick }: DeckStatsProps) {
 				Statistics
 			</h2>
 
-			<div className="flex gap-6">
-				{/* Charts area */}
-				<div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-					<ManaCurveChart
-						data={manaCurve}
-						selection={selection}
-						onSelect={setSelection}
-					/>
-					<TypesPieChart
-						data={typeDistribution}
-						selection={selection}
-						onSelect={setSelection}
-					/>
-					<SpeedPieChart
-						data={speedDistribution}
-						selection={selection}
-						onSelect={setSelection}
-					/>
-					<SubtypesPieChart
-						data={subtypeDistribution}
-						selection={selection}
-						onSelect={setSelection}
-					/>
-					<ManaBreakdown
-						data={manaBreakdown}
-						selection={selection}
-						onSelect={setSelection}
-					/>
-				</div>
-
-				{/* Card list panel */}
-				{selectedCards.length > 0 && (
-					<div className="flex-shrink-0">
-						<StatsCardList
-							title={selectedTitle}
-							cards={selectedCards}
-							onCardHover={onCardHover}
-							onCardClick={onCardClick}
-						/>
-					</div>
-				)}
+			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+				<ManaCurveChart
+					data={manaCurve}
+					selection={selection}
+					onSelect={onSelect}
+				/>
+				<TypesPieChart
+					data={typeDistribution}
+					selection={selection}
+					onSelect={onSelect}
+				/>
+				<SpeedPieChart
+					data={speedDistribution}
+					selection={selection}
+					onSelect={onSelect}
+				/>
+				<SubtypesPieChart
+					data={subtypeDistribution}
+					selection={selection}
+					onSelect={onSelect}
+				/>
+				<ManaBreakdown
+					data={manaBreakdown}
+					selection={selection}
+					onSelect={onSelect}
+				/>
 			</div>
 		</div>
 	);

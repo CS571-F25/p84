@@ -2,7 +2,7 @@ import type { Did } from "@atcute/lexicons";
 import { type DragEndEvent, useDndMonitor } from "@dnd-kit/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CardDragOverlay } from "@/components/deck/CardDragOverlay";
 import { CardModal } from "@/components/deck/CardModal";
@@ -15,6 +15,7 @@ import { DeckStats } from "@/components/deck/DeckStats";
 import { DragDropProvider } from "@/components/deck/DragDropProvider";
 import type { DragData } from "@/components/deck/DraggableCard";
 import { GoldfishView } from "@/components/deck/GoldfishView";
+import { StatsCardList } from "@/components/deck/stats/StatsCardList";
 import { TrashDropZone } from "@/components/deck/TrashDropZone";
 import { ViewControls } from "@/components/deck/ViewControls";
 import { asRkey } from "@/lib/atproto-client";
@@ -34,7 +35,9 @@ import { formatDisplayName } from "@/lib/format-utils";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import type { ScryfallId } from "@/lib/scryfall-types";
 import { getImageUri } from "@/lib/scryfall-utils";
+import { getSelectedCards, type StatsSelection } from "@/lib/stats-selection";
 import { useAuth } from "@/lib/useAuth";
+import { useDeckStats } from "@/lib/useDeckStats";
 import { usePersistedState } from "@/lib/usePersistedState";
 
 export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
@@ -119,6 +122,20 @@ function DeckEditorPage() {
 	const [modalCard, setModalCard] = useState<DeckCard | null>(null);
 	const [draggedCardId, setDraggedCardId] = useState<ScryfallId | null>(null);
 	const [isDragging, setIsDragging] = useState(false);
+	const [statsSelection, setStatsSelection] = useState<StatsSelection>(null);
+
+	const statsCards = useMemo(
+		() => [
+			...getCardsInSection(deck, "commander"),
+			...getCardsInSection(deck, "mainboard"),
+		],
+		[deck],
+	);
+	const stats = useDeckStats(statsCards);
+	const selectedCards = useMemo(
+		() => getSelectedCards(statsSelection, stats),
+		[statsSelection, stats],
+	);
 
 	const mutation = useUpdateDeckMutation(did as Did, asRkey(rkey));
 	const queryClient = Route.useRouteContext().queryClient;
@@ -363,6 +380,10 @@ function DeckEditorPage() {
 				draggedCardId={draggedCardId}
 				isDragging={isDragging}
 				isOwner={isOwner}
+				stats={stats}
+				statsSelection={statsSelection}
+				selectedCards={selectedCards}
+				setStatsSelection={setStatsSelection}
 				setIsDragging={setIsDragging}
 				setDraggedCardId={setDraggedCardId}
 				handleCardHover={handleCardHover}
@@ -393,6 +414,10 @@ interface DeckEditorInnerProps {
 	draggedCardId: ScryfallId | null;
 	isDragging: boolean;
 	isOwner: boolean;
+	stats: ReturnType<typeof useDeckStats>;
+	statsSelection: StatsSelection;
+	selectedCards: ReturnType<typeof getSelectedCards>;
+	setStatsSelection: (selection: StatsSelection) => void;
 	setIsDragging: (dragging: boolean) => void;
 	setDraggedCardId: (id: ScryfallId | null) => void;
 	handleCardHover: (cardId: ScryfallId | null) => void;
@@ -420,6 +445,10 @@ function DeckEditorInner({
 	draggedCardId,
 	isDragging,
 	isOwner,
+	stats,
+	statsSelection,
+	selectedCards,
+	setStatsSelection,
 	setIsDragging,
 	setDraggedCardId,
 	handleCardHover,
@@ -503,9 +532,21 @@ function DeckEditorInner({
 			{/* Main content */}
 			<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 py-8">
 				<div className="flex flex-col md:flex-row gap-6">
-					{/* Left pane: Card preview (fixed width) */}
+					{/* Left pane: Card preview + stats card list (fixed width) */}
 					<div className="hidden md:block md:w-48 lg:w-60 xl:w-80 md:flex-shrink-0">
-						<CardPreviewPane cardId={previewCard} />
+						<div className="sticky top-20 max-h-[calc(100vh-6rem)] flex flex-col">
+							<CardPreviewPane cardId={previewCard} />
+							{selectedCards.cards.length > 0 && (
+								<div className="min-h-0 flex-1 overflow-y-auto mt-8">
+									<StatsCardList
+										title={selectedCards.title}
+										cards={selectedCards.cards}
+										onCardHover={handleCardHover}
+										onCardClick={handleCardClick}
+									/>
+								</div>
+							)}
+						</div>
 					</div>
 
 					{/* Right pane: Deck sections (fills remaining space) */}
@@ -559,12 +600,9 @@ function DeckEditorInner({
 						/>
 
 						<DeckStats
-							cards={[
-								...getCardsInSection(deck, "commander"),
-								...getCardsInSection(deck, "mainboard"),
-							]}
-							onCardHover={handleCardHover}
-							onCardClick={handleCardClick}
+							stats={stats}
+							selection={statsSelection}
+							onSelect={setStatsSelection}
 						/>
 
 						<GoldfishView
