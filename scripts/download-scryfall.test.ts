@@ -224,17 +224,26 @@ describe("compareCards canonical printing selection", () => {
 		expect(compareCards(secretLair, normal)).toBe(1);
 	});
 
-	it("prefers paper over digital-only (even if digital is newer)", () => {
-		const olderPaper = createCard({
+	it("deprioritizes arena-only (paper and mtgo are fine)", () => {
+		const paper = createCard({
 			released_at: "2020-01-01",
-			games: ["paper", "mtgo"],
+			games: ["paper"],
 		});
-		const newerDigital = createCard({
-			released_at: "2024-01-01",
+		const mtgo = createCard({
+			released_at: "2020-01-01",
 			games: ["mtgo"],
 		});
-		expect(compareCards(olderPaper, newerDigital)).toBe(-1);
-		expect(compareCards(newerDigital, olderPaper)).toBe(1);
+		const arenaOnly = createCard({
+			released_at: "2024-01-01",
+			games: ["arena"],
+		});
+		// Both paper and MTGO beat arena-only
+		expect(compareCards(paper, arenaOnly)).toBe(-1);
+		expect(compareCards(mtgo, arenaOnly)).toBe(-1);
+		expect(compareCards(arenaOnly, paper)).toBe(1);
+		// Paper wins over MTGO as final tiebreaker
+		expect(compareCards(paper, mtgo)).toBe(-1);
+		expect(compareCards(mtgo, paper)).toBe(1);
 	});
 
 	it("prefers highres images over newer date", () => {
@@ -274,20 +283,20 @@ describe("compareCards canonical printing selection", () => {
 		expect(compareCards(normal, variant)).toBe(-1);
 	});
 
-	it("prefers older paper default over newer digital-only default (regression test)", () => {
-		// Real-world bug: Hobgoblin Bandit Lord was choosing mtgo promo over paper version
-		const newerDigital = createCard({
+	it("prefers paper over arena-only even if arena is newer (regression test)", () => {
+		// Arena-only printings should lose to paper/mtgo
+		const newerArena = createCard({
 			id: asScryfallId("5e3f2736-9d13-44e3-a4bf-4f64314e5848"),
-			name: "Hobgoblin Bandit Lord",
-			set: "prm",
-			released_at: "2021-10-28",
-			games: ["mtgo"],
+			name: "Test Card",
+			set: "aa3",
+			released_at: "2025-01-01",
+			games: ["arena"],
 			frame: "2015",
 			border_color: "black",
 		});
 		const olderPaper = createCard({
 			id: asScryfallId("7da8e543-c9ef-4f2d-99e4-ef6ba496ae75"),
-			name: "Hobgoblin Bandit Lord",
+			name: "Test Card",
 			set: "afr",
 			released_at: "2021-07-23",
 			games: ["arena", "paper", "mtgo"],
@@ -295,7 +304,7 @@ describe("compareCards canonical printing selection", () => {
 			border_color: "black",
 		});
 
-		expect(compareCards(olderPaper, newerDigital)).toBe(-1);
+		expect(compareCards(olderPaper, newerArena)).toBe(-1);
 	});
 
 	it("prefers normal card over serialized promo (regression test)", () => {

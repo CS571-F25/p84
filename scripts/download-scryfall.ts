@@ -259,7 +259,7 @@ export function isDefaultPrinting(card: ScryfallCard): boolean {
 
 /**
  * Comparator for selecting canonical card printings.
- * Priority: english > is:default > paper > highres > non-UB > black border > modern frame > newer > non-variant
+ * Priority: english > is:default > non-arena-only > highres > non-UB > black border > modern frame > non-plst/sld > newer > non-variant > paper
  *
  * Accepts ScryfallCard (raw) to access fields like security_stamp before filtering.
  */
@@ -274,11 +274,13 @@ export function compareCards(a: ScryfallCard, b: ScryfallCard): number {
 	if (aDefault && !bDefault) return -1;
 	if (!aDefault && bDefault) return 1;
 
-	// Paper over digital-only (paper cards are more canonical)
-	const aPaper = a.games?.includes("paper");
-	const bPaper = b.games?.includes("paper");
-	if (aPaper && !bPaper) return -1;
-	if (!aPaper && bPaper) return 1;
+	// Deprioritize Arena-only (paper and MTGO are both fine)
+	const aArenaOnly =
+		a.games?.length === 1 && a.games[0] === "arena";
+	const bArenaOnly =
+		b.games?.length === 1 && b.games[0] === "arena";
+	if (!aArenaOnly && bArenaOnly) return -1;
+	if (aArenaOnly && !bArenaOnly) return 1;
 
 	// Highres (image quality - digital-only may have better scans)
 	if (a.highres_image && !b.highres_image) return -1;
@@ -327,6 +329,12 @@ export function compareCards(a: ScryfallCard, b: ScryfallCard): number {
 	// Non-variant (variants are weird alternate versions)
 	if (!a.variation && b.variation) return -1;
 	if (a.variation && !b.variation) return 1;
+
+	// Paper over digital (final tiebreaker)
+	const aPaper = a.games?.includes("paper");
+	const bPaper = b.games?.includes("paper");
+	if (aPaper && !bPaper) return -1;
+	if (!aPaper && bPaper) return 1;
 
 	return 0;
 }
