@@ -15,6 +15,7 @@ dist-ssr
 public/data/
 public/symbols/
 src/lib/card-manifest.ts
+src/lib/set-symbols.ts
 .cache/
 
 tsconfig.tsbuildinfo

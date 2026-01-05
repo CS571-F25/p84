@@ -1039,15 +1039,30 @@ async function downloadKeyrune(offline: boolean): Promise<KeyruneResult> {
 	}
 
 	// Process: extract mappings from cached CSS
+	// CSS has comma-separated selectors like:
+	//   .ss-grn:before,
+	//   .ss-gk1:before {
+	//     content: "\e94b";
+	//   }
 	const css = await readFile(cssCachePath, "utf-8");
 
 	const mappings: Record<string, number> = {};
-	const regex = /\.ss-([a-z0-9]+):before\s*\{\s*content:\s*"\\([0-9a-f]+)"/gi;
+
+	// Match rule blocks: selectors { content: "\xxxx"; }
+	const blockRegex =
+		/((?:\.ss-[a-z0-9]+:before[,\s]*)+)\s*\{\s*content:\s*"\\([0-9a-f]+)"/gi;
+	const selectorRegex = /\.ss-([a-z0-9]+):before/g;
 	let match: RegExpExecArray | null;
 
-	while ((match = regex.exec(css)) !== null) {
-		const [, setCode, codepoint] = match;
-		mappings[setCode] = parseInt(codepoint, 16);
+	while ((match = blockRegex.exec(css)) !== null) {
+		const [, selectors, codepoint] = match;
+		const cp = parseInt(codepoint, 16);
+
+		// Extract all set codes from the selector list
+		let selectorMatch: RegExpExecArray | null;
+		while ((selectorMatch = selectorRegex.exec(selectors)) !== null) {
+			mappings[selectorMatch[1]] = cp;
+		}
 	}
 
 	const setCount = Object.keys(mappings).length;

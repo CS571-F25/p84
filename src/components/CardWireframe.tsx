@@ -19,6 +19,7 @@ import {
 import type { Card, CardFace, Rarity } from "@/lib/scryfall-types";
 import { ManaCost } from "./ManaCost";
 import { OracleText } from "./OracleText";
+import { SetSymbol } from "./SetSymbol";
 
 interface CardWireframeProps {
 	card: Card;
@@ -61,22 +62,19 @@ const RARITY_COLORS: Record<
 	},
 };
 
-// Rarity symbols (approximate)
-const RARITY_SYMBOL: Record<Rarity, string> = {
-	common: "●",
-	uncommon: "◆",
-	rare: "★",
-	mythic: "✦",
-	special: "✧",
-	bonus: "✦",
-};
-
 interface FaceContentProps {
 	face: CardFace;
 	showStats?: boolean;
+	setCode?: string;
+	rarity?: Rarity;
 }
 
-function FaceContent({ face, showStats = true }: FaceContentProps) {
+function FaceContent({
+	face,
+	showStats = true,
+	setCode,
+	rarity,
+}: FaceContentProps) {
 	const hasPT = face.power !== undefined && face.toughness !== undefined;
 	const hasLoyalty = face.loyalty !== undefined;
 	const hasDefense = face.defense !== undefined;
@@ -87,8 +85,15 @@ function FaceContent({ face, showStats = true }: FaceContentProps) {
 		<div className="flex flex-col h-full">
 			{/* Type Line */}
 			{face.type_line && (
-				<div className="px-[4cqw] py-[1.5cqw] text-[5cqw] tracking-tight text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-slate-600 truncate bg-gray-100 dark:bg-slate-700">
-					{face.type_line}
+				<div className="flex items-center justify-between px-[4cqw] py-[1.5cqw] text-[5cqw] tracking-tight text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-slate-600 bg-gray-100 dark:bg-slate-700">
+					<span className="truncate">{face.type_line}</span>
+					{setCode && rarity && (
+						<SetSymbol
+							setCode={setCode}
+							rarity={SET_SYMBOL_RARITY[rarity]}
+							className="text-[7cqw] shrink-0"
+						/>
+					)}
 				</div>
 			)}
 
@@ -160,16 +165,34 @@ function isAftermathCard(card: Card): boolean {
 	);
 }
 
+const SET_SYMBOL_RARITY: Record<
+	Rarity,
+	"common" | "uncommon" | "rare" | "mythic" | "timeshifted"
+> = {
+	common: "common",
+	uncommon: "uncommon",
+	rare: "rare",
+	mythic: "mythic",
+	special: "timeshifted",
+	bonus: "mythic",
+};
+
 function CardFooter({ card }: { card: Card }) {
 	const rarity = card.rarity || "common";
-	const rarityStyle = RARITY_COLORS[rarity] || RARITY_COLORS.common;
 	const collectorNum = card.collector_number;
+	const setCode = card.set;
 
 	return (
 		<div className="flex items-center justify-between px-[3cqw] py-[1.5cqw] text-[3.5cqw] tracking-tight text-gray-600 dark:text-gray-400 border-t border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800">
 			<div className="flex items-center gap-[1.5cqw]">
-				<span className={rarityStyle.text}>{RARITY_SYMBOL[rarity]}</span>
-				<span>{card.set?.toUpperCase()}</span>
+				{setCode && (
+					<SetSymbol
+						setCode={setCode}
+						rarity={SET_SYMBOL_RARITY[rarity]}
+						className="text-[6cqw]"
+					/>
+				)}
+				<span>{setCode?.toUpperCase()}</span>
 				{collectorNum && <span>#{collectorNum}</span>}
 			</div>
 			{card.artist && <span className="truncate italic">{card.artist}</span>}
@@ -234,7 +257,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							)}
 						</div>
 						<div className="flex-1 overflow-hidden">
-							<FaceContent face={topFace} />
+							<FaceContent face={topFace} setCode={card.set} rarity={rarity} />
 						</div>
 					</div>
 
@@ -256,7 +279,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							)}
 						</div>
 						<div className="flex-1 overflow-hidden">
-							<FaceContent face={bottomFace} showStats={false} />
+							<FaceContent
+								face={bottomFace}
+								showStats={false}
+								setCode={card.set}
+								rarity={rarity}
+							/>
 						</div>
 					</div>
 				</div>
@@ -308,7 +336,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							)}
 						</div>
 						<div className="flex-1 overflow-hidden">
-							<FaceContent face={faces[0]} showStats={false} />
+							<FaceContent
+								face={faces[0]}
+								showStats={false}
+								setCode={card.set}
+								rarity={rarity}
+							/>
 						</div>
 					</div>
 
@@ -330,7 +363,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							)}
 						</div>
 						<div className="flex-1 overflow-hidden">
-							<FaceContent face={faces[1]} showStats={false} />
+							<FaceContent
+								face={faces[1]}
+								showStats={false}
+								setCode={card.set}
+								rarity={rarity}
+							/>
 						</div>
 						<CardFooter card={card} />
 					</div>
@@ -372,7 +410,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						)}
 					</div>
 					<div className="flex-1 overflow-hidden">
-						<FaceContent face={faces[0]} showStats={false} />
+						<FaceContent
+							face={faces[0]}
+							showStats={false}
+							setCode={card.set}
+							rarity={rarity}
+						/>
 					</div>
 				</div>
 
@@ -400,7 +443,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 								/>
 							)}
 						</div>
-						<FaceContent face={faces[1]} showStats={false} />
+						<FaceContent
+							face={faces[1]}
+							showStats={false}
+							setCode={card.set}
+							rarity={rarity}
+						/>
 					</div>
 				</div>
 			</div>
@@ -459,7 +507,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 				{/* Main card body */}
 				<div className="flex-1 flex flex-col overflow-hidden">
-					<FaceContent face={mainFace} />
+					<FaceContent face={mainFace} setCode={card.set} rarity={rarity} />
 				</div>
 
 				<CardFooter card={card} />
@@ -504,7 +552,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							</span>
 						</div>
 						<div className="flex-1 flex flex-col overflow-hidden">
-							<FaceContent face={faces[0]} />
+							<FaceContent face={faces[0]} setCode={card.set} rarity={rarity} />
 						</div>
 						<CardFooter card={card} />
 					</div>
@@ -538,7 +586,11 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							</span>
 						</div>
 						<div className="flex-1 flex flex-col overflow-hidden">
-							<FaceContent face={faces[1] || faces[0]} />
+							<FaceContent
+								face={faces[1] || faces[0]}
+								setCode={card.set}
+								rarity={rarity}
+							/>
 						</div>
 						<CardFooter card={card} />
 					</div>
@@ -584,7 +636,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 			{/* Card body */}
 			<div className="flex-1 flex flex-col overflow-hidden">
-				<FaceContent face={faces[0]} />
+				<FaceContent face={faces[0]} setCode={card.set} rarity={rarity} />
 			</div>
 
 			<CardFooter card={card} />
