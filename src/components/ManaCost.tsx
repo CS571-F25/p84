@@ -9,9 +9,10 @@ import { CardSymbol } from "./CardSymbol";
 interface ManaCostProps {
 	cost: string;
 	size?: "small" | "medium" | "large";
+	className?: string;
 }
 
-export function ManaCost({ cost, size = "medium" }: ManaCostProps) {
+export function ManaCost({ cost, size = "medium", className }: ManaCostProps) {
 	// Parse mana cost string like "{2}{U}{B}" into symbols
 	const symbols = Array.from(
 		cost.matchAll(/\{([^}]+)\}/g),
@@ -30,6 +31,7 @@ export function ManaCost({ cost, size = "medium" }: ManaCostProps) {
 					key={i}
 					symbol={symbol}
 					size={size}
+					className={className}
 				/>
 			))}
 		</div>

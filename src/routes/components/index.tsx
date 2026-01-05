@@ -9,7 +9,7 @@ const COMPONENTS = [
 		name: "CardWireframe",
 		path: "/components/card-wireframe",
 		description:
-			"Text-based card display with dense, art, and placeholder modes. Great for loading states or dense views.",
+			"Text-based card placeholder. Renders card data matching the card's layout while images load.",
 	},
 ];
 

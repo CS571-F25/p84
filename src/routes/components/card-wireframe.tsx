@@ -12,23 +12,30 @@ export const Route = createFileRoute("/components/card-wireframe")({
 	component: CardWireframeDemo,
 });
 
-type Mode = "dense" | "art" | "placeholder";
-type Sizing = "fixed" | "content";
-
 const SAMPLE_QUERIES = [
-	{ label: "Creature", query: "layout:normal t:creature o:flying", limit: 2 },
-	{ label: "Instant", query: "layout:normal t:instant mv<=2", limit: 2 },
-	{ label: "Planeswalker", query: "layout:normal t:planeswalker", limit: 2 },
-	{ label: "Transform", query: "layout:transform", limit: 2 },
-	{ label: "Modal DFC", query: "layout:modal_dfc", limit: 2 },
-	{ label: "Split", query: "layout:split", limit: 2 },
-	{ label: "Flip", query: "layout:flip", limit: 2 },
-	{ label: "Adventure", query: "layout:adventure", limit: 2 },
+	{
+		label: "Creature",
+		query: "layout:normal t:creature o:flying -is:digital",
+		limit: 2,
+	},
+	{
+		label: "Instant",
+		query: "layout:normal t:instant mv<=2 -is:digital",
+		limit: 2,
+	},
+	{
+		label: "Planeswalker",
+		query: "layout:normal t:planeswalker -is:digital",
+		limit: 2,
+	},
+	{ label: "Transform", query: "layout:transform -is:digital", limit: 2 },
+	{ label: "Modal DFC", query: "layout:modal_dfc -is:digital", limit: 2 },
+	{ label: "Split", query: "layout:split -is:digital", limit: 2 },
+	{ label: "Flip", query: "layout:flip -is:digital", limit: 2 },
+	{ label: "Adventure", query: "layout:adventure -is:digital", limit: 2 },
 ];
 
 function CardWireframeDemo() {
-	const [mode, setMode] = useState<Mode>("placeholder");
-	const [sizing, setSizing] = useState<Sizing>("fixed");
 	const [showImages, setShowImages] = useState(false);
 
 	const queryResults = useQueries({
@@ -63,8 +70,8 @@ function CardWireframeDemo() {
 						CardWireframe
 					</h1>
 					<p className="text-gray-600 dark:text-gray-400">
-						Text-based card display with multiple modes. Great for loading
-						states, dense views, or accessibility.
+						Text-based card placeholder. Renders card data matching the card's
+						layout while images load.
 					</p>
 				</div>
 
@@ -72,66 +79,20 @@ function CardWireframeDemo() {
 				<div className="mb-8 p-4 bg-gray-100 dark:bg-slate-800 rounded-lg flex flex-wrap gap-6">
 					<div>
 						<span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-							Mode
+							Compare
 						</span>
-						<div className="flex gap-2">
-							{(["dense", "placeholder", "art"] as const).map((m) => (
-								<button
-									key={m}
-									type="button"
-									onClick={() => setMode(m)}
-									className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-										mode === m
-											? "bg-cyan-500 text-white"
-											: "bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
-									}`}
-								>
-									{m}
-								</button>
-							))}
-						</div>
+						<button
+							type="button"
+							onClick={() => setShowImages(!showImages)}
+							className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+								showImages
+									? "bg-cyan-500 text-white"
+									: "bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
+							}`}
+						>
+							{showImages ? "Showing images" : "Show images"}
+						</button>
 					</div>
-
-					<div>
-						<span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-							Sizing
-						</span>
-						<div className="flex gap-2">
-							{(["fixed", "content"] as const).map((s) => (
-								<button
-									key={s}
-									type="button"
-									onClick={() => setSizing(s)}
-									className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-										sizing === s
-											? "bg-cyan-500 text-white"
-											: "bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
-									}`}
-								>
-									{s}
-								</button>
-							))}
-						</div>
-					</div>
-
-					{mode === "placeholder" && (
-						<div>
-							<span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-								Compare
-							</span>
-							<button
-								type="button"
-								onClick={() => setShowImages(!showImages)}
-								className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-									showImages
-										? "bg-cyan-500 text-white"
-										: "bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
-								}`}
-							>
-								{showImages ? "Showing images" : "Show images"}
-							</button>
-						</div>
-					)}
 				</div>
 
 				{/* Loading state */}
@@ -154,27 +115,17 @@ function CardWireframeDemo() {
 										<h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
 											{label}
 										</h2>
-										<div
-											className={`grid gap-4 ${
-												mode === "dense"
-													? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-													: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-											}`}
-										>
+										<div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 											{cards.map((card) => (
 												<div key={card.id}>
-													{mode === "placeholder" && showImages ? (
+													{showImages ? (
 														<CardImage
 															card={card}
 															size="normal"
 															className="w-full"
 														/>
 													) : (
-														<CardWireframe
-															card={card}
-															mode={mode}
-															sizing={sizing}
-														/>
+														<CardWireframe card={card} />
 													)}
 													<p className="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
 														{card.name}
@@ -218,27 +169,6 @@ function CardWireframeDemo() {
 									<td className="py-2 pr-4">required</td>
 									<td className="py-2">The card data to display</td>
 								</tr>
-								<tr className="border-b border-gray-100 dark:border-slate-800">
-									<td className="py-2 pr-4 font-mono text-xs">mode</td>
-									<td className="py-2 pr-4 font-mono text-xs">
-										"dense" | "art" | "placeholder"
-									</td>
-									<td className="py-2 font-mono text-xs">"dense"</td>
-									<td className="py-2">
-										Display mode: dense (text only), art (with art crop), or
-										placeholder (full size, no art)
-									</td>
-								</tr>
-								<tr className="border-b border-gray-100 dark:border-slate-800">
-									<td className="py-2 pr-4 font-mono text-xs">sizing</td>
-									<td className="py-2 pr-4 font-mono text-xs">
-										"fixed" | "content"
-									</td>
-									<td className="py-2 font-mono text-xs">"fixed"</td>
-									<td className="py-2">
-										Fixed height with scroll, or content-based height
-									</td>
-								</tr>
 								<tr>
 									<td className="py-2 pr-4 font-mono text-xs">className</td>
 									<td className="py-2 pr-4 font-mono text-xs">string</td>
@@ -258,17 +188,11 @@ function CardWireframeDemo() {
 					<pre className="bg-gray-100 dark:bg-slate-800 p-4 rounded-lg overflow-x-auto text-sm">
 						<code className="text-gray-800 dark:text-gray-200">{`import { CardWireframe } from "@/components/CardWireframe";
 
-// Dense mode (text only, compact)
-<CardWireframe card={card} mode="dense" />
+// Basic usage - renders card as styled text placeholder
+<CardWireframe card={card} />
 
-// Placeholder mode (full card size, no art load)
-<CardWireframe card={card} mode="placeholder" />
-
-// Art mode (with art crop image)
-<CardWireframe card={card} mode="art" />
-
-// Content-based sizing (grows with content)
-<CardWireframe card={card} mode="dense" sizing="content" />`}</code>
+// With custom className
+<CardWireframe card={card} className="max-w-xs" />`}</code>
 					</pre>
 				</section>
 			</div>
