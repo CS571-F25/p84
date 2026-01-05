@@ -39,7 +39,7 @@ const config = defineConfig({
 						`?redirect_uri=${encodeURIComponent(redirectUri)}` +
 						`&scope=${encodeURIComponent(metadata.scope)}`;
 
-					process.env.VITE_DEV_SERVER_PORT = "" + SERVER_PORT;
+					process.env.VITE_DEV_SERVER_PORT = `${SERVER_PORT}`;
 					process.env.VITE_OAUTH_CLIENT_ID = clientId;
 					process.env.VITE_OAUTH_REDIRECT_URI = redirectUri;
 				}

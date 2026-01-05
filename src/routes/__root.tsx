@@ -1,19 +1,41 @@
-import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { lazy, Suspense } from "react";
 import { Toaster } from "sonner";
 import Header from "../components/Header";
 import { WorkerStatusIndicator } from "../components/WorkerStatusIndicator";
-import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import { initializeApp } from "../lib/app-init";
 import { AuthProvider } from "../lib/useAuth";
 import { ThemeProvider, useTheme } from "../lib/useTheme";
 import appCss from "../styles.css?url";
+
+const DevTools = import.meta.env.DEV
+	? lazy(() =>
+			import("@tanstack/react-devtools").then(({ TanStackDevtools }) =>
+				Promise.all([
+					import("@tanstack/react-router-devtools"),
+					import("../integrations/tanstack-query/devtools"),
+				]).then(([{ TanStackRouterDevtoolsPanel }, TanStackQueryDevtools]) => ({
+					default: () => (
+						<TanStackDevtools
+							config={{ position: "bottom-right" }}
+							plugins={[
+								{
+									name: "Tanstack Router",
+									render: <TanStackRouterDevtoolsPanel />,
+								},
+								TanStackQueryDevtools.default,
+							]}
+						/>
+					),
+				})),
+			),
+		)
+	: () => null;
 
 initializeApp();
 
@@ -90,18 +112,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						<WorkerStatusIndicator />
 						<Header />
 						{children}
-						<TanStackDevtools
-							config={{
-								position: "bottom-right",
-							}}
-							plugins={[
-								{
-									name: "Tanstack Router",
-									render: <TanStackRouterDevtoolsPanel />,
-								},
-								TanStackQueryDevtools,
-							]}
-						/>
+						<Suspense>
+							<DevTools />
+						</Suspense>
 						<ThemedToaster />
 					</AuthProvider>
 				</ThemeProvider>
