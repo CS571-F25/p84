@@ -21,6 +21,25 @@ import { ManaCost } from "./ManaCost";
 import { OracleText } from "./OracleText";
 import { SetSymbol } from "./SetSymbol";
 
+// Layout constants for card proportions (container query units)
+const LAYOUT = {
+	artHeight: "h-[44%]",
+	titlePadding: "px-[4cqw] py-[0.75cqw]",
+	titleText: "text-[5.5cqw]",
+	typePadding: "px-[4cqw] py-[0.75cqw]",
+	typeText: "text-[4.5cqw]",
+	oracleText: "text-[4cqw]",
+	oraclePadding: "px-[4cqw] py-[1.5cqw]",
+	footerPadding: "px-[3cqw] py-[1cqw]",
+	footerText: "text-[3.5cqw]",
+	manaSize: "w-[4cqw] h-[4cqw]",
+	manaSmall: "w-[3.5cqw] h-[3.5cqw]",
+	setSymbol: "text-[5.5cqw]",
+	ptText: "text-[5.5cqw]",
+	ptPadding: "px-[2cqw] py-[0.5cqw]",
+	ptPosition: "bottom-[0.25cqw] right-[2cqw]",
+} as const;
+
 interface CardWireframeProps {
 	card: Card;
 	className?: string;
@@ -125,20 +144,24 @@ function FaceContent({
 		<div className="relative flex flex-col h-full">
 			{/* Type Line */}
 			{face.type_line && (
-				<div className="flex items-center justify-between px-[4cqw] py-[1.5cqw] text-[5cqw] tracking-tight text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-slate-600 bg-gray-100 dark:bg-slate-700">
+				<div
+					className={`flex items-center justify-between ${LAYOUT.typePadding} ${LAYOUT.typeText} tracking-tight text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-slate-600 bg-gray-100 dark:bg-slate-700`}
+				>
 					<span className="truncate">{face.type_line}</span>
 					{setCode && rarity && (
 						<SetSymbol
 							setCode={setCode}
 							rarity={SET_SYMBOL_RARITY[rarity]}
-							className="text-[7cqw] shrink-0"
+							className={`${LAYOUT.setSymbol} shrink-0`}
 						/>
 					)}
 				</div>
 			)}
 
-			{/* Oracle Text - centered for short text, top-aligned for long */}
-			<div className="flex-1 grid place-content-center px-[4cqw] py-[2cqw] text-[4.5cqw] leading-snug tracking-tight text-gray-800 dark:text-gray-200 overflow-hidden">
+			{/* Oracle Text - centered for short text */}
+			<div
+				className={`flex-1 grid place-content-center ${LAYOUT.oraclePadding} ${LAYOUT.oracleText} leading-snug tracking-tight text-gray-800 dark:text-gray-200 overflow-hidden`}
+			>
 				{face.oracle_text ? (
 					isPlaneswalker ? (
 						<PlaneswalkerAbilities text={face.oracle_text} />
@@ -154,10 +177,12 @@ function FaceContent({
 				)}
 			</div>
 
-			{/* Stats (P/T, Loyalty, Defense) - absolute positioned to overlap footer like real cards */}
+			{/* Stats (P/T, Loyalty, Defense) - absolute positioned to overlap footer */}
 			{hasStats && (
-				<div className="absolute bottom-0 right-[2cqw] translate-y-1/2">
-					<span className="text-[6cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[2cqw] py-[0.5cqw] rounded border border-gray-300 dark:border-slate-500">
+				<div className="absolute bottom-0 right-[3cqw] translate-y-1/2">
+					<span
+						className={`${LAYOUT.ptText} font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 ${LAYOUT.ptPadding} rounded-sm border border-gray-400 dark:border-slate-500`}
+					>
 						{hasPT && `${face.power}/${face.toughness}`}
 						{hasLoyalty && face.loyalty}
 						{hasDefense && face.defense}
@@ -235,7 +260,9 @@ function CardFooter({ card }: { card: Card }) {
 	const setCode = card.set;
 
 	return (
-		<div className="flex items-center justify-between px-[3cqw] py-[1.5cqw] text-[3.5cqw] tracking-tight text-gray-600 dark:text-gray-400 border-t border-gray-300 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-800/80">
+		<div
+			className={`flex items-center justify-between ${LAYOUT.footerPadding} ${LAYOUT.footerText} tracking-tight text-gray-600 dark:text-gray-400 border-t border-gray-300 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-800/80`}
+		>
 			{/* Left side: set code, collector number */}
 			<div className="flex items-center gap-[1cqw]">
 				<span>{setCode?.toUpperCase()}</span>
@@ -467,7 +494,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						{faces[0].mana_cost && (
 							<ManaCost
 								cost={faces[0].mana_cost}
-								className="w-[5cqw] h-[5cqw]"
+								className="w-[4cqw] h-[4cqw]"
 							/>
 						)}
 					</div>
@@ -531,12 +558,14 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						{mainFace.name}
 					</span>
 					{mainFace.mana_cost && (
-						<ManaCost cost={mainFace.mana_cost} className="w-[5cqw] h-[5cqw]" />
+						<ManaCost cost={mainFace.mana_cost} className="w-[4cqw] h-[4cqw]" />
 					)}
 				</div>
 
 				{/* Art placeholder */}
-				<div className="h-[44%] bg-gray-300/50 dark:bg-slate-700/50" />
+				<div
+					className={`${LAYOUT.artHeight} bg-gray-300/50 dark:bg-slate-700/50`}
+				/>
 
 				{/* Type line */}
 				<div className="flex items-center justify-between px-[3cqw] py-[1cqw] border-t border-b border-gray-300 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-800/80">
@@ -594,8 +623,8 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 				{/* P/T box - absolute positioned at bottom-right corner */}
 				{(mainFace.power || mainFace.toughness) && (
-					<div className="absolute bottom-[0.5cqw] right-[2cqw]">
-						<span className="text-[5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[1.5cqw] py-[0.25cqw] rounded border border-gray-300 dark:border-slate-500">
+					<div className="absolute bottom-[0.25cqw] right-[2cqw]">
+						<span className="text-[5.5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[2cqw] py-[0.5cqw] rounded-sm border border-gray-400 dark:border-slate-500">
 							{mainFace.power}/{mainFace.toughness}
 						</span>
 					</div>
@@ -642,11 +671,13 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							{faces[0].mana_cost && (
 								<ManaCost
 									cost={faces[0].mana_cost}
-									className="w-[5cqw] h-[5cqw]"
+									className="w-[4cqw] h-[4cqw]"
 								/>
 							)}
 						</div>
-						<div className="h-[44%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
+						<div
+							className={`${LAYOUT.artHeight} bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center`}
+						/>
 						<div className="flex-1 flex flex-col overflow-hidden">
 							<FaceContent
 								face={faces[0]}
@@ -726,11 +757,13 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							{faces[1]?.mana_cost && (
 								<ManaCost
 									cost={faces[1].mana_cost}
-									className="w-[5cqw] h-[5cqw]"
+									className="w-[4cqw] h-[4cqw]"
 								/>
 							)}
 						</div>
-						<div className="h-[44%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
+						<div
+							className={`${LAYOUT.artHeight} bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center`}
+						/>
 						<div className="flex-1 flex flex-col overflow-hidden">
 							<FaceContent
 								face={faces[1] || faces[0]}
@@ -800,24 +833,26 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 	return (
 		<div
-			className={`@container relative aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+			className={`@container relative aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col pt-[1cqw]`}
 		>
 			{/* Title bar */}
 			<div
-				className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
+				className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 			>
 				<span
-					className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
+					className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
 				>
 					{face.name}
 				</span>
 				{face.mana_cost && (
-					<ManaCost cost={face.mana_cost} className="w-[5cqw] h-[5cqw]" />
+					<ManaCost cost={face.mana_cost} className={LAYOUT.manaSize} />
 				)}
 			</div>
 
 			{/* Art placeholder */}
-			<div className="h-[44%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
+			<div
+				className={`${LAYOUT.artHeight} bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center`}
+			/>
 
 			{/* Card body */}
 			<div className="flex-1 flex flex-col overflow-hidden">
@@ -831,10 +866,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 			<CardFooter card={card} />
 
-			{/* P/T / Loyalty / Defense - positioned at card level at bottom-right corner */}
+			{/* P/T / Loyalty / Defense - positioned at bottom-right corner */}
 			{(hasPT || hasLoyalty || hasDefense) && (
-				<div className="absolute bottom-[0.5cqw] right-[2cqw]">
-					<span className="text-[5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[1.5cqw] py-[0.25cqw] rounded border border-gray-300 dark:border-slate-500">
+				<div className={`absolute ${LAYOUT.ptPosition}`}>
+					<span
+						className={`${LAYOUT.ptText} font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 ${LAYOUT.ptPadding} rounded-sm border border-gray-400 dark:border-slate-500`}
+					>
 						{hasPT && `${face.power}/${face.toughness}`}
 						{hasLoyalty && face.loyalty}
 						{hasDefense && face.defense}
