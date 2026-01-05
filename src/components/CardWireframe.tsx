@@ -23,21 +23,21 @@ import { SetSymbol } from "./SetSymbol";
 
 // Layout constants for card proportions (container query units)
 const LAYOUT = {
-	artHeight: "h-[45%]",
-	titlePadding: "px-[7cqw] pt-[5.5cqw] pb-[0.75cqw]",
+	artHeight: "h-[47%]",
+	titlePadding: "px-[5.5cqw] pt-[4cqw] pb-[0.75cqw]",
 	titleText: "text-[5.5cqw]",
-	typePadding: "pl-[7.5cqw] pr-[8cqw] pt-[1.5cqw] pb-[0.5cqw]",
+	typePadding: "pl-[6cqw] pr-[5cqw] pt-[1.5cqw] pb-[0cqw]",
 	typeText: "text-[4.5cqw]",
 	oracleText: "text-[4cqw]",
-	oraclePadding: "px-[7cqw] py-[1.5cqw]",
-	footerPadding: "px-[3cqw] py-[1cqw]",
+	oraclePadding: "px-[5.5cqw] py-[1.5cqw]",
+	footerPadding: "px-[3cqw] pt-[0.5cqw] pb-[1.5cqw]",
 	footerText: "text-[3cqw]",
 	manaSize: "w-[4cqw] h-[4cqw]",
 	manaSmall: "w-[3.5cqw] h-[3.5cqw]",
 	setSymbol: "text-[7cqw]",
 	ptText: "text-[6cqw]",
 	ptPadding: "px-[2.5cqw] py-[0.75cqw]",
-	ptPosition: "bottom-[5.5cqw] right-[6cqw]",
+	ptPosition: "bottom-[6.5cqw] right-[8cqw]",
 } as const;
 
 interface CardWireframeProps {
@@ -47,65 +47,50 @@ interface CardWireframeProps {
 
 type ColorIdentity = "W" | "U" | "B" | "R" | "G";
 
+// MTG-authentic frame colors (muted, earthy tones)
 const FRAME_COLORS: Record<
 	ColorIdentity | "multicolor" | "colorless" | "land",
-	{ border: string; frame: string; titleBg: string; titleText: string }
+	{ frame: string; titleBg: string; titleText: string }
 > = {
 	W: {
-		border: "border-yellow-300 dark:border-yellow-600/60",
-		frame: "bg-yellow-50 dark:bg-stone-900",
-		titleBg:
-			"bg-gradient-to-r from-yellow-100 to-yellow-200 dark:from-yellow-900/50 dark:to-yellow-800/50",
-		titleText: "text-yellow-900 dark:text-yellow-200",
+		frame: "bg-[#f8f4e8] dark:bg-[#3d3a33]",
+		titleBg: "bg-gradient-to-r from-[#f5f0dc] to-[#e8e0c8]",
+		titleText: "text-[#2a261e]",
 	},
 	U: {
-		border: "border-blue-400 dark:border-blue-500/60",
-		frame: "bg-blue-50 dark:bg-slate-900",
-		titleBg:
-			"bg-gradient-to-r from-blue-200 to-blue-300 dark:from-blue-900/50 dark:to-blue-800/50",
-		titleText: "text-blue-900 dark:text-blue-200",
+		frame: "bg-[#0e68ab] dark:bg-[#0a3d5c]",
+		titleBg: "bg-gradient-to-r from-[#1a7dc4] to-[#0d5a94]",
+		titleText: "text-white",
 	},
 	B: {
-		border: "border-gray-500 dark:border-gray-500/60",
-		frame: "bg-gray-100 dark:bg-zinc-900",
-		titleBg:
-			"bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-800/50 dark:to-gray-700/50",
-		titleText: "text-gray-900 dark:text-gray-200",
+		frame: "bg-[#3d3a4a] dark:bg-[#1a1820]",
+		titleBg: "bg-gradient-to-r from-[#4a4558] to-[#2d2a38]",
+		titleText: "text-[#c8c4d0]",
 	},
 	R: {
-		border: "border-red-400 dark:border-red-500/60",
-		frame: "bg-red-50 dark:bg-stone-900",
-		titleBg:
-			"bg-gradient-to-r from-red-200 to-red-300 dark:from-red-900/50 dark:to-red-800/50",
-		titleText: "text-red-900 dark:text-red-200",
+		frame: "bg-[#d04030] dark:bg-[#6b2018]",
+		titleBg: "bg-gradient-to-r from-[#e85040] to-[#c03828]",
+		titleText: "text-white",
 	},
 	G: {
-		border: "border-green-500 dark:border-green-600/60",
-		frame: "bg-green-50 dark:bg-stone-900",
-		titleBg:
-			"bg-gradient-to-r from-green-200 to-green-300 dark:from-green-900/50 dark:to-green-800/50",
-		titleText: "text-green-900 dark:text-green-200",
+		frame: "bg-[#2d6b4a] dark:bg-[#1a3d2a]",
+		titleBg: "bg-gradient-to-r from-[#3a8060] to-[#285840]",
+		titleText: "text-white",
 	},
 	multicolor: {
-		border: "border-amber-400 dark:border-amber-500/60",
-		frame: "bg-amber-50 dark:bg-stone-900",
-		titleBg:
-			"bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 dark:from-amber-900/50 dark:via-yellow-800/50 dark:to-amber-900/50",
-		titleText: "text-amber-900 dark:text-amber-200",
+		frame: "bg-[#c9a858] dark:bg-[#6b5828]",
+		titleBg: "bg-gradient-to-r from-[#dab868] to-[#b89840]",
+		titleText: "text-[#2a2618]",
 	},
 	colorless: {
-		border: "border-slate-400 dark:border-slate-500/60",
-		frame: "bg-slate-100 dark:bg-slate-900",
-		titleBg:
-			"bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-800/50 dark:to-slate-700/50",
-		titleText: "text-slate-900 dark:text-slate-200",
+		frame: "bg-[#a8a8a8] dark:bg-[#4a4a4a]",
+		titleBg: "bg-gradient-to-r from-[#c0c0c0] to-[#989898]",
+		titleText: "text-[#2a2a2a]",
 	},
 	land: {
-		border: "border-amber-500 dark:border-amber-600/60",
-		frame: "bg-amber-50 dark:bg-stone-900",
-		titleBg:
-			"bg-gradient-to-r from-amber-200 to-amber-300 dark:from-amber-900/50 dark:to-amber-800/50",
-		titleText: "text-amber-900 dark:text-amber-200",
+		frame: "bg-[#b89858] dark:bg-[#5c4828]",
+		titleBg: "bg-gradient-to-r from-[#c8a868] to-[#a08040]",
+		titleText: "text-[#2a2618]",
 	},
 };
 
@@ -271,7 +256,7 @@ function CardFooter({ card }: { card: Card }) {
 
 	return (
 		<div
-			className={`flex flex-col ${LAYOUT.footerPadding} ${LAYOUT.footerText} tracking-tight text-gray-600 dark:text-gray-400 border-t border-gray-300 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-800/80`}
+			className={`flex flex-col ${LAYOUT.footerPadding} ${LAYOUT.footerText} tracking-tight text-white bg-black`}
 		>
 			{/* Top row: rarity collector set•lang */}
 			<span>
@@ -318,7 +303,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 		return (
 			<div className="relative group">
 				<div
-					className={`@container aspect-[5/7] border-[3px] ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col motion-safe:transition-transform motion-safe:duration-500`}
+					className={`@container aspect-[5/7] border-[0.8cqw] border-black rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col motion-safe:transition-transform motion-safe:duration-500`}
 					style={{
 						transform: isFlipped ? "rotate(180deg)" : "rotate(0deg)",
 					}}
@@ -427,7 +412,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 		return (
 			<div
-				className={`@container aspect-[5/7] border-[3px] ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+				className={`@container aspect-[5/7] border-[0.8cqw] border-black rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
 			>
 				{/* Top half */}
 				<div className="h-1/2 flex flex-col border-b border-gray-300 dark:border-slate-600">
@@ -494,7 +479,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 		return (
 			<div
-				className={`@container aspect-[5/7] border-[3px] ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+				className={`@container aspect-[5/7] border-[0.8cqw] border-black rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
 			>
 				{/* Top half - main spell */}
 				<div className="h-[60%] flex flex-col border-b-2 border-gray-300 dark:border-slate-600">
@@ -555,7 +540,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 		return (
 			<div
-				className={`@container relative aspect-[5/7] border-[3px] ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+				className={`@container relative aspect-[5/7] border-[0.8cqw] border-black rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
 			>
 				{/* Title bar */}
 				<div
@@ -661,7 +646,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 				>
 					{/* Front */}
 					<div
-						className={`@container absolute inset-0 border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} flex flex-col`}
+						className={`@container absolute inset-0 border-[0.8cqw] border-black rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} flex flex-col`}
 						style={{ backfaceVisibility: "hidden" }}
 					>
 						<div
@@ -750,7 +735,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 					{/* Back */}
 					<div
-						className={`@container absolute inset-0 border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} flex flex-col`}
+						className={`@container absolute inset-0 border-[0.8cqw] border-black rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} flex flex-col`}
 						style={{
 							backfaceVisibility: "hidden",
 							transform: "rotateY(180deg)",
@@ -850,51 +835,55 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 	return (
 		<div
-			className={`@container relative aspect-[5/7] border-[3px] ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+			className={`@container relative aspect-[5/7] bg-black rounded-[4.75%/3.5%] p-[0.8cqw] ${className ?? ""}`}
 		>
-			{/* Title bar */}
 			<div
-				className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
+				className={`h-full ${frameColor.frame} rounded-[3%/2%] overflow-hidden flex flex-col`}
 			>
-				<span
-					className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
+				{/* Title bar */}
+				<div
+					className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 				>
-					{face.name}
-				</span>
-				{face.mana_cost && (
-					<ManaCost cost={face.mana_cost} className={LAYOUT.manaSize} />
+					<span
+						className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
+					>
+						{face.name}
+					</span>
+					{face.mana_cost && (
+						<ManaCost cost={face.mana_cost} className={LAYOUT.manaSize} />
+					)}
+				</div>
+
+				{/* Art placeholder */}
+				<div
+					className={`${LAYOUT.artHeight} bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center`}
+				/>
+
+				{/* Card body */}
+				<div className="flex-1 flex flex-col overflow-hidden">
+					<FaceContent
+						face={face}
+						setCode={card.set}
+						rarity={rarity}
+						showStats={false}
+					/>
+				</div>
+
+				<CardFooter card={card} />
+
+				{/* P/T / Loyalty / Defense - positioned at bottom-right corner */}
+				{(hasPT || hasLoyalty || hasDefense) && (
+					<div className={`absolute ${LAYOUT.ptPosition}`}>
+						<span
+							className={`${LAYOUT.ptText} font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 ${LAYOUT.ptPadding} rounded-sm border border-gray-400 dark:border-slate-500`}
+						>
+							{hasPT && `${face.power}/${face.toughness}`}
+							{hasLoyalty && face.loyalty}
+							{hasDefense && face.defense}
+						</span>
+					</div>
 				)}
 			</div>
-
-			{/* Art placeholder */}
-			<div
-				className={`${LAYOUT.artHeight} bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center`}
-			/>
-
-			{/* Card body */}
-			<div className="flex-1 flex flex-col overflow-hidden">
-				<FaceContent
-					face={face}
-					setCode={card.set}
-					rarity={rarity}
-					showStats={false}
-				/>
-			</div>
-
-			<CardFooter card={card} />
-
-			{/* P/T / Loyalty / Defense - positioned at bottom-right corner */}
-			{(hasPT || hasLoyalty || hasDefense) && (
-				<div className={`absolute ${LAYOUT.ptPosition}`}>
-					<span
-						className={`${LAYOUT.ptText} font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 ${LAYOUT.ptPadding} rounded-sm border border-gray-400 dark:border-slate-500`}
-					>
-						{hasPT && `${face.power}/${face.toughness}`}
-						{hasLoyalty && face.loyalty}
-						{hasDefense && face.defense}
-					</span>
-				</div>
-			)}
 		</div>
 	);
 }
