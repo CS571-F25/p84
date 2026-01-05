@@ -24,7 +24,7 @@ import { SetSymbol } from "./SetSymbol";
 // Layout constants for card proportions (container query units)
 const LAYOUT = {
 	artHeight: "h-[45%]",
-	titlePadding: "px-[7cqw] pt-[3cqw] pb-[0.75cqw]",
+	titlePadding: "px-[7cqw] pt-[5.5cqw] pb-[0.75cqw]",
 	titleText: "text-[5.5cqw]",
 	typePadding: "pl-[7.5cqw] pr-[8cqw] pt-[1.5cqw] pb-[0.5cqw]",
 	typeText: "text-[4.5cqw]",
@@ -255,22 +255,34 @@ const SET_SYMBOL_RARITY: Record<
 	bonus: "mythic",
 };
 
+const RARITY_LETTER: Record<Rarity, string> = {
+	common: "C",
+	uncommon: "U",
+	rare: "R",
+	mythic: "M",
+	special: "S",
+	bonus: "B",
+};
+
 function CardFooter({ card }: { card: Card }) {
-	const collectorNum = card.collector_number;
-	const setCode = card.set;
+	const collectorNum = card.collector_number?.padStart(4, "0");
+	const setCode = card.set?.toUpperCase();
+	const rarityLetter = RARITY_LETTER[card.rarity ?? "common"];
 
 	return (
 		<div
-			className={`flex items-center justify-between ${LAYOUT.footerPadding} ${LAYOUT.footerText} tracking-tight text-gray-600 dark:text-gray-400 border-t border-gray-300 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-800/80`}
+			className={`flex flex-col ${LAYOUT.footerPadding} ${LAYOUT.footerText} tracking-tight text-gray-600 dark:text-gray-400 border-t border-gray-300 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-800/80`}
 		>
-			{/* Left side: set code, collector number */}
-			<div className="flex items-center gap-[1cqw]">
-				<span>{setCode?.toUpperCase()}</span>
-				{collectorNum && <span>#{collectorNum}</span>}
-			</div>
-			{/* Right side: artist */}
+			{/* Top row: rarity collector set•lang */}
+			<span>
+				{rarityLetter} {collectorNum} {setCode}•EN
+			</span>
+			{/* Bottom row: brush icon + artist */}
 			{card.artist && (
-				<span className="truncate italic max-w-[50%]">{card.artist}</span>
+				<div className="flex items-center gap-[0.5cqw]">
+					<span>✎</span>
+					<span className="truncate">{card.artist}</span>
+				</div>
 			)}
 		</div>
 	);
@@ -833,7 +845,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 	return (
 		<div
-			className={`@container relative aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col pt-[0.5cqw]`}
+			className={`@container relative aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
 		>
 			{/* Title bar */}
 			<div
