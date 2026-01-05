@@ -39,7 +39,23 @@ This file tracks discovered issues, refactoring opportunities, and feature ideas
 
 ---
 
+## UX / Navigation
+
+### Static sidebar nav on desktop
+- **Feedback from**: nat
+- **Issue**: Collapsible sidebar is poor UX on desktop - constant open/close friction
+- **Fix**: Static sidebar that's always visible, with shadcn-style expandable sections (like Streamplace does)
+- **Effort**: Medium
+
+---
+
 ## Search Improvements
+
+### Autocomplete suggestions for known values
+- **Feedback from**: nat
+- **Issue**: When typing `t:`, should suggest 'creature', 'instant', 'sorcery', etc. Same for other fields with finite value sets
+- **Alternative**: At minimum, show link to search syntax docs
+- **Effort**: Medium-Large (needs dropdown UI, field-specific value lists)
 
 ### Add guild/shard/wedge color names
 - **Location**: `src/lib/search/colors.ts:137` (marked with comment)
