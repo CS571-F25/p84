@@ -1,0 +1,128 @@
+# Backlog
+
+This file tracks discovered issues, refactoring opportunities, and feature ideas that aren't being worked on immediately. Use it as a scratchpad during development - add things here when you notice them so they don't get lost.
+
+**Not a sprint board.** This is for parking things you don't want to forget, not active work tracking.
+
+---
+
+## Bugs
+
+### Delete undo adds N+1 copies
+- **Location**: Deck editor undo logic
+- **Issue**: Undoing a card deletion adds N+1 of the card as independent copies instead of restoring the original single entry
+- **Repro**: Delete a card with qty 4, undo, observe 5 separate entries
+
+### Bare regex for name search doesn't work
+- **Location**: `src/lib/search/parser.ts`, `parseNameExpr()`
+- **Issue**: `/goblin.*king/i` syntax is parsed but not matched correctly for bare name searches (works in field values like `o:/regex/`)
+- **Why it matters**: Documented in grammar but broken
+
+---
+
+## Features (Planned)
+
+### Card modal improvements
+- Autocomplete for tags
+- Keyboard support for quantity changes (up/down arrows, number keys)
+- Focus trap for accessibility
+
+### Commander selection
+- **Location**: `src/routes/deck/new.tsx` (has TODO comment)
+- When format is commander/paupercommander, prompt for commander selection before creating deck
+- Affects color identity filtering
+
+### Multi-faced card handling
+- **Status**: Recently added (`src/lib/card-faces.ts`), needs integration
+- Deck stats should account for castable faces properly
+- Mana curve should use front-face CMC for transform cards
+
+---
+
+## Search Improvements
+
+### Add guild/shard/wedge color names
+- **Location**: `src/lib/search/colors.ts:137` (marked with comment)
+- Add support for `c:azorius`, `c:bant`, `c:jeskai`, etc.
+- Map names to color sets: azorius → WU, bant → WUG, etc.
+
+---
+
+## Refactoring (Technical Debt)
+
+### High Priority
+
+#### Extract operator matcher pattern in fields.ts
+- **Location**: `src/lib/search/fields.ts`
+- **Issue**: Same operator switch (`case ":"`, `case "!="`, etc.) duplicated 5+ times across `compileNumericField`, `compileStatField`, `compileRarity`, `compileFormat`, `compileYear`, `compileDate`
+- **Fix**: Create operator combinator functions like `createNumericMatcher(getter, searchValue)`
+- **Effort**: Small (1-2 hours)
+
+#### Reduce computeManaSymbolsVsSources complexity
+- **Location**: `src/lib/deck-stats.ts:327-502` (176 lines)
+- **Issue**: Single function creates 13 separate color-keyed data structures, has deeply nested loops, mixes concerns (counting, classification, distribution)
+- **Fix**: Extract tempo classification to separate module, create `ColorMap` utility class, split into smaller focused functions
+- **Effort**: Medium (half day)
+
+#### Extract sorting strategies from sortGroupNames
+- **Location**: `src/lib/deck-grouping.ts:319-387`
+- **Issue**: 4 different sorting strategies in one big switch statement
+- **Fix**: Extract to strategy map: `const sorters: Record<GroupBy, SortFn>`
+- **Effort**: Small (1 hour)
+
+### Medium Priority
+
+#### Memoize regex patterns in getSourceTempo
+- **Location**: `src/lib/deck-stats.ts:148-225`
+- **Issue**: Regex patterns compiled on every function call, no memoization
+- **Fix**: Move patterns to module-level constants or use lazy initialization
+- **Effort**: Small (30 min)
+
+#### Standardize error handling across ATProto operations
+- **Location**: `src/lib/atproto-client.ts`, `src/lib/cards-server-provider.ts`, etc.
+- **Issue**: Inconsistent patterns - some use try-catch with console.error, some return Result<T,E>, some silently return empty arrays
+- **Fix**: Adopt Result<T,E> consistently, remove unnecessary try-catch blocks
+- **Effort**: Medium (2-3 hours)
+
+#### Consolidate layout metadata for card-faces
+- **Location**: `src/lib/card-faces.ts:16-33`
+- **Issue**: `MODAL_LAYOUTS`, `TRANSFORM_IN_PLAY_LAYOUTS`, `HAS_BACK_IMAGE_LAYOUTS` are separate arrays checked in multiple places
+- **Fix**: Create single `LayoutMetadata` map with all properties per layout
+- **Effort**: Trivial (30 min)
+
+### Lower Priority
+
+#### Extract meta tag builder in card route
+- **Location**: `src/routes/card/$id.tsx:62-113`
+- **Issue**: 51 lines of nested object literals for OG/Twitter meta tags
+- **Fix**: Extract to `buildCardMetaTags(card)` helper
+- **Effort**: Trivial (15 min)
+
+#### Parser error collection
+- **Location**: `src/lib/search/parser.ts`
+- **Issue**: Fails on first error instead of collecting all parse errors
+- **Fix**: Add error recovery, collect ParseError[], continue parsing
+- **Effort**: Large (needs design, affects error display)
+
+---
+
+## Documentation Gaps
+
+### .claude/PROJECT.md stale lexicon status
+- Claims `com.deckbelcher.reply` is "planned" but doesn't exist
+- Claims `com.deckbelcher.like` is "planned" but it exists as `com.deckbelcher.social.like`
+- Update to reflect actual lexicon implementation status
+
+### Drag & drop known limitation
+- **Location**: `src/components/deck/DragDropProvider.tsx`
+- Screen size checked once on mount, doesn't update on resize
+- Breaks on foldable phones when unfolding
+- Should document in DECK_EDITOR.md or fix
+
+---
+
+## Testing Gaps
+
+### Integration tests for worker
+- Worker code tested via mocked Comlink
+- Would benefit from actual worker instantiation tests
