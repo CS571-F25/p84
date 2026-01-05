@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+/**
+ * Keyrune set symbol font
+ * https://github.com/andrewgioia/keyrune
+ * Font licensed under SIL OFL 1.1
+ */
+@font-face {
+	font-family: "Keyrune";
+	src: url("/fonts/keyrune/keyrune.woff2") format("woff2");
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+@theme {
+	/* MTG rarity colors (from Keyrune) */
+	--color-rarity-common: #1a1718;
+	--color-rarity-uncommon: #707883;
+	--color-rarity-rare: #a58e4a;
+	--color-rarity-mythic: #bf4427;
+	--color-rarity-timeshifted: #652978;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 body {
