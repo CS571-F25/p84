@@ -370,10 +370,10 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					</div>
 
 					{/* Art area in the middle */}
-					<div className="h-[16%] bg-gray-300/50 dark:bg-slate-700/50 border-y-2 border-gray-400 dark:border-slate-500" />
+					<div className="h-[14%] bg-gray-300/50 dark:bg-slate-700/50 border-y-2 border-gray-400 dark:border-slate-500" />
 
 					{/* Bottom half (flipped face, shown upside down) */}
-					<div className="h-[42%] flex flex-col rotate-180">
+					<div className="h-[36%] flex flex-col rotate-180">
 						{/* Title bar */}
 						<div
 							className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[0.5cqw] ${frameColor.titleBg}`}
@@ -390,7 +390,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 								<OracleText text={bottomFace.oracle_text} symbolSize="text" />
 							)}
 						</div>
-						{/* Type line + P/T */}
+						{/* Type line */}
 						<div className="flex items-center justify-between px-[2cqw] py-[0.5cqw] bg-gray-100/80 dark:bg-slate-800/80 border-t border-gray-300 dark:border-slate-600">
 							<span className="text-[3cqw] text-gray-700 dark:text-gray-300 truncate">
 								{bottomFace.type_line}
@@ -402,6 +402,9 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							)}
 						</div>
 					</div>
+
+					{/* Footer */}
+					<CardFooter card={card} />
 				</div>
 
 				{flippable && (
