@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { getPrimaryFace } from "@/lib/card-faces";
 import { type Deck, getCommanderColorIdentity } from "@/lib/deck-types";
 import {
 	getCardByIdQueryOptions,
@@ -267,40 +268,43 @@ export function CardSearchAutocomplete({
 					>
 						{hasResults ? (
 							<div className="py-1">
-								{displayCards.map((card, index) => (
-									<button
-										type="button"
-										key={card.id}
-										ref={(el) => {
-											if (el) {
-												resultRefs.current.set(index, el);
-											} else {
-												resultRefs.current.delete(index);
-											}
-										}}
-										onMouseEnter={() => {
-											handleMouseEnterCard(card);
-											setSelectedIndex(index);
-										}}
-										onClick={() => handleCardSelect(card)}
-										className={`w-full px-3 py-1.5 text-left cursor-pointer transition-colors ${
-											index === selectedIndex
-												? "bg-blue-100 dark:bg-blue-900/30"
-												: "hover:bg-gray-100 dark:hover:bg-slate-800"
-										}`}
-									>
-										<div className="flex items-center justify-between gap-2">
-											<div className="font-medium text-sm text-gray-900 dark:text-white truncate">
-												{card.name}
-											</div>
-											{card.mana_cost && (
-												<div className="flex-shrink-0">
-													<ManaCost cost={card.mana_cost} size="small" />
+								{displayCards.map((card, index) => {
+									const face = getPrimaryFace(card);
+									return (
+										<button
+											type="button"
+											key={card.id}
+											ref={(el) => {
+												if (el) {
+													resultRefs.current.set(index, el);
+												} else {
+													resultRefs.current.delete(index);
+												}
+											}}
+											onMouseEnter={() => {
+												handleMouseEnterCard(card);
+												setSelectedIndex(index);
+											}}
+											onClick={() => handleCardSelect(card)}
+											className={`w-full px-3 py-1.5 text-left cursor-pointer transition-colors ${
+												index === selectedIndex
+													? "bg-blue-100 dark:bg-blue-900/30"
+													: "hover:bg-gray-100 dark:hover:bg-slate-800"
+											}`}
+										>
+											<div className="flex items-center justify-between gap-2">
+												<div className="font-medium text-sm text-gray-900 dark:text-white truncate">
+													{face.name}
 												</div>
-											)}
-										</div>
-									</button>
-								))}
+												{face.mana_cost && (
+													<div className="flex-shrink-0">
+														<ManaCost cost={face.mana_cost} size="small" />
+													</div>
+												)}
+											</div>
+										</button>
+									);
+								})}
 							</div>
 						) : (
 							<div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">

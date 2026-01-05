@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Minus, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ManaCost } from "@/components/ManaCost";
+import { getPrimaryFace } from "@/lib/card-faces";
 import type { DeckCard, Section } from "@/lib/deck-types";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 
@@ -31,6 +32,7 @@ export function CardModal({
 	const [newTag, setNewTag] = useState("");
 
 	const { data: cardData } = useQuery(getCardByIdQueryOptions(card.scryfallId));
+	const primaryFace = cardData ? getPrimaryFace(cardData) : null;
 
 	useEffect(() => {
 		setQuantity(card.quantity);
@@ -97,21 +99,21 @@ export function CardModal({
 					{/* Header */}
 					<div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-slate-800">
 						<div className="flex-1 min-w-0">
-							{cardData ? (
+							{primaryFace ? (
 								<>
 									<div className="flex items-baseline gap-2 mb-2 flex-wrap">
 										<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-											{cardData.name}
+											{primaryFace.name}
 										</h2>
-										{cardData.mana_cost && (
+										{primaryFace.mana_cost && (
 											<div className="flex-shrink-0">
-												<ManaCost cost={cardData.mana_cost} size="small" />
+												<ManaCost cost={primaryFace.mana_cost} size="small" />
 											</div>
 										)}
 									</div>
-									{cardData.type_line && (
+									{primaryFace.type_line && (
 										<div className="text-sm text-gray-600 dark:text-gray-400">
-											{cardData.type_line}
+											{primaryFace.type_line}
 										</div>
 									)}
 								</>

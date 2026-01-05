@@ -1,6 +1,7 @@
 import { useDraggable } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
 import { ManaCost } from "@/components/ManaCost";
+import { getPrimaryFace } from "@/lib/card-faces";
 import type { DeckCard } from "@/lib/deck-types";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import type { ScryfallId } from "@/lib/scryfall-types";
@@ -44,6 +45,8 @@ export function DraggableCard({
 		disabled,
 	});
 
+	const primaryFace = cardData ? getPrimaryFace(cardData) : null;
+
 	return (
 		<button
 			ref={setNodeRef}
@@ -76,11 +79,11 @@ export function DraggableCard({
 					{card.quantity}
 				</span>
 				<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0">
-					{cardData ? cardData.name : isLoading ? "" : "Unknown Card"}
+					{primaryFace ? primaryFace.name : isLoading ? "" : "Unknown Card"}
 				</span>
 				<div className="flex-shrink-0 flex items-center ml-auto">
-					{cardData?.mana_cost ? (
-						<ManaCost cost={cardData.mana_cost} size="small" />
+					{primaryFace?.mana_cost ? (
+						<ManaCost cost={primaryFace.mana_cost} size="small" />
 					) : isLoading ? (
 						<div className="h-5 w-12 bg-gray-300 dark:bg-slate-700 rounded animate-pulse" />
 					) : null}

@@ -12,9 +12,9 @@ export function CardPreviewPane({ cardId }: CardPreviewPaneProps) {
 
 	return (
 		<div className="flex items-center justify-center">
-			{cardId && (
+			{cardId && data && (
 				<CardImage
-					card={{ id: cardId, name: data?.name ?? "" }}
+					card={data}
 					size="large"
 					className="shadow-[0_0.5rem_1.875rem_rgba(0,0,0,0.4)] dark:shadow-[0_0.5rem_1.875rem_rgba(0,0,0,0.8)] w-full h-auto object-contain rounded-[4.75%/3.5%]"
 				/>

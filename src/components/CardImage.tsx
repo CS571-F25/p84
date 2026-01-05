@@ -28,7 +28,7 @@ interface CardImageProps {
  *
  * Flip behavior is auto-detected from card.layout:
  * - transform/modal_dfc/meld: 3D flip to back face image
- * - split: 90° rotation
+ * - split: 90° rotation (scaled to fit)
  * - flip (Kamigawa): 180° rotation
  *
  * Uncontrolled by default (manages own flip state).
@@ -49,6 +49,14 @@ export function CardImage({
 	const flippable = canFlip({ layout: card.layout } as Card);
 	const flipBehavior = getFlipBehavior(card.layout);
 	const hasBack = hasBackImage(card.layout);
+
+	// Button position varies by card type to sit nicely over art
+	const buttonPosition =
+		flipBehavior === "rotate90"
+			? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" // split: center
+			: flipBehavior === "rotate180"
+				? "top-[15%] right-[15%]" // flip (Kamigawa): more inset
+				: "top-[15%] right-[8%]"; // transform/MDFC: top-right of art
 
 	const handleFlip = (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -75,11 +83,14 @@ export function CardImage({
 		);
 	}
 
+	// Scale factor for 90° rotation to keep card in bounds (card is 5:7 ratio)
+	const rotateScale = 5 / 7;
+
 	return (
 		<div className="relative group">
 			{flipBehavior === "transform" && hasBack ? (
 				<div
-					className="w-full transition-transform duration-500 ease-in-out"
+					className="w-full motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out"
 					style={{
 						transformStyle: "preserve-3d",
 						transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
@@ -107,12 +118,14 @@ export function CardImage({
 				<img
 					src={getImageUri(card.id, size, face)}
 					alt={card.name}
-					className={baseClassName}
+					className={`${baseClassName} motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out`}
 					loading="lazy"
 					style={{
-						transition: "transform 0.5s ease-in-out",
+						transformOrigin: "center center",
 						transform: isFlipped
-							? `rotate(${flipBehavior === "rotate90" ? 90 : 180}deg)`
+							? flipBehavior === "rotate90"
+								? `rotate(90deg) scale(${rotateScale})`
+								: "rotate(180deg)"
 							: "rotate(0deg)",
 					}}
 				/>
@@ -120,10 +133,10 @@ export function CardImage({
 			<button
 				type="button"
 				onClick={handleFlip}
-				className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 z-10"
+				className={`absolute ${buttonPosition} p-3 rounded-full bg-black/60 text-white opacity-60 hover:opacity-100 transition-opacity z-10`}
 				aria-label="Flip card"
 			>
-				<RotateCcw className="w-4 h-4" />
+				<RotateCcw className="w-6 h-6" />
 			</button>
 		</div>
 	);
