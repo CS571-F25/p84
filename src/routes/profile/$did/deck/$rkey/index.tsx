@@ -282,6 +282,7 @@ function DeckEditorPage() {
 				error: (err) => `Failed to add card: ${err.message}`,
 			},
 		);
+		handleCardsChanged(new Set([cardId]));
 	};
 
 	const handleDragEnd = (event: DragEndEvent) => {

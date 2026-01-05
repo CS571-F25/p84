@@ -90,7 +90,7 @@ export function DraggableCard({
 		>
 			<div
 				ref={highlightRef}
-				className="absolute inset-0 rounded bg-[var(--highlight-color)] opacity-0 pointer-events-none"
+				className="absolute inset-0 rounded bg-amber-100 dark:bg-slate-700 opacity-0 pointer-events-none"
 			/>
 			<div className="flex items-center gap-2">
 				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-4 text-right flex-shrink-0">
