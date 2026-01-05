@@ -1,9 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { DeleteDeckDialog } from "@/components/deck/DeleteDeckDialog";
+import type { Rkey } from "@/lib/atproto-client";
 import { getCardDataProvider } from "@/lib/card-data-provider";
 import { prefetchCards } from "@/lib/card-prefetch";
+import { useDeleteDeckMutation } from "@/lib/deck-queries";
 import type { Deck } from "@/lib/deck-types";
 import {
 	findAllCanonicalPrintings,
@@ -14,18 +17,22 @@ import type { ScryfallId } from "@/lib/scryfall-types";
 
 interface DeckActionsMenuProps {
 	deck: Deck;
+	rkey: Rkey;
 	onUpdateDeck: (updater: (prev: Deck) => Deck) => Promise<void>;
 	onCardsChanged?: (changedIds: Set<ScryfallId>) => void;
 }
 
 export function DeckActionsMenu({
 	deck,
+	rkey,
 	onUpdateDeck,
 	onCardsChanged,
 }: DeckActionsMenuProps) {
 	const queryClient = useQueryClient();
 	const [isOpen, setIsOpen] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
+	const deleteMutation = useDeleteDeckMutation(rkey);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -113,8 +120,28 @@ export function DeckActionsMenu({
 					>
 						Set all to best
 					</button>
+					<div className="border-t border-gray-200 dark:border-gray-700" />
+					<button
+						type="button"
+						onClick={() => {
+							setIsOpen(false);
+							setShowDeleteDialog(true);
+						}}
+						className="w-full text-left px-4 py-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400 text-sm flex items-center gap-2"
+					>
+						<Trash2 size={14} />
+						Delete deck
+					</button>
 				</div>
 			)}
+
+			<DeleteDeckDialog
+				deckName={deck.name}
+				isOpen={showDeleteDialog}
+				onClose={() => setShowDeleteDialog(false)}
+				onConfirm={() => deleteMutation.mutate()}
+				isDeleting={deleteMutation.isPending}
+			/>
 		</div>
 	);
 }

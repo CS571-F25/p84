@@ -6,9 +6,11 @@
 import type { Did } from "@atcute/lexicons";
 import { queryOptions, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import {
 	asPdsUrl,
 	createDeckRecord,
+	deleteDeckRecord,
 	getDeckRecord,
 	type ListRecordsResponse,
 	listUserDecks,
@@ -172,5 +174,48 @@ export function useUpdateDeckMutation(did: Did, rkey: Rkey) {
 		},
 		// Don't refetch on success - optimistic update is correct
 		// Slingshot (cache) might be stale anyway
+	});
+}
+
+/**
+ * Mutation for deleting a deck
+ * Invalidates deck list and navigates to profile on success
+ */
+export function useDeleteDeckMutation(rkey: Rkey) {
+	const { agent, session } = useAuth();
+	const queryClient = useQueryClient();
+	const navigate = useNavigate();
+
+	return useMutationWithToast({
+		mutationFn: async () => {
+			if (!agent || !session) {
+				throw new Error("Must be authenticated to delete a deck");
+			}
+
+			const result = await deleteDeckRecord(agent, rkey);
+
+			if (!result.success) {
+				throw result.error;
+			}
+
+			return result.data;
+		},
+		onSuccess: () => {
+			toast.success("Deck deleted");
+
+			if (!session) return;
+
+			// Invalidate deck list for current user
+			queryClient.invalidateQueries({
+				queryKey: ["decks", session.info.sub],
+			});
+
+			// Navigate back to profile
+			navigate({
+				to: "/profile/$did",
+				params: { did: session.info.sub },
+			});
+		},
+		errorMessage: "Failed to delete deck",
 	});
 }

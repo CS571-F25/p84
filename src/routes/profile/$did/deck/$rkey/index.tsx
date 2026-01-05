@@ -532,6 +532,7 @@ function DeckEditorInner({
 						<div className="flex items-center gap-2">
 							<DeckActionsMenu
 								deck={deck}
+								rkey={asRkey(rkey)}
 								onUpdateDeck={updateDeck}
 								onCardsChanged={handleCardsChanged}
 							/>
