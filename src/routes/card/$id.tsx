@@ -4,12 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { CardImage } from "@/components/CardImage";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
+import { getAllFaces } from "@/lib/card-faces";
 import {
 	getCardByIdQueryOptions,
 	getCardPrintingsQueryOptions,
 	getVolatileDataQueryOptions,
 } from "@/lib/queries";
-import type { Card, ScryfallId } from "@/lib/scryfall-types";
+import type { Card, CardFace, ScryfallId } from "@/lib/scryfall-types";
 import { asOracleId, isScryfallId } from "@/lib/scryfall-types";
 import { getImageUri } from "@/lib/scryfall-utils";
 
@@ -224,54 +225,14 @@ function CardDetailPage() {
 					</div>
 
 					<div className="space-y-6 min-w-0">
-						<div>
-							<div className="flex items-baseline gap-3 mb-2 flex-wrap">
-								<h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-									{card.name}
-								</h1>
-								{card.mana_cost && (
-									<div className="flex-shrink-0">
-										<ManaCost cost={card.mana_cost} size="large" />
-									</div>
+						{getAllFaces(card).map((face, idx) => (
+							<div key={face.name}>
+								{idx > 0 && (
+									<div className="border-t border-gray-300 dark:border-slate-600 mb-4" />
 								)}
+								<FaceInfo face={face} primary={idx === 0} />
 							</div>
-							{card.type_line && (
-								<p className="text-lg text-gray-600 dark:text-gray-400">
-									{card.type_line}
-								</p>
-							)}
-						</div>
-
-						{card.oracle_text && (
-							<div className="bg-gray-100 dark:bg-slate-800 rounded-lg p-4 border border-gray-300 dark:border-slate-700">
-								<p className="text-gray-900 dark:text-gray-200">
-									<OracleText text={card.oracle_text} />
-								</p>
-							</div>
-						)}
-
-						{(card.power || card.toughness || card.loyalty) && (
-							<div className="flex gap-4 text-gray-700 dark:text-gray-300">
-								{card.power && card.toughness && (
-									<div>
-										<span className="text-gray-600 dark:text-gray-400">
-											P/T:
-										</span>{" "}
-										<span className="font-semibold">
-											{card.power}/{card.toughness}
-										</span>
-									</div>
-								)}
-								{card.loyalty && (
-									<div>
-										<span className="text-gray-600 dark:text-gray-400">
-											Loyalty:
-										</span>{" "}
-										<span className="font-semibold">{card.loyalty}</span>
-									</div>
-								)}
-							</div>
-						)}
+						))}
 
 						<div
 							className="grid gap-x-8 gap-y-4 text-sm"
@@ -442,6 +403,77 @@ function CardDetailPage() {
 					</div>
 				</div>
 			</div>
+		</div>
+	);
+}
+
+interface FaceInfoProps {
+	face: CardFace;
+	primary?: boolean;
+}
+
+function FaceInfo({ face, primary = false }: FaceInfoProps) {
+	const hasStats = face.power || face.toughness || face.loyalty || face.defense;
+
+	return (
+		<div className="space-y-3">
+			<div>
+				<div className="flex items-baseline gap-3 mb-2 flex-wrap">
+					{primary ? (
+						<h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+							{face.name}
+						</h1>
+					) : (
+						<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+							{face.name}
+						</h2>
+					)}
+					{face.mana_cost && (
+						<ManaCost
+							cost={face.mana_cost}
+							size={primary ? "large" : "medium"}
+						/>
+					)}
+				</div>
+				{face.type_line && (
+					<p
+						className={`text-gray-600 dark:text-gray-400 ${primary ? "text-lg" : ""}`}
+					>
+						{face.type_line}
+					</p>
+				)}
+			</div>
+
+			{face.oracle_text && (
+				<div className="bg-gray-100 dark:bg-slate-800 rounded-lg p-4 border border-gray-300 dark:border-slate-700">
+					<OracleText text={face.oracle_text} />
+				</div>
+			)}
+
+			{hasStats && (
+				<div className="flex gap-4 text-gray-700 dark:text-gray-300">
+					{face.power && face.toughness && (
+						<span>
+							<span className="text-gray-600 dark:text-gray-400">P/T:</span>{" "}
+							<span className="font-semibold">
+								{face.power}/{face.toughness}
+							</span>
+						</span>
+					)}
+					{face.loyalty && (
+						<span>
+							<span className="text-gray-600 dark:text-gray-400">Loyalty:</span>{" "}
+							<span className="font-semibold">{face.loyalty}</span>
+						</span>
+					)}
+					{face.defense && (
+						<span>
+							<span className="text-gray-600 dark:text-gray-400">Defense:</span>{" "}
+							<span className="font-semibold">{face.defense}</span>
+						</span>
+					)}
+				</div>
+			)}
 		</div>
 	);
 }
