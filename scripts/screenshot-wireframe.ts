@@ -105,11 +105,8 @@ async function computeAlignment(
 	const scryfallImg = sharp(scryfallPath);
 	const wireframeImg = sharp(wireframePath);
 
-	const scryfallMeta = await scryfallImg.metadata();
-	const wireframeMeta = await wireframeImg.metadata();
-
-	const width = scryfallMeta.width!;
-	const height = scryfallMeta.height!;
+	const { width, height } = await scryfallImg.metadata();
+	if (!width || !height) throw new Error("Could not read image dimensions");
 
 	// Resize wireframe to match scryfall dimensions
 	const scryfallRaw = await scryfallImg.grayscale().raw().toBuffer();
@@ -121,11 +118,12 @@ async function computeAlignment(
 
 	const results: AlignmentResult[] = [];
 
+	const h = height; // local const for closure
 	for (const [regionName, region] of Object.entries(regions)) {
 		const rx = Math.floor(width * region.x);
-		const ry = Math.floor(height * region.y);
+		const ry = Math.floor(h * region.y);
 		const rw = Math.floor(width * region.w);
-		const rh = Math.floor(height * region.h);
+		const rh = Math.floor(h * region.h);
 
 		// Extract region and compute edges (simple gradient)
 		function getEdges(raw: Buffer, imgWidth: number): number[] {
@@ -134,12 +132,7 @@ async function computeAlignment(
 				for (let x = 0; x < rw; x++) {
 					const imgX = rx + x;
 					const imgY = ry + y;
-					if (
-						imgX <= 0 ||
-						imgX >= imgWidth - 1 ||
-						imgY <= 0 ||
-						imgY >= height - 1
-					) {
+					if (imgX <= 0 || imgX >= imgWidth - 1 || imgY <= 0 || imgY >= h - 1) {
 						edges.push(0);
 						continue;
 					}
@@ -188,12 +181,12 @@ async function computeAlignment(
 			}
 		}
 
-		// Direction description
+		// Direction description (inverted because we found how much wireframe is offset FROM target)
 		const dirs: string[] = [];
-		if (bestDy < 0) dirs.push(`UP ${-bestDy}px`);
-		if (bestDy > 0) dirs.push(`DOWN ${bestDy}px`);
-		if (bestDx < 0) dirs.push(`LEFT ${-bestDx}px`);
-		if (bestDx > 0) dirs.push(`RIGHT ${bestDx}px`);
+		if (bestDy > 0) dirs.push(`UP ${bestDy}px`);
+		if (bestDy < 0) dirs.push(`DOWN ${-bestDy}px`);
+		if (bestDx > 0) dirs.push(`LEFT ${bestDx}px`);
+		if (bestDx < 0) dirs.push(`RIGHT ${-bestDx}px`);
 
 		results.push({
 			region: regionName,
@@ -230,7 +223,8 @@ async function createZoomedCrops(
 			<canvas id="pt"></canvas>
 			<canvas id="title"></canvas>
 			<canvas id="mana"></canvas>
-			<canvas id="type"></canvas>
+			<canvas id="typeText"></canvas>
+			<canvas id="setSymbol"></canvas>
 			<script>
 				async function crop() {
 					const img = new Image();
@@ -242,9 +236,10 @@ async function createZoomedCrops(
 					// Define crop regions as percentages of card dimensions
 					const regions = {
 						pt: { x: 0.65, y: 0.85, w: 0.35, h: 0.15 },      // bottom right
-						title: { x: 0, y: 0, w: 1, h: 0.12 },             // top bar
-						mana: { x: 0.6, y: 0, w: 0.4, h: 0.12 },          // top right
-						type: { x: 0, y: 0.55, w: 1, h: 0.1 },            // middle type line
+						title: { x: 0, y: 0, w: 0.7, h: 0.12 },           // top bar title only
+						mana: { x: 0.7, y: 0.02, w: 0.28, h: 0.08 },      // mana symbols tight
+						typeText: { x: 0, y: 0.56, w: 0.6, h: 0.07 },     // type text only
+						setSymbol: { x: 0.8, y: 0.56, w: 0.18, h: 0.07 }, // set symbol tight
 					};
 
 					const scale = 3; // 3x zoom
@@ -277,7 +272,7 @@ async function createZoomedCrops(
 	await page.waitForSelector("[data-ready]", { timeout: 5000 });
 
 	// Save each cropped region
-	for (const name of ["pt", "title", "mana", "type"]) {
+	for (const name of ["pt", "title", "mana", "typeText", "setSymbol"]) {
 		const canvas = await page.$(`#${name}`);
 		if (canvas) {
 			await canvas.screenshot({ path: `${outputPrefix}-zoom-${name}.png` });
@@ -579,10 +574,10 @@ async function main() {
 		// Compute alignment shifts
 		const regions = {
 			pt: { x: 0.65, y: 0.85, w: 0.35, h: 0.15 },
-			title: { x: 0, y: 0, w: 1, h: 0.12 },
-			mana: { x: 0.6, y: 0, w: 0.4, h: 0.12 },
-			type: { x: 0, y: 0.55, w: 1, h: 0.1 },
-			setSymbol: { x: 0.7, y: 0.55, w: 0.3, h: 0.1 },
+			title: { x: 0, y: 0, w: 0.7, h: 0.12 },
+			mana: { x: 0.7, y: 0.02, w: 0.28, h: 0.08 },
+			typeText: { x: 0, y: 0.56, w: 0.6, h: 0.07 },
+			setSymbol: { x: 0.8, y: 0.56, w: 0.18, h: 0.07 },
 		};
 		console.log("\nAlignment analysis:");
 		const alignments = await computeAlignment(
