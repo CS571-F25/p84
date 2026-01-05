@@ -61,8 +61,10 @@ async function screenshotMode(
 	await cardElement.screenshot({ path: wireframePath });
 	console.log(`  ${modeName}: ${wireframePath}`);
 
-	// Check if there's a flip button
-	const flipButton = await page.$('button[aria-label="Flip card"]');
+	// Check if there's a flip button (different labels for flip vs transform cards)
+	const flipButton = await page.$(
+		'button[aria-label="Flip card"], button[aria-label="Transform card"]',
+	);
 	if (flipButton) {
 		// Click to flip and screenshot the flipped state
 		await flipButton.click();
@@ -96,10 +98,17 @@ async function main() {
 	console.log(`Processing card: ${cardId}`);
 
 	// Fetch card data from Scryfall
+	// Detect if input is a UUID or a card name
+	const isUuid =
+		/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+			cardId,
+		);
+	const scryfallUrl = isUuid
+		? `https://api.scryfall.com/cards/${cardId}`
+		: `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardId)}`;
+
 	console.log("Fetching card data from Scryfall...");
-	const scryfallResponse = await fetch(
-		`https://api.scryfall.com/cards/${cardId}`,
-	);
+	const scryfallResponse = await fetch(scryfallUrl);
 	if (!scryfallResponse.ok) {
 		console.error(
 			`Failed to fetch card from Scryfall: ${scryfallResponse.status}`,
@@ -107,45 +116,55 @@ async function main() {
 		process.exit(1);
 	}
 	const cardData = (await scryfallResponse.json()) as {
+		id: string;
 		name: string;
 		image_uris?: { normal: string };
 		card_faces?: Array<{ image_uris?: { normal: string } }>;
 	};
 
-	console.log(`Card: ${cardData.name}`);
+	// Use the actual ID from API (important when searching by name)
+	const actualId = cardData.id;
+	console.log(`Card: ${cardData.name} (${actualId})`);
 
-	// Get image URL (handle double-faced cards)
-	const imageUrl =
-		cardData.image_uris?.normal ?? cardData.card_faces?.[0]?.image_uris?.normal;
-
-	if (!imageUrl) {
-		console.error("Could not find image URL for card");
-		process.exit(1);
+	// Download all Scryfall images (front and back for DFCs)
+	console.log("Downloading Scryfall images...");
+	if (cardData.image_uris?.normal) {
+		// Single-faced card
+		const imageResponse = await fetch(cardData.image_uris.normal);
+		if (imageResponse.ok) {
+			const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+			const scryfallPath = `${OUTPUT_DIR}/${actualId}-scryfall.png`;
+			writeFileSync(scryfallPath, imageBuffer);
+			console.log(`  scryfall: ${scryfallPath}`);
+		}
+	} else if (cardData.card_faces) {
+		// Multi-faced card - download all faces
+		for (let i = 0; i < cardData.card_faces.length; i++) {
+			const face = cardData.card_faces[i];
+			if (face.image_uris?.normal) {
+				const imageResponse = await fetch(face.image_uris.normal);
+				if (imageResponse.ok) {
+					const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+					const suffix = i === 0 ? "" : `-face${i + 1}`;
+					const scryfallPath = `${OUTPUT_DIR}/${actualId}-scryfall${suffix}.png`;
+					writeFileSync(scryfallPath, imageBuffer);
+					console.log(`  scryfall${suffix}: ${scryfallPath}`);
+				}
+			}
+		}
 	}
-
-	// Download Scryfall image
-	console.log("Downloading Scryfall image...");
-	const imageResponse = await fetch(imageUrl);
-	if (!imageResponse.ok) {
-		console.error(`Failed to download image: ${imageResponse.status}`);
-		process.exit(1);
-	}
-	const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-	const scryfallPath = `${OUTPUT_DIR}/${cardId}-scryfall.png`;
-	writeFileSync(scryfallPath, imageBuffer);
-	console.log(`  scryfall: ${scryfallPath}`);
 
 	// Screenshot wireframe in both modes
 	console.log("Screenshotting wireframes...");
 	const browser = await chromium.launch();
 	const page = await browser.newPage();
-	const wireframeUrl = `${DEV_SERVER_URL}/components/wireframe/${cardId}`;
+	const wireframeUrl = `${DEV_SERVER_URL}/components/wireframe/${actualId}`;
 
 	try {
 		// Light mode
-		await screenshotMode(page, cardId, wireframeUrl, false);
+		await screenshotMode(page, actualId, wireframeUrl, false);
 		// Dark mode
-		await screenshotMode(page, cardId, wireframeUrl, true);
+		await screenshotMode(page, actualId, wireframeUrl, true);
 	} catch (error) {
 		console.error("Failed to screenshot wireframe. Is the dev server running?");
 		console.error(error);

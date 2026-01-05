@@ -6,7 +6,7 @@
 
 interface CardSymbolProps {
 	symbol: string;
-	size?: "small" | "medium" | "large";
+	size?: "small" | "medium" | "large" | "text";
 	className?: string;
 }
 
@@ -14,6 +14,7 @@ const SIZE_CLASSES = {
 	small: "w-4 h-4",
 	medium: "w-5 h-5",
 	large: "w-6 h-6",
+	text: "h-[1.1em] w-[1.1em]",
 };
 
 export function CardSymbol({

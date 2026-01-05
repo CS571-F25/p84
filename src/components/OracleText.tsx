@@ -12,6 +12,7 @@ import { CardSymbol } from "./CardSymbol";
 interface OracleTextProps {
 	text: string;
 	className?: string;
+	symbolSize?: "small" | "medium" | "large" | "text";
 }
 
 type ParsedPart =
@@ -98,7 +99,10 @@ function findMatchingParen(str: string, openIdx: number): number {
 	return -1;
 }
 
-function renderParts(parts: ParsedPart[]): React.ReactNode[] {
+function renderParts(
+	parts: ParsedPart[],
+	symbolSize: "small" | "medium" | "large" | "text",
+): React.ReactNode[] {
 	return parts.map((part, i) => {
 		if (part.type === "symbol") {
 			return (
@@ -106,7 +110,7 @@ function renderParts(parts: ParsedPart[]): React.ReactNode[] {
 					// biome-ignore lint/suspicious/noArrayIndexKey: symbols in oracle text are stable ordered list
 					key={i}
 					symbol={part.content}
-					size="small"
+					size={symbolSize}
 					className="inline align-middle mx-0.5"
 				/>
 			);
@@ -115,7 +119,7 @@ function renderParts(parts: ParsedPart[]): React.ReactNode[] {
 			return (
 				// biome-ignore lint/suspicious/noArrayIndexKey: text fragments in oracle text are stable ordered list
 				<span key={i} className="italic">
-					({renderParts(part.parts)})
+					({renderParts(part.parts, symbolSize)})
 				</span>
 			);
 		}
@@ -126,7 +130,11 @@ function renderParts(parts: ParsedPart[]): React.ReactNode[] {
 	});
 }
 
-export function OracleText({ text, className }: OracleTextProps) {
+export function OracleText({
+	text,
+	className,
+	symbolSize = "small",
+}: OracleTextProps) {
 	const lines = text.split("\n");
 
 	return (
@@ -136,7 +144,7 @@ export function OracleText({ text, className }: OracleTextProps) {
 				return (
 					// biome-ignore lint/suspicious/noArrayIndexKey: oracle text lines are stable ordered list
 					<span key={lineIndex}>
-						{renderParts(parts)}
+						{renderParts(parts, symbolSize)}
 						{lineIndex < lines.length - 1 && <br />}
 					</span>
 				);

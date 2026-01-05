@@ -122,7 +122,7 @@ function FaceContent({
 	const isPlaneswalker = face.type_line?.includes("Planeswalker");
 
 	return (
-		<div className="flex flex-col h-full">
+		<div className="relative flex flex-col h-full">
 			{/* Type Line */}
 			{face.type_line && (
 				<div className="flex items-center justify-between px-[4cqw] py-[1.5cqw] text-[5cqw] tracking-tight text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-slate-600 bg-gray-100 dark:bg-slate-700">
@@ -143,7 +143,7 @@ function FaceContent({
 					isPlaneswalker ? (
 						<PlaneswalkerAbilities text={face.oracle_text} />
 					) : (
-						<OracleText text={face.oracle_text} />
+						<OracleText text={face.oracle_text} symbolSize="text" />
 					)
 				) : (
 					<span className="text-gray-400 dark:text-gray-500 italic">
@@ -152,9 +152,15 @@ function FaceContent({
 				)}
 			</div>
 
-			{/* Stats (P/T, Loyalty, Defense) */}
+			{/* Stats (P/T, Loyalty, Defense) - absolute for planeswalkers so text isn't cut off */}
 			{hasStats && (
-				<div className="flex justify-end px-[2cqw] py-[1cqw]">
+				<div
+					className={
+						hasLoyalty
+							? "absolute bottom-[1cqw] right-[2cqw]"
+							: "flex justify-end px-[2cqw] py-[1cqw]"
+					}
+				>
 					<span className="text-[6cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[2cqw] py-[0.5cqw] rounded">
 						{hasPT && `${face.power}/${face.toughness}`}
 						{hasLoyalty && face.loyalty}
@@ -176,14 +182,14 @@ function PlaneswalkerAbilities({ text }: { text: string }) {
 				const loyaltyMatch = line.match(/^([+−-]?(?:\d+|X)):\s*(.*)$/);
 				if (loyaltyMatch) {
 					const [, cost, ability] = loyaltyMatch;
-					// Determine badge color based on cost type
+					// Determine badge color based on cost type (muted colors)
 					const isPositive = cost.startsWith("+");
 					const isNegative = cost.startsWith("-") || cost.startsWith("−");
 					const badgeColor = isPositive
-						? "bg-green-600 text-white"
+						? "bg-emerald-700/80 dark:bg-emerald-800/80 text-white"
 						: isNegative
-							? "bg-orange-600 text-white"
-							: "bg-gray-400 dark:bg-slate-500 text-white";
+							? "bg-rose-700/80 dark:bg-rose-800/80 text-white"
+							: "bg-gray-500/80 dark:bg-slate-600/80 text-white";
 					return (
 						<div key={line} className="flex gap-[1.5cqw] items-start">
 							<span
@@ -192,14 +198,14 @@ function PlaneswalkerAbilities({ text }: { text: string }) {
 								{cost}
 							</span>
 							<span className="text-[4cqw]">
-								<OracleText text={ability} />
+								<OracleText text={ability} symbolSize="text" />
 							</span>
 						</div>
 					);
 				}
 				return (
 					<span key={line} className="text-[4cqw]">
-						<OracleText text={line} />
+						<OracleText text={line} symbolSize="text" />
 					</span>
 				);
 			})}
@@ -298,15 +304,26 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						</div>
 						{/* Text box */}
 						<div className="flex-1 px-[2cqw] py-[1cqw] text-[3.5cqw] leading-tight text-gray-800 dark:text-gray-200 overflow-hidden">
-							{topFace.oracle_text && <OracleText text={topFace.oracle_text} />}
+							{topFace.oracle_text && (
+								<OracleText text={topFace.oracle_text} symbolSize="text" />
+							)}
 						</div>
 						{/* Type line + P/T */}
 						<div className="flex items-center justify-between px-[2cqw] py-[0.5cqw] bg-gray-100/80 dark:bg-slate-800/80 border-t border-gray-300 dark:border-slate-600">
-							<span className="text-[3cqw] text-gray-700 dark:text-gray-300 truncate">
-								{topFace.type_line}
-							</span>
+							<div className="flex items-center gap-[1cqw] min-w-0">
+								<span className="text-[3cqw] text-gray-700 dark:text-gray-300 truncate">
+									{topFace.type_line}
+								</span>
+								{card.set && (
+									<SetSymbol
+										setCode={card.set}
+										rarity={SET_SYMBOL_RARITY[rarity]}
+										className="text-[4cqw] shrink-0"
+									/>
+								)}
+							</div>
 							{(topFace.power || topFace.toughness) && (
-								<span className="font-bold text-[5cqw] text-gray-900 dark:text-white">
+								<span className="font-bold text-[5cqw] text-gray-900 dark:text-white shrink-0">
 									{topFace.power}/{topFace.toughness}
 								</span>
 							)}
@@ -331,7 +348,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						{/* Text box */}
 						<div className="flex-1 px-[2cqw] py-[1cqw] text-[3.5cqw] leading-tight text-gray-800 dark:text-gray-200 overflow-hidden">
 							{bottomFace.oracle_text && (
-								<OracleText text={bottomFace.oracle_text} />
+								<OracleText text={bottomFace.oracle_text} symbolSize="text" />
 							)}
 						</div>
 						{/* Type line + P/T */}
@@ -485,7 +502,9 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						)}
 					</div>
 					<div className="flex-1 px-[3cqw] py-[1cqw] text-[4cqw] leading-tight tracking-tight text-gray-800 dark:text-gray-200 overflow-hidden">
-						{faces[1].oracle_text && <OracleText text={faces[1].oracle_text} />}
+						{faces[1].oracle_text && (
+							<OracleText text={faces[1].oracle_text} symbolSize="text" />
+						)}
 					</div>
 				</div>
 			</div>
@@ -536,8 +555,8 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 				{/* Text box with adventure on left, creature text on right */}
 				<div className="flex-1 flex gap-[1cqw] p-[2cqw] overflow-hidden">
 					{/* Adventure box */}
-					<div className="w-[45%] bg-gray-100 dark:bg-slate-800 rounded border border-gray-300 dark:border-slate-600 p-[1.5cqw] flex flex-col">
-						<div className="flex items-center gap-[1cqw] mb-[0.5cqw]">
+					<div className="w-[45%] bg-gray-100 dark:bg-slate-800 rounded border border-gray-300 dark:border-slate-600 p-[1.5cqw] flex flex-col overflow-hidden">
+						<div className="flex items-center gap-[1cqw] mb-[0.5cqw] shrink-0">
 							<span className="font-bold text-[3.5cqw] text-gray-900 dark:text-white truncate">
 								{adventureFace.name}
 							</span>
@@ -548,12 +567,15 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 								/>
 							)}
 						</div>
-						<div className="text-[3cqw] text-gray-500 dark:text-gray-400 truncate">
+						<div className="text-[3cqw] text-gray-500 dark:text-gray-400 truncate shrink-0">
 							{adventureFace.type_line}
 						</div>
 						{adventureFace.oracle_text && (
-							<div className="text-[3cqw] leading-tight text-gray-800 dark:text-gray-200 mt-[0.5cqw] line-clamp-4">
-								<OracleText text={adventureFace.oracle_text} />
+							<div className="flex-1 text-[3cqw] leading-tight text-gray-800 dark:text-gray-200 mt-[0.5cqw] overflow-hidden">
+								<OracleText
+									text={adventureFace.oracle_text}
+									symbolSize="text"
+								/>
 							</div>
 						)}
 					</div>
@@ -561,12 +583,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					{/* Creature text */}
 					<div className="flex-1 flex flex-col justify-between overflow-hidden">
 						{mainFace.oracle_text && (
-							<div className="text-[3.5cqw] leading-tight text-gray-800 dark:text-gray-200 line-clamp-4">
-								<OracleText text={mainFace.oracle_text} />
+							<div className="flex-1 text-[3.5cqw] leading-tight text-gray-800 dark:text-gray-200 overflow-hidden">
+								<OracleText text={mainFace.oracle_text} symbolSize="text" />
 							</div>
 						)}
 						{(mainFace.power || mainFace.toughness) && (
-							<div className="text-right font-bold text-[5cqw] text-gray-900 dark:text-white">
+							<div className="text-right font-bold text-[5cqw] text-gray-900 dark:text-white shrink-0">
 								{mainFace.power}/{mainFace.toughness}
 							</div>
 						)}
@@ -581,6 +603,8 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 	// Transform/MDFC: 3D flip between faces
 	if (flipBehavior === "transform" && hasBack && isMultiFaced) {
 		const frameColor = getFrameColor(card);
+		const isMdfc = card.layout === "modal_dfc";
+		const backFace = faces[1];
 
 		return (
 			<div className="relative group">
@@ -599,11 +623,18 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						<div
 							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
 						>
-							<span
-								className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
-							>
-								{faces[0].name}
-							</span>
+							<div className="flex items-center gap-[1.5cqw] min-w-0">
+								{isMdfc && (
+									<span className="text-[6cqw] leading-none text-gray-600 dark:text-gray-300">
+										◢
+									</span>
+								)}
+								<span
+									className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
+								>
+									{faces[0].name}
+								</span>
+							</div>
 							{faces[0].mana_cost && (
 								<ManaCost
 									cost={faces[0].mana_cost}
@@ -615,6 +646,35 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						<div className="flex-1 flex flex-col overflow-hidden">
 							<FaceContent face={faces[0]} setCode={card.set} rarity={rarity} />
 						</div>
+						{/* MDFC back face hint */}
+						{isMdfc && backFace && (
+							<div className="flex items-center gap-[1.5cqw] px-[3cqw] py-[1cqw] text-[3.5cqw] bg-gray-200/80 dark:bg-slate-700/80 border-t border-gray-300 dark:border-slate-600 overflow-hidden">
+								<span className="text-[5cqw] leading-none text-gray-600 dark:text-gray-300 shrink-0">
+									◥
+								</span>
+								<span className="font-medium text-gray-700 dark:text-gray-300 shrink-0">
+									{backFace.type_line?.split("—")[0]?.trim()}
+								</span>
+								{backFace.oracle_text && (
+									<>
+										<span className="text-gray-500 dark:text-gray-400 shrink-0">
+											·
+										</span>
+										<span className="truncate">
+											<OracleText
+												text={
+													backFace.oracle_text
+														.split("\n")
+														.find((l) => l.includes("{T}:")) ||
+													backFace.oracle_text.split("\n")[0]
+												}
+												symbolSize="text"
+											/>
+										</span>
+									</>
+								)}
+							</div>
+						)}
 						<CardFooter card={card} />
 					</div>
 
@@ -629,11 +689,18 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						<div
 							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
 						>
-							<span
-								className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
-							>
-								{faces[1]?.name}
-							</span>
+							<div className="flex items-center gap-[1.5cqw] min-w-0">
+								{isMdfc && (
+									<span className="text-[6cqw] leading-none text-gray-600 dark:text-gray-300">
+										◥
+									</span>
+								)}
+								<span
+									className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
+								>
+									{faces[1]?.name}
+								</span>
+							</div>
 							{faces[1]?.mana_cost && (
 								<ManaCost
 									cost={faces[1].mana_cost}
@@ -649,6 +716,26 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 								rarity={rarity}
 							/>
 						</div>
+						{/* MDFC front face hint */}
+						{isMdfc && (
+							<div className="flex items-center gap-[1.5cqw] px-[3cqw] py-[1cqw] text-[3.5cqw] bg-gray-200/80 dark:bg-slate-700/80 border-t border-gray-300 dark:border-slate-600">
+								<span className="text-[5cqw] leading-none text-gray-600 dark:text-gray-300">
+									◢
+								</span>
+								<span className="font-medium text-gray-700 dark:text-gray-300">
+									{faces[0].type_line?.split("—")[0]?.trim()}
+								</span>
+								{faces[0].mana_cost && (
+									<>
+										<span className="text-gray-500 dark:text-gray-400">·</span>
+										<ManaCost
+											cost={faces[0].mana_cost}
+											className="w-[3.5cqw] h-[3.5cqw]"
+										/>
+									</>
+								)}
+							</div>
+						)}
 						<CardFooter card={card} />
 					</div>
 				</div>
