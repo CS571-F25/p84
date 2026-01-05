@@ -14,6 +14,14 @@ import type {
 } from "../lib/scryfall-types";
 import { type CardFaceType, getImageUri } from "../lib/scryfall-utils";
 
+const PLACEHOLDER_STRIPES = `repeating-linear-gradient(
+	-45deg,
+	transparent,
+	transparent 8px,
+	rgba(0,0,0,0.05) 8px,
+	rgba(0,0,0,0.05) 16px
+)`;
+
 interface CardImageProps {
 	card: Pick<Card, "name" | "id"> & { layout?: Layout };
 	size?: ImageSize;
@@ -77,7 +85,8 @@ export function CardImage({
 			<img
 				src={getImageUri(card.id, size, face)}
 				alt={card.name}
-				className={baseClassName}
+				className={`${baseClassName} bg-gray-200 dark:bg-slate-700`}
+				style={{ backgroundImage: PLACEHOLDER_STRIPES }}
 				loading="lazy"
 			/>
 		);
@@ -99,18 +108,22 @@ export function CardImage({
 					<img
 						src={getImageUri(card.id, size, "front")}
 						alt={card.name}
-						className={baseClassName}
+						className={`${baseClassName} bg-gray-200 dark:bg-slate-700`}
 						loading="lazy"
-						style={{ backfaceVisibility: "hidden" }}
+						style={{
+							backfaceVisibility: "hidden",
+							backgroundImage: PLACEHOLDER_STRIPES,
+						}}
 					/>
 					<img
 						src={getImageUri(card.id, size, "back")}
 						alt={`${card.name} (back)`}
-						className={`${baseClassName} absolute inset-0`}
+						className={`${baseClassName} bg-gray-200 dark:bg-slate-700 absolute inset-0`}
 						loading="lazy"
 						style={{
 							backfaceVisibility: "hidden",
 							transform: "rotateY(180deg)",
+							backgroundImage: PLACEHOLDER_STRIPES,
 						}}
 					/>
 				</div>
@@ -118,9 +131,10 @@ export function CardImage({
 				<img
 					src={getImageUri(card.id, size, face)}
 					alt={card.name}
-					className={`${baseClassName} motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out`}
+					className={`${baseClassName} bg-gray-200 dark:bg-slate-700 motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out`}
 					loading="lazy"
 					style={{
+						backgroundImage: PLACEHOLDER_STRIPES,
 						transformOrigin: "center center",
 						transform: isFlipped
 							? flipBehavior === "rotate90"

@@ -2,13 +2,13 @@ import type { Did } from "@atcute/lexicons";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { CardImage } from "@/components/CardImage";
 import { ClientDate } from "@/components/ClientDate";
 import { asRkey, type DeckRecordResponse } from "@/lib/atproto-client";
 import { listUserDecksQueryOptions } from "@/lib/deck-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { formatDisplayName } from "@/lib/format-utils";
 import type { ScryfallId } from "@/lib/scryfall-types";
-import { getImageUri } from "@/lib/scryfall-utils";
 import { useAuth } from "@/lib/useAuth";
 
 type SortOption = "updated-desc" | "updated-asc" | "name-asc" | "name-desc";
@@ -290,11 +290,10 @@ function ProfilePage() {
 									{/* Thumbnail */}
 									{thumbnailId && (
 										<div className="flex-shrink-0 w-16 h-[90px] rounded overflow-hidden">
-											<img
-												src={getImageUri(thumbnailId, "small")}
-												alt=""
+											<CardImage
+												card={{ id: thumbnailId, name: record.value.name }}
+												size="small"
 												className="w-full h-full object-cover"
-												loading="lazy"
 											/>
 										</div>
 									)}
