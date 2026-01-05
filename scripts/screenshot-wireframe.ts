@@ -17,6 +17,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
+import sharp from "sharp";
 
 const DEV_SERVER_URL = "http://localhost:3000";
 const OUTPUT_DIR = ".cache/wireframe-compare";
@@ -65,6 +66,324 @@ async function createOverlay(
 					ctx.globalAlpha = ${opacity};
 					ctx.drawImage(wireframe, 0, 0, canvas.width, canvas.height);
 
+					document.body.setAttribute('data-ready', 'true');
+				}
+				composite();
+			</script>
+		</body>
+		</html>
+	`;
+
+	await page.setContent(html);
+	await page.waitForSelector("[data-ready]", { timeout: 5000 });
+
+	const canvas = await page.$("#canvas");
+	if (canvas) {
+		await canvas.screenshot({ path: outputPath });
+	}
+}
+
+interface AlignmentResult {
+	region: string;
+	dx: number;
+	dy: number;
+	dxPercent: string;
+	dyPercent: string;
+	direction: string;
+}
+
+/**
+ * Computes optimal shift to align wireframe with scryfall using cross-correlation.
+ * Returns shift needed for wireframe to match scryfall.
+ */
+async function computeAlignment(
+	scryfallPath: string,
+	wireframePath: string,
+	regions: Record<string, { x: number; y: number; w: number; h: number }>,
+): Promise<AlignmentResult[]> {
+	// Load images and get raw pixel data
+	const scryfallImg = sharp(scryfallPath);
+	const wireframeImg = sharp(wireframePath);
+
+	const scryfallMeta = await scryfallImg.metadata();
+	const wireframeMeta = await wireframeImg.metadata();
+
+	const width = scryfallMeta.width!;
+	const height = scryfallMeta.height!;
+
+	// Resize wireframe to match scryfall dimensions
+	const scryfallRaw = await scryfallImg.grayscale().raw().toBuffer();
+	const wireframeRaw = await wireframeImg
+		.resize(width, height)
+		.grayscale()
+		.raw()
+		.toBuffer();
+
+	const results: AlignmentResult[] = [];
+
+	for (const [regionName, region] of Object.entries(regions)) {
+		const rx = Math.floor(width * region.x);
+		const ry = Math.floor(height * region.y);
+		const rw = Math.floor(width * region.w);
+		const rh = Math.floor(height * region.h);
+
+		// Extract region and compute edges (simple gradient)
+		function getEdges(raw: Buffer, imgWidth: number): number[] {
+			const edges: number[] = [];
+			for (let y = 0; y < rh; y++) {
+				for (let x = 0; x < rw; x++) {
+					const imgX = rx + x;
+					const imgY = ry + y;
+					if (
+						imgX <= 0 ||
+						imgX >= imgWidth - 1 ||
+						imgY <= 0 ||
+						imgY >= height - 1
+					) {
+						edges.push(0);
+						continue;
+					}
+					const idx = imgY * imgWidth + imgX;
+					const gx = raw[idx + 1] - raw[idx - 1];
+					const gy = raw[idx + imgWidth] - raw[idx - imgWidth];
+					edges.push(Math.sqrt(gx * gx + gy * gy));
+				}
+			}
+			return edges;
+		}
+
+		const scryfallEdges = getEdges(scryfallRaw, width);
+		const wireframeEdges = getEdges(wireframeRaw, width);
+
+		// Search for best shift
+		const searchRange = 15;
+		let bestDx = 0;
+		let bestDy = 0;
+		let bestScore = -Infinity;
+
+		for (let dy = -searchRange; dy <= searchRange; dy++) {
+			for (let dx = -searchRange; dx <= searchRange; dx++) {
+				let sum = 0;
+				let count = 0;
+
+				for (let y = searchRange; y < rh - searchRange; y++) {
+					for (let x = searchRange; x < rw - searchRange; x++) {
+						const scryfallVal = scryfallEdges[y * rw + x];
+						const wy = y + dy;
+						const wx = x + dx;
+						if (wy >= 0 && wy < rh && wx >= 0 && wx < rw) {
+							const wireframeVal = wireframeEdges[wy * rw + wx];
+							sum += scryfallVal * wireframeVal;
+							count++;
+						}
+					}
+				}
+
+				const score = count > 0 ? sum / count : 0;
+				if (score > bestScore) {
+					bestScore = score;
+					bestDx = dx;
+					bestDy = dy;
+				}
+			}
+		}
+
+		// Direction description
+		const dirs: string[] = [];
+		if (bestDy < 0) dirs.push(`UP ${-bestDy}px`);
+		if (bestDy > 0) dirs.push(`DOWN ${bestDy}px`);
+		if (bestDx < 0) dirs.push(`LEFT ${-bestDx}px`);
+		if (bestDx > 0) dirs.push(`RIGHT ${bestDx}px`);
+
+		results.push({
+			region: regionName,
+			dx: bestDx,
+			dy: bestDy,
+			dxPercent: ((bestDx / width) * 100).toFixed(2),
+			dyPercent: ((bestDy / height) * 100).toFixed(2),
+			direction:
+				dirs.length > 0 ? `Move wireframe ${dirs.join(", ")}` : "Aligned",
+		});
+	}
+
+	return results;
+}
+
+/**
+ * Creates zoomed crops of key card regions for easier alignment analysis.
+ * Outputs separate images for: P/T box, title bar, mana cost, type line
+ */
+async function createZoomedCrops(
+	page: Awaited<
+		ReturnType<Awaited<ReturnType<typeof chromium.launch>>["newPage"]>
+	>,
+	channelImagePath: string,
+	outputPrefix: string,
+): Promise<void> {
+	const channelBase64 = readFileSync(channelImagePath).toString("base64");
+
+	const html = `
+		<!DOCTYPE html>
+		<html>
+		<head><style>body { margin: 0; background: #222; } canvas { display: block; margin: 10px; }</style></head>
+		<body>
+			<canvas id="pt"></canvas>
+			<canvas id="title"></canvas>
+			<canvas id="mana"></canvas>
+			<canvas id="type"></canvas>
+			<script>
+				async function crop() {
+					const img = new Image();
+					await new Promise(r => { img.onload = r; img.src = 'data:image/png;base64,${channelBase64}'; });
+
+					const w = img.width;
+					const h = img.height;
+
+					// Define crop regions as percentages of card dimensions
+					const regions = {
+						pt: { x: 0.65, y: 0.85, w: 0.35, h: 0.15 },      // bottom right
+						title: { x: 0, y: 0, w: 1, h: 0.12 },             // top bar
+						mana: { x: 0.6, y: 0, w: 0.4, h: 0.12 },          // top right
+						type: { x: 0, y: 0.55, w: 1, h: 0.1 },            // middle type line
+					};
+
+					const scale = 3; // 3x zoom
+
+					for (const [name, r] of Object.entries(regions)) {
+						const canvas = document.getElementById(name);
+						const cropW = Math.floor(w * r.w);
+						const cropH = Math.floor(h * r.h);
+						canvas.width = cropW * scale;
+						canvas.height = cropH * scale;
+
+						const ctx = canvas.getContext('2d');
+						ctx.imageSmoothingEnabled = false;
+						ctx.drawImage(
+							img,
+							Math.floor(w * r.x), Math.floor(h * r.y), cropW, cropH,
+							0, 0, cropW * scale, cropH * scale
+						);
+					}
+
+					document.body.setAttribute('data-ready', 'true');
+				}
+				crop();
+			</script>
+		</body>
+		</html>
+	`;
+
+	await page.setContent(html);
+	await page.waitForSelector("[data-ready]", { timeout: 5000 });
+
+	// Save each cropped region
+	for (const name of ["pt", "title", "mana", "type"]) {
+		const canvas = await page.$(`#${name}`);
+		if (canvas) {
+			await canvas.screenshot({ path: `${outputPrefix}-zoom-${name}.png` });
+		}
+	}
+}
+
+/**
+ * Creates a red/blue channel comparison image.
+ * - Scryfall card goes in the BLUE channel
+ * - Wireframe goes in the RED channel
+ * - Perfect alignment = magenta/purple
+ * - Red above blue = wireframe is too HIGH
+ * - Blue above red = wireframe is too LOW
+ */
+async function createChannelComparison(
+	page: Awaited<
+		ReturnType<Awaited<ReturnType<typeof chromium.launch>>["newPage"]>
+	>,
+	scryfallPath: string,
+	wireframePath: string,
+	outputPath: string,
+): Promise<void> {
+	const scryfallBase64 = readFileSync(scryfallPath).toString("base64");
+	const wireframeBase64 = readFileSync(wireframePath).toString("base64");
+
+	const html = `
+		<!DOCTYPE html>
+		<html>
+		<head><style>body { margin: 0; background: #888; }</style></head>
+		<body>
+			<canvas id="canvas"></canvas>
+			<script>
+				async function composite() {
+					const canvas = document.getElementById('canvas');
+					const ctx = canvas.getContext('2d');
+
+					const scryfall = new Image();
+					const wireframe = new Image();
+
+					await Promise.all([
+						new Promise(r => { scryfall.onload = r; scryfall.src = 'data:image/png;base64,${scryfallBase64}'; }),
+						new Promise(r => { wireframe.onload = r; wireframe.src = 'data:image/png;base64,${wireframeBase64}'; })
+					]);
+
+					// Use scryfall dimensions
+					canvas.width = scryfall.width;
+					canvas.height = scryfall.height;
+
+					// Create temp canvases to get image data
+					const scryfallCanvas = document.createElement('canvas');
+					scryfallCanvas.width = canvas.width;
+					scryfallCanvas.height = canvas.height;
+					const scryfallCtx = scryfallCanvas.getContext('2d');
+					scryfallCtx.drawImage(scryfall, 0, 0);
+
+					const wireframeCanvas = document.createElement('canvas');
+					wireframeCanvas.width = canvas.width;
+					wireframeCanvas.height = canvas.height;
+					const wireframeCtx = wireframeCanvas.getContext('2d');
+					wireframeCtx.drawImage(wireframe, 0, 0, canvas.width, canvas.height);
+
+					// Get pixel data
+					const scryfallData = scryfallCtx.getImageData(0, 0, canvas.width, canvas.height);
+					const wireframeData = wireframeCtx.getImageData(0, 0, canvas.width, canvas.height);
+					const outputData = ctx.createImageData(canvas.width, canvas.height);
+					const w = canvas.width;
+					const h = canvas.height;
+
+					// Helper to get luminance at pixel
+					function getLum(data, x, y) {
+						if (x < 0 || x >= w || y < 0 || y >= h) return 128;
+						const i = (y * w + x) * 4;
+						return data.data[i] * 0.299 + data.data[i+1] * 0.587 + data.data[i+2] * 0.114;
+					}
+
+					// Edge detection with 3x3 kernel for thicker edges
+					function getEdge(data, x, y) {
+						let maxEdge = 0;
+						for (let dy = -1; dy <= 1; dy++) {
+							for (let dx = -1; dx <= 1; dx++) {
+								const gx = getLum(data, x+dx+1, y+dy) - getLum(data, x+dx-1, y+dy);
+								const gy = getLum(data, x+dx, y+dy+1) - getLum(data, x+dx, y+dy-1);
+								maxEdge = Math.max(maxEdge, Math.sqrt(gx*gx + gy*gy));
+							}
+						}
+						return Math.min(255, maxEdge * 1.5);
+					}
+
+					// Combine edges: wireframe -> red/orange, scryfall -> cyan
+					for (let y = 0; y < h; y++) {
+						for (let x = 0; x < w; x++) {
+							const i = (y * w + x) * 4;
+							const scryfallEdge = getEdge(scryfallData, x, y);
+							const wireframeEdge = getEdge(wireframeData, x, y);
+
+							// Dark background, boosted red for wireframe, cyan for scryfall
+							const base = 25;
+							outputData.data[i] = base + wireframeEdge;           // R - wireframe (full)
+							outputData.data[i+1] = base + wireframeEdge * 0.3 + scryfallEdge * 0.9;  // G - orange tint + cyan
+							outputData.data[i+2] = base + scryfallEdge * 0.9;    // B - scryfall (cyan)
+							outputData.data[i+3] = 255;
+						}
+					}
+
+					ctx.putImageData(outputData, 0, 0);
 					document.body.setAttribute('data-ready', 'true');
 				}
 				composite();
@@ -242,6 +561,40 @@ async function main() {
 		const overlayPath = `${OUTPUT_DIR}/${actualId}-overlay.png`;
 		await createOverlay(page, scryfallPath, wireframePath, overlayPath, 0.5);
 		console.log(`  overlay: ${overlayPath}`);
+
+		// Red/blue channel comparison (red=wireframe, blue=scryfall)
+		const channelPath = `${OUTPUT_DIR}/${actualId}-channels.png`;
+		await createChannelComparison(
+			page,
+			scryfallPath,
+			wireframePath,
+			channelPath,
+		);
+		console.log(`  channels: ${channelPath}`);
+
+		// Zoomed crops of key regions
+		await createZoomedCrops(page, channelPath, `${OUTPUT_DIR}/${actualId}`);
+		console.log(`  zooms: pt, title, mana, type`);
+
+		// Compute alignment shifts
+		const regions = {
+			pt: { x: 0.65, y: 0.85, w: 0.35, h: 0.15 },
+			title: { x: 0, y: 0, w: 1, h: 0.12 },
+			mana: { x: 0.6, y: 0, w: 0.4, h: 0.12 },
+			type: { x: 0, y: 0.55, w: 1, h: 0.1 },
+			setSymbol: { x: 0.7, y: 0.55, w: 0.3, h: 0.1 },
+		};
+		console.log("\nAlignment analysis:");
+		const alignments = await computeAlignment(
+			scryfallPath,
+			wireframePath,
+			regions,
+		);
+		for (const a of alignments) {
+			console.log(
+				`  ${a.region}: ${a.direction} (${a.dxPercent}%, ${a.dyPercent}%)`,
+			);
+		}
 	}
 
 	// Also create overlay for back face if it exists
@@ -258,6 +611,15 @@ async function main() {
 			0.5,
 		);
 		console.log(`  overlay (face2): ${overlayPath}`);
+
+		const channelPath = `${OUTPUT_DIR}/${actualId}-channels-face2.png`;
+		await createChannelComparison(
+			page,
+			scryfallFace2Path,
+			wireframeFlippedPath,
+			channelPath,
+		);
+		console.log(`  channels (face2): ${channelPath}`);
 	}
 
 	await browser.close();

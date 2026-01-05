@@ -23,10 +23,10 @@ import { SetSymbol } from "./SetSymbol";
 
 // Layout constants for card proportions (container query units)
 const LAYOUT = {
-	artHeight: "h-[44%]",
-	titlePadding: "px-[4cqw] py-[0.75cqw]",
+	artHeight: "h-[45%]",
+	titlePadding: "px-[7cqw] pt-[3cqw] pb-[0.75cqw]",
 	titleText: "text-[5.5cqw]",
-	typePadding: "px-[4cqw] py-[0.75cqw]",
+	typePadding: "pl-[5cqw] pr-[6cqw] pt-[1cqw] pb-[0.5cqw]",
 	typeText: "text-[4.5cqw]",
 	oracleText: "text-[4cqw]",
 	oraclePadding: "px-[4cqw] py-[1.5cqw]",
@@ -34,10 +34,10 @@ const LAYOUT = {
 	footerText: "text-[3.5cqw]",
 	manaSize: "w-[4cqw] h-[4cqw]",
 	manaSmall: "w-[3.5cqw] h-[3.5cqw]",
-	setSymbol: "text-[5.5cqw]",
-	ptText: "text-[5.5cqw]",
-	ptPadding: "px-[2cqw] py-[0.5cqw]",
-	ptPosition: "bottom-[0.25cqw] right-[2cqw]",
+	setSymbol: "text-[7cqw]",
+	ptText: "text-[6.5cqw]",
+	ptPadding: "px-[2.5cqw] py-[0.75cqw]",
+	ptPosition: "bottom-[5cqw] right-[8cqw]",
 } as const;
 
 interface CardWireframeProps {
@@ -833,7 +833,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 	return (
 		<div
-			className={`@container relative aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col pt-[1cqw]`}
+			className={`@container relative aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col pt-[0.5cqw]`}
 		>
 			{/* Title bar */}
 			<div
