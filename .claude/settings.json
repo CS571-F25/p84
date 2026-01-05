@@ -16,11 +16,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npm run typecheck:faster 1>&2 || exit 2"
+            "command": ".claude/hooks/stop-typecheck.sh"
           },
           {
             "type": "command",
-            "command": "npm run test -- --changed 1>&2 || exit 2"
+            "command": ".claude/hooks/stop-test.sh"
           }
         ]
       }
