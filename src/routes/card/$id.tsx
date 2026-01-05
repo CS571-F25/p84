@@ -286,7 +286,7 @@ function CardDetailPage() {
 							)}
 						</div>
 
-						<div className="h-9 overflow-x-auto overflow-y-hidden">
+						<div className="min-h-9 pb-2 overflow-x-auto overflow-y-hidden">
 							{volatileLoading ? (
 								<div className="flex gap-3 items-center">
 									<span className="px-2.5 py-1 w-16 bg-gray-200 dark:bg-slate-700 rounded text-sm animate-pulse">
