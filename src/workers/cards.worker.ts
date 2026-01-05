@@ -51,6 +51,22 @@ const RARITY_ORDER: Record<string, number> = {
 	bonus: 5,
 };
 
+/**
+ * Check if a card is a "non-game" card (token, art series, memorabilia).
+ * These are excluded from search results unless explicitly queried.
+ * For cards with both game and non-game printings (e.g., Ancestral Recall),
+ * the canonical printing is sorted to prefer game printings in download-scryfall.ts.
+ */
+function isNonGameCard(card: Card): boolean {
+	return (
+		card.layout === "art_series" ||
+		card.layout === "token" ||
+		card.layout === "double_faced_token" ||
+		card.set_type === "token" ||
+		card.set_type === "memorabilia"
+	);
+}
+
 // WUBRG ordering
 const WUBRG_ORDER = ["W", "U", "B", "R", "G"];
 
@@ -361,8 +377,8 @@ class CardsWorker implements CardsWorkerAPI {
 			const card = this.data.cards[result.id as ScryfallId];
 			if (!card) continue;
 
-			// Skip tokens and art series in fuzzy search
-			if (card.layout === "art_series" || card.layout === "token") continue;
+			// Skip non-game cards in fuzzy search
+			if (isNonGameCard(card)) continue;
 
 			// Apply restrictions
 			if (restrictions) {
@@ -527,26 +543,19 @@ class CardsWorker implements CardsWorkerAPI {
 	): Card[] {
 		if (!this.data) return [];
 
-		// Check if query explicitly references layout/set-type (don't filter if so)
-		const referencesLayout = someNode(
+		// Check if query explicitly references layout/set-type (don't filter non-game cards)
+		const includesNonGameCards = someNode(
 			ast,
 			(n) =>
-				n.type === "FIELD" &&
-				(n.field === "settype" ||
-					n.field === "layout" ||
-					(n.field === "is" &&
-						n.value.kind === "string" &&
-						(n.value.value === "token" || n.value.value === "art_series"))),
+				n.type === "FIELD" && (n.field === "settype" || n.field === "layout"),
 		);
 
 		const restrictionCheck = this.buildRestrictionCheck(restrictions);
 
-		// Filter cards, skipping art_series/tokens unless explicitly queried
+		// Filter cards, skipping non-game cards unless explicitly queried
 		const allMatches: Card[] = [];
 		for (const card of Object.values(this.data.cards)) {
-			if (!referencesLayout) {
-				if (card.layout === "art_series" || card.layout === "token") continue;
-			}
+			if (!includesNonGameCards && isNonGameCard(card)) continue;
 			if (!restrictionCheck(card)) continue;
 			if (!match(card)) continue;
 			allMatches.push(card);

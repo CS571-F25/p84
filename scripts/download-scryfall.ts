@@ -273,6 +273,12 @@ export function compareCards(a: ScryfallCard, b: ScryfallCard): number {
 	if (aDefault && !bDefault) return -1;
 	if (!aDefault && bDefault) return 1;
 
+	// Deprioritize memorabilia (gold border, world champs, placeholder cards)
+	const aMemo = a.set_type === "memorabilia";
+	const bMemo = b.set_type === "memorabilia";
+	if (!aMemo && bMemo) return -1;
+	if (aMemo && !bMemo) return 1;
+
 	// Deprioritize Arena-only (paper and MTGO are both fine)
 	const aArenaOnly = a.games?.length === 1 && a.games[0] === "arena";
 	const bArenaOnly = b.games?.length === 1 && b.games[0] === "arena";

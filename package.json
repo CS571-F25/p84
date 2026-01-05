@@ -18,8 +18,7 @@
     "typecheck:faster": "npm run typecheck -- --skipLibCheck --incremental",
     "build:typelex": "typelex compile com.deckbelcher.*",
     "build:lexicons": "lex-cli generate -c ./lex.config.js",
-    "download:scryfall": "node --experimental-strip-types scripts/download-scryfall.ts",
-    "screenshot:wireframe": "node --experimental-strip-types scripts/screenshot-wireframe.ts"
+    "download:scryfall": "node --experimental-strip-types scripts/download-scryfall.ts"
   },
   "dependencies": {
     "@atcute/bluesky": "^3.2.8",
