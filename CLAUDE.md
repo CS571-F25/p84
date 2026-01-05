@@ -22,7 +22,7 @@ npm run dev
 npm run build
 
 # Preview production build
-npm run serve
+npm run preview
 
 # Testing
 npm run test           # Run all tests
@@ -45,7 +45,8 @@ npm run build:typelex  # Compile lexicons from typelex/*.tsp to lexicons/
 Routes live in `src/routes/` and are managed by TanStack Router:
 - `__root.tsx` - Root layout with header, devtools, and HTML shell
 - `index.tsx` - Homepage route
-- `demo/*` - Demo routes showcasing various TanStack Start features
+- `card/`, `cards/`, `deck/`, `profile/`, `u/` - Feature routes
+- `oauth/`, `signin.tsx` - Authentication routes
 
 Route files are auto-generated into `src/routeTree.gen.ts` (excluded from linting).
 
@@ -95,13 +96,53 @@ Tailwind CSS v4 is integrated via `@tailwindcss/vite` plugin. Global styles in `
 
 Additional reference docs are in `.claude/` - **read and update these when working on relevant topics**:
 
+### Core Architecture
 - **PROJECT.md** - DeckBelcher project overview, lexicon structure, and product decisions
+- **ATPROTO.md** - ATProto integration (Slingshot, PDS, branded types, Result pattern)
+- **CARD_DATA.md** - Card data pipeline and provider architecture (workers, chunks, SSR)
+- **SEARCH.md** - Search syntax parser (lexer, parser, matcher, operators)
+
+### Reference
 - **SCRYFALL.md** - Scryfall card API reference (IDs, fields, image handling)
 - **TYPELEX.md** - Typelex syntax guide (decorators, external refs, patterns)
+- **DECK_EDITOR.md** - Deck editor UI patterns and data model
+- **HOOKS.md** - Custom React hooks (usePersistedState, useSeededRandom, etc.)
 
 These contain important context about project decisions, API details, and tooling. Keep them updated as the project evolves.
 
 **When to create new reference docs:** If you're doing significant research, explaining complex topics repeatedly, or the user is spending time teaching you something important—create a new markdown file in `.claude/` to preserve that knowledge for future sessions.
+
+## Build Configuration
+
+### OAuth Plugin (vite.config.ts)
+The Vite config includes a custom plugin that reads `public/client-metadata.json` and injects OAuth environment variables:
+- `VITE_OAUTH_CLIENT_ID` - Client identifier
+- `VITE_OAUTH_REDIRECT_URI` - Callback URL (differs between dev and build)
+- `VITE_OAUTH_SCOPE` - Requested ATProto scopes
+
+In dev mode, uses `http://localhost` redirect trick for local OAuth flow.
+
+### Cloudflare Workers
+Deployed via `@cloudflare/vite-plugin`. Server-side code runs in Workers environment:
+- `env.ASSETS` for static file access (card data chunks)
+- `worker-configuration.d.ts` for type definitions
+
+### Data File Exclusions
+Vite is configured to ignore large generated files in watch mode:
+- `/public/data/**` - Card data chunks (~500MB)
+- `/public/symbols/**` - Mana symbol SVGs
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_OAUTH_CLIENT_ID` | OAuth client ID (injected by plugin) |
+| `VITE_OAUTH_REDIRECT_URI` | OAuth callback URL (injected by plugin) |
+| `VITE_OAUTH_SCOPE` | ATProto scopes (injected by plugin) |
+| `VITE_CLIENT_URI` | Public client URL |
+| `VITE_DEV_SERVER_PORT` | Dev server port (default 3000) |
+| `import.meta.env.SSR` | True during SSR (TanStack Start) |
+| `import.meta.env.DEV` | True in development mode |
 
 ## Important Notes
 

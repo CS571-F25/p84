@@ -58,7 +58,9 @@
       "Bash(\"Azorius Chancery\")",
       "Bash(do)",
       "Bash(./src/lib/__tests__/add-test-card.sh:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(wc:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
