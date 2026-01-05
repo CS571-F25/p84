@@ -26,41 +26,74 @@ interface CardWireframeProps {
 	className?: string;
 }
 
-const RARITY_COLORS: Record<
-	Rarity,
-	{ border: string; bg: string; text: string }
+type ColorIdentity = "W" | "U" | "B" | "R" | "G";
+
+const FRAME_COLORS: Record<
+	ColorIdentity | "multicolor" | "colorless" | "land",
+	{ border: string; frame: string; titleBg: string; titleText: string }
 > = {
-	common: {
+	W: {
+		border: "border-amber-200 dark:border-amber-300",
+		frame: "bg-amber-50 dark:bg-amber-950",
+		titleBg: "bg-amber-100 dark:bg-amber-900",
+		titleText: "text-amber-950 dark:text-amber-100",
+	},
+	U: {
+		border: "border-blue-400 dark:border-blue-500",
+		frame: "bg-blue-50 dark:bg-blue-950",
+		titleBg: "bg-blue-200 dark:bg-blue-900",
+		titleText: "text-blue-950 dark:text-blue-100",
+	},
+	B: {
+		border: "border-gray-600 dark:border-gray-400",
+		frame: "bg-gray-100 dark:bg-gray-900",
+		titleBg: "bg-gray-300 dark:bg-gray-800",
+		titleText: "text-gray-950 dark:text-gray-100",
+	},
+	R: {
+		border: "border-red-400 dark:border-red-500",
+		frame: "bg-red-50 dark:bg-red-950",
+		titleBg: "bg-red-200 dark:bg-red-900",
+		titleText: "text-red-950 dark:text-red-100",
+	},
+	G: {
+		border: "border-green-500 dark:border-green-600",
+		frame: "bg-green-50 dark:bg-green-950",
+		titleBg: "bg-green-200 dark:bg-green-900",
+		titleText: "text-green-950 dark:text-green-100",
+	},
+	multicolor: {
+		border: "border-amber-400 dark:border-amber-500",
+		frame: "bg-amber-50 dark:bg-amber-950",
+		titleBg:
+			"bg-gradient-to-r from-amber-200 via-amber-300 to-amber-200 dark:from-amber-800 dark:via-amber-700 dark:to-amber-800",
+		titleText: "text-amber-950 dark:text-amber-100",
+	},
+	colorless: {
 		border: "border-gray-400 dark:border-gray-500",
-		bg: "bg-gray-200 dark:bg-gray-600",
-		text: "text-gray-900 dark:text-gray-100",
+		frame: "bg-gray-100 dark:bg-slate-900",
+		titleBg: "bg-gray-200 dark:bg-slate-800",
+		titleText: "text-gray-900 dark:text-gray-100",
 	},
-	uncommon: {
-		border: "border-slate-400 dark:border-slate-400",
-		bg: "bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-500 dark:to-slate-400",
-		text: "text-slate-900 dark:text-slate-100",
-	},
-	rare: {
-		border: "border-amber-500 dark:border-amber-400",
-		bg: "bg-gradient-to-r from-amber-300 to-amber-500 dark:from-amber-600 dark:to-amber-400",
-		text: "text-amber-900 dark:text-amber-100",
-	},
-	mythic: {
-		border: "border-orange-500 dark:border-orange-400",
-		bg: "bg-gradient-to-r from-orange-400 to-red-500 dark:from-orange-500 dark:to-red-400",
-		text: "text-orange-900 dark:text-orange-100",
-	},
-	special: {
-		border: "border-purple-500 dark:border-purple-400",
-		bg: "bg-gradient-to-r from-purple-400 to-purple-500 dark:from-purple-500 dark:to-purple-400",
-		text: "text-purple-900 dark:text-purple-100",
-	},
-	bonus: {
-		border: "border-fuchsia-500 dark:border-fuchsia-400",
-		bg: "bg-gradient-to-r from-fuchsia-400 to-fuchsia-500 dark:from-fuchsia-500 dark:to-fuchsia-400",
-		text: "text-fuchsia-900 dark:text-fuchsia-100",
+	land: {
+		border: "border-amber-600 dark:border-amber-700",
+		frame: "bg-amber-100 dark:bg-amber-950",
+		titleBg: "bg-amber-200 dark:bg-amber-900",
+		titleText: "text-amber-950 dark:text-amber-100",
 	},
 };
+
+function getFrameColor(
+	card: Card,
+): (typeof FRAME_COLORS)[keyof typeof FRAME_COLORS] {
+	const colors = card.colors ?? card.color_identity ?? [];
+	const isLand = card.type_line?.includes("Land") && colors.length === 0;
+
+	if (isLand) return FRAME_COLORS.land;
+	if (colors.length === 0) return FRAME_COLORS.colorless;
+	if (colors.length > 1) return FRAME_COLORS.multicolor;
+	return FRAME_COLORS[colors[0] as ColorIdentity] ?? FRAME_COLORS.colorless;
+}
 
 interface FaceContentProps {
 	face: CardFace;
@@ -178,20 +211,12 @@ const SET_SYMBOL_RARITY: Record<
 };
 
 function CardFooter({ card }: { card: Card }) {
-	const rarity = card.rarity || "common";
 	const collectorNum = card.collector_number;
 	const setCode = card.set;
 
 	return (
-		<div className="flex items-center justify-between px-[3cqw] py-[1.5cqw] text-[3.5cqw] tracking-tight text-gray-600 dark:text-gray-400 border-t border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800">
+		<div className="flex items-center justify-between px-[3cqw] py-[1.5cqw] text-[3.5cqw] tracking-tight text-gray-600 dark:text-gray-400 border-t border-gray-300 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-800/80">
 			<div className="flex items-center gap-[1.5cqw]">
-				{setCode && (
-					<SetSymbol
-						setCode={setCode}
-						rarity={SET_SYMBOL_RARITY[rarity]}
-						className="text-[6cqw]"
-					/>
-				)}
 				<span>{setCode?.toUpperCase()}</span>
 				{collectorNum && <span>#{collectorNum}</span>}
 			</div>
@@ -214,7 +239,6 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 	const isSplit = card.layout === "split" && !isAftermath;
 
 	const rarity = card.rarity || "common";
-	const rarityStyle = RARITY_COLORS[rarity] || RARITY_COLORS.common;
 
 	const handleFlip = (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -222,18 +246,16 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 		setIsFlipped(!isFlipped);
 	};
 
-	// Use container queries for proportional sizing
-	const baseClasses = `@container aspect-[5/7] border-2 ${rarityStyle.border} rounded-[4.75%/3.5%] overflow-hidden bg-gray-100 dark:bg-slate-900 ${className ?? ""}`;
-
 	// Flip cards (Kamigawa style): show both faces, one upside down
 	if (isFlipCard && isMultiFaced) {
 		const topFace = isFlipped ? faces[1] : faces[0];
 		const bottomFace = isFlipped ? faces[0] : faces[1];
+		const frameColor = getFrameColor(card);
 
 		return (
 			<div className="relative group">
 				<div
-					className={`${baseClasses} flex flex-col motion-safe:transition-transform motion-safe:duration-500`}
+					className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col motion-safe:transition-transform motion-safe:duration-500`}
 					style={{
 						transform: isFlipped ? "rotate(180deg)" : "rotate(0deg)",
 					}}
@@ -242,10 +264,10 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					<div className="h-1/2 flex flex-col border-b-2 border-gray-300 dark:border-slate-600">
 						{/* Title bar */}
 						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${rarityStyle.bg}`}
+							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
 						>
 							<span
-								className={`font-bold text-[6cqw] tracking-tight truncate ${rarityStyle.text}`}
+								className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
 							>
 								{topFace.name}
 							</span>
@@ -264,10 +286,10 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					{/* Bottom half (flipped face, shown upside down) */}
 					<div className="h-1/2 flex flex-col rotate-180">
 						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${rarityStyle.bg}`}
+							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
 						>
 							<span
-								className={`font-bold text-[6cqw] tracking-tight truncate ${rarityStyle.text}`}
+								className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
 							>
 								{bottomFace.name}
 							</span>
@@ -306,11 +328,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 	// Split cards (fuse style): both halves side by side, rotated
 	if (isSplit && isMultiFaced) {
 		const rotateScale = 5 / 7;
+		const frameColor = getFrameColor(card);
 
 		return (
 			<div className="relative group">
 				<div
-					className={`${baseClasses} flex flex-row motion-safe:transition-transform motion-safe:duration-500`}
+					className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-row motion-safe:transition-transform motion-safe:duration-500`}
 					style={{
 						transformOrigin: "center center",
 						transform: isFlipped
@@ -321,10 +344,10 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					{/* Left half */}
 					<div className="w-1/2 flex flex-col border-r border-gray-300 dark:border-slate-600">
 						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[1cqw] ${rarityStyle.bg}`}
+							className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[1cqw] ${frameColor.titleBg}`}
 						>
 							<span
-								className={`font-bold text-[5.5cqw] tracking-tight truncate ${rarityStyle.text}`}
+								className={`font-bold text-[5.5cqw] tracking-tight truncate ${frameColor.titleText}`}
 							>
 								{faces[0].name}
 							</span>
@@ -348,10 +371,10 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					{/* Right half */}
 					<div className="w-1/2 flex flex-col">
 						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[1cqw] ${rarityStyle.bg}`}
+							className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[1cqw] ${frameColor.titleBg}`}
 						>
 							<span
-								className={`font-bold text-[5.5cqw] tracking-tight truncate ${rarityStyle.text}`}
+								className={`font-bold text-[5.5cqw] tracking-tight truncate ${frameColor.titleText}`}
 							>
 								{faces[1].name}
 							</span>
@@ -390,15 +413,19 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 	// Aftermath cards: top half normal, bottom half rotated 90°
 	if (isAftermath && isMultiFaced) {
+		const frameColor = getFrameColor(card);
+
 		return (
-			<div className={`${baseClasses} flex flex-col`}>
+			<div
+				className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+			>
 				{/* Top half - main spell */}
-				<div className="h-[55%] flex flex-col border-b-2 border-gray-300 dark:border-slate-600">
+				<div className="h-[60%] flex flex-col border-b-2 border-gray-300 dark:border-slate-600">
 					<div
-						className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${rarityStyle.bg}`}
+						className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
 					>
 						<span
-							className={`font-bold text-[6cqw] tracking-tight truncate ${rarityStyle.text}`}
+							className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
 						>
 							{faces[0].name}
 						</span>
@@ -419,36 +446,28 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					</div>
 				</div>
 
-				{/* Bottom half - aftermath (rotated) */}
-				<div className="h-[45%] flex overflow-hidden">
+				{/* Bottom half - aftermath (shown sideways) */}
+				<div className="h-[40%] flex flex-col bg-gray-100/50 dark:bg-slate-800/50">
 					<div
-						className="flex flex-col w-full origin-center"
-						style={{
-							transform: "rotate(-90deg) translateX(-50%)",
-							width: "140%",
-						}}
+						className={`flex items-center gap-[1cqw] px-[2cqw] py-[1cqw] ${frameColor.titleBg} border-b border-gray-300 dark:border-slate-600`}
 					>
-						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[0.5cqw] ${rarityStyle.bg}`}
+						<span className="text-[3.5cqw] text-gray-500 dark:text-gray-400 italic">
+							Aftermath
+						</span>
+						<span
+							className={`font-bold text-[5cqw] tracking-tight truncate ${frameColor.titleText}`}
 						>
-							<span
-								className={`font-bold text-[4.5cqw] tracking-tight truncate ${rarityStyle.text}`}
-							>
-								{faces[1].name}
-							</span>
-							{faces[1].mana_cost && (
-								<ManaCost
-									cost={faces[1].mana_cost}
-									className="w-[5cqw] h-[5cqw]"
-								/>
-							)}
-						</div>
-						<FaceContent
-							face={faces[1]}
-							showStats={false}
-							setCode={card.set}
-							rarity={rarity}
-						/>
+							{faces[1].name}
+						</span>
+						{faces[1].mana_cost && (
+							<ManaCost
+								cost={faces[1].mana_cost}
+								className="w-[4cqw] h-[4cqw]"
+							/>
+						)}
+					</div>
+					<div className="flex-1 px-[3cqw] py-[1cqw] text-[4cqw] leading-tight tracking-tight text-gray-800 dark:text-gray-200 overflow-hidden">
+						{faces[1].oracle_text && <OracleText text={faces[1].oracle_text} />}
 					</div>
 				</div>
 			</div>
@@ -459,15 +478,18 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 	if (isAdventure && isMultiFaced) {
 		const mainFace = faces[0];
 		const adventureFace = faces[1];
+		const frameColor = getFrameColor(card);
 
 		return (
-			<div className={`${baseClasses} flex flex-col`}>
+			<div
+				className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+			>
 				{/* Title bar */}
 				<div
-					className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${rarityStyle.bg}`}
+					className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
 				>
 					<span
-						className={`font-bold text-[6cqw] tracking-tight truncate ${rarityStyle.text}`}
+						className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
 					>
 						{mainFace.name}
 					</span>
@@ -477,10 +499,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 				</div>
 
 				{/* Art placeholder with adventure box */}
-				<div className="h-[35%] bg-gray-200 dark:bg-slate-700 flex items-center justify-center relative">
-					<span className="text-[5cqw] text-gray-400 dark:text-gray-500">
-						{mainFace.type_line}
-					</span>
+				<div className="h-[35%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center relative">
 					{/* Adventure spell box */}
 					<div className="absolute bottom-[2cqw] left-[2cqw] right-[40%] bg-gray-50/95 dark:bg-slate-800/95 rounded border border-gray-300 dark:border-slate-600 p-[1.5cqw]">
 						<div className="flex items-center justify-between gap-[1cqw] mb-[0.5cqw]">
@@ -517,6 +536,8 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 	// Transform/MDFC: 3D flip between faces
 	if (flipBehavior === "transform" && hasBack && isMultiFaced) {
+		const frameColor = getFrameColor(card);
+
 		return (
 			<div className="relative group">
 				<div
@@ -528,14 +549,14 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 				>
 					{/* Front */}
 					<div
-						className={`${baseClasses} flex flex-col`}
+						className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} flex flex-col`}
 						style={{ backfaceVisibility: "hidden" }}
 					>
 						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${rarityStyle.bg}`}
+							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
 						>
 							<span
-								className={`font-bold text-[6cqw] tracking-tight truncate ${rarityStyle.text}`}
+								className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
 							>
 								{faces[0].name}
 							</span>
@@ -546,11 +567,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 								/>
 							)}
 						</div>
-						<div className="h-[35%] bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
-							<span className="text-[5cqw] text-gray-400 dark:text-gray-500">
-								{faces[0].type_line}
-							</span>
-						</div>
+						<div className="h-[35%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
 						<div className="flex-1 flex flex-col overflow-hidden">
 							<FaceContent face={faces[0]} setCode={card.set} rarity={rarity} />
 						</div>
@@ -559,17 +576,17 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 					{/* Back */}
 					<div
-						className={`${baseClasses} flex flex-col absolute inset-0`}
+						className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} flex flex-col absolute inset-0`}
 						style={{
 							backfaceVisibility: "hidden",
 							transform: "rotateY(180deg)",
 						}}
 					>
 						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${rarityStyle.bg}`}
+							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
 						>
 							<span
-								className={`font-bold text-[6cqw] tracking-tight truncate ${rarityStyle.text}`}
+								className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
 							>
 								{faces[1]?.name}
 							</span>
@@ -580,11 +597,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 								/>
 							)}
 						</div>
-						<div className="h-[35%] bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
-							<span className="text-[5cqw] text-gray-400 dark:text-gray-500">
-								{faces[1]?.type_line}
-							</span>
-						</div>
+						<div className="h-[35%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
 						<div className="flex-1 flex flex-col overflow-hidden">
 							<FaceContent
 								face={faces[1] || faces[0]}
@@ -611,14 +624,18 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 	}
 
 	// Default: single-faced card
+	const frameColor = getFrameColor(card);
+
 	return (
-		<div className={`${baseClasses} flex flex-col`}>
+		<div
+			className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+		>
 			{/* Title bar */}
 			<div
-				className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${rarityStyle.bg}`}
+				className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
 			>
 				<span
-					className={`font-bold text-[6cqw] tracking-tight truncate ${rarityStyle.text}`}
+					className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
 				>
 					{faces[0].name}
 				</span>
@@ -628,11 +645,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 			</div>
 
 			{/* Art placeholder */}
-			<div className="h-[35%] bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
-				<span className="text-[5cqw] text-gray-400 dark:text-gray-500">
-					{faces[0].type_line}
-				</span>
-			</div>
+			<div className="h-[35%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
 
 			{/* Card body */}
 			<div className="flex-1 flex flex-col overflow-hidden">

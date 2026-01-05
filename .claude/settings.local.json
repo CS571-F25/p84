@@ -60,7 +60,8 @@
       "Bash(./src/lib/__tests__/add-test-card.sh:*)",
       "Bash(done)",
       "Bash(wc:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm run screenshot:wireframe:*)"
     ],
     "deny": [],
     "ask": []

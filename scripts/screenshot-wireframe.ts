@@ -95,12 +95,13 @@ async function main() {
 		// Give a moment for any animations/transitions
 		await page.waitForTimeout(500);
 
-		// Screenshot just the card container
+		// Screenshot just the card element
 		const wireframePath = `${OUTPUT_DIR}/${cardId}-wireframe.png`;
-		await page.screenshot({
-			path: wireframePath,
-			fullPage: false,
-		});
+		const cardElement = await page.$("[data-wireframe-target]");
+		if (!cardElement) {
+			throw new Error("Could not find wireframe target element");
+		}
+		await cardElement.screenshot({ path: wireframePath });
 		console.log(`Saved: ${wireframePath}`);
 	} catch (error) {
 		console.error("Failed to screenshot wireframe. Is the dev server running?");

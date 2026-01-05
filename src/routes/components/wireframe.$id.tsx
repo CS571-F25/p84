@@ -52,7 +52,7 @@ function SingleWireframeDebug() {
 			className="min-h-screen bg-gray-500 flex items-center justify-center p-8"
 			data-card-loaded="true"
 		>
-			<div className="w-[250px]">
+			<div data-wireframe-target className="w-[250px]">
 				<CardWireframe card={card} />
 			</div>
 		</div>
