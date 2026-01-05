@@ -1,20 +1,16 @@
 /**
  * Screenshot wireframe comparison tool.
  *
- * Takes a Scryfall card ID, screenshots the wireframe component,
- * and downloads the real card image for side-by-side comparison.
+ * Takes a Scryfall card ID, screenshots the wireframe component in both
+ * light and dark modes, and downloads the real card image for comparison.
  *
  * Usage:
- *   npm run screenshot:wireframe -- <card-id> [--dark] [--overlay]
- *
- * Options:
- *   --dark     Screenshot in dark mode
- *   --overlay  Generate overlay image (wireframe at 50% over real card)
+ *   npm run screenshot:wireframe -- <card-id>
  *
  * Output:
- *   .cache/wireframe-compare/<card-id>-wireframe.png (or -wireframe-dark.png)
- *   .cache/wireframe-compare/<card-id>-scryfall.png
- *   .cache/wireframe-compare/<card-id>-overlay.png (if --overlay)
+ *   .cache/wireframe-compare/<card-id>-wireframe.png      (light mode)
+ *   .cache/wireframe-compare/<card-id>-wireframe-dark.png (dark mode)
+ *   .cache/wireframe-compare/<card-id>-scryfall.png       (real card)
  *
  * Requires dev server running on port 3000.
  */
@@ -25,18 +21,69 @@ import { chromium } from "playwright";
 const DEV_SERVER_URL = "http://localhost:3000";
 const OUTPUT_DIR = ".cache/wireframe-compare";
 
+async function screenshotMode(
+	page: Awaited<
+		ReturnType<Awaited<ReturnType<typeof chromium.launch>>["newPage"]>
+	>,
+	cardId: string,
+	wireframeUrl: string,
+	darkMode: boolean,
+): Promise<boolean> {
+	const suffix = darkMode ? "-dark" : "";
+	const modeName = darkMode ? "dark" : "light";
+
+	// Set color scheme
+	await page.emulateMedia({ colorScheme: darkMode ? "dark" : "light" });
+
+	await page.goto(wireframeUrl, { timeout: 30000 });
+
+	// Set dark class if needed
+	if (darkMode) {
+		await page.evaluate(() => {
+			document.documentElement.classList.add("dark");
+		});
+	} else {
+		await page.evaluate(() => {
+			document.documentElement.classList.remove("dark");
+		});
+	}
+
+	// Wait for the card to load
+	await page.waitForSelector('[data-card-loaded="true"]', { timeout: 10000 });
+	await page.waitForTimeout(300);
+
+	// Screenshot the card element
+	const wireframePath = `${OUTPUT_DIR}/${cardId}-wireframe${suffix}.png`;
+	const cardElement = await page.$("[data-wireframe-target]");
+	if (!cardElement) {
+		throw new Error("Could not find wireframe target element");
+	}
+	await cardElement.screenshot({ path: wireframePath });
+	console.log(`  ${modeName}: ${wireframePath}`);
+
+	// Check if there's a flip button
+	const flipButton = await page.$('button[aria-label="Flip card"]');
+	if (flipButton) {
+		// Click to flip and screenshot the flipped state
+		await flipButton.click();
+		await page.waitForTimeout(600); // Wait for flip animation
+
+		const flippedPath = `${OUTPUT_DIR}/${cardId}-wireframe${suffix}-flipped.png`;
+		await cardElement.screenshot({ path: flippedPath });
+		console.log(`  ${modeName} (flipped): ${flippedPath}`);
+		return true;
+	}
+	return false;
+}
+
 async function main() {
 	const args = process.argv.slice(2);
 	const cardId = args.find((a) => !a.startsWith("--"));
-	const darkMode = args.includes("--dark");
-	const overlay = args.includes("--overlay");
 
 	if (!cardId) {
+		console.error("Usage: npm run screenshot:wireframe -- <card-id>");
 		console.error(
-			"Usage: npm run screenshot:wireframe -- <card-id> [--dark] [--overlay]",
-		);
-		console.error(
-			"Example: npm run screenshot:wireframe -- 5e3f2736-9d13-44e3-a4bf-4f64314e5848 --dark",
+			"Example: npm run screenshot:wireframe -- 5e3f2736-9d13-44e3-a4bf-4f64314e5848",
 		);
 		process.exit(1);
 	}
@@ -46,9 +93,9 @@ async function main() {
 		mkdirSync(OUTPUT_DIR, { recursive: true });
 	}
 
-	console.log(`Processing card: ${cardId}${darkMode ? " (dark mode)" : ""}`);
+	console.log(`Processing card: ${cardId}`);
 
-	// Fetch card data from Scryfall to get image URL
+	// Fetch card data from Scryfall
 	console.log("Fetching card data from Scryfall...");
 	const scryfallResponse = await fetch(
 		`https://api.scryfall.com/cards/${cardId}`,
@@ -86,94 +133,19 @@ async function main() {
 	const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
 	const scryfallPath = `${OUTPUT_DIR}/${cardId}-scryfall.png`;
 	writeFileSync(scryfallPath, imageBuffer);
-	console.log(`Saved: ${scryfallPath}`);
+	console.log(`  scryfall: ${scryfallPath}`);
 
-	// Screenshot wireframe
-	console.log("Launching browser...");
+	// Screenshot wireframe in both modes
+	console.log("Screenshotting wireframes...");
 	const browser = await chromium.launch();
 	const page = await browser.newPage();
-
-	// Set color scheme preference for dark mode
-	if (darkMode) {
-		await page.emulateMedia({ colorScheme: "dark" });
-	}
-
 	const wireframeUrl = `${DEV_SERVER_URL}/components/wireframe/${cardId}`;
-	console.log(`Navigating to: ${wireframeUrl}`);
 
 	try {
-		await page.goto(wireframeUrl, { timeout: 30000 });
-
-		// If dark mode, also add the dark class to document
-		if (darkMode) {
-			await page.evaluate(() => {
-				document.documentElement.classList.add("dark");
-			});
-		}
-
-		// Wait for the card to load (look for data-card-loaded attribute)
-		await page.waitForSelector('[data-card-loaded="true"]', { timeout: 10000 });
-
-		// Give a moment for any animations/transitions
-		await page.waitForTimeout(500);
-
-		// Screenshot just the card element
-		const suffix = darkMode ? "-dark" : "";
-		const wireframePath = `${OUTPUT_DIR}/${cardId}-wireframe${suffix}.png`;
-		const cardElement = await page.$("[data-wireframe-target]");
-		if (!cardElement) {
-			throw new Error("Could not find wireframe target element");
-		}
-		await cardElement.screenshot({ path: wireframePath });
-		console.log(`Saved: ${wireframePath}`);
-
-		// Generate overlay if requested
-		if (overlay) {
-			console.log("Generating overlay...");
-			const overlayPath = `${OUTPUT_DIR}/${cardId}-overlay${suffix}.png`;
-
-			// Create overlay using canvas in the browser
-			const overlayBuffer = await page.evaluate(
-				async ({ scryfallUrl, wireframePath: _wp }) => {
-					// This runs in browser context
-					const canvas = document.createElement("canvas");
-					const ctx = canvas.getContext("2d")!;
-
-					// Load Scryfall image
-					const scryfallImg = new Image();
-					scryfallImg.crossOrigin = "anonymous";
-					await new Promise((resolve, reject) => {
-						scryfallImg.onload = resolve;
-						scryfallImg.onerror = reject;
-						scryfallImg.src = scryfallUrl;
-					});
-
-					// Set canvas size to Scryfall image size
-					canvas.width = scryfallImg.width;
-					canvas.height = scryfallImg.height;
-
-					// Draw Scryfall image
-					ctx.drawImage(scryfallImg, 0, 0);
-
-					// Get wireframe element and draw it with transparency
-					const wireframe = document.querySelector("[data-wireframe-target]");
-					if (wireframe) {
-						// Use html2canvas or similar would be better, but for now just
-						// indicate this needs the wireframe screenshot
-						ctx.globalAlpha = 0.5;
-						ctx.fillStyle = "rgba(255, 0, 255, 0.3)";
-						ctx.fillRect(0, 0, canvas.width, canvas.height);
-					}
-
-					return canvas.toDataURL("image/png").split(",")[1];
-				},
-				{ scryfallUrl: imageUrl, wireframePath },
-			);
-
-			const overlayData = Buffer.from(overlayBuffer, "base64");
-			writeFileSync(overlayPath, overlayData);
-			console.log(`Saved: ${overlayPath}`);
-		}
+		// Light mode
+		await screenshotMode(page, cardId, wireframeUrl, false);
+		// Dark mode
+		await screenshotMode(page, cardId, wireframeUrl, true);
 	} catch (error) {
 		console.error("Failed to screenshot wireframe. Is the dev server running?");
 		console.error(error);
@@ -183,13 +155,7 @@ async function main() {
 
 	await browser.close();
 
-	const suffix = darkMode ? "-dark" : "";
-	console.log("\nDone! Compare the images:");
-	console.log(`  Wireframe: ${OUTPUT_DIR}/${cardId}-wireframe${suffix}.png`);
-	console.log(`  Scryfall:  ${OUTPUT_DIR}/${cardId}-scryfall.png`);
-	if (overlay) {
-		console.log(`  Overlay:   ${OUTPUT_DIR}/${cardId}-overlay${suffix}.png`);
-	}
+	console.log("\nDone! Files saved to .cache/wireframe-compare/");
 }
 
 main();

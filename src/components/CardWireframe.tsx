@@ -33,53 +33,60 @@ const FRAME_COLORS: Record<
 	{ border: string; frame: string; titleBg: string; titleText: string }
 > = {
 	W: {
-		border: "border-amber-200 dark:border-amber-300",
-		frame: "bg-amber-50 dark:bg-amber-950",
-		titleBg: "bg-amber-100 dark:bg-amber-900",
-		titleText: "text-amber-950 dark:text-amber-100",
+		border: "border-yellow-300 dark:border-yellow-600/60",
+		frame: "bg-yellow-50 dark:bg-stone-900",
+		titleBg:
+			"bg-gradient-to-r from-yellow-100 to-yellow-200 dark:from-yellow-900/50 dark:to-yellow-800/50",
+		titleText: "text-yellow-900 dark:text-yellow-200",
 	},
 	U: {
-		border: "border-blue-400 dark:border-blue-500",
-		frame: "bg-blue-50 dark:bg-blue-950",
-		titleBg: "bg-blue-200 dark:bg-blue-900",
-		titleText: "text-blue-950 dark:text-blue-100",
+		border: "border-blue-400 dark:border-blue-500/60",
+		frame: "bg-blue-50 dark:bg-slate-900",
+		titleBg:
+			"bg-gradient-to-r from-blue-200 to-blue-300 dark:from-blue-900/50 dark:to-blue-800/50",
+		titleText: "text-blue-900 dark:text-blue-200",
 	},
 	B: {
-		border: "border-gray-600 dark:border-gray-400",
-		frame: "bg-gray-100 dark:bg-gray-900",
-		titleBg: "bg-gray-300 dark:bg-gray-800",
-		titleText: "text-gray-950 dark:text-gray-100",
+		border: "border-gray-500 dark:border-gray-500/60",
+		frame: "bg-gray-100 dark:bg-zinc-900",
+		titleBg:
+			"bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-800/50 dark:to-gray-700/50",
+		titleText: "text-gray-900 dark:text-gray-200",
 	},
 	R: {
-		border: "border-red-400 dark:border-red-500",
-		frame: "bg-red-50 dark:bg-red-950",
-		titleBg: "bg-red-200 dark:bg-red-900",
-		titleText: "text-red-950 dark:text-red-100",
+		border: "border-red-400 dark:border-red-500/60",
+		frame: "bg-red-50 dark:bg-stone-900",
+		titleBg:
+			"bg-gradient-to-r from-red-200 to-red-300 dark:from-red-900/50 dark:to-red-800/50",
+		titleText: "text-red-900 dark:text-red-200",
 	},
 	G: {
-		border: "border-green-500 dark:border-green-600",
-		frame: "bg-green-50 dark:bg-green-950",
-		titleBg: "bg-green-200 dark:bg-green-900",
-		titleText: "text-green-950 dark:text-green-100",
+		border: "border-green-500 dark:border-green-600/60",
+		frame: "bg-green-50 dark:bg-stone-900",
+		titleBg:
+			"bg-gradient-to-r from-green-200 to-green-300 dark:from-green-900/50 dark:to-green-800/50",
+		titleText: "text-green-900 dark:text-green-200",
 	},
 	multicolor: {
-		border: "border-amber-400 dark:border-amber-500",
-		frame: "bg-amber-50 dark:bg-amber-950",
+		border: "border-amber-400 dark:border-amber-500/60",
+		frame: "bg-amber-50 dark:bg-stone-900",
 		titleBg:
-			"bg-gradient-to-r from-amber-200 via-amber-300 to-amber-200 dark:from-amber-800 dark:via-amber-700 dark:to-amber-800",
-		titleText: "text-amber-950 dark:text-amber-100",
+			"bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 dark:from-amber-900/50 dark:via-yellow-800/50 dark:to-amber-900/50",
+		titleText: "text-amber-900 dark:text-amber-200",
 	},
 	colorless: {
-		border: "border-gray-400 dark:border-gray-500",
-		frame: "bg-gray-100 dark:bg-slate-900",
-		titleBg: "bg-gray-200 dark:bg-slate-800",
-		titleText: "text-gray-900 dark:text-gray-100",
+		border: "border-slate-400 dark:border-slate-500/60",
+		frame: "bg-slate-100 dark:bg-slate-900",
+		titleBg:
+			"bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-800/50 dark:to-slate-700/50",
+		titleText: "text-slate-900 dark:text-slate-200",
 	},
 	land: {
-		border: "border-amber-600 dark:border-amber-700",
-		frame: "bg-amber-100 dark:bg-amber-950",
-		titleBg: "bg-amber-200 dark:bg-amber-900",
-		titleText: "text-amber-950 dark:text-amber-100",
+		border: "border-amber-500 dark:border-amber-600/60",
+		frame: "bg-amber-50 dark:bg-stone-900",
+		titleBg:
+			"bg-gradient-to-r from-amber-200 to-amber-300 dark:from-amber-900/50 dark:to-amber-800/50",
+		titleText: "text-amber-900 dark:text-amber-200",
 	},
 };
 
@@ -257,7 +264,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 		setIsFlipped(!isFlipped);
 	};
 
-	// Flip cards (Kamigawa style): show both faces, one upside down
+	// Flip cards (Kamigawa style): title → text → type line, art in middle
 	if (isFlipCard && isMultiFaced) {
 		const topFace = isFlipped ? faces[1] : faces[0];
 		const bottomFace = isFlipped ? faces[0] : faces[1];
@@ -271,53 +278,72 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						transform: isFlipped ? "rotate(180deg)" : "rotate(0deg)",
 					}}
 				>
-					{/* Top half (current face) */}
-					<div className="h-1/2 flex flex-col border-b-2 border-gray-300 dark:border-slate-600">
+					{/* Top half: Title → Text → Type+P/T */}
+					<div className="h-[42%] flex flex-col">
 						{/* Title bar */}
 						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
+							className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[0.5cqw] ${frameColor.titleBg}`}
 						>
 							<span
-								className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
+								className={`font-bold text-[5cqw] tracking-tight truncate ${frameColor.titleText}`}
 							>
 								{topFace.name}
 							</span>
 							{topFace.mana_cost && (
 								<ManaCost
 									cost={topFace.mana_cost}
-									className="w-[5cqw] h-[5cqw]"
+									className="w-[4cqw] h-[4cqw]"
 								/>
 							)}
 						</div>
-						<div className="flex-1 overflow-hidden">
-							<FaceContent face={topFace} setCode={card.set} rarity={rarity} />
+						{/* Text box */}
+						<div className="flex-1 px-[2cqw] py-[1cqw] text-[3.5cqw] leading-tight text-gray-800 dark:text-gray-200 overflow-hidden">
+							{topFace.oracle_text && <OracleText text={topFace.oracle_text} />}
+						</div>
+						{/* Type line + P/T */}
+						<div className="flex items-center justify-between px-[2cqw] py-[0.5cqw] bg-gray-100/80 dark:bg-slate-800/80 border-t border-gray-300 dark:border-slate-600">
+							<span className="text-[3cqw] text-gray-700 dark:text-gray-300 truncate">
+								{topFace.type_line}
+							</span>
+							{(topFace.power || topFace.toughness) && (
+								<span className="font-bold text-[5cqw] text-gray-900 dark:text-white">
+									{topFace.power}/{topFace.toughness}
+								</span>
+							)}
 						</div>
 					</div>
 
+					{/* Art area in the middle */}
+					<div className="h-[16%] bg-gray-300/50 dark:bg-slate-700/50 border-y-2 border-gray-400 dark:border-slate-500" />
+
 					{/* Bottom half (flipped face, shown upside down) */}
-					<div className="h-1/2 flex flex-col rotate-180">
+					<div className="h-[42%] flex flex-col rotate-180">
+						{/* Title bar */}
 						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
+							className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[0.5cqw] ${frameColor.titleBg}`}
 						>
 							<span
-								className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
+								className={`font-bold text-[5cqw] tracking-tight truncate ${frameColor.titleText}`}
 							>
 								{bottomFace.name}
 							</span>
-							{bottomFace.mana_cost && (
-								<ManaCost
-									cost={bottomFace.mana_cost}
-									className="w-[5cqw] h-[5cqw]"
-								/>
+						</div>
+						{/* Text box */}
+						<div className="flex-1 px-[2cqw] py-[1cqw] text-[3.5cqw] leading-tight text-gray-800 dark:text-gray-200 overflow-hidden">
+							{bottomFace.oracle_text && (
+								<OracleText text={bottomFace.oracle_text} />
 							)}
 						</div>
-						<div className="flex-1 overflow-hidden">
-							<FaceContent
-								face={bottomFace}
-								showStats={false}
-								setCode={card.set}
-								rarity={rarity}
-							/>
+						{/* Type line + P/T */}
+						<div className="flex items-center justify-between px-[2cqw] py-[0.5cqw] bg-gray-100/80 dark:bg-slate-800/80 border-t border-gray-300 dark:border-slate-600">
+							<span className="text-[3cqw] text-gray-700 dark:text-gray-300 truncate">
+								{bottomFace.type_line}
+							</span>
+							{(bottomFace.power || bottomFace.toughness) && (
+								<span className="font-bold text-[5cqw] text-gray-900 dark:text-white">
+									{bottomFace.power}/{bottomFace.toughness}
+								</span>
+							)}
 						</div>
 					</div>
 				</div>
@@ -326,98 +352,79 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					<button
 						type="button"
 						onClick={handleFlip}
-						className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-[2cqw] rounded-full bg-black/60 text-white opacity-60 hover:opacity-100 transition-opacity z-10"
+						className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-[0.5cqw] rounded-full bg-black/40 text-white/70 hover:bg-black/60 hover:text-white transition-all z-10"
 						aria-label="Flip card"
 					>
-						<RotateCcw className="w-[4cqw] h-[4cqw]" />
+						<RotateCcw className="w-[2cqw] h-[2cqw]" />
 					</button>
 				)}
 			</div>
 		);
 	}
 
-	// Split cards (fuse style): both halves side by side, rotated
+	// Split cards (fuse style): stacked vertically
 	if (isSplit && isMultiFaced) {
-		const rotateScale = 5 / 7;
 		const frameColor = getFrameColor(card);
 
 		return (
-			<div className="relative group">
-				<div
-					className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-row motion-safe:transition-transform motion-safe:duration-500`}
-					style={{
-						transformOrigin: "center center",
-						transform: isFlipped
-							? `rotate(90deg) scale(${rotateScale})`
-							: "rotate(0deg)",
-					}}
-				>
-					{/* Left half */}
-					<div className="w-1/2 flex flex-col border-r border-gray-300 dark:border-slate-600">
-						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[1cqw] ${frameColor.titleBg}`}
+			<div
+				className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+			>
+				{/* Top half */}
+				<div className="h-1/2 flex flex-col border-b border-gray-300 dark:border-slate-600">
+					<div
+						className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[0.75cqw] ${frameColor.titleBg}`}
+					>
+						<span
+							className={`font-bold text-[5cqw] tracking-tight truncate ${frameColor.titleText}`}
 						>
-							<span
-								className={`font-bold text-[5.5cqw] tracking-tight truncate ${frameColor.titleText}`}
-							>
-								{faces[0].name}
-							</span>
-							{faces[0].mana_cost && (
-								<ManaCost
-									cost={faces[0].mana_cost}
-									className="w-[5cqw] h-[5cqw]"
-								/>
-							)}
-						</div>
-						<div className="flex-1 overflow-hidden">
-							<FaceContent
-								face={faces[0]}
-								showStats={false}
-								setCode={card.set}
-								rarity={rarity}
+							{faces[0].name}
+						</span>
+						{faces[0].mana_cost && (
+							<ManaCost
+								cost={faces[0].mana_cost}
+								className="w-[4.5cqw] h-[4.5cqw]"
 							/>
-						</div>
+						)}
 					</div>
-
-					{/* Right half */}
-					<div className="w-1/2 flex flex-col">
-						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[1cqw] ${frameColor.titleBg}`}
-						>
-							<span
-								className={`font-bold text-[5.5cqw] tracking-tight truncate ${frameColor.titleText}`}
-							>
-								{faces[1].name}
-							</span>
-							{faces[1].mana_cost && (
-								<ManaCost
-									cost={faces[1].mana_cost}
-									className="w-[5cqw] h-[5cqw]"
-								/>
-							)}
-						</div>
-						<div className="flex-1 overflow-hidden">
-							<FaceContent
-								face={faces[1]}
-								showStats={false}
-								setCode={card.set}
-								rarity={rarity}
-							/>
-						</div>
-						<CardFooter card={card} />
+					<div className="flex-1 overflow-hidden">
+						<FaceContent
+							face={faces[0]}
+							showStats={false}
+							setCode={card.set}
+							rarity={rarity}
+						/>
 					</div>
 				</div>
 
-				{flippable && (
-					<button
-						type="button"
-						onClick={handleFlip}
-						className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white opacity-60 hover:opacity-100 transition-opacity z-10"
-						aria-label="Rotate card"
+				{/* Bottom half */}
+				<div className="h-1/2 flex flex-col">
+					<div
+						className={`flex items-center justify-between gap-[1cqw] px-[2cqw] py-[0.75cqw] ${frameColor.titleBg}`}
 					>
-						<RotateCcw className="w-4 h-4" />
-					</button>
-				)}
+						<span
+							className={`font-bold text-[5cqw] tracking-tight truncate ${frameColor.titleText}`}
+						>
+							{faces[1].name}
+						</span>
+						{faces[1].mana_cost && (
+							<ManaCost
+								cost={faces[1].mana_cost}
+								className="w-[4.5cqw] h-[4.5cqw]"
+							/>
+						)}
+					</div>
+					<div className="flex-1 overflow-hidden">
+						<FaceContent
+							face={faces[1]}
+							showStats={false}
+							setCode={card.set}
+							rarity={rarity}
+						/>
+					</div>
+				</div>
+
+				<CardFooter card={card} />
 			</div>
 		);
 	}
@@ -517,11 +524,13 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					<span className="text-[4.5cqw] tracking-tight text-gray-800 dark:text-gray-200 truncate">
 						{mainFace.type_line}
 					</span>
-					<SetSymbol
-						setCode={card.set}
-						rarity={SET_SYMBOL_RARITY[rarity]}
-						className="text-[5cqw]"
-					/>
+					{card.set && (
+						<SetSymbol
+							setCode={card.set}
+							rarity={SET_SYMBOL_RARITY[rarity]}
+							className="text-[5cqw]"
+						/>
+					)}
 				</div>
 
 				{/* Text box with adventure on left, creature text on right */}
