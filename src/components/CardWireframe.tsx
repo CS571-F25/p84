@@ -29,7 +29,7 @@ const LAYOUT = {
 	typePadding: "pl-[7.5cqw] pr-[8cqw] pt-[1.5cqw] pb-[0.5cqw]",
 	typeText: "text-[4.5cqw]",
 	oracleText: "text-[4cqw]",
-	oraclePadding: "px-[4cqw] py-[1.5cqw]",
+	oraclePadding: "px-[7cqw] py-[1.5cqw]",
 	footerPadding: "px-[3cqw] py-[1cqw]",
 	footerText: "text-[3cqw]",
 	manaSize: "w-[4cqw] h-[4cqw]",
@@ -318,7 +318,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 		return (
 			<div className="relative group">
 				<div
-					className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col motion-safe:transition-transform motion-safe:duration-500`}
+					className={`@container aspect-[5/7] border-[3px] ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col motion-safe:transition-transform motion-safe:duration-500`}
 					style={{
 						transform: isFlipped ? "rotate(180deg)" : "rotate(0deg)",
 					}}
@@ -427,7 +427,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 		return (
 			<div
-				className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+				className={`@container aspect-[5/7] border-[3px] ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
 			>
 				{/* Top half */}
 				<div className="h-1/2 flex flex-col border-b border-gray-300 dark:border-slate-600">
@@ -494,7 +494,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 		return (
 			<div
-				className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+				className={`@container aspect-[5/7] border-[3px] ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
 			>
 				{/* Top half - main spell */}
 				<div className="h-[60%] flex flex-col border-b-2 border-gray-300 dark:border-slate-600">
@@ -555,7 +555,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 		return (
 			<div
-				className={`@container relative aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+				className={`@container relative aspect-[5/7] border-[3px] ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
 			>
 				{/* Title bar */}
 				<div
@@ -666,11 +666,11 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 						>
 							<div className="flex items-center gap-[1.5cqw] min-w-0">
-								{isMdfc && (
-									<span className="text-[6cqw] leading-none text-gray-600 dark:text-gray-300">
-										◢
-									</span>
-								)}
+								<span
+									className={`${LAYOUT.titleText} leading-none text-gray-600 dark:text-gray-300`}
+								>
+									▲
+								</span>
 								<span
 									className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
 								>
@@ -698,8 +698,10 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						{/* MDFC back face hint */}
 						{isMdfc && backFace && (
 							<div className="flex items-center gap-[1.5cqw] px-[3cqw] py-[1cqw] text-[3.5cqw] bg-gray-200/80 dark:bg-slate-700/80 border-t border-gray-300 dark:border-slate-600 overflow-hidden">
-								<span className="text-[5cqw] leading-none text-gray-600 dark:text-gray-300 shrink-0">
-									◥
+								<span
+									className={`${LAYOUT.titleText} leading-none text-gray-600 dark:text-gray-300 shrink-0`}
+								>
+									▼
 								</span>
 								<span className="font-medium text-gray-700 dark:text-gray-300 shrink-0">
 									{backFace.type_line?.split("—")[0]?.trim()}
@@ -722,6 +724,14 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 										</span>
 									</>
 								)}
+							</div>
+						)}
+						{/* Transform back face P/T hint */}
+						{!isMdfc && backFace && backFace.power !== undefined && (
+							<div className="flex items-center justify-end px-[3cqw] py-[0.5cqw] text-[4cqw] text-gray-500 dark:text-gray-400">
+								<span>
+									{backFace.power}/{backFace.toughness}
+								</span>
 							</div>
 						)}
 						<CardFooter card={card} />
@@ -754,11 +764,11 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 						>
 							<div className="flex items-center gap-[1.5cqw] min-w-0">
-								{isMdfc && (
-									<span className="text-[6cqw] leading-none text-gray-600 dark:text-gray-300">
-										◥
-									</span>
-								)}
+								<span
+									className={`${LAYOUT.titleText} leading-none text-gray-600 dark:text-gray-300`}
+								>
+									▼
+								</span>
 								<span
 									className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
 								>
@@ -846,7 +856,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 	return (
 		<div
-			className={`@container relative aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+			className={`@container relative aspect-[5/7] border-[3px] ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
 		>
 			{/* Title bar */}
 			<div
