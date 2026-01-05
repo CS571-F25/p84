@@ -28,7 +28,13 @@
               # language servers
               typescript-language-server
               typespec
+              # playwright browser for screenshot scripts
+              playwright-driver.browsers
             ];
+            shellHook = ''
+              export PLAYWRIGHT_BROWSERS_PATH=${playwright-driver.browsers}
+              export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+            '';
           };
       }
     );
