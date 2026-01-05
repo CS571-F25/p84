@@ -337,7 +337,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							{topFace.mana_cost && (
 								<ManaCost
 									cost={topFace.mana_cost}
-									className="w-[4cqw] h-[4cqw]"
+									className={LAYOUT.manaSize}
 								/>
 							)}
 						</div>
@@ -496,18 +496,15 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 				{/* Top half - main spell */}
 				<div className="h-[60%] flex flex-col border-b-2 border-gray-300 dark:border-slate-600">
 					<div
-						className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
+						className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 					>
 						<span
-							className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
+							className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
 						>
 							{faces[0].name}
 						</span>
 						{faces[0].mana_cost && (
-							<ManaCost
-								cost={faces[0].mana_cost}
-								className="w-[4cqw] h-[4cqw]"
-							/>
+							<ManaCost cost={faces[0].mana_cost} className={LAYOUT.manaSize} />
 						)}
 					</div>
 					<div className="flex-1 overflow-hidden">
@@ -534,10 +531,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							{faces[1].name}
 						</span>
 						{faces[1].mana_cost && (
-							<ManaCost
-								cost={faces[1].mana_cost}
-								className="w-[4cqw] h-[4cqw]"
-							/>
+							<ManaCost cost={faces[1].mana_cost} className={LAYOUT.manaSize} />
 						)}
 					</div>
 					<div className="flex-1 px-[3cqw] py-[1cqw] text-[4cqw] leading-tight tracking-tight text-gray-800 dark:text-gray-200 overflow-hidden">
@@ -565,12 +559,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
 				>
 					<span
-						className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
+						className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
 					>
 						{mainFace.name}
 					</span>
 					{mainFace.mana_cost && (
-						<ManaCost cost={mainFace.mana_cost} className="w-[4cqw] h-[4cqw]" />
+						<ManaCost cost={mainFace.mana_cost} className={LAYOUT.manaSize} />
 					)}
 				</div>
 
@@ -666,7 +660,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						style={{ backfaceVisibility: "hidden" }}
 					>
 						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
+							className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 						>
 							<div className="flex items-center gap-[1.5cqw] min-w-0">
 								{isMdfc && (
@@ -675,7 +669,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 									</span>
 								)}
 								<span
-									className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
+									className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
 								>
 									{faces[0].name}
 								</span>
@@ -683,7 +677,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							{faces[0].mana_cost && (
 								<ManaCost
 									cost={faces[0].mana_cost}
-									className="w-[4cqw] h-[4cqw]"
+									className={LAYOUT.manaSize}
 								/>
 							)}
 						</div>
@@ -732,8 +726,10 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						{(faces[0].power !== undefined ||
 							faces[0].loyalty !== undefined ||
 							faces[0].defense !== undefined) && (
-							<div className="absolute bottom-[0.5cqw] right-[2cqw]">
-								<span className="text-[5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[1.5cqw] py-[0.25cqw] rounded border border-gray-300 dark:border-slate-500">
+							<div className={`absolute ${LAYOUT.ptPosition}`}>
+								<span
+									className={`${LAYOUT.ptText} font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 ${LAYOUT.ptPadding} rounded-sm border border-gray-400 dark:border-slate-500`}
+								>
 									{faces[0].power !== undefined &&
 										`${faces[0].power}/${faces[0].toughness}`}
 									{faces[0].loyalty}
@@ -752,7 +748,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						}}
 					>
 						<div
-							className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
+							className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 						>
 							<div className="flex items-center gap-[1.5cqw] min-w-0">
 								{isMdfc && (
@@ -761,7 +757,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 									</span>
 								)}
 								<span
-									className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
+									className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
 								>
 									{faces[1]?.name}
 								</span>
@@ -769,7 +765,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							{faces[1]?.mana_cost && (
 								<ManaCost
 									cost={faces[1].mana_cost}
-									className="w-[4cqw] h-[4cqw]"
+									className={LAYOUT.manaSize}
 								/>
 							)}
 						</div>
@@ -810,8 +806,10 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							(faces[1].power !== undefined ||
 								faces[1].loyalty !== undefined ||
 								faces[1].defense !== undefined) && (
-								<div className="absolute bottom-[0.5cqw] right-[2cqw]">
-									<span className="text-[5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[1.5cqw] py-[0.25cqw] rounded border border-gray-300 dark:border-slate-500">
+								<div className={`absolute ${LAYOUT.ptPosition}`}>
+									<span
+										className={`${LAYOUT.ptText} font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 ${LAYOUT.ptPadding} rounded-sm border border-gray-400 dark:border-slate-500`}
+									>
 										{faces[1].power !== undefined &&
 											`${faces[1].power}/${faces[1].toughness}`}
 										{faces[1].loyalty}
