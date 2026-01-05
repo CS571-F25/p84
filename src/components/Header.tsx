@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Library, LogIn, Menu, Moon, Sun, X } from "lucide-react";
+import { Home, Library, LogIn, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { RETURN_TO_KEY, useAuth } from "@/lib/useAuth";
 import { useTheme } from "@/lib/useTheme";
@@ -19,7 +19,7 @@ export default function Header() {
 
 	return (
 		<>
-			<header className="p-4 flex items-center justify-between bg-gray-800 dark:bg-gray-900 text-white shadow-lg">
+			<header className="p-4 flex items-center bg-gray-800 dark:bg-gray-900 text-white shadow-lg">
 				<div className="flex items-center">
 					<button
 						type="button"
@@ -33,6 +33,18 @@ export default function Header() {
 						<Link to="/">DeckBelcher</Link>
 					</h1>
 				</div>
+
+				<div className="flex-1 flex justify-center px-4">
+					<Link
+						to="/cards"
+						search={{ q: "" }}
+						className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors text-white text-sm font-medium"
+					>
+						<Search size={18} />
+						<span className="hidden sm:inline">Search Cards</span>
+					</Link>
+				</div>
+
 				<div className="flex items-center gap-2">
 					{!isLoading &&
 						(session ? (
@@ -63,6 +75,15 @@ export default function Header() {
 					</button>
 				</div>
 			</header>
+
+			{isOpen && (
+				<div
+					className="fixed inset-0 bg-black/50 z-40"
+					onClick={() => setIsOpen(false)}
+					onKeyDown={(e) => e.key === "Escape" && setIsOpen(false)}
+					aria-hidden="true"
+				/>
+			)}
 
 			<aside
 				className={`fixed top-0 left-0 h-full w-80 bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
