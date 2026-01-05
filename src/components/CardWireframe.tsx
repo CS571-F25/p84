@@ -137,13 +137,15 @@ function FaceContent({
 				</div>
 			)}
 
-			{/* Oracle Text */}
-			<div className="flex-1 px-[4cqw] py-[2cqw] text-[4.5cqw] leading-snug tracking-tight text-gray-800 dark:text-gray-200 overflow-hidden">
+			{/* Oracle Text - centered for short text, top-aligned for long */}
+			<div className="flex-1 grid place-content-center px-[4cqw] py-[2cqw] text-[4.5cqw] leading-snug tracking-tight text-gray-800 dark:text-gray-200 overflow-hidden">
 				{face.oracle_text ? (
 					isPlaneswalker ? (
 						<PlaneswalkerAbilities text={face.oracle_text} />
 					) : (
-						<OracleText text={face.oracle_text} symbolSize="text" />
+						<div>
+							<OracleText text={face.oracle_text} symbolSize="text" />
+						</div>
 					)
 				) : (
 					<span className="text-gray-400 dark:text-gray-500 italic">
@@ -152,16 +154,10 @@ function FaceContent({
 				)}
 			</div>
 
-			{/* Stats (P/T, Loyalty, Defense) - absolute for planeswalkers so text isn't cut off */}
+			{/* Stats (P/T, Loyalty, Defense) - absolute positioned to overlap footer like real cards */}
 			{hasStats && (
-				<div
-					className={
-						hasLoyalty
-							? "absolute bottom-[1cqw] right-[2cqw]"
-							: "flex justify-end px-[2cqw] py-[1cqw]"
-					}
-				>
-					<span className="text-[6cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[2cqw] py-[0.5cqw] rounded">
+				<div className="absolute bottom-0 right-[2cqw] translate-y-1/2">
+					<span className="text-[6cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[2cqw] py-[0.5cqw] rounded border border-gray-300 dark:border-slate-500">
 						{hasPT && `${face.power}/${face.toughness}`}
 						{hasLoyalty && face.loyalty}
 						{hasDefense && face.defense}
@@ -581,19 +577,23 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					</div>
 
 					{/* Creature text */}
-					<div className="flex-1 flex flex-col justify-between overflow-hidden">
+					<div className="flex-1 flex flex-col justify-center overflow-hidden">
 						{mainFace.oracle_text && (
-							<div className="flex-1 text-[3.5cqw] leading-tight text-gray-800 dark:text-gray-200 overflow-hidden">
+							<div className="text-[3.5cqw] leading-tight text-gray-800 dark:text-gray-200 overflow-hidden">
 								<OracleText text={mainFace.oracle_text} symbolSize="text" />
-							</div>
-						)}
-						{(mainFace.power || mainFace.toughness) && (
-							<div className="text-right font-bold text-[5cqw] text-gray-900 dark:text-white shrink-0">
-								{mainFace.power}/{mainFace.toughness}
 							</div>
 						)}
 					</div>
 				</div>
+
+				{/* P/T box - absolute positioned to overlap footer */}
+				{(mainFace.power || mainFace.toughness) && (
+					<div className="absolute bottom-[4cqw] right-[2cqw]">
+						<span className="text-[5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[2cqw] py-[0.5cqw] rounded border border-gray-300 dark:border-slate-500">
+							{mainFace.power}/{mainFace.toughness}
+						</span>
+					</div>
+				)}
 
 				<CardFooter card={card} />
 			</div>
@@ -660,7 +660,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 										<span className="text-gray-500 dark:text-gray-400 shrink-0">
 											·
 										</span>
-										<span className="truncate">
+										<span className="truncate text-gray-700 dark:text-gray-300">
 											<OracleText
 												text={
 													backFace.oracle_text
