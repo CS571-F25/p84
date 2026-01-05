@@ -834,55 +834,55 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 	const hasDefense = face.defense !== undefined;
 
 	return (
-		<div
-			className={`@container relative aspect-[5/7] bg-black rounded-[4.75%/3.5%] p-[0.8cqw] ${className ?? ""}`}
-		>
-			<div
-				className={`h-full ${frameColor.frame} rounded-[3%/2%] overflow-hidden flex flex-col`}
-			>
-				{/* Title bar */}
+		<div className={`@container aspect-[5/7] ${className ?? ""}`}>
+			<div className="relative w-full h-full bg-black rounded-[4.75%/3.5%] p-[1.2cqw]">
 				<div
-					className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
+					className={`h-full ${frameColor.frame} rounded-[3%/2%] overflow-hidden flex flex-col`}
 				>
-					<span
-						className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
+					{/* Title bar */}
+					<div
+						className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 					>
-						{face.name}
-					</span>
-					{face.mana_cost && (
-						<ManaCost cost={face.mana_cost} className={LAYOUT.manaSize} />
+						<span
+							className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
+						>
+							{face.name}
+						</span>
+						{face.mana_cost && (
+							<ManaCost cost={face.mana_cost} className={LAYOUT.manaSize} />
+						)}
+					</div>
+
+					{/* Art placeholder */}
+					<div
+						className={`${LAYOUT.artHeight} bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center`}
+					/>
+
+					{/* Card body */}
+					<div className="flex-1 flex flex-col overflow-hidden">
+						<FaceContent
+							face={face}
+							setCode={card.set}
+							rarity={rarity}
+							showStats={false}
+						/>
+					</div>
+
+					<CardFooter card={card} />
+
+					{/* P/T / Loyalty / Defense - positioned at bottom-right corner */}
+					{(hasPT || hasLoyalty || hasDefense) && (
+						<div className={`absolute ${LAYOUT.ptPosition}`}>
+							<span
+								className={`${LAYOUT.ptText} font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 ${LAYOUT.ptPadding} rounded-sm border border-gray-400 dark:border-slate-500`}
+							>
+								{hasPT && `${face.power}/${face.toughness}`}
+								{hasLoyalty && face.loyalty}
+								{hasDefense && face.defense}
+							</span>
+						</div>
 					)}
 				</div>
-
-				{/* Art placeholder */}
-				<div
-					className={`${LAYOUT.artHeight} bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center`}
-				/>
-
-				{/* Card body */}
-				<div className="flex-1 flex flex-col overflow-hidden">
-					<FaceContent
-						face={face}
-						setCode={card.set}
-						rarity={rarity}
-						showStats={false}
-					/>
-				</div>
-
-				<CardFooter card={card} />
-
-				{/* P/T / Loyalty / Defense - positioned at bottom-right corner */}
-				{(hasPT || hasLoyalty || hasDefense) && (
-					<div className={`absolute ${LAYOUT.ptPosition}`}>
-						<span
-							className={`${LAYOUT.ptText} font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 ${LAYOUT.ptPadding} rounded-sm border border-gray-400 dark:border-slate-500`}
-						>
-							{hasPT && `${face.power}/${face.toughness}`}
-							{hasLoyalty && face.loyalty}
-							{hasDefense && face.defense}
-						</span>
-					</div>
-				)}
 			</div>
 		</div>
 	);

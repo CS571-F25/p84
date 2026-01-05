@@ -20,6 +20,7 @@ import { Route as ComponentsCardWireframeRouteImport } from './routes/components
 import { Route as CardIdRouteImport } from './routes/card/$id'
 import { Route as ProfileDidIndexRouteImport } from './routes/profile/$did/index'
 import { Route as ComponentsWireframeIdRouteImport } from './routes/components/wireframe.$id'
+import { Route as ComponentsWireframeCompareIdRouteImport } from './routes/components/wireframe-compare.$id'
 import { Route as ProfileDidDeckRkeyRouteImport } from './routes/profile/$did/deck/$rkey'
 import { Route as ProfileDidDeckRkeyIndexRouteImport } from './routes/profile/$did/deck/$rkey/index'
 import { Route as ProfileDidDeckRkeyBulkEditRouteImport } from './routes/profile/$did/deck/$rkey/bulk-edit'
@@ -79,6 +80,12 @@ const ComponentsWireframeIdRoute = ComponentsWireframeIdRouteImport.update({
   path: '/components/wireframe/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComponentsWireframeCompareIdRoute =
+  ComponentsWireframeCompareIdRouteImport.update({
+    id: '/components/wireframe-compare/$id',
+    path: '/components/wireframe-compare/$id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ProfileDidDeckRkeyRoute = ProfileDidDeckRkeyRouteImport.update({
   id: '/profile/$did/deck/$rkey',
   path: '/profile/$did/deck/$rkey',
@@ -106,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/u/$handle': typeof UHandleRoute
   '/cards': typeof CardsIndexRoute
   '/components': typeof ComponentsIndexRoute
+  '/components/wireframe-compare/$id': typeof ComponentsWireframeCompareIdRoute
   '/components/wireframe/$id': typeof ComponentsWireframeIdRoute
   '/profile/$did': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRouteWithChildren
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
   '/u/$handle': typeof UHandleRoute
   '/cards': typeof CardsIndexRoute
   '/components': typeof ComponentsIndexRoute
+  '/components/wireframe-compare/$id': typeof ComponentsWireframeCompareIdRoute
   '/components/wireframe/$id': typeof ComponentsWireframeIdRoute
   '/profile/$did': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey/bulk-edit': typeof ProfileDidDeckRkeyBulkEditRoute
@@ -138,6 +147,7 @@ export interface FileRoutesById {
   '/u/$handle': typeof UHandleRoute
   '/cards/': typeof CardsIndexRoute
   '/components/': typeof ComponentsIndexRoute
+  '/components/wireframe-compare/$id': typeof ComponentsWireframeCompareIdRoute
   '/components/wireframe/$id': typeof ComponentsWireframeIdRoute
   '/profile/$did/': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRouteWithChildren
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/u/$handle'
     | '/cards'
     | '/components'
+    | '/components/wireframe-compare/$id'
     | '/components/wireframe/$id'
     | '/profile/$did'
     | '/profile/$did/deck/$rkey'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/u/$handle'
     | '/cards'
     | '/components'
+    | '/components/wireframe-compare/$id'
     | '/components/wireframe/$id'
     | '/profile/$did'
     | '/profile/$did/deck/$rkey/bulk-edit'
@@ -187,6 +199,7 @@ export interface FileRouteTypes {
     | '/u/$handle'
     | '/cards/'
     | '/components/'
+    | '/components/wireframe-compare/$id'
     | '/components/wireframe/$id'
     | '/profile/$did/'
     | '/profile/$did/deck/$rkey'
@@ -204,6 +217,7 @@ export interface RootRouteChildren {
   UHandleRoute: typeof UHandleRoute
   CardsIndexRoute: typeof CardsIndexRoute
   ComponentsIndexRoute: typeof ComponentsIndexRoute
+  ComponentsWireframeCompareIdRoute: typeof ComponentsWireframeCompareIdRoute
   ComponentsWireframeIdRoute: typeof ComponentsWireframeIdRoute
   ProfileDidIndexRoute: typeof ProfileDidIndexRoute
   ProfileDidDeckRkeyRoute: typeof ProfileDidDeckRkeyRouteWithChildren
@@ -288,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComponentsWireframeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/components/wireframe-compare/$id': {
+      id: '/components/wireframe-compare/$id'
+      path: '/components/wireframe-compare/$id'
+      fullPath: '/components/wireframe-compare/$id'
+      preLoaderRoute: typeof ComponentsWireframeCompareIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile/$did/deck/$rkey': {
       id: '/profile/$did/deck/$rkey'
       path: '/profile/$did/deck/$rkey'
@@ -335,6 +356,7 @@ const rootRouteChildren: RootRouteChildren = {
   UHandleRoute: UHandleRoute,
   CardsIndexRoute: CardsIndexRoute,
   ComponentsIndexRoute: ComponentsIndexRoute,
+  ComponentsWireframeCompareIdRoute: ComponentsWireframeCompareIdRoute,
   ComponentsWireframeIdRoute: ComponentsWireframeIdRoute,
   ProfileDidIndexRoute: ProfileDidIndexRoute,
   ProfileDidDeckRkeyRoute: ProfileDidDeckRkeyRouteWithChildren,
