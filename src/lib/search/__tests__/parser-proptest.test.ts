@@ -28,7 +28,9 @@ const NUMERIC_FIELDS = [
 	"loy",
 	"def",
 ] as const;
-const wordArb = fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9]{0,8}$/);
+const wordArb = fc
+	.stringMatching(/^[a-zA-Z][a-zA-Z0-9]{0,8}$/)
+	.filter((w) => w.toLowerCase() !== "or");
 const numArb = fc.integer({ min: 0, max: 20 });
 const colorArb = fc
 	.subarray([...COLORS], { minLength: 1, maxLength: 5 })
