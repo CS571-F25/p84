@@ -9,6 +9,7 @@ import { CardModal } from "@/components/deck/CardModal";
 import { CardPreviewPane } from "@/components/deck/CardPreviewPane";
 import { CardSearchAutocomplete } from "@/components/deck/CardSearchAutocomplete";
 import { CommonTagsOverlay } from "@/components/deck/CommonTagsOverlay";
+import { DeckActionsMenu } from "@/components/deck/DeckActionsMenu";
 import { DeckHeader } from "@/components/deck/DeckHeader";
 import { DeckSection } from "@/components/deck/DeckSection";
 import { DeckStats } from "@/components/deck/DeckStats";
@@ -123,6 +124,9 @@ function DeckEditorPage() {
 	const [draggedCardId, setDraggedCardId] = useState<ScryfallId | null>(null);
 	const [isDragging, setIsDragging] = useState(false);
 	const [statsSelection, setStatsSelection] = useState<StatsSelection>(null);
+	const [highlightedCards, setHighlightedCards] = useState<Set<ScryfallId>>(
+		new Set(),
+	);
 
 	const statsCards = useMemo(
 		() => [
@@ -154,6 +158,12 @@ function DeckEditorPage() {
 		if (!isOwner) return;
 		const updated = updater(deck);
 		await mutation.mutateAsync(updated);
+	};
+
+	// Highlight cards that were changed - clear after render so it can trigger again
+	const handleCardsChanged = (changedIds: Set<ScryfallId>) => {
+		setHighlightedCards(changedIds);
+		setTimeout(() => setHighlightedCards(new Set()), 0);
 	};
 
 	const handleCardHover = (cardId: ScryfallId | null) => {
@@ -405,6 +415,9 @@ function DeckEditorPage() {
 				setGroupBy={setGroupBy}
 				setSortBy={setSortBy}
 				allTags={allTags}
+				updateDeck={updateDeck}
+				highlightedCards={highlightedCards}
+				handleCardsChanged={handleCardsChanged}
 			/>
 		</DragDropProvider>
 	);
@@ -440,6 +453,9 @@ interface DeckEditorInnerProps {
 	setGroupBy: (groupBy: GroupBy) => void;
 	setSortBy: (sortBy: SortBy) => void;
 	allTags: string[];
+	updateDeck: (updater: (prev: Deck) => Deck) => Promise<void>;
+	highlightedCards: Set<ScryfallId>;
+	handleCardsChanged: (changedIds: Set<ScryfallId>) => void;
 }
 
 function DeckEditorInner({
@@ -472,6 +488,9 @@ function DeckEditorInner({
 	setGroupBy,
 	setSortBy,
 	allTags,
+	updateDeck,
+	highlightedCards,
+	handleCardsChanged,
 }: DeckEditorInnerProps) {
 	// Track drag state globally (must be inside DndContext)
 	useDndMonitor({
@@ -509,13 +528,20 @@ function DeckEditorInner({
 			{isOwner && (
 				<div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
 					<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 py-3 flex items-center justify-between gap-4">
-						<Link
-							to="/profile/$did/deck/$rkey/bulk-edit"
-							params={{ did, rkey }}
-							className="text-sm text-blue-600 dark:text-blue-400 hover:underline whitespace-nowrap"
-						>
-							Bulk Edit
-						</Link>
+						<div className="flex items-center gap-2">
+							<DeckActionsMenu
+								deck={deck}
+								onUpdateDeck={updateDeck}
+								onCardsChanged={handleCardsChanged}
+							/>
+							<Link
+								to="/profile/$did/deck/$rkey/bulk-edit"
+								params={{ did, rkey }}
+								className="text-sm text-blue-600 dark:text-blue-400 hover:underline whitespace-nowrap"
+							>
+								Bulk Edit
+							</Link>
+						</div>
 						<div className="w-full max-w-md">
 							<CardSearchAutocomplete
 								deck={deck}
@@ -579,6 +605,7 @@ function DeckEditorInner({
 								onCardClick={handleCardClick}
 								isDragging={isDragging}
 								readOnly={!isOwner}
+								highlightedCards={highlightedCards}
 							/>
 						)}
 						<DeckSection
@@ -590,6 +617,7 @@ function DeckEditorInner({
 							onCardClick={handleCardClick}
 							isDragging={isDragging}
 							readOnly={!isOwner}
+							highlightedCards={highlightedCards}
 						/>
 						<DeckSection
 							section="sideboard"
@@ -600,6 +628,7 @@ function DeckEditorInner({
 							onCardClick={handleCardClick}
 							isDragging={isDragging}
 							readOnly={!isOwner}
+							highlightedCards={highlightedCards}
 						/>
 						<DeckSection
 							section="maybeboard"
@@ -610,6 +639,7 @@ function DeckEditorInner({
 							onCardClick={handleCardClick}
 							isDragging={isDragging}
 							readOnly={!isOwner}
+							highlightedCards={highlightedCards}
 						/>
 
 						<DeckStats

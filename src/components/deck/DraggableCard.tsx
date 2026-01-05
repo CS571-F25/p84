@@ -1,5 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { ManaCost } from "@/components/ManaCost";
 import { getPrimaryFace } from "@/lib/card-faces";
 import type { DeckCard } from "@/lib/deck-types";
@@ -13,6 +14,7 @@ interface DraggableCardProps {
 	onCardClick?: (card: DeckCard) => void;
 	disabled?: boolean;
 	isDraggingGlobal?: boolean;
+	isHighlighted?: boolean;
 }
 
 export interface DragData {
@@ -28,6 +30,7 @@ export function DraggableCard({
 	onCardClick,
 	disabled = false,
 	isDraggingGlobal = false,
+	isHighlighted = false,
 }: DraggableCardProps) {
 	const { data: cardData, isLoading } = useQuery(
 		getCardByIdQueryOptions(card.scryfallId),
@@ -45,6 +48,17 @@ export function DraggableCard({
 		disabled,
 	});
 
+	const highlightRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (isHighlighted && highlightRef.current) {
+			highlightRef.current.animate([{ opacity: 1 }, { opacity: 0 }], {
+				duration: 2000,
+				easing: "ease-out",
+			});
+		}
+	}, [isHighlighted]);
+
 	const primaryFace = cardData ? getPrimaryFace(cardData) : null;
 
 	return (
@@ -53,7 +67,7 @@ export function DraggableCard({
 			{...attributes}
 			{...(disabled ? {} : listeners)}
 			type="button"
-			className="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded px-2 py-1 transition-colors w-full text-left md:touch-none"
+			className="relative rounded px-2 py-1 w-full text-left md:touch-none bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700"
 			style={{
 				opacity: isDragging ? 0.5 : 1,
 				cursor: disabled ? "pointer" : isDragging ? "grabbing" : "grab",
@@ -74,6 +88,10 @@ export function DraggableCard({
 				}
 			}}
 		>
+			<div
+				ref={highlightRef}
+				className="absolute inset-0 rounded bg-[var(--highlight-color)] opacity-0 pointer-events-none"
+			/>
 			<div className="flex items-center gap-2">
 				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-4 text-right flex-shrink-0">
 					{card.quantity}

@@ -18,6 +18,7 @@ interface DeckSectionProps {
 	onCardClick?: (card: DeckCard) => void;
 	isDragging: boolean;
 	readOnly?: boolean;
+	highlightedCards?: Set<ScryfallId>;
 }
 
 export function DeckSection({
@@ -29,6 +30,7 @@ export function DeckSection({
 	onCardClick,
 	isDragging,
 	readOnly = false,
+	highlightedCards,
 }: DeckSectionProps) {
 	const sectionNames: Record<Section, string> = {
 		commander: "Commander",
@@ -116,6 +118,7 @@ export function DeckSection({
 												onCardClick={onCardClick}
 												disabled={readOnly}
 												isDraggingGlobal={isDragging}
+												isHighlighted={highlightedCards?.has(card.scryfallId)}
 											/>
 										</div>
 									);
@@ -131,6 +134,7 @@ export function DeckSection({
 												onCardClick={onCardClick}
 												disabled={readOnly}
 												isDraggingGlobal={isDragging}
+												isHighlighted={highlightedCards?.has(card.scryfallId)}
 											/>
 										</div>
 									);
@@ -174,6 +178,7 @@ export function DeckSection({
 													onCardClick={onCardClick}
 													disabled={readOnly}
 													isDraggingGlobal={isDragging}
+													isHighlighted={highlightedCards?.has(card.scryfallId)}
 												/>
 											);
 										})}
