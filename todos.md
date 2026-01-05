@@ -52,12 +52,6 @@ This file tracks discovered issues, refactoring opportunities, and feature ideas
 
 ### High Priority
 
-#### Extract operator matcher pattern in fields.ts
-- **Location**: `src/lib/search/fields.ts`
-- **Issue**: Same operator switch (`case ":"`, `case "!="`, etc.) duplicated 5+ times across `compileNumericField`, `compileStatField`, `compileRarity`, `compileFormat`, `compileYear`, `compileDate`
-- **Fix**: Create operator combinator functions like `createNumericMatcher(getter, searchValue)`
-- **Effort**: Small (1-2 hours)
-
 #### Reduce computeManaSymbolsVsSources complexity
 - **Location**: `src/lib/deck-stats.ts:327-502` (176 lines)
 - **Issue**: Single function creates 13 separate color-keyed data structures, has deeply nested loops, mixes concerns (counting, classification, distribution)

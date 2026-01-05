@@ -12,6 +12,48 @@ import type { ComparisonOp, FieldName, FieldValue } from "./types";
 export type CardPredicate = (card: Card) => boolean;
 
 /**
+ * Create a predicate for ordered comparisons (numbers, dates, ranks).
+ * Handles all comparison operators with a single pattern.
+ *
+ * @param getValue - Extract comparable value from card (null = no match for inequalities)
+ * @param searchValue - Value to compare against
+ * @param operator - Comparison operator
+ */
+function createOrderedMatcher<T>(
+	getValue: (card: Card) => T | null | undefined,
+	searchValue: T,
+	operator: ComparisonOp,
+): CardPredicate {
+	switch (operator) {
+		case ":":
+		case "=":
+			return (card) => getValue(card) === searchValue;
+		case "!=":
+			return (card) => getValue(card) !== searchValue;
+		case "<":
+			return (card) => {
+				const v = getValue(card);
+				return v != null && v < searchValue;
+			};
+		case ">":
+			return (card) => {
+				const v = getValue(card);
+				return v != null && v > searchValue;
+			};
+		case "<=":
+			return (card) => {
+				const v = getValue(card);
+				return v != null && v <= searchValue;
+			};
+		case ">=":
+			return (card) => {
+				const v = getValue(card);
+				return v != null && v >= searchValue;
+			};
+	}
+}
+
+/**
  * Compile a field expression into a card predicate
  */
 export function compileField(
@@ -235,36 +277,7 @@ function compileNumericField(
 	if (value.kind !== "number") {
 		return () => false;
 	}
-
-	const searchValue = value.value;
-
-	switch (operator) {
-		case ":":
-		case "=":
-			return (card) => getter(card) === searchValue;
-		case "!=":
-			return (card) => getter(card) !== searchValue;
-		case "<":
-			return (card) => {
-				const v = getter(card);
-				return v !== undefined && v < searchValue;
-			};
-		case ">":
-			return (card) => {
-				const v = getter(card);
-				return v !== undefined && v > searchValue;
-			};
-		case "<=":
-			return (card) => {
-				const v = getter(card);
-				return v !== undefined && v <= searchValue;
-			};
-		case ">=":
-			return (card) => {
-				const v = getter(card);
-				return v !== undefined && v >= searchValue;
-			};
-	}
+	return createOrderedMatcher(getter, value.value, operator);
 }
 
 /**
@@ -298,9 +311,6 @@ function compileStatField(
 		return () => false;
 	}
 
-	const searchValue = value.value;
-
-	// Parse card value as number, treating * as 0
 	const parseStatValue = (cardValue: string | undefined): number | null => {
 		if (!cardValue) return null;
 		if (cardValue === "*" || cardValue.includes("*")) return 0;
@@ -308,33 +318,11 @@ function compileStatField(
 		return Number.isNaN(num) ? null : num;
 	};
 
-	switch (operator) {
-		case ":":
-		case "=":
-			return (card) => parseStatValue(getter(card)) === searchValue;
-		case "!=":
-			return (card) => parseStatValue(getter(card)) !== searchValue;
-		case "<":
-			return (card) => {
-				const v = parseStatValue(getter(card));
-				return v !== null && v < searchValue;
-			};
-		case ">":
-			return (card) => {
-				const v = parseStatValue(getter(card));
-				return v !== null && v > searchValue;
-			};
-		case "<=":
-			return (card) => {
-				const v = parseStatValue(getter(card));
-				return v !== null && v <= searchValue;
-			};
-		case ">=":
-			return (card) => {
-				const v = parseStatValue(getter(card));
-				return v !== null && v >= searchValue;
-			};
-	}
+	return createOrderedMatcher(
+		(card) => parseStatValue(getter(card)),
+		value.value,
+		operator,
+	);
 }
 
 /**
@@ -423,33 +411,11 @@ function compileRarity(
 
 	const targetRank = RARITY_ORDER[expanded];
 
-	switch (operator) {
-		case ":":
-		case "=":
-			return (card) => card.rarity === expanded;
-		case "!=":
-			return (card) => card.rarity !== expanded;
-		case "<":
-			return (card) => {
-				const rank = RARITY_ORDER[card.rarity ?? ""];
-				return rank !== undefined && rank < targetRank;
-			};
-		case ">":
-			return (card) => {
-				const rank = RARITY_ORDER[card.rarity ?? ""];
-				return rank !== undefined && rank > targetRank;
-			};
-		case "<=":
-			return (card) => {
-				const rank = RARITY_ORDER[card.rarity ?? ""];
-				return rank !== undefined && rank <= targetRank;
-			};
-		case ">=":
-			return (card) => {
-				const rank = RARITY_ORDER[card.rarity ?? ""];
-				return rank !== undefined && rank >= targetRank;
-			};
-	}
+	return createOrderedMatcher(
+		(card) => RARITY_ORDER[card.rarity ?? ""],
+		targetRank,
+		operator,
+	);
 }
 
 /**
@@ -556,41 +522,13 @@ function compileYear(operator: ComparisonOp, value: FieldValue): CardPredicate {
 		return () => false;
 	}
 
-	const searchYear = value.value;
-
 	const getYear = (card: Card): number | null => {
 		if (!card.released_at) return null;
 		const year = parseInt(card.released_at.slice(0, 4), 10);
 		return Number.isNaN(year) ? null : year;
 	};
 
-	switch (operator) {
-		case ":":
-		case "=":
-			return (card) => getYear(card) === searchYear;
-		case "!=":
-			return (card) => getYear(card) !== searchYear;
-		case "<":
-			return (card) => {
-				const y = getYear(card);
-				return y !== null && y < searchYear;
-			};
-		case ">":
-			return (card) => {
-				const y = getYear(card);
-				return y !== null && y > searchYear;
-			};
-		case "<=":
-			return (card) => {
-				const y = getYear(card);
-				return y !== null && y <= searchYear;
-			};
-		case ">=":
-			return (card) => {
-				const y = getYear(card);
-				return y !== null && y >= searchYear;
-			};
-	}
+	return createOrderedMatcher(getYear, value.value, operator);
 }
 
 /**
@@ -600,28 +538,11 @@ function compileDate(operator: ComparisonOp, value: FieldValue): CardPredicate {
 	if (value.kind !== "string") {
 		return () => false;
 	}
-
-	const searchDate = value.value;
-
-	switch (operator) {
-		case ":":
-		case "=":
-			return (card) => card.released_at === searchDate;
-		case "!=":
-			return (card) => card.released_at !== searchDate;
-		case "<":
-			return (card) =>
-				card.released_at ? card.released_at < searchDate : false;
-		case ">":
-			return (card) =>
-				card.released_at ? card.released_at > searchDate : false;
-		case "<=":
-			return (card) =>
-				card.released_at ? card.released_at <= searchDate : false;
-		case ">=":
-			return (card) =>
-				card.released_at ? card.released_at >= searchDate : false;
-	}
+	return createOrderedMatcher(
+		(card) => card.released_at,
+		value.value,
+		operator,
+	);
 }
 
 /**
