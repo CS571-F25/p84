@@ -1,4 +1,5 @@
 import type { Card } from "@/lib/scryfall-types";
+import { getPrimaryFace } from "./card-faces";
 import type { DeckCard, GroupBy, SortBy } from "./deck-types";
 
 /**
@@ -233,7 +234,8 @@ export function groupCards(
 		case "type": {
 			for (const card of cards) {
 				const cardData = cardLookup(card);
-				const type = extractPrimaryType(cardData?.type_line);
+				const face = cardData ? getPrimaryFace(cardData) : undefined;
+				const type = extractPrimaryType(face?.type_line);
 				const group = groups.get(type) ?? { cards: [], forTag: false };
 				group.cards.push(card);
 				groups.set(type, group);
@@ -246,7 +248,8 @@ export function groupCards(
 				if (!card.tags || card.tags.length === 0) {
 					// No tags → group by type
 					const cardData = cardLookup(card);
-					const type = extractPrimaryType(cardData?.type_line);
+					const face = cardData ? getPrimaryFace(cardData) : undefined;
+					const type = extractPrimaryType(face?.type_line);
 					const group = groups.get(type) ?? { cards: [], forTag: false };
 					group.cards.push(card);
 					groups.set(type, group);
@@ -266,7 +269,8 @@ export function groupCards(
 		case "subtype": {
 			for (const card of cards) {
 				const cardData = cardLookup(card);
-				const subtypes = extractSubtypes(cardData?.type_line);
+				const face = cardData ? getPrimaryFace(cardData) : undefined;
+				const subtypes = extractSubtypes(face?.type_line);
 
 				if (subtypes.length === 0) {
 					const group = groups.get("(No Subtype)") ?? {

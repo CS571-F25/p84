@@ -1,4 +1,5 @@
 import type {
+	FacedCard,
 	ManaCurveData,
 	ManaSymbolsData,
 	SourceTempo,
@@ -6,7 +7,6 @@ import type {
 	SpeedData,
 	TypeData,
 } from "./deck-stats";
-import type { DeckCard } from "./deck-types";
 import type { ManaColorWithColorless } from "./scryfall-types";
 
 export type ManaSelectionType = "symbol" | "land" | SourceTempo;
@@ -32,7 +32,7 @@ export interface AllStats {
 }
 
 export interface SelectedCardsResult {
-	cards: DeckCard[];
+	cards: FacedCard[];
 	title: string;
 }
 
@@ -132,7 +132,7 @@ export function getSelectedCards(
 				bounce: "Bounce",
 			};
 
-			const cardsByTempo: Record<SourceTempo, DeckCard[]> = {
+			const cardsByTempo: Record<SourceTempo, FacedCard[]> = {
 				immediate: manaData.immediateSourceCards,
 				conditional: manaData.conditionalSourceCards,
 				delayed: manaData.delayedSourceCards,

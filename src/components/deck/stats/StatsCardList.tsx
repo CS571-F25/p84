@@ -1,12 +1,14 @@
 import { useQueries } from "@tanstack/react-query";
 import { ManaCost } from "@/components/ManaCost";
+import { getCastableFaces } from "@/lib/card-faces";
+import type { FacedCard } from "@/lib/deck-stats";
 import type { DeckCard } from "@/lib/deck-types";
 import { combineCardQueries, getCardByIdQueryOptions } from "@/lib/queries";
 import type { ScryfallId } from "@/lib/scryfall-types";
 
 interface StatsCardListProps {
 	title: string;
-	cards: DeckCard[];
+	cards: FacedCard[];
 	onCardHover: (cardId: ScryfallId | null) => void;
 	onCardClick?: (card: DeckCard) => void;
 }
@@ -17,18 +19,20 @@ export function StatsCardList({
 	onCardHover,
 	onCardClick,
 }: StatsCardListProps) {
-	// Deduplicate cards (same card may appear multiple times for quantity)
-	const uniqueCards = cards.reduce<DeckCard[]>((acc, card) => {
-		if (!acc.some((c) => c.scryfallId === card.scryfallId)) {
-			acc.push(card);
+	// Deduplicate cards (same card+face may appear multiple times for quantity)
+	// Use card id + face index as unique key
+	const uniqueCards = cards.reduce<FacedCard[]>((acc, facedCard) => {
+		const key = `${facedCard.card.scryfallId}-${facedCard.faceIdx}`;
+		if (!acc.some((c) => `${c.card.scryfallId}-${c.faceIdx}` === key)) {
+			acc.push(facedCard);
 		}
 		return acc;
 	}, []);
 
 	// Fetch card data for display
 	const cardMap = useQueries({
-		queries: uniqueCards.map((card) =>
-			getCardByIdQueryOptions(card.scryfallId),
+		queries: uniqueCards.map((fc) =>
+			getCardByIdQueryOptions(fc.card.scryfallId),
 		),
 		combine: combineCardQueries,
 	});
@@ -44,10 +48,18 @@ export function StatsCardList({
 				</p>
 			) : (
 				<ul className="space-y-1">
-					{uniqueCards.map((deckCard) => {
+					{uniqueCards.map((facedCard) => {
+						const { card: deckCard, faceIdx } = facedCard;
 						const card = cardMap?.get(deckCard.scryfallId);
+
+						// Get the specific face that matched
+						const faces = card ? getCastableFaces(card) : [];
+						const face = faces[faceIdx] ?? faces[0];
+						const faceName = face?.name ?? card?.name ?? "Loading...";
+						const faceManaCost = face?.mana_cost ?? card?.mana_cost;
+
 						return (
-							<li key={deckCard.scryfallId}>
+							<li key={`${deckCard.scryfallId}-${faceIdx}`}>
 								<button
 									type="button"
 									className="w-full text-left px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
@@ -59,11 +71,11 @@ export function StatsCardList({
 										{deckCard.quantity}
 									</span>
 									<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0">
-										{card?.name ?? "Loading..."}
+										{faceName}
 									</span>
 									<div className="flex-shrink-0 flex items-center ml-auto">
-										{card?.mana_cost && (
-											<ManaCost cost={card.mana_cost} size="small" />
+										{faceManaCost && (
+											<ManaCost cost={faceManaCost} size="small" />
 										)}
 									</div>
 								</button>

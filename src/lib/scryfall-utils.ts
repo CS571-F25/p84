@@ -1,5 +1,7 @@
 import type { ImageSize, ScryfallId } from "./scryfall-types";
 
+export type CardFaceType = "front" | "back";
+
 /**
  * Reconstruct Scryfall image URI from card ID
  *
@@ -11,6 +13,7 @@ import type { ImageSize, ScryfallId } from "./scryfall-types";
 export function getImageUri(
 	scryfallId: ScryfallId,
 	size: ImageSize = "normal",
+	face: CardFaceType = "front",
 ): string {
-	return `https://cards.scryfall.io/${size}/front/${scryfallId[0]}/${scryfallId[1]}/${scryfallId}.jpg`;
+	return `https://cards.scryfall.io/${size}/${face}/${scryfallId[0]}/${scryfallId[1]}/${scryfallId}.jpg`;
 }

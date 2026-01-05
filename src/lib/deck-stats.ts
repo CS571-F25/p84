@@ -4,6 +4,11 @@ import type {
 	ManaColorWithColorless,
 } from "@/lib/scryfall-types";
 import {
+	getCastableFaces,
+	getFaceManaValue,
+	getPrimaryFace,
+} from "./card-faces";
+import {
 	type CardLookup,
 	extractPrimaryType,
 	extractSubtypes,
@@ -16,12 +21,21 @@ export type SourceTempo = "immediate" | "conditional" | "delayed" | "bounce";
 
 export type { CardLookup };
 
+/**
+ * A card reference with the specific face that matched the stat criteria.
+ * faceIdx 0 = front/primary face, 1 = back/secondary face.
+ */
+export interface FacedCard {
+	card: DeckCard;
+	faceIdx: number;
+}
+
 export interface ManaCurveData {
 	bucket: string;
 	permanents: number;
 	spells: number;
-	permanentCards: DeckCard[];
-	spellCards: DeckCard[];
+	permanentCards: FacedCard[];
+	spellCards: FacedCard[];
 }
 
 export interface ManaSymbolsData {
@@ -44,25 +58,25 @@ export interface ManaSymbolsData {
 	landConditionalCount: number;
 	landDelayedCount: number;
 	landBounceCount: number;
-	symbolCards: DeckCard[];
-	immediateSourceCards: DeckCard[];
-	conditionalSourceCards: DeckCard[];
-	delayedSourceCards: DeckCard[];
-	bounceSourceCards: DeckCard[];
-	landSourceCards: DeckCard[];
+	symbolCards: FacedCard[];
+	immediateSourceCards: FacedCard[];
+	conditionalSourceCards: FacedCard[];
+	delayedSourceCards: FacedCard[];
+	bounceSourceCards: FacedCard[];
+	landSourceCards: FacedCard[];
 	symbolDistribution: { bucket: string; count: number }[];
 }
 
 export interface TypeData {
 	type: string;
 	count: number;
-	cards: DeckCard[];
+	cards: FacedCard[];
 }
 
 export interface SpeedData {
 	category: SpeedCategory;
 	count: number;
-	cards: DeckCard[];
+	cards: FacedCard[];
 }
 
 const MANA_COLORS: ManaColor[] = ["W", "U", "B", "R", "G"];
@@ -263,6 +277,9 @@ export function isPermanent(typeLine: string | undefined): boolean {
 /**
  * Compute mana curve data for a set of cards.
  * Groups cards by CMC bucket and separates permanents from spells.
+ *
+ * For multi-faced cards (MDFC, split, adventure), each castable face
+ * appears at its own mana value. Land faces are skipped.
  */
 export function computeManaCurve(
 	cards: DeckCard[],
@@ -271,8 +288,8 @@ export function computeManaCurve(
 	const buckets = new Map<
 		string,
 		{
-			permanentCards: DeckCard[];
-			spellCards: DeckCard[];
+			permanentCards: FacedCard[];
+			spellCards: FacedCard[];
 		}
 	>();
 
@@ -282,26 +299,37 @@ export function computeManaCurve(
 		const card = lookup(deckCard);
 		if (!card) continue;
 
-		const typeLine = card.type_line ?? "";
-		// Skip pure lands (but keep land creatures like Dryad Arbor)
-		if (typeLine.includes("Land") && !typeLine.includes("Creature")) continue;
+		const faces = getCastableFaces(card);
+		for (let faceIdx = 0; faceIdx < faces.length; faceIdx++) {
+			const face = faces[faceIdx];
+			const typeLine = face.type_line ?? "";
 
-		const bucket = getManaValueBucket(card.cmc);
-		const cmcNum = Number.parseInt(bucket, 10);
-		if (cmcNum > maxCmc) maxCmc = cmcNum;
+			// Skip pure lands (but keep land creatures like Dryad Arbor)
+			if (typeLine.includes("Land") && !typeLine.includes("Creature")) continue;
 
-		const data = buckets.get(bucket) ?? { permanentCards: [], spellCards: [] };
+			const mv = getFaceManaValue(face, card, faceIdx);
+			const bucket = getManaValueBucket(mv);
+			const cmcNum = Number.parseInt(bucket, 10);
+			if (cmcNum > maxCmc) maxCmc = cmcNum;
 
-		// Add card quantity times (each copy counts)
-		for (let i = 0; i < deckCard.quantity; i++) {
-			if (isPermanent(card.type_line)) {
-				data.permanentCards.push(deckCard);
-			} else {
-				data.spellCards.push(deckCard);
+			const data = buckets.get(bucket) ?? {
+				permanentCards: [],
+				spellCards: [],
+			};
+
+			const facedCard: FacedCard = { card: deckCard, faceIdx };
+
+			// Add card quantity times (each copy counts)
+			for (let i = 0; i < deckCard.quantity; i++) {
+				if (isPermanent(typeLine)) {
+					data.permanentCards.push(facedCard);
+				} else {
+					data.spellCards.push(facedCard);
+				}
 			}
-		}
 
-		buckets.set(bucket, data);
+			buckets.set(bucket, data);
+		}
 	}
 
 	// Build contiguous array from 0 to maxCmc
@@ -348,12 +376,12 @@ export function computeManaSymbolsVsSources(
 	const landConditionalCounts = makeColorRecord(() => 0);
 	const landDelayedCounts = makeColorRecord(() => 0);
 	const landBounceCounts = makeColorRecord(() => 0);
-	const symbolCards = makeColorRecord<DeckCard[]>(() => []);
-	const immediateCards = makeColorRecord<DeckCard[]>(() => []);
-	const conditionalCards = makeColorRecord<DeckCard[]>(() => []);
-	const delayedCards = makeColorRecord<DeckCard[]>(() => []);
-	const bounceCards = makeColorRecord<DeckCard[]>(() => []);
-	const landCards = makeColorRecord<DeckCard[]>(() => []);
+	const symbolCards = makeColorRecord<FacedCard[]>(() => []);
+	const immediateCards = makeColorRecord<FacedCard[]>(() => []);
+	const conditionalCards = makeColorRecord<FacedCard[]>(() => []);
+	const delayedCards = makeColorRecord<FacedCard[]>(() => []);
+	const bounceCards = makeColorRecord<FacedCard[]>(() => []);
+	const landCards = makeColorRecord<FacedCard[]>(() => []);
 	const symbolDistributions = makeColorRecord<Map<string, number>>(
 		() => new Map(),
 	);
@@ -363,25 +391,36 @@ export function computeManaSymbolsVsSources(
 		const card = lookup(deckCard);
 		if (!card) continue;
 
-		// Count mana symbols in cost
-		const symbols = countManaSymbols(card.mana_cost);
-		const bucket = getManaValueBucket(card.cmc);
-		for (const color of MANA_COLORS_WITH_COLORLESS) {
-			if (symbols[color] > 0) {
-				symbolCounts[color] += symbols[color] * deckCard.quantity;
-				symbolCards[color].push(deckCard);
-				// Track distribution by CMC
-				const dist = symbolDistributions[color];
-				dist.set(
-					bucket,
-					(dist.get(bucket) ?? 0) + symbols[color] * deckCard.quantity,
-				);
+		// Count mana symbols from all castable faces
+		const faces = getCastableFaces(card);
+		for (let faceIdx = 0; faceIdx < faces.length; faceIdx++) {
+			const face = faces[faceIdx];
+			const symbols = countManaSymbols(face.mana_cost);
+			const mv = getFaceManaValue(face, card, faceIdx);
+			const bucket = getManaValueBucket(mv);
+
+			const facedCard: FacedCard = { card: deckCard, faceIdx };
+
+			for (const color of MANA_COLORS_WITH_COLORLESS) {
+				if (symbols[color] > 0) {
+					symbolCounts[color] += symbols[color] * deckCard.quantity;
+					symbolCards[color].push(facedCard);
+					// Track distribution by MV
+					const dist = symbolDistributions[color];
+					dist.set(
+						bucket,
+						(dist.get(bucket) ?? 0) + symbols[color] * deckCard.quantity,
+					);
+				}
 			}
 		}
 
-		// Count mana sources by tempo
+		// Count mana sources by tempo (card-level property, not face-level)
+		// For sources, we use faceIdx 0 since produced_mana is card-level
 		const producedColors = (card.produced_mana ?? []) as ColorKey[];
-		const isLand = (card.type_line ?? "").includes("Land");
+		const primaryFace = getPrimaryFace(card);
+		const isLand = (primaryFace.type_line ?? "").includes("Land");
+		const sourceFacedCard: FacedCard = { card: deckCard, faceIdx: 0 };
 
 		if (producedColors.length > 0) {
 			const tempo = getSourceTempo(card);
@@ -398,7 +437,7 @@ export function computeManaSymbolsVsSources(
 				// Track land sources per color with tempo
 				if (isLand) {
 					landCounts[color] += qty;
-					landCards[color].push(deckCard);
+					landCards[color].push(sourceFacedCard);
 					switch (tempo) {
 						case "immediate":
 							landImmediateCounts[color] += qty;
@@ -418,19 +457,19 @@ export function computeManaSymbolsVsSources(
 				switch (tempo) {
 					case "immediate":
 						immediateCounts[color] += qty;
-						immediateCards[color].push(deckCard);
+						immediateCards[color].push(sourceFacedCard);
 						break;
 					case "conditional":
 						conditionalCounts[color] += qty;
-						conditionalCards[color].push(deckCard);
+						conditionalCards[color].push(sourceFacedCard);
 						break;
 					case "delayed":
 						delayedCounts[color] += qty;
-						delayedCards[color].push(deckCard);
+						delayedCards[color].push(sourceFacedCard);
 						break;
 					case "bounce":
 						bounceCounts[color] += qty;
-						bounceCards[color].push(deckCard);
+						bounceCards[color].push(sourceFacedCard);
 						break;
 				}
 			}
@@ -503,23 +542,37 @@ export function computeManaSymbolsVsSources(
 
 /**
  * Compute card type distribution.
+ *
+ * For multi-faced cards (MDFC, split, adventure), each castable face's
+ * type is counted. An MDFC land//creature counts as both Land and Creature.
  */
 export function computeTypeDistribution(
 	cards: DeckCard[],
 	lookup: CardLookup,
 ): TypeData[] {
-	const types = new Map<string, { count: number; cards: DeckCard[] }>();
+	const types = new Map<string, { count: number; cards: FacedCard[] }>();
 
 	for (const deckCard of cards) {
 		const card = lookup(deckCard);
 		if (!card) continue;
 
-		const type = extractPrimaryType(card.type_line);
+		// Track which types we've already counted for this card
+		// (avoid double-counting if both faces have same type)
+		const countedTypes = new Map<string, number>();
 
-		const data = types.get(type) ?? { count: 0, cards: [] };
-		data.count += deckCard.quantity;
-		data.cards.push(deckCard);
-		types.set(type, data);
+		const faces = getCastableFaces(card);
+		for (let faceIdx = 0; faceIdx < faces.length; faceIdx++) {
+			const face = faces[faceIdx];
+			const type = extractPrimaryType(face.type_line);
+
+			if (!countedTypes.has(type)) {
+				countedTypes.set(type, faceIdx);
+				const data = types.get(type) ?? { count: 0, cards: [] };
+				data.count += deckCard.quantity;
+				data.cards.push({ card: deckCard, faceIdx });
+				types.set(type, data);
+			}
+		}
 	}
 
 	// Sort by count descending
@@ -535,24 +588,36 @@ export function computeTypeDistribution(
 /**
  * Compute subtype distribution.
  * Limits to top 10 subtypes with "Other" bucket.
+ *
+ * For multi-faced cards, subtypes from all castable faces are counted.
  */
 export function computeSubtypeDistribution(
 	cards: DeckCard[],
 	lookup: CardLookup,
 ): TypeData[] {
-	const subtypes = new Map<string, { count: number; cards: DeckCard[] }>();
+	const subtypes = new Map<string, { count: number; cards: FacedCard[] }>();
 
 	for (const deckCard of cards) {
 		const card = lookup(deckCard);
 		if (!card) continue;
 
-		const cardSubtypes = extractSubtypes(card.type_line);
+		// Track which subtypes we've counted for this card
+		const countedSubtypes = new Map<string, number>();
 
-		for (const subtype of cardSubtypes) {
-			const data = subtypes.get(subtype) ?? { count: 0, cards: [] };
-			data.count += deckCard.quantity;
-			data.cards.push(deckCard);
-			subtypes.set(subtype, data);
+		const faces = getCastableFaces(card);
+		for (let faceIdx = 0; faceIdx < faces.length; faceIdx++) {
+			const face = faces[faceIdx];
+			const faceSubtypes = extractSubtypes(face.type_line);
+
+			for (const subtype of faceSubtypes) {
+				if (!countedSubtypes.has(subtype)) {
+					countedSubtypes.set(subtype, faceIdx);
+					const data = subtypes.get(subtype) ?? { count: 0, cards: [] };
+					data.count += deckCard.quantity;
+					data.cards.push({ card: deckCard, faceIdx });
+					subtypes.set(subtype, data);
+				}
+			}
 		}
 	}
 
@@ -589,13 +654,17 @@ export function computeSubtypeDistribution(
 
 /**
  * Compute speed distribution (instant vs sorcery speed).
+ *
+ * For multi-faced cards, each face is checked for its speed.
+ * A card with an instant adventure and creature main is counted
+ * as having both instant and sorcery options.
  */
 export function computeSpeedDistribution(
 	cards: DeckCard[],
 	lookup: CardLookup,
 ): SpeedData[] {
-	const instant: DeckCard[] = [];
-	const sorcery: DeckCard[] = [];
+	const instant: FacedCard[] = [];
+	const sorcery: FacedCard[] = [];
 	let instantCount = 0;
 	let sorceryCount = 0;
 
@@ -603,13 +672,36 @@ export function computeSpeedDistribution(
 		const card = lookup(deckCard);
 		if (!card) continue;
 
-		const speed = getSpeedCategory(card);
+		// Track which speeds we've counted for this card
+		let hasInstant = false;
+		let hasSorcery = false;
+		let instantFaceIdx = 0;
+		let sorceryFaceIdx = 0;
 
-		if (speed === "instant") {
-			instant.push(deckCard);
+		const faces = getCastableFaces(card);
+		for (let faceIdx = 0; faceIdx < faces.length; faceIdx++) {
+			const face = faces[faceIdx];
+			const typeLine = face.type_line ?? "";
+
+			// Check if this face is instant speed
+			const isInstant =
+				typeLine.includes("Instant") || card.keywords?.includes("Flash");
+
+			if (isInstant && !hasInstant) {
+				hasInstant = true;
+				instantFaceIdx = faceIdx;
+			} else if (!isInstant && !hasSorcery) {
+				hasSorcery = true;
+				sorceryFaceIdx = faceIdx;
+			}
+		}
+
+		if (hasInstant) {
+			instant.push({ card: deckCard, faceIdx: instantFaceIdx });
 			instantCount += deckCard.quantity;
-		} else {
-			sorcery.push(deckCard);
+		}
+		if (hasSorcery) {
+			sorcery.push({ card: deckCard, faceIdx: sorceryFaceIdx });
 			sorceryCount += deckCard.quantity;
 		}
 	}

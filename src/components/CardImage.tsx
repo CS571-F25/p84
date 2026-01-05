@@ -3,30 +3,129 @@
  */
 
 import { Link } from "@tanstack/react-router";
-import type { Card, ImageSize, ScryfallId } from "../lib/scryfall-types";
-import { getImageUri } from "../lib/scryfall-utils";
+import { RotateCcw } from "lucide-react";
+import { useState } from "react";
+import { canFlip, getFlipBehavior, hasBackImage } from "../lib/card-faces";
+import type {
+	Card,
+	ImageSize,
+	Layout,
+	ScryfallId,
+} from "../lib/scryfall-types";
+import { type CardFaceType, getImageUri } from "../lib/scryfall-utils";
 
 interface CardImageProps {
-	card: Pick<Card, "name" | "id">;
+	card: Pick<Card, "name" | "id"> & { layout?: Layout };
 	size?: ImageSize;
+	face?: CardFaceType;
 	className?: string;
+	isFlipped?: boolean;
+	onFlip?: (flipped: boolean) => void;
 }
 
 /**
- * Basic card image - use specific components (CardThumbnail, CardDetail) when possible
+ * Card image with optional flip support for multi-faced cards.
+ *
+ * Flip behavior is auto-detected from card.layout:
+ * - transform/modal_dfc/meld: 3D flip to back face image
+ * - split: 90° rotation
+ * - flip (Kamigawa): 180° rotation
+ *
+ * Uncontrolled by default (manages own flip state).
+ * Pass isFlipped + onFlip for controlled mode.
  */
 export function CardImage({
 	card,
 	size = "normal",
+	face = "front",
 	className,
+	isFlipped: controlledFlipped,
+	onFlip,
 }: CardImageProps) {
+	const [internalFlipped, setInternalFlipped] = useState(false);
+	const isControlled = controlledFlipped !== undefined;
+	const isFlipped = isControlled ? controlledFlipped : internalFlipped;
+
+	const flippable = canFlip({ layout: card.layout } as Card);
+	const flipBehavior = getFlipBehavior(card.layout);
+	const hasBack = hasBackImage(card.layout);
+
+	const handleFlip = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		const newValue = !isFlipped;
+		if (onFlip) {
+			onFlip(newValue);
+		}
+		if (!isControlled) {
+			setInternalFlipped(newValue);
+		}
+	};
+
+	const baseClassName = `${className ?? ""} rounded-[4.75%/3.5%]`;
+
+	if (!flippable) {
+		return (
+			<img
+				src={getImageUri(card.id, size, face)}
+				alt={card.name}
+				className={baseClassName}
+				loading="lazy"
+			/>
+		);
+	}
+
 	return (
-		<img
-			src={getImageUri(card.id, size)}
-			alt={card.name}
-			className={`${className ?? ""} rounded-[4.75%/3.5%]`}
-			loading="lazy"
-		/>
+		<div className="relative group">
+			{flipBehavior === "transform" && hasBack ? (
+				<div
+					className="w-full transition-transform duration-500 ease-in-out"
+					style={{
+						transformStyle: "preserve-3d",
+						transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+					}}
+				>
+					<img
+						src={getImageUri(card.id, size, "front")}
+						alt={card.name}
+						className={baseClassName}
+						loading="lazy"
+						style={{ backfaceVisibility: "hidden" }}
+					/>
+					<img
+						src={getImageUri(card.id, size, "back")}
+						alt={`${card.name} (back)`}
+						className={`${baseClassName} absolute inset-0`}
+						loading="lazy"
+						style={{
+							backfaceVisibility: "hidden",
+							transform: "rotateY(180deg)",
+						}}
+					/>
+				</div>
+			) : (
+				<img
+					src={getImageUri(card.id, size, face)}
+					alt={card.name}
+					className={baseClassName}
+					loading="lazy"
+					style={{
+						transition: "transform 0.5s ease-in-out",
+						transform: isFlipped
+							? `rotate(${flipBehavior === "rotate90" ? 90 : 180}deg)`
+							: "rotate(0deg)",
+					}}
+				/>
+			)}
+			<button
+				type="button"
+				onClick={handleFlip}
+				className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 z-10"
+				aria-label="Flip card"
+			>
+				<RotateCcw className="w-4 h-4" />
+			</button>
+		</div>
 	);
 }
 
