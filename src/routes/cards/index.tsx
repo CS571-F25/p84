@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { AlertCircle, Loader2, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CardThumbnail } from "@/components/CardImage";
 import { OracleText } from "@/components/OracleText";
 import {
@@ -33,7 +33,16 @@ function MetadataDisplay() {
 
 	return (
 		<p className="text-gray-400">
-			{metadata.cardCount.toLocaleString()} cards • Version: {metadata.version}
+			{metadata.cardCount.toLocaleString()} cards • Version: {metadata.version}{" "}
+			• Data from{" "}
+			<a
+				href="https://scryfall.com"
+				target="_blank"
+				rel="noopener noreferrer"
+				className="text-cyan-600 dark:text-cyan-400 hover:underline"
+			>
+				Scryfall
+			</a>
 		</p>
 	);
 }
@@ -43,9 +52,14 @@ function CardsPage() {
 	const search = Route.useSearch();
 	const [searchQuery, setSearchQuery] = useState(search.q || "");
 	const debouncedSearchQuery = useDebounce(searchQuery, 400);
+	const searchInputRef = useRef<HTMLInputElement>(null);
 	const { data: searchResult, isFetching } = useQuery(
 		unifiedSearchQueryOptions(debouncedSearchQuery),
 	);
+
+	useEffect(() => {
+		searchInputRef.current?.focus();
+	}, []);
 
 	// Sync state with URL when navigating back/forward
 	useEffect(() => {
@@ -79,6 +93,7 @@ function CardsPage() {
 					<div className="relative">
 						<Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
 						<input
+							ref={searchInputRef}
 							type="text"
 							placeholder="Search by name or try t:creature cmc<=3"
 							value={searchQuery}

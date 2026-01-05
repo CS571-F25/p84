@@ -46,19 +46,23 @@ export default function Header() {
 				</div>
 
 				<div className="flex items-center gap-2">
-					{!isLoading &&
-						(session ? (
-							<UserMenu />
-						) : (
-							<Link
-								to="/signin"
-								onClick={handleSignInClick}
-								className="flex items-center gap-2 px-3 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
-							>
-								<LogIn size={16} />
-								<span className="text-sm font-medium">Sign In</span>
-							</Link>
-						))}
+					{isLoading ? (
+						<div className="flex items-center gap-2 px-3 py-2 bg-gray-700 dark:bg-gray-800 rounded-lg animate-pulse">
+							<LogIn size={16} className="invisible" />
+							<span className="text-sm font-medium invisible">Sign In</span>
+						</div>
+					) : session ? (
+						<UserMenu />
+					) : (
+						<Link
+							to="/signin"
+							onClick={handleSignInClick}
+							className="flex items-center gap-2 px-3 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
+						>
+							<LogIn size={16} />
+							<span className="text-sm font-medium">Sign In</span>
+						</Link>
+					)}
 					<button
 						type="button"
 						onClick={toggleTheme}

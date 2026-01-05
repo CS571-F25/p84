@@ -9,7 +9,7 @@ export default function UserMenu() {
 	const menuRef = useRef<HTMLDivElement>(null);
 	const { session, signOut } = useAuth();
 
-	const { data: handle } = useQuery({
+	const { data: handle, isLoading: isHandleLoading } = useQuery({
 		...didDocumentQueryOptions(session?.info.sub),
 		enabled: !!session,
 		select: extractHandle,
@@ -41,9 +41,11 @@ export default function UserMenu() {
 				aria-expanded={isOpen}
 			>
 				<User size={16} />
-				<span className="text-sm">
-					{handle ? `@${handle}` : session.info.sub}
-				</span>
+				{!isHandleLoading && (
+					<span className="text-sm">
+						{handle ? `@${handle}` : session.info.sub}
+					</span>
+				)}
 				<ChevronDown
 					size={16}
 					className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
