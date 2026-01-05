@@ -236,11 +236,15 @@ function CardFooter({ card }: { card: Card }) {
 
 	return (
 		<div className="flex items-center justify-between px-[3cqw] py-[1.5cqw] text-[3.5cqw] tracking-tight text-gray-600 dark:text-gray-400 border-t border-gray-300 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-800/80">
-			<div className="flex items-center gap-[1.5cqw]">
+			{/* Left side: set code, collector number */}
+			<div className="flex items-center gap-[1cqw]">
 				<span>{setCode?.toUpperCase()}</span>
 				{collectorNum && <span>#{collectorNum}</span>}
 			</div>
-			{card.artist && <span className="truncate italic">{card.artist}</span>}
+			{/* Right side: artist */}
+			{card.artist && (
+				<span className="truncate italic max-w-[50%]">{card.artist}</span>
+			)}
 		</div>
 	);
 }
@@ -515,7 +519,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 		return (
 			<div
-				className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+				className={`@container relative aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
 			>
 				{/* Title bar */}
 				<div
@@ -586,16 +590,16 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					</div>
 				</div>
 
-				{/* P/T box - absolute positioned to overlap footer */}
+				<CardFooter card={card} />
+
+				{/* P/T box - absolute positioned at bottom-right corner */}
 				{(mainFace.power || mainFace.toughness) && (
-					<div className="absolute bottom-[4cqw] right-[2cqw]">
-						<span className="text-[5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[2cqw] py-[0.5cqw] rounded border border-gray-300 dark:border-slate-500">
+					<div className="absolute bottom-[0.5cqw] right-[2cqw]">
+						<span className="text-[5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[1.5cqw] py-[0.25cqw] rounded border border-gray-300 dark:border-slate-500">
 							{mainFace.power}/{mainFace.toughness}
 						</span>
 					</div>
 				)}
-
-				<CardFooter card={card} />
 			</div>
 		);
 	}
@@ -607,9 +611,9 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 		const backFace = faces[1];
 
 		return (
-			<div className="relative group">
+			<div className={`relative group ${className ?? ""}`}>
 				<div
-					className="w-full motion-safe:transition-transform motion-safe:duration-500"
+					className="relative w-full aspect-[5/7] motion-safe:transition-transform motion-safe:duration-500"
 					style={{
 						transformStyle: "preserve-3d",
 						transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
@@ -617,7 +621,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 				>
 					{/* Front */}
 					<div
-						className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} flex flex-col`}
+						className={`@container absolute inset-0 border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} flex flex-col`}
 						style={{ backfaceVisibility: "hidden" }}
 					>
 						<div
@@ -644,7 +648,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						</div>
 						<div className="h-[44%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
 						<div className="flex-1 flex flex-col overflow-hidden">
-							<FaceContent face={faces[0]} setCode={card.set} rarity={rarity} />
+							<FaceContent
+								face={faces[0]}
+								setCode={card.set}
+								rarity={rarity}
+								showStats={false}
+							/>
 						</div>
 						{/* MDFC back face hint */}
 						{isMdfc && backFace && (
@@ -676,11 +685,24 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							</div>
 						)}
 						<CardFooter card={card} />
+						{/* P/T for front face */}
+						{(faces[0].power !== undefined ||
+							faces[0].loyalty !== undefined ||
+							faces[0].defense !== undefined) && (
+							<div className="absolute bottom-[0.5cqw] right-[2cqw]">
+								<span className="text-[5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[1.5cqw] py-[0.25cqw] rounded border border-gray-300 dark:border-slate-500">
+									{faces[0].power !== undefined &&
+										`${faces[0].power}/${faces[0].toughness}`}
+									{faces[0].loyalty}
+									{faces[0].defense}
+								</span>
+							</div>
+						)}
 					</div>
 
 					{/* Back */}
 					<div
-						className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} flex flex-col absolute inset-0`}
+						className={`@container absolute inset-0 border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} flex flex-col`}
 						style={{
 							backfaceVisibility: "hidden",
 							transform: "rotateY(180deg)",
@@ -714,6 +736,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 								face={faces[1] || faces[0]}
 								setCode={card.set}
 								rarity={rarity}
+								showStats={false}
 							/>
 						</div>
 						{/* MDFC front face hint */}
@@ -737,6 +760,20 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 							</div>
 						)}
 						<CardFooter card={card} />
+						{/* P/T for back face */}
+						{faces[1] &&
+							(faces[1].power !== undefined ||
+								faces[1].loyalty !== undefined ||
+								faces[1].defense !== undefined) && (
+								<div className="absolute bottom-[0.5cqw] right-[2cqw]">
+									<span className="text-[5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[1.5cqw] py-[0.25cqw] rounded border border-gray-300 dark:border-slate-500">
+										{faces[1].power !== undefined &&
+											`${faces[1].power}/${faces[1].toughness}`}
+										{faces[1].loyalty}
+										{faces[1].defense}
+									</span>
+								</div>
+							)}
 					</div>
 				</div>
 
@@ -756,10 +793,14 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 	// Default: single-faced card
 	const frameColor = getFrameColor(card);
+	const face = faces[0];
+	const hasPT = face.power !== undefined && face.toughness !== undefined;
+	const hasLoyalty = face.loyalty !== undefined;
+	const hasDefense = face.defense !== undefined;
 
 	return (
 		<div
-			className={`@container aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
+			className={`@container relative aspect-[5/7] border-2 ${frameColor.border} rounded-[4.75%/3.5%] overflow-hidden ${frameColor.frame} ${className ?? ""} flex flex-col`}
 		>
 			{/* Title bar */}
 			<div
@@ -768,10 +809,10 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 				<span
 					className={`font-bold text-[6cqw] tracking-tight truncate ${frameColor.titleText}`}
 				>
-					{faces[0].name}
+					{face.name}
 				</span>
-				{faces[0].mana_cost && (
-					<ManaCost cost={faces[0].mana_cost} className="w-[5cqw] h-[5cqw]" />
+				{face.mana_cost && (
+					<ManaCost cost={face.mana_cost} className="w-[5cqw] h-[5cqw]" />
 				)}
 			</div>
 
@@ -780,10 +821,26 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 			{/* Card body */}
 			<div className="flex-1 flex flex-col overflow-hidden">
-				<FaceContent face={faces[0]} setCode={card.set} rarity={rarity} />
+				<FaceContent
+					face={face}
+					setCode={card.set}
+					rarity={rarity}
+					showStats={false}
+				/>
 			</div>
 
 			<CardFooter card={card} />
+
+			{/* P/T / Loyalty / Defense - positioned at card level at bottom-right corner */}
+			{(hasPT || hasLoyalty || hasDefense) && (
+				<div className="absolute bottom-[0.5cqw] right-[2cqw]">
+					<span className="text-[5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[1.5cqw] py-[0.25cqw] rounded border border-gray-300 dark:border-slate-500">
+						{hasPT && `${face.power}/${face.toughness}`}
+						{hasLoyalty && face.loyalty}
+						{hasDefense && face.defense}
+					</span>
+				</div>
+			)}
 		</div>
 	);
 }
