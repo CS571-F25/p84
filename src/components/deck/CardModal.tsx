@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Minus, Plus, Trash2, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import { CardImage } from "@/components/CardImage";
+import { TagAutocomplete } from "@/components/deck/TagAutocomplete";
 import { ManaCost } from "@/components/ManaCost";
 import { getPrimaryFace } from "@/lib/card-faces";
 import type { DeckCard, Section } from "@/lib/deck-types";
@@ -15,6 +17,7 @@ interface CardModalProps {
 	onMoveToSection: (section: Section) => void;
 	onDelete: () => void;
 	readOnly?: boolean;
+	allTags?: string[];
 }
 
 export function CardModal({
@@ -26,32 +29,50 @@ export function CardModal({
 	onMoveToSection,
 	onDelete,
 	readOnly = false,
+	allTags = [],
 }: CardModalProps) {
 	const [quantity, setQuantity] = useState(card.quantity);
 	const [tags, setTags] = useState<string[]>(card.tags ?? []);
-	const [newTag, setNewTag] = useState("");
+
+	const titleId = useId();
 
 	const { data: cardData } = useQuery(getCardByIdQueryOptions(card.scryfallId));
 	const primaryFace = cardData ? getPrimaryFace(cardData) : null;
+
+	// Suggestions: all tags except ones already on this card
+	const tagSuggestions = allTags.filter((t) => !tags.includes(t));
 
 	useEffect(() => {
 		setQuantity(card.quantity);
 		setTags(card.tags ?? []);
 	}, [card]);
 
-	// Close on escape
+	// Keyboard shortcuts: Escape to close, 1-9 to set quantity
 	useEffect(() => {
-		const handleEscape = (e: KeyboardEvent) => {
+		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === "Escape") {
 				onClose();
+				return;
+			}
+
+			// Number keys 1-9 set quantity (only when not typing in an input)
+			const isTyping =
+				document.activeElement instanceof HTMLInputElement ||
+				document.activeElement instanceof HTMLTextAreaElement;
+			if (!readOnly && !isTyping) {
+				const num = Number.parseInt(e.key, 10);
+				if (num >= 1 && num <= 9) {
+					setQuantity(num);
+					onUpdateQuantity(num);
+				}
 			}
 		};
 
 		if (isOpen) {
-			document.addEventListener("keydown", handleEscape);
-			return () => document.removeEventListener("keydown", handleEscape);
+			document.addEventListener("keydown", handleKeyDown);
+			return () => document.removeEventListener("keydown", handleKeyDown);
 		}
-	}, [isOpen, onClose]);
+	}, [isOpen, onClose, onUpdateQuantity, readOnly]);
 
 	if (!isOpen) return null;
 
@@ -62,13 +83,11 @@ export function CardModal({
 		}
 	};
 
-	const handleAddTag = () => {
-		const trimmed = newTag.trim();
-		if (trimmed && !tags.includes(trimmed)) {
-			const newTags = [...tags, trimmed];
+	const handleAddTag = (tag: string) => {
+		if (!tags.includes(tag)) {
+			const newTags = [...tags, tag];
 			setTags(newTags);
 			onUpdateTags(newTags);
-			setNewTag("");
 		}
 	};
 
@@ -86,23 +105,30 @@ export function CardModal({
 	return (
 		<>
 			{/* Backdrop */}
-			<button
-				type="button"
+			<div
 				className="fixed inset-0 bg-black/50 z-40"
 				onClick={onClose}
-				aria-label="Close modal"
+				aria-hidden="true"
 			/>
 
 			{/* Modal */}
 			<div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-				<div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl max-w-md w-full pointer-events-auto border border-gray-300 dark:border-slate-700">
+				<div
+					role="dialog"
+					aria-modal="true"
+					aria-labelledby={titleId}
+					className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl max-w-md w-full pointer-events-auto border border-gray-300 dark:border-slate-700"
+				>
 					{/* Header */}
 					<div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-slate-800">
 						<div className="flex-1 min-w-0">
 							{primaryFace ? (
 								<>
 									<div className="flex items-baseline gap-2 mb-2 flex-wrap">
-										<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+										<h2
+											id={titleId}
+											className="text-2xl font-bold text-gray-900 dark:text-white"
+										>
 											{primaryFace.name}
 										</h2>
 										{primaryFace.mana_cost && (
@@ -118,7 +144,10 @@ export function CardModal({
 									)}
 								</>
 							) : (
-								<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+								<h2
+									id={titleId}
+									className="text-2xl font-bold text-gray-900 dark:text-white"
+								>
 									Loading...
 								</h2>
 							)}
@@ -126,6 +155,7 @@ export function CardModal({
 						<button
 							type="button"
 							onClick={onClose}
+							aria-label="Close"
 							className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-4"
 						>
 							<X className="w-6 h-6" />
@@ -134,6 +164,19 @@ export function CardModal({
 
 					{/* Body */}
 					<div className="p-6 space-y-6">
+						{/* Card image - only shown on mobile where sidebar preview is hidden */}
+						{cardData && (
+							<div className="md:hidden flex justify-center">
+								<div className="w-48">
+									<CardImage
+										card={cardData}
+										size="normal"
+										className="w-full h-auto shadow-lg rounded-[4.75%/3.5%]"
+									/>
+								</div>
+							</div>
+						)}
+
 						{/* Quantity */}
 						<div>
 							<div className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -194,29 +237,12 @@ export function CardModal({
 							<div className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
 								Tags
 							</div>
-							<div className="flex gap-2 mb-2">
-								<input
-									type="text"
-									value={newTag}
-									onChange={(e) => setNewTag(e.target.value)}
-									onKeyDown={(e) => {
-										if (e.key === "Enter") {
-											e.preventDefault();
-											handleAddTag();
-										}
-									}}
-									placeholder="Add tag..."
+							<div className="mb-2">
+								<TagAutocomplete
+									suggestions={tagSuggestions}
+									onAdd={handleAddTag}
 									disabled={readOnly}
-									className="flex-1 px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
 								/>
-								<button
-									type="button"
-									onClick={handleAddTag}
-									disabled={readOnly}
-									className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-								>
-									Add
-								</button>
 							</div>
 							{tags.length > 0 && (
 								<div className="flex flex-wrap gap-2">

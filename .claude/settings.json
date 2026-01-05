@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npm run check -- --write \"$CLAUDE_TOOL_INPUT_FILE_PATH\""
+            "command": "npm run check -- --write \"$CLAUDE_TOOL_INPUT_FILE_PATH\" 1>&2 || exit 2"
           }
         ]
       }

@@ -137,6 +137,12 @@ function DeckEditorPage() {
 		[statsSelection, stats],
 	);
 
+	// All unique tags in the deck (for autocomplete)
+	const allTags = useMemo(
+		() => Array.from(new Set(deck.cards.flatMap((c) => c.tags ?? []))),
+		[deck],
+	);
+
 	const mutation = useUpdateDeckMutation(did as Did, asRkey(rkey));
 	const queryClient = Route.useRouteContext().queryClient;
 
@@ -398,6 +404,7 @@ function DeckEditorPage() {
 				handleCardSelect={handleCardSelect}
 				setGroupBy={setGroupBy}
 				setSortBy={setSortBy}
+				allTags={allTags}
 			/>
 		</DragDropProvider>
 	);
@@ -432,6 +439,7 @@ interface DeckEditorInnerProps {
 	handleCardSelect: (cardId: ScryfallId) => Promise<void>;
 	setGroupBy: (groupBy: GroupBy) => void;
 	setSortBy: (sortBy: SortBy) => void;
+	allTags: string[];
 }
 
 function DeckEditorInner({
@@ -463,6 +471,7 @@ function DeckEditorInner({
 	handleCardSelect,
 	setGroupBy,
 	setSortBy,
+	allTags,
 }: DeckEditorInnerProps) {
 	// Track drag state globally (must be inside DndContext)
 	useDndMonitor({
@@ -631,6 +640,7 @@ function DeckEditorInner({
 					onMoveToSection={handleMoveToSection}
 					onDelete={handleDeleteCard}
 					readOnly={!isOwner}
+					allTags={allTags}
 				/>
 			)}
 
