@@ -559,7 +559,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 			>
 				{/* Title bar */}
 				<div
-					className={`flex items-center justify-between gap-[1cqw] px-[3cqw] py-[1cqw] ${frameColor.titleBg}`}
+					className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 				>
 					<span
 						className={`font-bold ${LAYOUT.titleText} tracking-tight truncate ${frameColor.titleText}`}
@@ -577,39 +577,39 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 				/>
 
 				{/* Type line */}
-				<div className="flex items-center justify-between px-[3cqw] py-[1cqw] border-t border-b border-gray-300 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-800/80">
-					<span className="text-[4.5cqw] tracking-tight text-gray-800 dark:text-gray-200 truncate">
-						{mainFace.type_line}
-					</span>
+				<div
+					className={`flex items-center justify-between ${LAYOUT.typePadding} ${LAYOUT.typeText} tracking-tight text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-slate-600 bg-gray-100 dark:bg-slate-700`}
+				>
+					<span className="truncate">{mainFace.type_line}</span>
 					{card.set && (
 						<SetSymbol
 							setCode={card.set}
 							rarity={SET_SYMBOL_RARITY[rarity]}
-							className="text-[5cqw]"
+							className={`${LAYOUT.setSymbol} shrink-0`}
 						/>
 					)}
 				</div>
 
 				{/* Text box with adventure on left, creature text on right */}
-				<div className="flex-1 flex gap-[1cqw] p-[2cqw] overflow-hidden">
+				<div className="flex-1 flex gap-[1cqw] px-[2cqw] py-[1.5cqw] overflow-hidden">
 					{/* Adventure box */}
-					<div className="w-[45%] bg-gray-100 dark:bg-slate-800 rounded border border-gray-300 dark:border-slate-600 p-[1.5cqw] flex flex-col overflow-hidden">
-						<div className="flex items-center gap-[1cqw] mb-[0.5cqw] shrink-0">
+					<div className="w-[50%] bg-gray-100 dark:bg-slate-800 rounded border-2 border-gray-400 dark:border-slate-500 px-[1.5cqw] py-[1cqw] flex flex-col overflow-hidden">
+						<div className="flex items-center justify-between gap-[0.5cqw] shrink-0">
 							<span className="font-bold text-[3.5cqw] text-gray-900 dark:text-white truncate">
 								{adventureFace.name}
 							</span>
 							{adventureFace.mana_cost && (
 								<ManaCost
 									cost={adventureFace.mana_cost}
-									className="w-[3.5cqw] h-[3.5cqw]"
+									className="w-[3cqw] h-[3cqw] shrink-0"
 								/>
 							)}
 						</div>
-						<div className="text-[3cqw] text-gray-500 dark:text-gray-400 truncate shrink-0">
+						<div className="text-[2.5cqw] text-gray-600 dark:text-gray-400 truncate shrink-0">
 							{adventureFace.type_line}
 						</div>
 						{adventureFace.oracle_text && (
-							<div className="flex-1 text-[3cqw] leading-tight text-gray-800 dark:text-gray-200 mt-[0.5cqw] overflow-hidden">
+							<div className="flex-1 text-[2.5cqw] leading-snug text-gray-800 dark:text-gray-200 overflow-hidden mt-[0.5cqw]">
 								<OracleText
 									text={adventureFace.oracle_text}
 									symbolSize="text"
@@ -621,7 +621,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					{/* Creature text */}
 					<div className="flex-1 flex flex-col justify-center overflow-hidden">
 						{mainFace.oracle_text && (
-							<div className="text-[3.5cqw] leading-tight text-gray-800 dark:text-gray-200 overflow-hidden">
+							<div className="text-[3.5cqw] leading-snug text-gray-800 dark:text-gray-200 overflow-hidden">
 								<OracleText text={mainFace.oracle_text} symbolSize="text" />
 							</div>
 						)}
@@ -630,10 +630,12 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 
 				<CardFooter card={card} />
 
-				{/* P/T box - absolute positioned at bottom-right corner */}
+				{/* P/T box */}
 				{(mainFace.power || mainFace.toughness) && (
-					<div className="absolute bottom-[0.25cqw] right-[2cqw]">
-						<span className="text-[5.5cqw] font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 px-[2cqw] py-[0.5cqw] rounded-sm border border-gray-400 dark:border-slate-500">
+					<div className={`absolute ${LAYOUT.ptPosition}`}>
+						<span
+							className={`${LAYOUT.ptText} font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-slate-600 ${LAYOUT.ptPadding} rounded-sm border border-gray-400 dark:border-slate-500`}
+						>
 							{mainFace.power}/{mainFace.toughness}
 						</span>
 					</div>
@@ -665,10 +667,8 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						<div
 							className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 						>
-							<div className="flex items-center gap-[1.5cqw] min-w-0">
-								<span
-									className={`${LAYOUT.titleText} leading-none text-gray-600 dark:text-gray-300`}
-								>
+							<div className="flex items-center gap-[2cqw] min-w-0">
+								<span className="text-[4cqw] leading-none text-gray-600 dark:text-gray-300 border border-gray-500 dark:border-gray-400 rounded-full w-[5cqw] h-[5cqw] flex items-center justify-center shrink-0">
 									▲
 								</span>
 								<span
@@ -687,20 +687,24 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						<div
 							className={`${LAYOUT.artHeight} bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center`}
 						/>
-						<div className="flex-1 flex flex-col overflow-hidden">
+						<div className="flex-1 flex flex-col overflow-hidden relative">
 							<FaceContent
 								face={faces[0]}
 								setCode={card.set}
 								rarity={rarity}
 								showStats={false}
 							/>
+							{/* Transform back face P/T hint */}
+							{!isMdfc && backFace && backFace.power !== undefined && (
+								<span className="absolute bottom-[8cqw] right-[4cqw] text-[4.5cqw] text-gray-400 dark:text-gray-500">
+									{backFace.power}/{backFace.toughness}
+								</span>
+							)}
 						</div>
 						{/* MDFC back face hint */}
 						{isMdfc && backFace && (
 							<div className="flex items-center gap-[1.5cqw] px-[3cqw] py-[1cqw] text-[3.5cqw] bg-gray-200/80 dark:bg-slate-700/80 border-t border-gray-300 dark:border-slate-600 overflow-hidden">
-								<span
-									className={`${LAYOUT.titleText} leading-none text-gray-600 dark:text-gray-300 shrink-0`}
-								>
+								<span className="text-[3cqw] leading-none text-gray-600 dark:text-gray-300 border border-gray-500 dark:border-gray-400 rounded-full w-[4cqw] h-[4cqw] flex items-center justify-center shrink-0">
 									▼
 								</span>
 								<span className="font-medium text-gray-700 dark:text-gray-300 shrink-0">
@@ -724,14 +728,6 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 										</span>
 									</>
 								)}
-							</div>
-						)}
-						{/* Transform back face P/T hint */}
-						{!isMdfc && backFace && backFace.power !== undefined && (
-							<div className="flex items-center justify-end px-[3cqw] py-[0.5cqw] text-[4cqw] text-gray-500 dark:text-gray-400">
-								<span>
-									{backFace.power}/{backFace.toughness}
-								</span>
 							</div>
 						)}
 						<CardFooter card={card} />
@@ -763,10 +759,8 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 						<div
 							className={`flex items-center justify-between gap-[1cqw] ${LAYOUT.titlePadding} ${frameColor.titleBg}`}
 						>
-							<div className="flex items-center gap-[1.5cqw] min-w-0">
-								<span
-									className={`${LAYOUT.titleText} leading-none text-gray-600 dark:text-gray-300`}
-								>
+							<div className="flex items-center gap-[2cqw] min-w-0">
+								<span className="text-[4cqw] leading-none text-gray-600 dark:text-gray-300 border border-gray-500 dark:border-gray-400 rounded-full w-[5cqw] h-[5cqw] flex items-center justify-center shrink-0">
 									▼
 								</span>
 								<span
