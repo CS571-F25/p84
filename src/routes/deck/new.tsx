@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { useCreateDeckMutation } from "@/lib/deck-queries";
+import { FORMAT_GROUPS } from "@/lib/format-utils";
 
 export const Route = createFileRoute("/deck/new")({
 	component: NewDeckPage,
@@ -65,14 +66,15 @@ function NewDeckPage() {
 							onChange={(e) => setFormat(e.target.value)}
 							className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors"
 						>
-							<option value="commander">Commander</option>
-							<option value="cube">Cube</option>
-							<option value="pauper">Pauper</option>
-							<option value="paupercommander">Pauper Commander (PDH)</option>
-							<option value="standard">Standard</option>
-							<option value="modern">Modern</option>
-							<option value="legacy">Legacy</option>
-							<option value="vintage">Vintage</option>
+							{FORMAT_GROUPS.map((group) => (
+								<optgroup key={group.label} label={group.label}>
+									{group.formats.map((fmt) => (
+										<option key={fmt.value} value={fmt.value}>
+											{fmt.label}
+										</option>
+									))}
+								</optgroup>
+							))}
 						</select>
 					</div>
 
