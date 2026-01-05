@@ -23,11 +23,11 @@
  */
 
 import { createHash } from "node:crypto";
-import { writeFile, mkdir, readFile } from "node:fs/promises";
-import { join, dirname } from "node:path";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Card, CardDataOutput } from "../src/lib/scryfall-types.ts";
-import { asScryfallId, asOracleId } from "../src/lib/scryfall-types.ts";
+import { asOracleId, asScryfallId } from "../src/lib/scryfall-types.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -112,7 +112,6 @@ interface ScryfallCard {
 	variation?: boolean;
 	[key: string]: unknown;
 }
-
 
 interface BulkDataItem {
 	type: string;
@@ -248,9 +247,7 @@ export function isDefaultPrinting(card: ScryfallCard): boolean {
 	// Note: finishes is optional, so we're lenient here
 	if (card.finishes) {
 		const validFinishes = ["nonfoil", "foil"];
-		const hasValidFinish = card.finishes.some((f) =>
-			validFinishes.includes(f),
-		);
+		const hasValidFinish = card.finishes.some((f) => validFinishes.includes(f));
 		if (!hasValidFinish) {
 			return false;
 		}
@@ -277,10 +274,8 @@ export function compareCards(a: ScryfallCard, b: ScryfallCard): number {
 	if (!aDefault && bDefault) return 1;
 
 	// Deprioritize Arena-only (paper and MTGO are both fine)
-	const aArenaOnly =
-		a.games?.length === 1 && a.games[0] === "arena";
-	const bArenaOnly =
-		b.games?.length === 1 && b.games[0] === "arena";
+	const aArenaOnly = a.games?.length === 1 && a.games[0] === "arena";
+	const bArenaOnly = b.games?.length === 1 && b.games[0] === "arena";
 	if (!aArenaOnly && bArenaOnly) return -1;
 	if (aArenaOnly && !bArenaOnly) return 1;
 
@@ -309,7 +304,7 @@ export function compareCards(a: ScryfallCard, b: ScryfallCard): number {
 		if (!frame) return 100;
 		if (frame === "future") return 99; // quirky futuresight aesthetic
 		const year = parseInt(frame, 10);
-		if (!isNaN(year)) return -year; // newer years = lower rank = preferred
+		if (!Number.isNaN(year)) return -year; // newer years = lower rank = preferred
 		return -10000; // unknown non-numeric frame, assume it's new and prefer it
 	};
 	const aFrameRank = getFrameRank(a.frame);
@@ -376,11 +371,15 @@ export const VALID_SYMBOLS: ReadonlySet<string> = new Set([\n${symbolNames.map((
 async function getCachedSymbolNames(): Promise<string[]> {
 	const symbolsCachePath = join(TEMP_DIR, "symbols-cache.json");
 	try {
-		const cached = JSON.parse(await readFile(symbolsCachePath, "utf-8")) as string[];
+		const cached = JSON.parse(
+			await readFile(symbolsCachePath, "utf-8"),
+		) as string[];
 		// Cache stores full symbols like "{W}", extract names
 		return cached.map((s) => s.replace(/[{}]/g, "")).sort();
 	} catch {
-		console.warn("Warning: No cached symbols found, VALID_SYMBOLS will be empty");
+		console.warn(
+			"Warning: No cached symbols found, VALID_SYMBOLS will be empty",
+		);
 		return [];
 	}
 }
@@ -447,7 +446,9 @@ async function processBulkData(offline: boolean): Promise<ProcessedCards> {
 	const rawData: ScryfallCard[] = JSON.parse(await readFile(tempFile, "utf-8"));
 
 	// Build raw card map for sorting (before filtering strips fields like security_stamp)
-	const rawCardById = Object.fromEntries(rawData.map((card) => [card.id, card]));
+	const rawCardById = Object.fromEntries(
+		rawData.map((card) => [card.id, card]),
+	);
 
 	const cards = rawData.map(filterCard);
 	console.log(`Filtered ${cards.length} cards`);
@@ -456,16 +457,15 @@ async function processBulkData(offline: boolean): Promise<ProcessedCards> {
 	console.log("Building indexes...");
 	const cardById = Object.fromEntries(cards.map((card) => [card.id, card]));
 
-	const oracleIdToPrintings = cards.reduce<CardDataOutput["oracleIdToPrintings"]>(
-		(acc, card) => {
-			if (!acc[card.oracle_id]) {
-				acc[card.oracle_id] = [];
-			}
-			acc[card.oracle_id].push(card.id);
-			return acc;
-		},
-		{},
-	);
+	const oracleIdToPrintings = cards.reduce<
+		CardDataOutput["oracleIdToPrintings"]
+	>((acc, card) => {
+		if (!acc[card.oracle_id]) {
+			acc[card.oracle_id] = [];
+		}
+		acc[card.oracle_id].push(card.id);
+		return acc;
+	}, {});
 
 	// Sort printings by canonical order (most canonical first)
 	// Uses raw cards for comparison (has fields like security_stamp that get stripped)
@@ -541,26 +541,28 @@ async function chunkCardsForWorkers(
 		);
 	}
 
-	const chunkFilenames = await Promise.all(Array.from({length: chunkCount}, async (_, chunkIndex) => {
-		const start = chunkIndex * CARDS_PER_CHUNK;
-		const end = Math.min(start + CARDS_PER_CHUNK, cardEntries.length);
-		const chunkEntries = cardEntries.slice(start, end);
+	const chunkFilenames = await Promise.all(
+		Array.from({ length: chunkCount }, async (_, chunkIndex) => {
+			const start = chunkIndex * CARDS_PER_CHUNK;
+			const end = Math.min(start + CARDS_PER_CHUNK, cardEntries.length);
+			const chunkEntries = cardEntries.slice(start, end);
 
-		const chunkData = { cards: Object.fromEntries(chunkEntries) };
-		const chunkContent = JSON.stringify(chunkData);
-		const contentHash = createHash("sha256")
-			.update(chunkContent)
-			.digest("hex")
-			.slice(0, 16);
-		const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}-${contentHash}.json`;
-		
-		await writeFile(join(CARDS_DIR, chunkFilename), chunkContent)
-		console.log(
-			`Wrote ${chunkFilename}: ${chunkEntries.length} cards, ${(chunkContent.length / 1024 / 1024).toFixed(2)}MB`,
-		);
+			const chunkData = { cards: Object.fromEntries(chunkEntries) };
+			const chunkContent = JSON.stringify(chunkData);
+			const contentHash = createHash("sha256")
+				.update(chunkContent)
+				.digest("hex")
+				.slice(0, 16);
+			const chunkFilename = `cards-${String(chunkIndex).padStart(3, "0")}-${contentHash}.json`;
 
-		return chunkFilename
-	}))
+			await writeFile(join(CARDS_DIR, chunkFilename), chunkContent);
+			console.log(
+				`Wrote ${chunkFilename}: ${chunkEntries.length} cards, ${(chunkContent.length / 1024 / 1024).toFixed(2)}MB`,
+			);
+
+			return chunkFilename;
+		}),
+	);
 
 	// Write indexes file with content hash (oracle mappings for client)
 	// oracleIdToPrintings is sorted by canonical order - first element is the canonical printing
@@ -581,7 +583,10 @@ async function chunkCardsForWorkers(
 
 	// Write version.json at top level for quick version checks
 	const versionData = { version: data.version, cardCount: data.cardCount };
-	await writeFile(join(OUTPUT_DIR, "version.json"), JSON.stringify(versionData));
+	await writeFile(
+		join(OUTPUT_DIR, "version.json"),
+		JSON.stringify(versionData),
+	);
 	console.log(`Wrote version.json`);
 
 	console.log(`\nTotal chunks: ${chunkFilenames.length}`);
@@ -799,7 +804,7 @@ async function generateVolatileData(rawCards: ScryfallCard[]): Promise<string> {
 	const parsePriceToCents = (price: string | null | undefined): number => {
 		if (price == null) return NULL_VALUE;
 		const parsed = parseFloat(price);
-		if (isNaN(parsed)) return NULL_VALUE;
+		if (Number.isNaN(parsed)) return NULL_VALUE;
 		return Math.round(parsed * 100);
 	};
 
@@ -944,7 +949,7 @@ async function downloadSymbols(): Promise<SymbolsResult> {
 
 	await Promise.all(
 		symbology.data.map((symbol) => {
-			const filename = symbol.symbol.replace(/[{}\/]/g, "").toLowerCase();
+			const filename = symbol.symbol.replace(/[{}/]/g, "").toLowerCase();
 			const outputPath = join(SYMBOLS_DIR, `${filename}.svg`);
 			return downloadFile(symbol.svg_uri, outputPath);
 		}),
@@ -953,7 +958,9 @@ async function downloadSymbols(): Promise<SymbolsResult> {
 	// Cache the symbol list
 	await writeFile(symbolsCachePath, JSON.stringify(currentSymbols));
 
-	console.log(`Downloaded ${symbology.data.length} symbol SVGs to: ${SYMBOLS_DIR}`);
+	console.log(
+		`Downloaded ${symbology.data.length} symbol SVGs to: ${SYMBOLS_DIR}`,
+	);
 	return { count: symbology.data.length, names: symbolNames };
 }
 
@@ -989,9 +996,9 @@ async function downloadKeyrune(offline: boolean): Promise<KeyruneResult> {
 		// Check if we already have this version
 		let needsDownload = true;
 		try {
-			const cached = JSON.parse(
-				await readFile(versionCachePath, "utf-8"),
-			) as { version: string };
+			const cached = JSON.parse(await readFile(versionCachePath, "utf-8")) as {
+				version: string;
+			};
 
 			if (cached.version === version) {
 				console.log(`✓ Already have Keyrune ${version}, skipping download`);
@@ -1017,7 +1024,9 @@ async function downloadKeyrune(offline: boolean): Promise<KeyruneResult> {
 			console.log(`Fetching: ${keyruneBase}/css/keyrune.css`);
 			const cssResponse = await fetch(`${keyruneBase}/css/keyrune.css`);
 			if (!cssResponse.ok) {
-				throw new Error(`HTTP ${cssResponse.status}: ${cssResponse.statusText}`);
+				throw new Error(
+					`HTTP ${cssResponse.status}: ${cssResponse.statusText}`,
+				);
 			}
 			const css = await cssResponse.text();
 			await writeFile(cssCachePath, css);
@@ -1028,9 +1037,9 @@ async function downloadKeyrune(offline: boolean): Promise<KeyruneResult> {
 	} else {
 		// Offline mode: read cached version
 		try {
-			const cached = JSON.parse(
-				await readFile(versionCachePath, "utf-8"),
-			) as { version: string };
+			const cached = JSON.parse(await readFile(versionCachePath, "utf-8")) as {
+				version: string;
+			};
 			version = cached.version;
 			console.log(`Using cached Keyrune ${version}`);
 		} catch {
@@ -1052,15 +1061,13 @@ async function downloadKeyrune(offline: boolean): Promise<KeyruneResult> {
 	const blockRegex =
 		/((?:\.ss-[a-z0-9]+:before[,\s]*)+)\s*\{\s*content:\s*"\\([0-9a-f]+)"/gi;
 	const selectorRegex = /\.ss-([a-z0-9]+):before/g;
-	let match: RegExpExecArray | null;
 
-	while ((match = blockRegex.exec(css)) !== null) {
+	for (const match of css.matchAll(blockRegex)) {
 		const [, selectors, codepoint] = match;
 		const cp = parseInt(codepoint, 16);
 
 		// Extract all set codes from the selector list
-		let selectorMatch: RegExpExecArray | null;
-		while ((selectorMatch = selectorRegex.exec(selectors)) !== null) {
+		for (const selectorMatch of selectors.matchAll(selectorRegex)) {
 			mappings[selectorMatch[1]] = cp;
 		}
 	}
@@ -1145,7 +1152,9 @@ async function main(): Promise<void> {
 
 			console.log("\n=== Summary ===");
 			console.log(`Cards: ${cards.data.cardCount.toLocaleString()}`);
-			console.log(`Migrations: ${Object.keys(migrations).length.toLocaleString()}`);
+			console.log(
+				`Migrations: ${Object.keys(migrations).length.toLocaleString()}`,
+			);
 			console.log(`Mana symbols: ${symbols.count.toLocaleString()}`);
 			console.log(`Set symbols: ${keyrune.setCount.toLocaleString()}`);
 			console.log(`Version: ${cards.data.version}`);

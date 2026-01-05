@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { isDefaultPrinting, compareCards } from "./download-scryfall.ts";
+import { describe, expect, it } from "vitest";
 import type { Card } from "../src/lib/scryfall-types.ts";
-import { asScryfallId, asOracleId } from "../src/lib/scryfall-types.ts";
+import { asOracleId, asScryfallId } from "../src/lib/scryfall-types.ts";
+import { compareCards, isDefaultPrinting } from "./download-scryfall.ts";
 
 type TestCard = Card & { security_stamp?: string; [key: string]: unknown };
 
@@ -48,12 +48,12 @@ describe("isDefaultPrinting", () => {
 		expect(
 			isDefaultPrinting(createCard({ frame_effects: ["extendedart"] })),
 		).toBe(false);
-		expect(
-			isDefaultPrinting(createCard({ frame_effects: ["showcase"] })),
-		).toBe(false);
-		expect(
-			isDefaultPrinting(createCard({ frame_effects: ["inverted"] })),
-		).toBe(false);
+		expect(isDefaultPrinting(createCard({ frame_effects: ["showcase"] }))).toBe(
+			false,
+		);
+		expect(isDefaultPrinting(createCard({ frame_effects: ["inverted"] }))).toBe(
+			false,
+		);
 	});
 
 	it("rejects full art", () => {
@@ -73,9 +73,9 @@ describe("isDefaultPrinting", () => {
 	});
 
 	it("rejects special promo types (serialized, doublerainbow, etc)", () => {
-		expect(
-			isDefaultPrinting(createCard({ promo_types: ["serialized"] })),
-		).toBe(false);
+		expect(isDefaultPrinting(createCard({ promo_types: ["serialized"] }))).toBe(
+			false,
+		);
 		expect(
 			isDefaultPrinting(
 				createCard({ promo_types: ["serialized", "doublerainbow"] }),
@@ -87,9 +87,9 @@ describe("isDefaultPrinting", () => {
 		expect(
 			isDefaultPrinting(createCard({ promo_types: ["confettifoil"] })),
 		).toBe(false);
-		expect(
-			isDefaultPrinting(createCard({ promo_types: ["galaxyfoil"] })),
-		).toBe(false);
+		expect(isDefaultPrinting(createCard({ promo_types: ["galaxyfoil"] }))).toBe(
+			false,
+		);
 		expect(isDefaultPrinting(createCard({ promo_types: ["textured"] }))).toBe(
 			false,
 		);
