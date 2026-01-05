@@ -15,11 +15,72 @@
  * Requires dev server running on port 3000.
  */
 
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 
 const DEV_SERVER_URL = "http://localhost:3000";
 const OUTPUT_DIR = ".cache/wireframe-compare";
+
+async function createOverlay(
+	page: Awaited<
+		ReturnType<Awaited<ReturnType<typeof chromium.launch>>["newPage"]>
+	>,
+	scryfallPath: string,
+	wireframePath: string,
+	outputPath: string,
+	opacity = 0.5,
+): Promise<void> {
+	// Read images as base64
+	const scryfallBase64 = readFileSync(scryfallPath).toString("base64");
+	const wireframeBase64 = readFileSync(wireframePath).toString("base64");
+
+	// Create HTML page with canvas compositing
+	const html = `
+		<!DOCTYPE html>
+		<html>
+		<head><style>body { margin: 0; }</style></head>
+		<body>
+			<canvas id="canvas"></canvas>
+			<script>
+				async function composite() {
+					const canvas = document.getElementById('canvas');
+					const ctx = canvas.getContext('2d');
+
+					const scryfall = new Image();
+					const wireframe = new Image();
+
+					await Promise.all([
+						new Promise(r => { scryfall.onload = r; scryfall.src = 'data:image/png;base64,${scryfallBase64}'; }),
+						new Promise(r => { wireframe.onload = r; wireframe.src = 'data:image/png;base64,${wireframeBase64}'; })
+					]);
+
+					// Use scryfall dimensions
+					canvas.width = scryfall.width;
+					canvas.height = scryfall.height;
+
+					// Draw scryfall at full opacity
+					ctx.drawImage(scryfall, 0, 0);
+
+					// Draw wireframe scaled to match, with transparency
+					ctx.globalAlpha = ${opacity};
+					ctx.drawImage(wireframe, 0, 0, canvas.width, canvas.height);
+
+					document.body.setAttribute('data-ready', 'true');
+				}
+				composite();
+			</script>
+		</body>
+		</html>
+	`;
+
+	await page.setContent(html);
+	await page.waitForSelector("[data-ready]", { timeout: 5000 });
+
+	const canvas = await page.$("#canvas");
+	if (canvas) {
+		await canvas.screenshot({ path: outputPath });
+	}
+}
 
 async function screenshotMode(
 	page: Awaited<
@@ -170,6 +231,33 @@ async function main() {
 		console.error(error);
 		await browser.close();
 		process.exit(1);
+	}
+
+	// Create overlay images
+	console.log("Creating overlay comparisons...");
+	const scryfallPath = `${OUTPUT_DIR}/${actualId}-scryfall.png`;
+	const wireframePath = `${OUTPUT_DIR}/${actualId}-wireframe.png`;
+
+	if (existsSync(scryfallPath) && existsSync(wireframePath)) {
+		const overlayPath = `${OUTPUT_DIR}/${actualId}-overlay.png`;
+		await createOverlay(page, scryfallPath, wireframePath, overlayPath, 0.5);
+		console.log(`  overlay: ${overlayPath}`);
+	}
+
+	// Also create overlay for back face if it exists
+	const scryfallFace2Path = `${OUTPUT_DIR}/${actualId}-scryfall-face2.png`;
+	const wireframeFlippedPath = `${OUTPUT_DIR}/${actualId}-wireframe-flipped.png`;
+
+	if (existsSync(scryfallFace2Path) && existsSync(wireframeFlippedPath)) {
+		const overlayPath = `${OUTPUT_DIR}/${actualId}-overlay-face2.png`;
+		await createOverlay(
+			page,
+			scryfallFace2Path,
+			wireframeFlippedPath,
+			overlayPath,
+			0.5,
+		);
+		console.log(`  overlay (face2): ${overlayPath}`);
 	}
 
 	await browser.close();
