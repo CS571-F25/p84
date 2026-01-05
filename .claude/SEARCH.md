@@ -64,7 +64,7 @@ name_expr  = EXACT_NAME | WORD | QUOTED | REGEX
 - `name`, `n` - Card name
 - `type`, `t` - Type line (creature, instant, etc.)
 - `oracle`, `o` - Oracle text
-- `manavalue`, `mv`, `cmc` - Mana value
+- `manavalue`, `mv`, `cmc` - Mana value (prefer `mv` - see CLAUDE.md terminology note)
 - `color`, `c` - Card colors
 - `identity`, `ci`, `id` - Color identity
 

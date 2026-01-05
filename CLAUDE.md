@@ -146,6 +146,15 @@ Vite is configured to ignore large generated files in watch mode:
 
 ## Important Notes
 
+### Documentation Hygiene
+- **Update docs when you change things** - If you modify behavior documented in `.claude/*.md`, update the docs in the same PR. Stale docs are worse than no docs.
+- **Add to todos.md when you notice issues** - Found a bug? Spotted code that needs refactoring? Add it to `todos.md` so it doesn't get lost.
+- **Create new `.claude/` docs for complex features** - If you're implementing something that took significant research or has non-obvious behavior, document it.
+
+### MTG Terminology
+- **Use "mana value" (mv) not "CMC"** - Scryfall still uses `cmc` in their API, but the official MTG terminology changed in 2021. Use `mv` or `manavalue` in code, comments, and UI. The search parser accepts both but prefer `mv`.
+
+### Code Standards
 - **This is a TypeScript project** - ALL code (including scripts) must use TypeScript with proper types
 - **Use `nix-shell -p <package>` for missing commands** - If a command isn't in PATH, use nix-shell to get it temporarily
 - **Prefer functional style over exceptions** - Avoid throwing errors for control flow. Use type predicates, Option/Result patterns, and early returns instead. Throwing is like GOTO—it breaks local reasoning and makes code harder to follow
