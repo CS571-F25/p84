@@ -31,7 +31,7 @@ const LAYOUT = {
 	oracleText: "text-[4cqw]",
 	oraclePadding: "px-[4cqw] py-[1.5cqw]",
 	footerPadding: "px-[3cqw] py-[1cqw]",
-	footerText: "text-[3.5cqw]",
+	footerText: "text-[3cqw]",
 	manaSize: "w-[4cqw] h-[4cqw]",
 	manaSmall: "w-[3.5cqw] h-[3.5cqw]",
 	setSymbol: "text-[7cqw]",

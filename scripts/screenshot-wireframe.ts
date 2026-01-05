@@ -453,15 +453,49 @@ async function screenshotMode(
 	return false;
 }
 
+/**
+ * Creates zoomed crops of key card regions from the wireframe itself (not comparison).
+ * Useful for inspecting fine details like footer text.
+ */
+async function createWireframeZooms(
+	wireframePath: string,
+	outputPrefix: string,
+): Promise<void> {
+	const regions = {
+		title: { x: 0, y: 0, w: 1, h: 0.12 },
+		type: { x: 0, y: 0.54, w: 1, h: 0.1 },
+		footer: { x: 0, y: 0.88, w: 1, h: 0.12 },
+		pt: { x: 0.6, y: 0.8, w: 0.4, h: 0.2 },
+	};
+
+	const img = sharp(wireframePath);
+	const { width, height } = await img.metadata();
+	if (!width || !height) throw new Error("Could not read wireframe dimensions");
+
+	for (const [name, r] of Object.entries(regions)) {
+		const left = Math.floor(width * r.x);
+		const top = Math.floor(height * r.y);
+		const cropWidth = Math.floor(width * r.w);
+		const cropHeight = Math.floor(height * r.h);
+
+		await sharp(wireframePath)
+			.extract({ left, top, width: cropWidth, height: cropHeight })
+			.resize(cropWidth * 3, cropHeight * 3, { kernel: "nearest" })
+			.toFile(`${outputPrefix}-wireframe-zoom-${name}.png`);
+	}
+}
+
 async function main() {
 	const args = process.argv.slice(2);
 	const cardId = args.find((a) => !a.startsWith("--"));
+	const doZoom = args.includes("--zoom");
 
 	if (!cardId) {
-		console.error("Usage: npm run screenshot:wireframe -- <card-id>");
+		console.error("Usage: npm run screenshot:wireframe -- <card-id> [--zoom]");
 		console.error(
 			"Example: npm run screenshot:wireframe -- 5e3f2736-9d13-44e3-a4bf-4f64314e5848",
 		);
+		console.error("  --zoom: Create zoomed crops of wireframe regions");
 		process.exit(1);
 	}
 
@@ -590,6 +624,13 @@ async function main() {
 				`  ${a.region}: ${a.direction} (${a.dxPercent}%, ${a.dyPercent}%)`,
 			);
 		}
+	}
+
+	// Create standalone wireframe zooms if requested
+	if (doZoom && existsSync(wireframePath)) {
+		console.log("Creating wireframe zooms...");
+		await createWireframeZooms(wireframePath, `${OUTPUT_DIR}/${actualId}`);
+		console.log(`  zooms: title, type, footer, pt`);
 	}
 
 	// Also create overlay for back face if it exists
