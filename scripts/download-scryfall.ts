@@ -258,7 +258,7 @@ export function isDefaultPrinting(card: ScryfallCard): boolean {
 
 /**
  * Comparator for selecting canonical card printings.
- * Priority: english > is:default > non-arena-only > highres > non-UB > black border > modern frame > non-plst/sld > newer > non-variant > paper
+ * Priority: english > is:default > non-arena-only > highres > non-UB > black border > modern frame > non-plst/sld/prm > newer > non-variant > paper
  *
  * Accepts ScryfallCard (raw) to access fields like security_stamp before filtering.
  */
@@ -311,8 +311,8 @@ export function compareCards(a: ScryfallCard, b: ScryfallCard): number {
 	const bFrameRank = getFrameRank(b.frame);
 	if (aFrameRank !== bFrameRank) return aFrameRank - bFrameRank;
 
-	// Deprioritize The List (plst) and Secret Lair (sld) - specialty products
-	const deprioritizedSets = ["plst", "sld"];
+	// Deprioritize specialty products: The List, Secret Lair, MTGO Promos
+	const deprioritizedSets = ["plst", "sld", "prm"];
 	const aDeprio = deprioritizedSets.includes(a.set ?? "");
 	const bDeprio = deprioritizedSets.includes(b.set ?? "");
 	if (!aDeprio && bDeprio) return -1;
