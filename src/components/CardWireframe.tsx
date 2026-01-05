@@ -165,12 +165,23 @@ function PlaneswalkerAbilities({ text }: { text: string }) {
 	return (
 		<div className="flex flex-col gap-[1.5cqw]">
 			{lines.map((line) => {
-				const loyaltyMatch = line.match(/^([+−-]?\d+):\s*(.*)$/);
+				// Match loyalty costs: +N, -N, −N, 0, -X, −X, etc.
+				const loyaltyMatch = line.match(/^([+−-]?(?:\d+|X)):\s*(.*)$/);
 				if (loyaltyMatch) {
 					const [, cost, ability] = loyaltyMatch;
+					// Determine badge color based on cost type
+					const isPositive = cost.startsWith("+");
+					const isNegative = cost.startsWith("-") || cost.startsWith("−");
+					const badgeColor = isPositive
+						? "bg-green-600 text-white"
+						: isNegative
+							? "bg-orange-600 text-white"
+							: "bg-gray-400 dark:bg-slate-500 text-white";
 					return (
 						<div key={line} className="flex gap-[1.5cqw] items-start">
-							<span className="text-[4cqw] font-bold bg-gray-300 dark:bg-slate-600 px-[1.5cqw] rounded shrink-0">
+							<span
+								className={`text-[3.5cqw] font-bold px-[1.5cqw] py-[0.25cqw] rounded shrink-0 ${badgeColor}`}
+							>
 								{cost}
 							</span>
 							<span className="text-[4cqw]">
@@ -474,7 +485,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 		);
 	}
 
-	// Adventure cards: main creature with adventure box
+	// Adventure cards: main creature with adventure box in text area
 	if (isAdventure && isMultiFaced) {
 		const mainFace = faces[0];
 		const adventureFace = faces[1];
@@ -498,35 +509,59 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 					)}
 				</div>
 
-				{/* Art placeholder with adventure box */}
-				<div className="h-[35%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center relative">
-					{/* Adventure spell box */}
-					<div className="absolute bottom-[2cqw] left-[2cqw] right-[40%] bg-gray-50/95 dark:bg-slate-800/95 rounded border border-gray-300 dark:border-slate-600 p-[1.5cqw]">
-						<div className="flex items-center justify-between gap-[1cqw] mb-[0.5cqw]">
-							<span className="font-bold text-[4cqw] tracking-tight text-gray-900 dark:text-white truncate">
+				{/* Art placeholder */}
+				<div className="h-[44%] bg-gray-300/50 dark:bg-slate-700/50" />
+
+				{/* Type line */}
+				<div className="flex items-center justify-between px-[3cqw] py-[1cqw] border-t border-b border-gray-300 dark:border-slate-600 bg-gray-50/80 dark:bg-slate-800/80">
+					<span className="text-[4.5cqw] tracking-tight text-gray-800 dark:text-gray-200 truncate">
+						{mainFace.type_line}
+					</span>
+					<SetSymbol
+						setCode={card.set}
+						rarity={SET_SYMBOL_RARITY[rarity]}
+						className="text-[5cqw]"
+					/>
+				</div>
+
+				{/* Text box with adventure on left, creature text on right */}
+				<div className="flex-1 flex gap-[1cqw] p-[2cqw] overflow-hidden">
+					{/* Adventure box */}
+					<div className="w-[45%] bg-gray-100 dark:bg-slate-800 rounded border border-gray-300 dark:border-slate-600 p-[1.5cqw] flex flex-col">
+						<div className="flex items-center gap-[1cqw] mb-[0.5cqw]">
+							<span className="font-bold text-[3.5cqw] text-gray-900 dark:text-white truncate">
 								{adventureFace.name}
 							</span>
 							{adventureFace.mana_cost && (
 								<ManaCost
 									cost={adventureFace.mana_cost}
-									className="w-[4cqw] h-[4cqw]"
+									className="w-[3.5cqw] h-[3.5cqw]"
 								/>
 							)}
 						</div>
-						<div className="text-[3.5cqw] text-gray-600 dark:text-gray-400 truncate">
+						<div className="text-[3cqw] text-gray-500 dark:text-gray-400 truncate">
 							{adventureFace.type_line}
 						</div>
 						{adventureFace.oracle_text && (
-							<div className="text-[3.5cqw] leading-tight tracking-tight text-gray-800 dark:text-gray-200 line-clamp-2">
+							<div className="text-[3cqw] leading-tight text-gray-800 dark:text-gray-200 mt-[0.5cqw] line-clamp-4">
 								<OracleText text={adventureFace.oracle_text} />
 							</div>
 						)}
 					</div>
-				</div>
 
-				{/* Main card body */}
-				<div className="flex-1 flex flex-col overflow-hidden">
-					<FaceContent face={mainFace} setCode={card.set} rarity={rarity} />
+					{/* Creature text */}
+					<div className="flex-1 flex flex-col justify-between overflow-hidden">
+						{mainFace.oracle_text && (
+							<div className="text-[3.5cqw] leading-tight text-gray-800 dark:text-gray-200 line-clamp-4">
+								<OracleText text={mainFace.oracle_text} />
+							</div>
+						)}
+						{(mainFace.power || mainFace.toughness) && (
+							<div className="text-right font-bold text-[5cqw] text-gray-900 dark:text-white">
+								{mainFace.power}/{mainFace.toughness}
+							</div>
+						)}
+					</div>
 				</div>
 
 				<CardFooter card={card} />
@@ -567,7 +602,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 								/>
 							)}
 						</div>
-						<div className="h-[35%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
+						<div className="h-[44%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
 						<div className="flex-1 flex flex-col overflow-hidden">
 							<FaceContent face={faces[0]} setCode={card.set} rarity={rarity} />
 						</div>
@@ -597,7 +632,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 								/>
 							)}
 						</div>
-						<div className="h-[35%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
+						<div className="h-[44%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
 						<div className="flex-1 flex flex-col overflow-hidden">
 							<FaceContent
 								face={faces[1] || faces[0]}
@@ -645,7 +680,7 @@ export function CardWireframe({ card, className }: CardWireframeProps) {
 			</div>
 
 			{/* Art placeholder */}
-			<div className="h-[35%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
+			<div className="h-[44%] bg-gray-300/50 dark:bg-slate-700/50 flex items-center justify-center" />
 
 			{/* Card body */}
 			<div className="flex-1 flex flex-col overflow-hidden">
