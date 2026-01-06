@@ -6,22 +6,17 @@
  * - ServerCardProvider: Server-side, reads from filesystem
  */
 
-// import { ClientCardProvider } from "./cards-client-provider";
 import { createIsomorphicFn } from "@tanstack/react-start";
+import type { OracleId, ScryfallId, VolatileData } from "./scryfall-types";
 import type {
 	Card,
-	OracleId,
-	ScryfallId,
+	PaginatedSearchResult,
 	SearchRestrictions,
-	VolatileData,
-} from "./scryfall-types";
+	SortOption,
+	UnifiedSearchResult,
+} from "./search-types";
 
-export interface UnifiedSearchResult {
-	mode: "fuzzy" | "syntax";
-	cards: Card[];
-	description: string | null;
-	error: { message: string; start: number; end: number } | null;
-}
+export type { UnifiedSearchResult, PaginatedSearchResult };
 
 export interface CardDataProvider {
 	/**
@@ -81,6 +76,18 @@ export interface CardDataProvider {
 		restrictions?: SearchRestrictions,
 		maxResults?: number,
 	): Promise<UnifiedSearchResult>;
+
+	/**
+	 * Paginated unified search with caching for virtual scroll
+	 * Caches full result set in LRU cache, returns requested slice
+	 */
+	paginatedUnifiedSearch?(
+		query: string,
+		restrictions: SearchRestrictions | undefined,
+		sort: SortOption,
+		offset: number,
+		limit: number,
+	): Promise<PaginatedSearchResult>;
 }
 
 let providerPromise: Promise<CardDataProvider> | null = null;

@@ -4,18 +4,16 @@
  * Uses Web Worker to load full card dataset and provide search functionality
  */
 
-import type {
-	CardDataProvider,
-	UnifiedSearchResult,
-} from "./card-data-provider";
+import type { CardDataProvider } from "./card-data-provider";
 import { getCardsWorker, initializeWorker } from "./cards-worker-client";
+import type { OracleId, ScryfallId, VolatileData } from "./scryfall-types";
 import type {
 	Card,
-	OracleId,
-	ScryfallId,
+	PaginatedSearchResult,
 	SearchRestrictions,
-	VolatileData,
-} from "./scryfall-types";
+	SortOption,
+	UnifiedSearchResult,
+} from "./search-types";
 
 export class ClientCardProvider implements CardDataProvider {
 	async initialize(): Promise<void> {
@@ -76,5 +74,22 @@ export class ClientCardProvider implements CardDataProvider {
 	): Promise<UnifiedSearchResult> {
 		const worker = getCardsWorker();
 		return worker.unifiedSearch(query, restrictions, maxResults);
+	}
+
+	async paginatedUnifiedSearch(
+		query: string,
+		restrictions: SearchRestrictions | undefined,
+		sort: SortOption,
+		offset: number,
+		limit: number,
+	): Promise<PaginatedSearchResult> {
+		const worker = getCardsWorker();
+		return worker.paginatedUnifiedSearch(
+			query,
+			restrictions,
+			sort,
+			offset,
+			limit,
+		);
 	}
 }

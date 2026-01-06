@@ -8,13 +8,12 @@
 import * as Comlink from "comlink";
 import MiniSearch from "minisearch";
 import { CARD_CHUNKS, CARD_INDEXES, CARD_VOLATILE } from "../lib/card-manifest";
+import { LRUCache } from "../lib/lru-cache";
 import type {
-	Card,
 	CardDataOutput,
 	ManaColor,
 	OracleId,
 	ScryfallId,
-	SearchRestrictions,
 	VolatileData,
 } from "../lib/scryfall-types";
 import {
@@ -25,21 +24,18 @@ import {
 	type SearchNode,
 	someNode,
 } from "../lib/search";
+import type {
+	CachedSearchResult,
+	Card,
+	PaginatedSearchResult,
+	SearchRestrictions,
+	SortDirection,
+	SortField,
+	SortOption,
+	UnifiedSearchResult,
+} from "../lib/search-types";
 
-interface UnifiedSearchResult {
-	mode: "fuzzy" | "syntax";
-	cards: Card[];
-	description: string | null;
-	error: { message: string; start: number; end: number } | null;
-}
-
-export type SortField = "name" | "mv" | "released" | "rarity" | "color";
-export type SortDirection = "asc" | "desc" | "auto";
-
-export interface SortOption {
-	field: SortField;
-	direction: SortDirection;
-}
+export type { SortField, SortDirection, SortOption };
 
 // Rarity ordering (higher = more rare, matches fields.ts RARITY_ORDER)
 const RARITY_ORDER: Record<string, number> = {
@@ -207,6 +203,18 @@ interface CardsWorkerAPI {
 		maxResults?: number,
 		sort?: SortOption,
 	): UnifiedSearchResult;
+
+	/**
+	 * Paginated unified search with caching for virtual scroll
+	 * Caches full result set in LRU cache, returns requested slice
+	 */
+	paginatedUnifiedSearch(
+		query: string,
+		restrictions: SearchRestrictions | undefined,
+		sort: SortOption,
+		offset: number,
+		limit: number,
+	): Promise<PaginatedSearchResult>;
 }
 
 class CardsWorker implements CardsWorkerAPI {
@@ -215,6 +223,7 @@ class CardsWorker implements CardsWorkerAPI {
 	private canonicalRank: Map<ScryfallId, number> = new Map();
 	private searchIndex: MiniSearch<Card> | null = null;
 	private volatileDataPromise: Promise<Map<string, VolatileData>> | null = null;
+	private searchCache = new LRUCache<string, CachedSearchResult>(5);
 
 	async initialize(): Promise<void> {
 		// Prevent re-initialization in SharedWorker mode (shared across tabs)
@@ -363,47 +372,22 @@ class CardsWorker implements CardsWorkerAPI {
 			throw new Error("Worker not initialized - call initialize() first");
 		}
 
-		// Empty query returns no results
 		if (!query.trim()) {
 			return [];
 		}
 
-		// Perform fuzzy search with exact-match priority
 		const searchResults = this.searchIndex.search(query);
+		const restrictionCheck = this.buildRestrictionCheck(restrictions);
 		const results: Card[] = [];
 
-		// Iterate incrementally, applying filters and stopping at maxResults
 		for (const result of searchResults) {
 			const card = this.data.cards[result.id as ScryfallId];
 			if (!card) continue;
-
-			// Skip non-game cards in fuzzy search
 			if (isNonGameCard(card)) continue;
-
-			// Apply restrictions
-			if (restrictions) {
-				// Format legality check
-				if (restrictions.format) {
-					const legality = card.legalities?.[restrictions.format];
-					if (legality !== "legal" && legality !== "restricted") {
-						continue;
-					}
-				}
-
-				// Color identity subset check (Scryfall order not guaranteed)
-				if (restrictions.colorIdentity) {
-					const cardIdentity = card.color_identity ?? [];
-					const allowedSet = new Set(restrictions.colorIdentity);
-
-					// Card must be subset of allowed colors
-					if (!cardIdentity.every((c) => allowedSet.has(c as ManaColor))) {
-						continue;
-					}
-				}
-			}
+			if (!restrictionCheck(card)) continue;
 
 			results.push(card);
-			if (results.length >= maxResults) break; // Early exit
+			if (results.length >= maxResults) break;
 		}
 
 		return results;
@@ -529,6 +513,125 @@ class CardsWorker implements CardsWorkerAPI {
 			restrictions,
 		);
 		return { mode: "syntax", cards, description, error: null };
+	}
+
+	async paginatedUnifiedSearch(
+		query: string,
+		restrictions: SearchRestrictions | undefined,
+		sort: SortOption,
+		offset: number,
+		limit: number,
+	): Promise<PaginatedSearchResult> {
+		if (!this.data || !this.searchIndex) {
+			throw new Error("Worker not initialized - call initialize() first");
+		}
+
+		const trimmed = query.trim();
+		if (!trimmed) {
+			return {
+				mode: "fuzzy",
+				cards: [],
+				totalCount: 0,
+				description: null,
+				error: null,
+			};
+		}
+
+		const cacheKey = JSON.stringify({ query: trimmed, restrictions, sort });
+		const cached = await this.searchCache.getOrSet(cacheKey, async () =>
+			this.executeFullUnifiedSearch(trimmed, restrictions, sort),
+		);
+
+		return {
+			mode: cached.mode,
+			cards: cached.cards.slice(offset, offset + limit),
+			totalCount: cached.cards.length,
+			description: cached.description,
+			error: cached.error,
+		};
+	}
+
+	/**
+	 * Execute full unified search without pagination (for caching)
+	 */
+	private executeFullUnifiedSearch(
+		query: string,
+		restrictions: SearchRestrictions | undefined,
+		sort: SortOption,
+	): CachedSearchResult {
+		if (!this.data || !this.searchIndex) {
+			return { mode: "fuzzy", cards: [], description: null, error: null };
+		}
+
+		// Simple query - use fuzzy search
+		if (!hasSearchOperators(query)) {
+			const restrictionCheck = this.buildRestrictionCheck(restrictions);
+			const searchResults = this.searchIndex.search(query);
+			const cards: Card[] = [];
+
+			for (const result of searchResults) {
+				const card = this.data.cards[result.id as ScryfallId];
+				if (!card) continue;
+				if (isNonGameCard(card)) continue;
+				if (!restrictionCheck(card)) continue;
+				cards.push(card);
+			}
+
+			return { mode: "fuzzy", cards, description: null, error: null };
+		}
+
+		// Complex query - parse and run syntax search
+		const parseResult = parseSearch(query);
+
+		if (!parseResult.ok) {
+			return {
+				mode: "syntax",
+				cards: [],
+				description: null,
+				error: {
+					message: parseResult.error.message,
+					start: parseResult.error.span.start,
+					end: parseResult.error.span.end,
+				},
+			};
+		}
+
+		const { match, ast } = parseResult.value;
+		const description = describeQuery(ast);
+		const cards = this.runFullParsedQuery(ast, match, sort, restrictions);
+		return { mode: "syntax", cards, description, error: null };
+	}
+
+	/**
+	 * Run a parsed query without result limit (for caching)
+	 */
+	private runFullParsedQuery(
+		ast: SearchNode,
+		match: CardPredicate,
+		sort: SortOption,
+		restrictions?: SearchRestrictions,
+	): Card[] {
+		if (!this.data) return [];
+
+		const includesNonGameCards = someNode(
+			ast,
+			(n) =>
+				n.type === "FIELD" && (n.field === "settype" || n.field === "layout"),
+		);
+
+		const restrictionCheck = this.buildRestrictionCheck(restrictions);
+
+		const allMatches: Card[] = [];
+		for (const card of Object.values(this.data.cards)) {
+			if (!includesNonGameCards && isNonGameCard(card)) continue;
+			if (!restrictionCheck(card)) continue;
+			if (!match(card)) continue;
+			allMatches.push(card);
+		}
+
+		const dedupedCards = this.collapseToCanonical(allMatches);
+		sortCards(dedupedCards, sort);
+		return dedupedCards;
 	}
 
 	/**

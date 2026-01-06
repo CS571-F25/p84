@@ -1,13 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { AlertCircle, Loader2, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { CardThumbnail } from "@/components/CardImage";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CardSkeleton, CardThumbnail } from "@/components/CardImage";
 import { OracleText } from "@/components/OracleText";
 import {
 	getCardsMetadataQueryOptions,
-	unifiedSearchQueryOptions,
+	PAGE_SIZE,
+	searchPageQueryOptions,
 } from "@/lib/queries";
+import type { Card } from "@/lib/search-types";
 import { useDebounce } from "@/lib/useDebounce";
 
 export const Route = createFileRoute("/cards/")({
@@ -47,26 +50,124 @@ function MetadataDisplay() {
 	);
 }
 
+// Breakpoints match Tailwind: grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5
+function getColumns() {
+	if (typeof window === "undefined") return 5;
+	const width = window.innerWidth;
+	if (width >= 1280) return 5;
+	if (width >= 1024) return 4;
+	if (width >= 768) return 3;
+	return 2;
+}
+
+function useColumns() {
+	const [columns, setColumns] = useState(getColumns);
+
+	useEffect(() => {
+		let timeout: ReturnType<typeof setTimeout>;
+		const update = () => {
+			clearTimeout(timeout);
+			timeout = setTimeout(() => setColumns(getColumns()), 150);
+		};
+
+		window.addEventListener("resize", update);
+		return () => {
+			clearTimeout(timeout);
+			window.removeEventListener("resize", update);
+		};
+	}, []);
+
+	return columns;
+}
+
 function CardsPage() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
 	const [searchQuery, setSearchQuery] = useState(search.q || "");
 	const debouncedSearchQuery = useDebounce(searchQuery, 400);
 	const searchInputRef = useRef<HTMLInputElement>(null);
-	const { data: searchResult, isFetching } = useQuery(
-		unifiedSearchQueryOptions(debouncedSearchQuery),
+	const listRef = useRef<HTMLDivElement>(null);
+	const columns = useColumns();
+
+	// First page query to get totalCount and metadata
+	const firstPageQuery = useQuery(
+		searchPageQueryOptions(debouncedSearchQuery, 0),
 	);
+	const totalCount = firstPageQuery.data?.totalCount ?? 0;
+	const hasError = firstPageQuery.data?.error != null;
+
+	const rowCount = Math.ceil(totalCount / columns);
+
+	const virtualizer = useWindowVirtualizer({
+		count: rowCount,
+		estimateSize: () => 300, // Initial estimate, measureElement will correct it
+		overscan: 2,
+		scrollMargin: listRef.current?.offsetTop ?? 0,
+	});
+
+	// Calculate which pages are needed based on visible rows (excluding page 0, handled by firstPageQuery)
+	const visibleItems = virtualizer.getVirtualItems();
+	const extraOffsets = (() => {
+		if (!debouncedSearchQuery.trim() || visibleItems.length === 0) return [];
+
+		const firstRowIndex = visibleItems[0]?.index ?? 0;
+		const lastRowIndex = visibleItems[visibleItems.length - 1]?.index ?? 0;
+
+		const firstCardIndex = firstRowIndex * columns;
+		const lastCardIndex = (lastRowIndex + 1) * columns - 1;
+
+		const firstPage = Math.floor(firstCardIndex / PAGE_SIZE);
+		const lastPage = Math.floor(lastCardIndex / PAGE_SIZE);
+
+		const offsets: number[] = [];
+		for (let p = firstPage; p <= lastPage; p++) {
+			const offset = p * PAGE_SIZE;
+			if (offset > 0) offsets.push(offset); // Skip page 0, already fetched
+		}
+		return offsets;
+	})();
+
+	// Fetch additional pages beyond page 0
+	const extraPageQueries = useQueries({
+		queries: extraOffsets.map((offset) =>
+			searchPageQueryOptions(debouncedSearchQuery, offset),
+		),
+	});
+
+	// Build card map from all loaded pages
+	const cardMap = useMemo(() => {
+		const map = new Map<number, Card>();
+
+		// Add cards from first page
+		const firstPageCards = firstPageQuery.data?.cards;
+		if (firstPageCards) {
+			for (let j = 0; j < firstPageCards.length; j++) {
+				map.set(j, firstPageCards[j]);
+			}
+		}
+
+		// Add cards from extra pages
+		for (let i = 0; i < extraPageQueries.length; i++) {
+			const offset = extraOffsets[i];
+			const query = extraPageQueries[i];
+			if (query?.data?.cards) {
+				for (let j = 0; j < query.data.cards.length; j++) {
+					map.set(offset + j, query.data.cards[j]);
+				}
+			}
+		}
+
+		return map;
+	}, [firstPageQuery.data?.cards, extraOffsets, extraPageQueries]);
 
 	useEffect(() => {
 		searchInputRef.current?.focus();
 	}, []);
 
-	// Sync state with URL when navigating back/forward
 	useEffect(() => {
 		setSearchQuery(search.q || "");
 	}, [search.q]);
 
-	// Update URL immediately on search query change
 	useEffect(() => {
 		if (searchQuery !== search.q) {
 			navigate({
@@ -76,12 +177,11 @@ function CardsPage() {
 		}
 	}, [searchQuery, search.q, navigate]);
 
-	const cards = searchResult?.cards ?? [];
-	const hasError = searchResult?.error != null;
+	const firstPage = firstPageQuery.data;
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
-			<div className="max-w-7xl mx-auto px-6 py-8">
+			<div className="max-w-7xl w-full mx-auto px-6 pt-8 pb-4">
 				<div className="mb-8">
 					<h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
 						Card Browser
@@ -89,7 +189,7 @@ function CardsPage() {
 					<MetadataDisplay />
 				</div>
 
-				<div className="mb-6">
+				<div className="mb-4">
 					<div className="relative">
 						<Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
 						<input
@@ -106,36 +206,32 @@ function CardsPage() {
 						/>
 					</div>
 
-					{/* Error message */}
-					{hasError && searchResult?.error && (
+					{hasError && firstPage?.error && (
 						<div className="mt-2 flex items-start gap-2 text-sm text-red-500 dark:text-red-400">
 							<AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-							<span>{searchResult.error.message}</span>
+							<span>{firstPage.error.message}</span>
 						</div>
 					)}
 
-					{/* Query description for syntax mode */}
-					{searchResult?.description && !hasError && (
+					{firstPage?.description && !hasError && (
 						<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-							<OracleText text={searchResult.description} />
+							<OracleText text={firstPage.description} />
 						</p>
 					)}
 
-					{/* Result count */}
 					{searchQuery && !hasError && (
 						<p className="text-sm text-gray-400 mt-2">
-							{cards.length > 0 && (
+							{totalCount > 0 && (
 								<>
-									Found {cards.length} results
-									{searchResult?.mode === "syntax" && " (syntax)"}
-									{isFetching && " • Searching..."}
+									Found {totalCount.toLocaleString()} results
+									{firstPage?.mode === "syntax" && " (syntax)"}
 								</>
 							)}
-							{cards.length === 0 &&
-								searchResult &&
-								!isFetching &&
+							{totalCount === 0 &&
+								firstPage &&
+								!firstPageQuery.isFetching &&
 								"No results found"}
-							{!searchResult && "Searching..."}
+							{!firstPage && firstPageQuery.isFetching && "Searching..."}
 						</p>
 					)}
 
@@ -145,21 +241,44 @@ function CardsPage() {
 						</p>
 					)}
 				</div>
+			</div>
 
+			<div ref={listRef} className="px-6 pb-6">
 				<div
-					className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 transition-opacity ${
-						isFetching || searchQuery !== debouncedSearchQuery
-							? "opacity-50"
-							: "opacity-100"
-					}`}
+					className="max-w-7xl mx-auto relative"
+					style={{ height: virtualizer.getTotalSize() }}
 				>
-					{cards.map((card) => (
-						<CardThumbnail
-							key={card.id}
-							card={card}
-							href={`/card/${card.id}`}
-						/>
-					))}
+					{visibleItems.map((virtualRow) => {
+						const startIndex = virtualRow.index * columns;
+						const itemsInRow = Math.min(columns, totalCount - startIndex);
+
+						return (
+							<div
+								key={virtualRow.key}
+								data-index={virtualRow.index}
+								ref={virtualizer.measureElement}
+								className="absolute top-0 left-0 w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-4"
+								style={{
+									transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
+								}}
+							>
+								{Array.from({ length: itemsInRow }, (_, i) => {
+									const cardIndex = startIndex + i;
+									const card = cardMap.get(cardIndex);
+									if (card) {
+										return (
+											<CardThumbnail
+												key={card.id}
+												card={card}
+												href={`/card/${card.id}`}
+											/>
+										);
+									}
+									return <CardSkeleton key={`skeleton-${cardIndex}`} />;
+								})}
+							</div>
+						);
+					})}
 				</div>
 			</div>
 		</div>

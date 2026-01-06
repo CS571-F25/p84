@@ -156,6 +156,18 @@ export function CardImage({
 	);
 }
 
+/**
+ * Loading placeholder for card thumbnails
+ */
+export function CardSkeleton() {
+	return (
+		<div
+			className="aspect-[5/7] rounded-[4.75%/3.5%] bg-gray-200 dark:bg-slate-700 animate-pulse"
+			style={{ backgroundImage: PLACEHOLDER_STRIPES }}
+		/>
+	);
+}
+
 interface CardThumbnailProps {
 	card: Card;
 	href?: string;

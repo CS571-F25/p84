@@ -3,17 +3,15 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
-import {
-	getCardDataProvider,
-	type UnifiedSearchResult,
-} from "./card-data-provider";
+import { getCardDataProvider } from "./card-data-provider";
+import type { OracleId, ScryfallId, VolatileData } from "./scryfall-types";
 import type {
 	Card,
-	OracleId,
-	ScryfallId,
+	PaginatedSearchResult,
 	SearchRestrictions,
-	VolatileData,
-} from "./scryfall-types";
+	SortOption,
+	UnifiedSearchResult,
+} from "./search-types";
 
 /**
  * Combine function for useQueries - converts query results into a Map.
@@ -196,6 +194,65 @@ export const unifiedSearchQueryOptions = (
 			}
 
 			return provider.unifiedSearch(query, restrictions, maxResults);
+		},
+		staleTime: 5 * 60 * 1000,
+	});
+
+export const PAGE_SIZE = 50;
+
+/**
+ * Single page query for visibility-based fetching.
+ * Used with useQueries to load pages based on scroll position.
+ */
+export const searchPageQueryOptions = (
+	query: string,
+	offset: number,
+	restrictions?: SearchRestrictions,
+	sort: SortOption = { field: "name", direction: "auto" },
+) =>
+	queryOptions({
+		queryKey: [
+			"cards",
+			"searchPage",
+			query,
+			offset,
+			restrictions,
+			sort,
+		] as const,
+		queryFn: async (): Promise<PaginatedSearchResult> => {
+			const provider = await getCardDataProvider();
+
+			if (!query.trim()) {
+				return {
+					mode: "fuzzy",
+					cards: [],
+					totalCount: 0,
+					description: null,
+					error: null,
+				};
+			}
+
+			if (!provider.paginatedUnifiedSearch) {
+				return {
+					mode: "fuzzy",
+					cards: [],
+					totalCount: 0,
+					description: null,
+					error: {
+						message: "Paginated search not available",
+						start: 0,
+						end: 0,
+					},
+				};
+			}
+
+			return provider.paginatedUnifiedSearch(
+				query,
+				restrictions,
+				sort,
+				offset,
+				PAGE_SIZE,
+			);
 		},
 		staleTime: 5 * 60 * 1000,
 	});

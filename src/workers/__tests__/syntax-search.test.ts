@@ -359,4 +359,126 @@ describe("CardsWorker syntaxSearch", () => {
 			}
 		});
 	});
+
+	describe("paginatedUnifiedSearch", () => {
+		const sort = { field: "name", direction: "auto" } as const;
+
+		it("returns totalCount and requested page", async () => {
+			const result = await worker.paginatedUnifiedSearch(
+				"s:lea t:creature",
+				undefined,
+				sort,
+				0,
+				10,
+			);
+			expect(result.totalCount).toBeGreaterThan(50);
+			expect(result.cards.length).toBe(10);
+			expect(result.error).toBeNull();
+		});
+
+		it("returns correct slice for offset", async () => {
+			const page1 = await worker.paginatedUnifiedSearch(
+				"s:lea",
+				undefined,
+				sort,
+				0,
+				10,
+			);
+			const page2 = await worker.paginatedUnifiedSearch(
+				"s:lea",
+				undefined,
+				sort,
+				10,
+				10,
+			);
+			expect(page1.cards[0].id).not.toBe(page2.cards[0].id);
+			expect(page1.totalCount).toBe(page2.totalCount);
+		});
+
+		it("caches results across page fetches", async () => {
+			const p1 = await worker.paginatedUnifiedSearch(
+				"s:lea",
+				undefined,
+				sort,
+				0,
+				10,
+			);
+			const p2 = await worker.paginatedUnifiedSearch(
+				"s:lea",
+				undefined,
+				sort,
+				50,
+				10,
+			);
+			expect(p1.totalCount).toBe(p2.totalCount);
+		});
+
+		it("returns empty last page correctly", async () => {
+			const result = await worker.paginatedUnifiedSearch(
+				's:lea !"Lightning Bolt"',
+				undefined,
+				sort,
+				0,
+				10,
+			);
+			expect(result.totalCount).toBe(1);
+			expect(result.cards.length).toBe(1);
+
+			const page2 = await worker.paginatedUnifiedSearch(
+				's:lea !"Lightning Bolt"',
+				undefined,
+				sort,
+				10,
+				10,
+			);
+			expect(page2.cards.length).toBe(0);
+		});
+
+		it("recomputes when query changes", async () => {
+			await worker.paginatedUnifiedSearch("s:lea", undefined, sort, 0, 10);
+			const different = await worker.paginatedUnifiedSearch(
+				"s:2ed",
+				undefined,
+				sort,
+				0,
+				10,
+			);
+			expect(different.cards.every((c) => c.set === "2ed")).toBe(true);
+		});
+
+		it("returns mode indicator for syntax search", async () => {
+			const result = await worker.paginatedUnifiedSearch(
+				"s:lea t:creature",
+				undefined,
+				sort,
+				0,
+				10,
+			);
+			expect(result.mode).toBe("syntax");
+		});
+
+		it("returns mode indicator for fuzzy search", async () => {
+			const result = await worker.paginatedUnifiedSearch(
+				"lightning bolt",
+				undefined,
+				sort,
+				0,
+				10,
+			);
+			expect(result.mode).toBe("fuzzy");
+		});
+
+		it("returns error for invalid syntax", async () => {
+			const result = await worker.paginatedUnifiedSearch(
+				"t:",
+				undefined,
+				sort,
+				0,
+				10,
+			);
+			expect(result.error).not.toBeNull();
+			expect(result.cards).toEqual([]);
+			expect(result.totalCount).toBe(0);
+		});
+	});
 });
