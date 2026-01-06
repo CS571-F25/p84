@@ -18,6 +18,12 @@ This file tracks discovered issues, refactoring opportunities, and feature ideas
 - **Issue**: `/goblin.*king/i` syntax is parsed but not matched correctly for bare name searches (works in field values like `o:/regex/`)
 - **Why it matters**: Documented in grammar but broken
 
+### Flaky property test for OR parsing
+- **Location**: `src/lib/search/__tests__/parser.test.ts:276` ("parses OR combinations")
+- **Issue**: fast-check property test occasionally finds edge cases that fail parsing
+- **Repro**: Run full test suite repeatedly, fails intermittently
+- **Investigate**: What input caused the failure, is it a parser bug or test issue
+
 ---
 
 ## Features (Planned)
