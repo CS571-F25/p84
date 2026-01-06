@@ -258,7 +258,7 @@ export function isDefaultPrinting(card: ScryfallCard): boolean {
 
 /**
  * Comparator for selecting canonical card printings.
- * Priority: english > is:default > non-arena-only > highres > non-UB > black border > modern frame > non-plst/sld/prm > newer > non-variant > paper
+ * Priority: english > is:default > non-memorabilia > non-promo > non-arena-only > highres > non-UB > black border > modern frame > non-plst/sld > newer > non-variant > paper
  *
  * Accepts ScryfallCard (raw) to access fields like security_stamp before filtering.
  */
@@ -278,6 +278,12 @@ export function compareCards(a: ScryfallCard, b: ScryfallCard): number {
 	const bMemo = b.set_type === "memorabilia";
 	if (!aMemo && bMemo) return -1;
 	if (aMemo && !bMemo) return 1;
+
+	// Deprioritize promo sets (prerelease, buy-a-box, FNM, etc)
+	const aPromo = a.set_type === "promo";
+	const bPromo = b.set_type === "promo";
+	if (!aPromo && bPromo) return -1;
+	if (aPromo && !bPromo) return 1;
 
 	// Deprioritize Arena-only (paper and MTGO are both fine)
 	const aArenaOnly = a.games?.length === 1 && a.games[0] === "arena";
@@ -317,8 +323,8 @@ export function compareCards(a: ScryfallCard, b: ScryfallCard): number {
 	const bFrameRank = getFrameRank(b.frame);
 	if (aFrameRank !== bFrameRank) return aFrameRank - bFrameRank;
 
-	// Deprioritize specialty products: The List, Secret Lair, MTGO Promos
-	const deprioritizedSets = ["plst", "sld", "prm"];
+	// Deprioritize specialty products: The List, Secret Lair
+	const deprioritizedSets = ["plst", "sld"];
 	const aDeprio = deprioritizedSets.includes(a.set ?? "");
 	const bDeprio = deprioritizedSets.includes(b.set ?? "");
 	if (!aDeprio && bDeprio) return -1;
