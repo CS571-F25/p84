@@ -83,6 +83,8 @@ export type FieldName =
 	| "set"
 	| "settype"
 	| "layout"
+	| "frame"
+	| "border"
 	| "number"
 	| "rarity"
 	| "artist"
@@ -109,6 +111,8 @@ export const DISCRETE_FIELDS: ReadonlySet<FieldName> = new Set([
 	"set",
 	"settype",
 	"layout",
+	"frame",
+	"border",
 	"rarity",
 	"game",
 	"in",
@@ -160,6 +164,8 @@ export const FIELD_ALIASES: Record<string, FieldName> = {
 	st: "settype",
 	settype: "settype",
 	layout: "layout",
+	frame: "frame",
+	border: "border",
 	cn: "number",
 	number: "number",
 	r: "rarity",

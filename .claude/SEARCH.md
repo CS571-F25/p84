@@ -81,14 +81,63 @@ name_expr  = EXACT_NAME | WORD | QUOTED | REGEX
 - `year` - Release year
 - `date` - Release date
 - `layout` - Card layout (normal, split, flip, transform, etc.)
+- `frame` - Frame edition (1993, 1997, 2003, 2015, future)
+- `border` - Border color (black, white, borderless, silver, gold)
 - `game` - Game availability (paper, mtgo, arena)
 - `in` - Unified filter for game, set type, set code, or language (see below)
 
 ### Boolean Filters (is:)
-- `is:token` - Token cards
-- `is:art` - Art cards
-- `is:land` - Lands (by type)
-- `is:creature`, `is:instant`, etc. - Card types
+
+**Card types:**
+- `is:creature`, `is:instant`, `is:sorcery`, `is:artifact`, `is:enchantment`, `is:land`, `is:planeswalker`
+- `is:permanent`, `is:spell` - Broader categories
+- `is:legendary`, `is:snow`, `is:historic`
+
+**Layouts:**
+- `is:split`, `is:flip`, `is:transform`, `is:mdfc`, `is:dfc`, `is:meld`
+- `is:saga`, `is:adventure`, `is:battle`, `is:prototype`, `is:leveler`
+- `is:token`, `is:art_series`
+
+**Printing characteristics:**
+- `is:reprint`, `is:promo`, `is:digital`, `is:reserved`
+- `is:full`, `is:fullart`, `is:hires`
+- `is:foil`, `is:nonfoil`, `is:etched`
+
+**Frame effects:**
+- `is:showcase`, `is:extendedart`, `is:borderless`, `is:inverted`, `is:colorshifted`
+- `is:retro`, `is:old` (1993/1997 frames), `is:modern` (2003/2015), `is:new` (2015), `is:future`
+- `is:boosterfun`
+
+**Promo types:**
+- `is:buyabox`, `is:prerelease`, `is:fnm`, `is:gameday`, `is:release`, `is:datestamped`, `is:promopacks`
+
+**Land types:** (derived from oracle text patterns)
+- `is:fetchland` - Fetch lands (search + pay life)
+- `is:shockland` - Shock lands (pay 2 life)
+- `is:dual` - Original dual lands (two basic types, no text)
+- `is:triome` - Triomes (three basic land types)
+- `is:checkland` - Check lands (enters tapped unless you control...)
+- `is:fastland` - Fast lands (enters tapped unless two or fewer lands)
+- `is:slowland` - Slow lands (enters tapped unless two or more lands)
+- `is:painland` - Pain lands (tap + damage for colored)
+- `is:filterland` - Filter lands (pay life to filter mana)
+- `is:bounceland` - Bounce lands (return a land)
+- `is:tangoland`, `is:battleland` - Battle/tango lands
+- `is:scryland` - Scry lands (enters tapped, scry 1)
+- `is:gainland` - Gain lands (enters tapped, gain 1 life)
+- `is:manland`, `is:creatureland` - Creature lands (becomes a creature)
+- `is:canopyland` - Canopy lands (sacrifice to draw)
+
+**Card archetypes:**
+- `is:vanilla` - Creatures with no text
+- `is:frenchvanilla` - Creatures with only keywords
+- `is:bear` - 2/2 for 2 creatures
+- `is:modal`, `is:spree` - Modal spells (choose one/two/etc)
+- `is:party` - Party creatures (cleric, rogue, warrior, wizard)
+- `is:outlaw` - Outlaw creatures (assassin, mercenary, pirate, rogue, warlock)
+- `is:commander` - Can be your commander
+
+**Note:** Land type predicates use oracle text pattern matching and may need refinement. See `fields.ts` IS_PREDICATES for implementation details.
 
 ## Color Syntax
 

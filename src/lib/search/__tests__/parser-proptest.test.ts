@@ -368,6 +368,8 @@ describe("parser property tests", () => {
 				keyword: ["keyword", "kw"],
 				settype: ["settype", "st"],
 				layout: ["layout"],
+				frame: ["frame"],
+				border: ["border"],
 				number: ["number", "cn"],
 				artist: ["artist", "a"],
 				banned: ["banned"],

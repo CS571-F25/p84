@@ -113,6 +113,12 @@ export function compileField(
 		case "layout":
 			return compileTextField((c) => c.layout, operator, value, true);
 
+		case "frame":
+			return compileTextField((c) => c.frame, operator, value, true);
+
+		case "border":
+			return compileTextField((c) => c.border_color, operator, value, true);
+
 		case "number":
 			return compileTextField((c) => c.collector_number, operator, value);
 
@@ -735,6 +741,226 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 			types.includes("saga")
 		);
 	},
+
+	// Frame effects (from frame_effects array)
+	showcase: (card) => card.frame_effects?.includes("showcase") ?? false,
+	extendedart: (card) => card.frame_effects?.includes("extendedart") ?? false,
+	borderless: (card) => card.border_color === "borderless",
+	fullart: (card) => card.full_art === true,
+	inverted: (card) => card.frame_effects?.includes("inverted") ?? false,
+	colorshifted: (card) => card.frame_effects?.includes("colorshifted") ?? false,
+	retro: (card) => card.frame === "1997" || card.frame === "1993",
+	old: (card) => card.frame === "1993" || card.frame === "1997",
+	modern: (card) => card.frame === "2003" || card.frame === "2015",
+	new: (card) => card.frame === "2015",
+	future: (card) => card.frame === "future",
+
+	// Promo types (from promo_types array)
+	buyabox: (card) => card.promo_types?.includes("buyabox") ?? false,
+	prerelease: (card) => card.promo_types?.includes("prerelease") ?? false,
+	datestamped: (card) => card.promo_types?.includes("datestamped") ?? false,
+	fnm: (card) => card.promo_types?.includes("fnm") ?? false,
+	gameday: (card) => card.promo_types?.includes("gameday") ?? false,
+	release: (card) => card.promo_types?.includes("release") ?? false,
+	promopacks: (card) => card.promo_types?.includes("promopack") ?? false,
+	boosterfun: (card) => card.frame_effects?.includes("boosterfun") ?? false,
+
+	// Land cycle predicates - use exact oracle text patterns to match only the 10-card cycles
+	// Each pattern should match exactly 10 cards
+
+	fetchland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "{T}, Pay 1 life, Sacrifice this land: Search your library for a[n] X or Y card..."
+		const pattern =
+			/^\{T\}, Pay 1 life, Sacrifice this land: Search your library for an? \w+ or \w+ card, put it onto the battlefield, then shuffle\.$/i;
+		return pattern.test(oracle);
+	},
+	shockland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "({T}: Add {X} or {Y}.)\nAs this land enters, you may pay 2 life..."
+		const pattern =
+			/^\(\{T\}: Add \{[WUBRG]\} or \{[WUBRG]\}\.\)\nAs this land enters, you may pay 2 life\. If you don't, it enters tapped\.$/i;
+		return pattern.test(oracle);
+	},
+	dual: (card) => {
+		const typeLine = card.type_line ?? "";
+		const oracle = card.oracle_text ?? "";
+		// Original duals: type line exactly "Land — X Y" (no supertypes like Snow)
+		// and oracle text is exactly the mana reminder
+		const typePattern =
+			/^Land — (Plains|Island|Swamp|Mountain|Forest) (Plains|Island|Swamp|Mountain|Forest)$/;
+		const oraclePattern = /^\(\{T\}: Add \{[WUBRG]\} or \{[WUBRG]\}\.\)$/;
+		return typePattern.test(typeLine) && oraclePattern.test(oracle);
+	},
+	triome: (card) => {
+		const types = card.type_line?.toLowerCase() ?? "";
+		const landTypes = ["plains", "island", "swamp", "mountain", "forest"];
+		const matchCount = landTypes.filter((t) => types.includes(t)).length;
+		return types.includes("land") && matchCount >= 3;
+	},
+	checkland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "This land enters tapped unless you control a X or a Y.\n{T}: Add {X} or {Y}."
+		const pattern =
+			/^This land enters tapped unless you control an? \w+ or an? \w+\.\n\{T\}: Add \{[WUBRG]\} or \{[WUBRG]\}\.$/i;
+		return pattern.test(oracle);
+	},
+	fastland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "This land enters tapped unless you control two or fewer other lands.\n{T}: Add {X} or {Y}."
+		const pattern =
+			/^This land enters tapped unless you control two or fewer other lands\.\n\{T\}: Add \{[WUBRG]\} or \{[WUBRG]\}\.$/i;
+		return pattern.test(oracle);
+	},
+	slowland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "This land enters tapped unless you control two or more other lands.\n{T}: Add {X} or {Y}."
+		const pattern =
+			/^This land enters tapped unless you control two or more other lands\.\n\{T\}: Add \{[WUBRG]\} or \{[WUBRG]\}\.$/i;
+		return pattern.test(oracle);
+	},
+	painland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "{T}: Add {C}.\n{T}: Add {X} or {Y}. This land deals 1 damage to you."
+		const pattern =
+			/^\{T\}: Add \{C\}\.\n\{T\}: Add \{[WUBRG]\} or \{[WUBRG]\}\. This land deals 1 damage to you\.$/i;
+		return pattern.test(oracle);
+	},
+	filterland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "{T}: Add {C}.\n{W/U}, {T}: Add {W}{W}, {W}{U}, or {U}{U}."
+		const pattern =
+			/^\{T\}: Add \{C\}\.\n\{[WUBRG]\/[WUBRG]\}, \{T\}: Add \{[WUBRG]\}\{[WUBRG]\}, \{[WUBRG]\}\{[WUBRG]\}, or \{[WUBRG]\}\{[WUBRG]\}\.$/i;
+		return pattern.test(oracle);
+	},
+	bounceland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "This land enters tapped.\nWhen this land enters, return a land you control to its owner's hand.\n{T}: Add {W}{U}."
+		const pattern =
+			/^This land enters tapped\.\nWhen this land enters, return a land you control to its owner's hand\.\n\{T\}: Add \{[WUBRG]\}\{[WUBRG]\}\.$/i;
+		return pattern.test(oracle);
+	},
+	tangoland: (card) => {
+		const oracle = card.oracle_text?.toLowerCase() ?? "";
+		const types = card.type_line?.toLowerCase() ?? "";
+		const landTypes = ["plains", "island", "swamp", "mountain", "forest"];
+		const matchCount = landTypes.filter((t) => types.includes(t)).length;
+		return (
+			matchCount >= 2 &&
+			oracle.includes("enters tapped unless you control two or more basic")
+		);
+	},
+	battleland: (card) => {
+		const oracle = card.oracle_text?.toLowerCase() ?? "";
+		const types = card.type_line?.toLowerCase() ?? "";
+		const landTypes = ["plains", "island", "swamp", "mountain", "forest"];
+		const matchCount = landTypes.filter((t) => types.includes(t)).length;
+		return (
+			matchCount >= 2 &&
+			oracle.includes("enters tapped unless you control two or more basic")
+		);
+	},
+	scryland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "This land enters tapped.\nWhen this land enters, scry 1. (reminder text)\n{T}: Add {W} or {U}."
+		const pattern =
+			/^This land enters tapped\.\nWhen this land enters, scry 1\. \([^)]+\)\n\{T\}: Add \{[WUBRG]\} or \{[WUBRG]\}\.$/i;
+		return pattern.test(oracle);
+	},
+	gainland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {W} or {U}."
+		const pattern =
+			/^This land enters tapped\.\nWhen this land enters, you gain 1 life\.\n\{T\}: Add \{[WUBRG]\} or \{[WUBRG]\}\.$/i;
+		return pattern.test(oracle);
+	},
+	manland: (card) => {
+		const oracle = card.oracle_text?.toLowerCase() ?? "";
+		const types = card.type_line?.toLowerCase() ?? "";
+		return types.includes("land") && oracle.includes("becomes a");
+	},
+	canopyland: (card) => {
+		const oracle = card.oracle_text ?? "";
+		// Pattern: "{T}, Pay 1 life: Add {G} or {W}.\n{1}, {T}, Sacrifice this land: Draw a card."
+		const pattern =
+			/^\{T\}, Pay 1 life: Add \{[WUBRG]\} or \{[WUBRG]\}\.\n\{1\}, \{T\}, Sacrifice this land: Draw a card\.$/i;
+		return pattern.test(oracle);
+	},
+	creatureland: (card) => {
+		const oracle = card.oracle_text?.toLowerCase() ?? "";
+		const types = card.type_line?.toLowerCase() ?? "";
+		return types.includes("land") && oracle.includes("becomes a");
+	},
+
+	// Card archetypes
+	vanilla: (card) => {
+		const types = card.type_line?.toLowerCase() ?? "";
+		return (
+			types.includes("creature") &&
+			(!card.oracle_text || card.oracle_text === "")
+		);
+	},
+	frenchvanilla: (card) => {
+		const types = card.type_line?.toLowerCase() ?? "";
+		const keywords = card.keywords ?? [];
+		if (!types.includes("creature") || keywords.length === 0) return false;
+
+		// Strip reminder text (parenthesized)
+		const oracle = (card.oracle_text ?? "").replace(/\([^)]*\)/g, "").trim();
+		if (!oracle) return true; // Keywords with only reminder text
+
+		// Check each line starts with one of the card's keywords
+		const kwLower = keywords.map((k) => k.toLowerCase());
+		const lines = oracle.split(/[,\n]/).map((l) => l.trim().toLowerCase());
+
+		return lines.every(
+			(line) => !line || kwLower.some((kw) => line.startsWith(kw)),
+		);
+	},
+	bear: (card) => {
+		const types = card.type_line?.toLowerCase() ?? "";
+		return (
+			types.includes("creature") &&
+			card.cmc === 2 &&
+			card.power === "2" &&
+			card.toughness === "2"
+		);
+	},
+	modal: (card) => {
+		const oracle = card.oracle_text?.toLowerCase() ?? "";
+		return (
+			oracle.includes("choose one") ||
+			oracle.includes("choose two") ||
+			oracle.includes("choose three") ||
+			oracle.includes("choose four") ||
+			oracle.includes("choose any number") ||
+			card.layout === "modal_dfc" ||
+			card.frame_effects?.includes("spree") === true
+		);
+	},
+	spree: (card) => card.frame_effects?.includes("spree") ?? false,
+	party: (card) => {
+		const types = card.type_line?.toLowerCase() ?? "";
+		return (
+			types.includes("cleric") ||
+			types.includes("rogue") ||
+			types.includes("warrior") ||
+			types.includes("wizard")
+		);
+	},
+	outlaw: (card) => {
+		const types = card.type_line?.toLowerCase() ?? "";
+		return (
+			types.includes("assassin") ||
+			types.includes("mercenary") ||
+			types.includes("pirate") ||
+			types.includes("rogue") ||
+			types.includes("warlock")
+		);
+	},
+
+	// Hires/quality
+	hires: (card) => card.highres_image === true,
 };
 
 /**

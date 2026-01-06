@@ -129,4 +129,81 @@ describe("describeQuery", () => {
 	])("regex with flags: `%s` → %s", (query, expected) => {
 		expect(desc(query)).toBe(expected);
 	});
+
+	describe("is: predicate descriptions", () => {
+		it.each([
+			// Land cycles
+			["is:fetchland", "fetch lands (sacrifice, pay 1 life, search)"],
+			["is:shockland", "shock lands (pay 2 life or enter tapped)"],
+			["is:dual", "original dual lands"],
+			["is:checkland", "check lands (enter tapped unless you control...)"],
+			["is:fastland", "fast lands (enter tapped unless ≤2 other lands)"],
+			["is:slowland", "slow lands (enter tapped unless ≥2 other lands)"],
+			["is:painland", "pain lands (deal 1 damage for colored mana)"],
+			["is:filterland", "filter lands (hybrid mana activation)"],
+			["is:bounceland", "bounce lands (return a land when entering)"],
+			["is:tangoland", "battle lands (enter tapped unless ≥2 basics)"],
+			["is:scryland", "scry lands (enter tapped, scry 1)"],
+			["is:gainland", "gain lands (enter tapped, gain 1 life)"],
+			[
+				"is:canopyland",
+				"horizon lands (pay 1 life for mana, sacrifice to draw)",
+			],
+			["is:triome", "triomes (three basic land types)"],
+
+			// Archetypes
+			["is:vanilla", "vanilla creatures (no abilities)"],
+			["is:frenchvanilla", "French vanilla creatures (only keyword abilities)"],
+			["is:bear", "bears (2/2 creatures for 2 mana)"],
+			["is:modal", "modal spells (choose one or more)"],
+			["is:commander", "cards that can be commanders"],
+
+			// Card types
+			["is:creature", "creatures"],
+			["is:instant", "instants"],
+			["is:legendary", "legendary cards"],
+			["is:permanent", "permanents"],
+			["is:spell", "spells (instants and sorceries)"],
+
+			// Layouts
+			["is:mdfc", "modal double-faced cards"],
+			["is:saga", "sagas"],
+			["is:adventure", "adventure cards"],
+
+			// Printing characteristics
+			["is:reserved", "reserved list cards"],
+			["is:promo", "promos"],
+			["is:foil", "available in foil"],
+
+			// Frame effects
+			["is:borderless", "borderless cards"],
+			["is:showcase", "showcase frame cards"],
+			["is:retro", "retro frame cards (1993/1997)"],
+		])("is: predicate `%s` → %s", (query, expected) => {
+			expect(desc(query)).toBe(expected);
+		});
+
+		it.each([
+			["not:creature", "not creatures"],
+			["not:legendary", "not legendary cards"],
+			["not:promo", "not promos"],
+			["not:fetchland", "not fetch lands (sacrifice, pay 1 life, search)"],
+		])("not: predicate `%s` → %s", (query, expected) => {
+			expect(desc(query)).toBe(expected);
+		});
+
+		it("unknown predicate uses fallback", () => {
+			expect(desc("is:unknownpredicate")).toBe('"unknownpredicate" cards');
+			expect(desc("not:unknownpredicate")).toBe('not "unknownpredicate"');
+		});
+
+		it("combined with other fields", () => {
+			expect(desc("is:fetchland c:ug")).toBe(
+				"fetch lands (sacrifice, pay 1 life, search) AND color includes {U}{G}",
+			);
+			expect(desc("t:creature is:legendary")).toBe(
+				'type includes "creature" AND legendary cards',
+			);
+		});
+	});
 });

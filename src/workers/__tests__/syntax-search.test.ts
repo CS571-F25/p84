@@ -481,4 +481,190 @@ describe("CardsWorker syntaxSearch", () => {
 			expect(result.totalCount).toBe(0);
 		});
 	});
+
+	describe("land cycle counts (is: predicates)", () => {
+		// These tests verify that each land cycle predicate matches exactly
+		// the expected number of unique cards. The predicates use precise
+		// regex patterns to match only cards in the specific cycle.
+
+		it("is:fetchland returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:fetchland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				// Verify they're all lands with the fetch pattern
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/Pay 1 life, Sacrifice/i);
+				}
+			}
+		});
+
+		it("is:shockland returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:shockland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/pay 2 life/i);
+				}
+			}
+		});
+
+		it("is:dual returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:dual", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					// Duals have two basic land types
+					const landTypes = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
+					const typeCount = landTypes.filter((t) =>
+						card.type_line?.includes(t),
+					).length;
+					expect(typeCount).toBeGreaterThanOrEqual(2);
+				}
+			}
+		});
+
+		it("is:checkland returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:checkland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/unless you control/i);
+				}
+			}
+		});
+
+		it("is:fastland returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:fastland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/two or fewer other lands/i);
+				}
+			}
+		});
+
+		it("is:slowland returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:slowland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/two or more other lands/i);
+				}
+			}
+		});
+
+		it("is:painland returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:painland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/deals 1 damage to you/i);
+				}
+			}
+		});
+
+		it("is:filterland returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:filterland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					// Filter lands use hybrid mana activation
+					expect(card.oracle_text).toMatch(/\{[WUBRG]\/[WUBRG]\}/i);
+				}
+			}
+		});
+
+		it("is:bounceland returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:bounceland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/return a land/i);
+				}
+			}
+		});
+
+		it("is:scryland returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:scryland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/scry 1/i);
+				}
+			}
+		});
+
+		it("is:gainland returns exactly 15 cards (two cycles)", () => {
+			const result = worker.syntaxSearch("is:gainland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(15);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/gain 1 life/i);
+				}
+			}
+		});
+
+		it("is:tangoland returns exactly 7 cards", () => {
+			const result = worker.syntaxSearch("is:tangoland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(7);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/two or more basic/i);
+				}
+			}
+		});
+
+		it("is:canopyland returns exactly 6 cards", () => {
+			const result = worker.syntaxSearch("is:canopyland", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(6);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					expect(card.oracle_text).toMatch(/Sacrifice this land: Draw a card/i);
+				}
+			}
+		});
+
+		it("is:triome returns exactly 10 cards", () => {
+			const result = worker.syntaxSearch("is:triome", 100);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.cards.length).toBe(10);
+				for (const card of result.cards) {
+					expect(card.type_line).toContain("Land");
+					// Triomes have three basic land types
+					const landTypes = ["Plains", "Island", "Swamp", "Mountain", "Forest"];
+					const typeCount = landTypes.filter((t) =>
+						card.type_line?.includes(t),
+					).length;
+					expect(typeCount).toBeGreaterThanOrEqual(3);
+				}
+			}
+		});
+	});
 });
