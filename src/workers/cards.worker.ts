@@ -94,15 +94,21 @@ function colorIdentityRank(colors: string[] | undefined): number {
 	);
 }
 
+function getSortableName(name: string): string {
+	return name.startsWith("A-") ? name.slice(2) : name;
+}
+
 function sortCards(cards: Card[], sort: SortOption): void {
 	const dir = resolveDirection(sort.field, sort.direction);
 	const mult = dir === "desc" ? -1 : 1;
 
 	cards.sort((a, b) => {
 		let cmp = 0;
+		const nameA = getSortableName(a.name);
+		const nameB = getSortableName(b.name);
 		switch (sort.field) {
 			case "name":
-				cmp = a.name.localeCompare(b.name);
+				cmp = nameA.localeCompare(nameB);
 				break;
 			case "mv":
 				cmp = (a.cmc ?? 0) - (b.cmc ?? 0);
@@ -122,7 +128,7 @@ function sortCards(cards: Card[], sort: SortOption): void {
 				break;
 		}
 		cmp *= mult;
-		return cmp !== 0 ? cmp : a.name.localeCompare(b.name);
+		return cmp !== 0 ? cmp : nameA.localeCompare(nameB);
 	});
 }
 
