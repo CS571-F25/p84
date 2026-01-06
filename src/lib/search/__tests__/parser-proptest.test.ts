@@ -373,6 +373,7 @@ describe("parser property tests", () => {
 				banned: ["banned"],
 				restricted: ["restricted"],
 				game: ["game"],
+				in: ["in"],
 				produces: ["produces"],
 				year: ["year"],
 				date: ["date"],

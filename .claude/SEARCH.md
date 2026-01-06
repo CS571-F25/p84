@@ -82,6 +82,7 @@ name_expr  = EXACT_NAME | WORD | QUOTED | REGEX
 - `date` - Release date
 - `layout` - Card layout (normal, split, flip, transform, etc.)
 - `game` - Game availability (paper, mtgo, arena)
+- `in` - Unified filter for game, set type, set code, or language (see below)
 
 ### Boolean Filters (is:)
 - `is:token` - Token cards
@@ -110,6 +111,19 @@ Color comparisons use set theory:
 - `<` - Strict subset
 - `>` - Strict superset
 - `!=` - Not exactly these colors
+
+### The `in:` Field
+
+The `in:` field is a unified filter that matches multiple contexts:
+
+| Value Type | Examples | What it matches |
+|------------|----------|-----------------|
+| Game | `in:paper`, `in:mtgo`, `in:arena` | `card.games` array |
+| Set type | `in:core`, `in:expansion`, `in:commander` | `card.set_type` |
+| Set code | `in:lea`, `in:m21` | `card.set` |
+| Language | `in:ja`, `in:ru` | `card.lang` |
+
+Note: For set codes and languages that could overlap, both are checked.
 
 ## Examples
 

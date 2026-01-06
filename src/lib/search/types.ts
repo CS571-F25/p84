@@ -92,6 +92,7 @@ export type FieldName =
 	| "restricted"
 	// Misc
 	| "game"
+	| "in"
 	| "produces"
 	| "year"
 	| "date"
@@ -110,6 +111,7 @@ export const DISCRETE_FIELDS: ReadonlySet<FieldName> = new Set([
 	"layout",
 	"rarity",
 	"game",
+	"in",
 	"lang",
 	"format",
 	"banned",
@@ -171,6 +173,7 @@ export const FIELD_ALIASES: Record<string, FieldName> = {
 	restricted: "restricted",
 	// Misc
 	game: "game",
+	in: "in",
 	produces: "produces",
 	year: "year",
 	date: "date",

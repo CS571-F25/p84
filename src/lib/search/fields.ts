@@ -136,6 +136,9 @@ export function compileField(
 		case "game":
 			return compileGame(operator, value);
 
+		case "in":
+			return compileIn(operator, value);
+
 		case "produces":
 			return compileProduces(operator, value);
 
@@ -485,6 +488,73 @@ function compileGame(operator: ComparisonOp, value: FieldValue): CardPredicate {
 		default:
 			return (card) => card.games?.includes(game) ?? false;
 	}
+}
+
+const GAMES = new Set(["paper", "mtgo", "arena"]);
+const SET_TYPES = new Set([
+	"alchemy",
+	"archenemy",
+	"arsenal",
+	"box",
+	"commander",
+	"core",
+	"draft_innovation",
+	"duel_deck",
+	"eternal",
+	"expansion",
+	"from_the_vault",
+	"funny",
+	"masterpiece",
+	"masters",
+	"memorabilia",
+	"minigame",
+	"planechase",
+	"premium_deck",
+	"promo",
+	"spellbook",
+	"starter",
+	"token",
+	"treasure_chest",
+	"vanguard",
+]);
+
+/**
+ * Compile "in:" matcher - unified field for game, set, set type, and language
+ * Scryfall's "in:" checks if a card has been printed in a given context
+ */
+function compileIn(operator: ComparisonOp, value: FieldValue): CardPredicate {
+	if (value.kind !== "string") {
+		return () => false;
+	}
+
+	const searchValue = value.value.toLowerCase();
+	const isNegated = operator === "!=";
+
+	// Check game availability (paper, mtgo, arena)
+	if (GAMES.has(searchValue)) {
+		const game = searchValue as "paper" | "arena" | "mtgo";
+		return isNegated
+			? (card) => !(card.games?.includes(game) ?? false)
+			: (card) => card.games?.includes(game) ?? false;
+	}
+
+	// Check set type (core, expansion, commander, etc.)
+	if (SET_TYPES.has(searchValue)) {
+		return isNegated
+			? (card) => card.set_type?.toLowerCase() !== searchValue
+			: (card) => card.set_type?.toLowerCase() === searchValue;
+	}
+
+	// Fall back to set code or language
+	// Set codes are typically 3-4 chars, languages are 2-3 chars
+	// Check both - if either matches, include the card
+	return isNegated
+		? (card) =>
+				card.set?.toLowerCase() !== searchValue &&
+				card.lang?.toLowerCase() !== searchValue
+		: (card) =>
+				card.set?.toLowerCase() === searchValue ||
+				card.lang?.toLowerCase() === searchValue;
 }
 
 /**

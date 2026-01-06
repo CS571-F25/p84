@@ -418,6 +418,105 @@ describe("Scryfall search integration", () => {
 		});
 	});
 
+	describe("in: matching (game, set type, set, language)", () => {
+		const mockPaperCard = {
+			games: ["paper", "mtgo"],
+			set: "lea",
+			set_type: "expansion",
+			lang: "en",
+		} as Card;
+		const mockArenaCard = {
+			games: ["arena"],
+			set: "afr",
+			set_type: "expansion",
+			lang: "en",
+		} as Card;
+		const mockCommanderCard = {
+			games: ["paper"],
+			set: "cmr",
+			set_type: "commander",
+			lang: "en",
+		} as Card;
+		const mockJapaneseCard = {
+			games: ["paper"],
+			set: "sta",
+			set_type: "expansion",
+			lang: "ja",
+		} as Card;
+
+		it("in:paper matches paper games", () => {
+			const result = search("in:paper");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(mockPaperCard)).toBe(true);
+				expect(result.value.match(mockArenaCard)).toBe(false);
+			}
+		});
+
+		it("in:arena matches arena games", () => {
+			const result = search("in:arena");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(mockArenaCard)).toBe(true);
+				expect(result.value.match(mockPaperCard)).toBe(false);
+			}
+		});
+
+		it("in:mtgo matches mtgo games", () => {
+			const result = search("in:mtgo");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(mockPaperCard)).toBe(true);
+				expect(result.value.match(mockArenaCard)).toBe(false);
+			}
+		});
+
+		it("in:commander matches commander set type", () => {
+			const result = search("in:commander");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(mockCommanderCard)).toBe(true);
+				expect(result.value.match(mockPaperCard)).toBe(false);
+			}
+		});
+
+		it("in:expansion matches expansion set type", () => {
+			const result = search("in:expansion");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(mockPaperCard)).toBe(true);
+				expect(result.value.match(mockCommanderCard)).toBe(false);
+			}
+		});
+
+		it("in:<set> matches set code", () => {
+			const result = search("in:lea");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(mockPaperCard)).toBe(true);
+				expect(result.value.match(mockArenaCard)).toBe(false);
+			}
+		});
+
+		it("in:<lang> matches language", () => {
+			const result = search("in:ja");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(mockJapaneseCard)).toBe(true);
+				expect(result.value.match(mockPaperCard)).toBe(false);
+			}
+		});
+
+		it("-in:paper excludes paper cards", () => {
+			const result = search("-in:paper");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(mockPaperCard)).toBe(false);
+				expect(result.value.match(mockArenaCard)).toBe(true);
+			}
+		});
+	});
+
 	describe("complex queries", () => {
 		it("commander deckbuilding query", async () => {
 			const elves = await cards.get("Llanowar Elves");

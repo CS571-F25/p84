@@ -35,6 +35,7 @@ const FIELD_LABELS: Record<FieldName, string> = {
 	banned: "banned in",
 	restricted: "restricted in",
 	game: "game",
+	in: "printed in",
 	produces: "produces",
 	year: "year",
 	date: "release date",
@@ -99,9 +100,12 @@ function describeField(node: FieldNode): string {
 
 	// Pick operator label: discrete fields use "is" instead of "includes" for ":"
 	// But regex always uses "includes" since it's a pattern match, not exact
+	// "in" field is special - the label already implies the relationship
 	let opLabel: string;
 	if (isColorField) {
 		opLabel = COLOR_OPERATOR_LABELS[node.operator];
+	} else if (node.field === "in" && node.operator === ":") {
+		opLabel = "";
 	} else if (
 		node.operator === ":" &&
 		DISCRETE_FIELDS.has(node.field) &&
@@ -121,7 +125,9 @@ function describeField(node: FieldNode): string {
 	}
 
 	const valueStr = describeValue(node.value);
-	return `${fieldLabel} ${opLabel} ${valueStr}`;
+	return opLabel
+		? `${fieldLabel} ${opLabel} ${valueStr}`
+		: `${fieldLabel} ${valueStr}`;
 }
 
 export function describeQuery(node: SearchNode): string {
