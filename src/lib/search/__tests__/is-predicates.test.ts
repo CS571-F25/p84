@@ -565,6 +565,66 @@ describe("is: predicate tests", () => {
 			}
 		});
 
+		it("is:frenchvanilla does NOT match Rampage (bare numeric parameter)", async () => {
+			const berserker = await cards.get("Aerathi Berserker");
+			const result = search("is:frenchvanilla");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				// Rampage 3 has a bare numeric parameter - not French vanilla
+				expect(result.value.match(berserker)).toBe(false);
+			}
+		});
+
+		it("is:frenchvanilla does NOT match flip cards", async () => {
+			const lavarunner = await cards.get("Akki Lavarunner");
+			const result = search("is:frenchvanilla");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				// Flip cards have trigger conditions to flip, never french vanilla
+				expect(result.value.match(lavarunner)).toBe(false);
+			}
+		});
+
+		it("is:frenchvanilla does NOT match MDFCs (creature // land)", async () => {
+			const akoum = await cards.get("Akoum Warrior");
+			const result = search("is:frenchvanilla");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				// MDFCs have two distinct card faces, not purely a creature
+				expect(result.value.match(akoum)).toBe(false);
+			}
+		});
+
+		it("is:frenchvanilla does NOT match transform cards", async () => {
+			const lantern = await cards.get("A-Lantern Bearer");
+			const result = search("is:frenchvanilla");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				// Transform cards have two faces, not purely a creature
+				expect(result.value.match(lantern)).toBe(false);
+			}
+		});
+
+		it("is:frenchvanilla does NOT match ability words with activated abilities", async () => {
+			const greenwidow = await cards.get("A-Llanowar Greenwidow");
+			const result = search("is:frenchvanilla");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				// Domain — {5}{G}: ... is an activated ability, not french vanilla
+				expect(result.value.match(greenwidow)).toBe(false);
+			}
+		});
+
+		it("is:frenchvanilla does NOT match ability words with static effects", async () => {
+			const barbara = await cards.get("Barbara Wright");
+			const result = search("is:frenchvanilla");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				// "History Teacher — Sagas you control have read ahead" is a static ability
+				expect(result.value.match(barbara)).toBe(false);
+			}
+		});
+
 		it("is:bear matches 2/2 for 2 creatures", () => {
 			const bear = {
 				type_line: "Creature — Bear",

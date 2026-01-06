@@ -905,17 +905,54 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 		const keywords = card.keywords ?? [];
 		if (!types.includes("creature") || keywords.length === 0) return false;
 
+		// Multi-faced cards are never french vanilla
+		const multiFaceLayouts = new Set([
+			"adventure",
+			"flip",
+			"modal_dfc",
+			"transform",
+		]);
+		if (multiFaceLayouts.has(card.layout ?? "")) return false;
+
+		// Get oracle text, checking card_faces for multi-faced cards
+		let oracle = card.oracle_text ?? "";
+		if (!oracle && card.card_faces?.[0]?.oracle_text) {
+			oracle = card.card_faces[0].oracle_text;
+		}
+
 		// Strip reminder text (parenthesized)
-		const oracle = (card.oracle_text ?? "").replace(/\([^)]*\)/g, "").trim();
+		oracle = oracle.replace(/\([^)]*\)/g, "").trim();
 		if (!oracle) return true; // Keywords with only reminder text
 
-		// Check each line starts with one of the card's keywords
-		const kwLower = keywords.map((k) => k.toLowerCase());
-		const lines = oracle.split(/[,\n]/).map((l) => l.trim().toLowerCase());
+		// Keywords with bare numeric parameters (Rampage 3, Bushido 2) are NOT French vanilla
+		// But mana costs like {2}{G} are fine
+		if (/\b\d+\b/.test(oracle.replace(/\{[^}]+\}/g, ""))) {
+			return false;
+		}
 
-		return lines.every(
-			(line) => !line || kwLower.some((kw) => line.startsWith(kw)),
-		);
+		// Valid continuations after a keyword:
+		// - End of segment
+		// - " from X" (protection, hexproof)
+		// - " with X" (partner)
+		// - Mana cost {X}
+		// - Em dash — (companion, suspend)
+		const validAfterKw = /^($| from | with | ?\{| ?—)/;
+
+		const kwLower = keywords.map((k) => k.toLowerCase());
+		const segments = oracle.split(/[,\n]/).map((s) => s.trim().toLowerCase());
+
+		return segments.every((seg) => {
+			if (!seg) return true;
+			// Activated abilities have ":" - reject them (e.g., "Domain — {5}{G}: ...")
+			if (seg.includes(":")) return false;
+			const kw = kwLower.find((k) => seg.startsWith(k));
+			if (!kw) return false;
+			const afterKw = seg.slice(kw.length);
+			// Ability words have "—" followed by rules text (letters)
+			// e.g., "History Teacher — Sagas you control..." is NOT french vanilla
+			if (/—\s*[a-z]/i.test(afterKw)) return false;
+			return validAfterKw.test(afterKw);
+		});
 	},
 	bear: (card) => {
 		const types = card.type_line?.toLowerCase() ?? "";
