@@ -80,6 +80,8 @@ function useColumns() {
 	return columns;
 }
 
+const SCROLL_STORAGE_KEY = "cards-scroll-position";
+
 function CardsPage() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
@@ -88,6 +90,7 @@ function CardsPage() {
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const listRef = useRef<HTMLDivElement>(null);
 	const columns = useColumns();
+	const hasRestoredScroll = useRef(false);
 
 	// First page query to get totalCount and metadata
 	const firstPageQuery = useQuery(
@@ -104,6 +107,43 @@ function CardsPage() {
 		overscan: 2,
 		scrollMargin: listRef.current?.offsetTop ?? 0,
 	});
+
+	// Save clicked card's row before navigating to detail
+	const saveScrollPosition = (cardIndex: number) => {
+		if (!debouncedSearchQuery) return;
+		const rowIndex = Math.floor(cardIndex / columns);
+		sessionStorage.setItem(
+			SCROLL_STORAGE_KEY,
+			JSON.stringify({
+				query: debouncedSearchQuery,
+				rowIndex,
+			}),
+		);
+	};
+
+	// Restore scroll position after data loads
+	useEffect(() => {
+		if (hasRestoredScroll.current || !firstPageQuery.data || rowCount === 0)
+			return;
+
+		try {
+			const saved = sessionStorage.getItem(SCROLL_STORAGE_KEY);
+			if (!saved) {
+				hasRestoredScroll.current = true;
+				return;
+			}
+
+			const { query, rowIndex } = JSON.parse(saved);
+			if (query === debouncedSearchQuery && rowIndex > 0) {
+				sessionStorage.removeItem(SCROLL_STORAGE_KEY);
+				virtualizer.scrollToIndex(rowIndex, { align: "center" });
+			}
+		} catch {
+			// Ignore parse errors
+		}
+
+		hasRestoredScroll.current = true;
+	}, [firstPageQuery.data, debouncedSearchQuery, rowCount, virtualizer]);
 
 	// Calculate which pages are needed based on visible rows (excluding page 0, handled by firstPageQuery)
 	const visibleItems = virtualizer.getVirtualItems();
@@ -271,6 +311,7 @@ function CardsPage() {
 												key={card.id}
 												card={card}
 												href={`/card/${card.id}`}
+												onClick={() => saveScrollPosition(cardIndex)}
 											/>
 										);
 									}

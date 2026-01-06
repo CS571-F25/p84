@@ -205,7 +205,7 @@ export function CardThumbnail({ card, href, onClick }: CardThumbnailProps) {
 
 	if (href) {
 		return (
-			<Link to={href} className={className}>
+			<Link to={href} className={className} onClick={onClick}>
 				{content}
 			</Link>
 		);
