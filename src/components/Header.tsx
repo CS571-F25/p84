@@ -37,7 +37,7 @@ export default function Header() {
 				<div className="flex-1 flex justify-center px-4">
 					<Link
 						to="/cards"
-						search={{ q: "" }}
+						search={{ q: "", sort: undefined }}
 						className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors text-white text-sm font-medium"
 					>
 						<Search size={18} />
@@ -122,7 +122,7 @@ export default function Header() {
 
 					<Link
 						to="/cards"
-						search={{ q: "" }}
+						search={{ q: "", sort: undefined }}
 						onClick={() => setIsOpen(false)}
 						className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors mb-2"
 						activeProps={{

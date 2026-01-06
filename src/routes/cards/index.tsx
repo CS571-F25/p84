@@ -1,7 +1,7 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { AlertCircle, Loader2, Search } from "lucide-react";
+import { AlertCircle, ChevronDown, Loader2, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CardSkeleton, CardThumbnail } from "@/components/CardImage";
 import { OracleText } from "@/components/OracleText";
@@ -10,7 +10,7 @@ import {
 	PAGE_SIZE,
 	searchPageQueryOptions,
 } from "@/lib/queries";
-import type { Card } from "@/lib/search-types";
+import type { Card, SortOption } from "@/lib/search-types";
 import { useDebounce } from "@/lib/useDebounce";
 
 export const Route = createFileRoute("/cards/")({
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/cards/")({
 	validateSearch: (search: Record<string, unknown>) => {
 		return {
 			q: (search.q as string) || "",
+			sort: (search.sort as string) || undefined,
 		};
 	},
 });
@@ -82,6 +83,51 @@ function useColumns() {
 
 const SCROLL_STORAGE_KEY = "cards-scroll-position";
 
+const SORT_OPTIONS: { value: string; label: string; sort: SortOption }[] = [
+	{
+		value: "name-asc",
+		label: "Name (A to Z)",
+		sort: { field: "name", direction: "asc" },
+	},
+	{
+		value: "name-desc",
+		label: "Name (Z to A)",
+		sort: { field: "name", direction: "desc" },
+	},
+	{
+		value: "mv-asc",
+		label: "Mana Value (Low to High)",
+		sort: { field: "mv", direction: "asc" },
+	},
+	{
+		value: "mv-desc",
+		label: "Mana Value (High to Low)",
+		sort: { field: "mv", direction: "desc" },
+	},
+	{
+		value: "released-desc",
+		label: "Release (Newest)",
+		sort: { field: "released", direction: "desc" },
+	},
+	{
+		value: "released-asc",
+		label: "Release (Oldest)",
+		sort: { field: "released", direction: "asc" },
+	},
+	{
+		value: "rarity-desc",
+		label: "Rarity (Mythic to Common)",
+		sort: { field: "rarity", direction: "desc" },
+	},
+	{
+		value: "rarity-asc",
+		label: "Rarity (Common to Mythic)",
+		sort: { field: "rarity", direction: "asc" },
+	},
+];
+
+const DEFAULT_SORT = SORT_OPTIONS[0];
+
 function CardsPage() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
@@ -91,10 +137,12 @@ function CardsPage() {
 	const listRef = useRef<HTMLDivElement>(null);
 	const columns = useColumns();
 	const hasRestoredScroll = useRef(false);
+	const sortOption =
+		SORT_OPTIONS.find((o) => o.value === search.sort) ?? DEFAULT_SORT;
 
 	// First page query to get totalCount and metadata
 	const firstPageQuery = useQuery(
-		searchPageQueryOptions(debouncedSearchQuery, 0),
+		searchPageQueryOptions(debouncedSearchQuery, 0, undefined, sortOption.sort),
 	);
 	const totalCount = firstPageQuery.data?.totalCount ?? 0;
 	const hasError = firstPageQuery.data?.error != null;
@@ -170,7 +218,12 @@ function CardsPage() {
 	// Fetch additional pages beyond page 0
 	const extraPageQueries = useQueries({
 		queries: extraOffsets.map((offset) =>
-			searchPageQueryOptions(debouncedSearchQuery, offset),
+			searchPageQueryOptions(
+				debouncedSearchQuery,
+				offset,
+				undefined,
+				sortOption.sort,
+			),
 		),
 	});
 
@@ -211,11 +264,11 @@ function CardsPage() {
 	useEffect(() => {
 		if (searchQuery !== search.q) {
 			navigate({
-				search: { q: searchQuery },
+				search: { q: searchQuery, sort: search.sort },
 				replace: true,
 			});
 		}
-	}, [searchQuery, search.q, navigate]);
+	}, [searchQuery, search.q, search.sort, navigate]);
 
 	const firstPage = firstPageQuery.data;
 
@@ -230,20 +283,41 @@ function CardsPage() {
 				</div>
 
 				<div className="mb-4">
-					<div className="relative">
-						<Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-						<input
-							ref={searchInputRef}
-							type="text"
-							placeholder="Search by name or try t:creature cmc<=3"
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							className={`w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-slate-800 border rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-colors ${
-								hasError
-									? "border-red-500 focus:border-red-500"
-									: "border-gray-300 dark:border-slate-700 focus:border-cyan-500"
-							}`}
-						/>
+					<div className="flex gap-2">
+						<div className="relative flex-1">
+							<Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+							<input
+								ref={searchInputRef}
+								type="text"
+								placeholder="Search by name or try t:creature cmc<=3"
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className={`w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-slate-800 border rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-colors ${
+									hasError
+										? "border-red-500 focus:border-red-500"
+										: "border-gray-300 dark:border-slate-700 focus:border-cyan-500"
+								}`}
+							/>
+						</div>
+						<div className="relative">
+							<select
+								value={sortOption.value}
+								onChange={(e) => {
+									navigate({
+										search: { q: searchQuery, sort: e.target.value },
+										replace: true,
+									});
+								}}
+								className="appearance-none h-full px-4 pr-10 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+							>
+								{SORT_OPTIONS.map((opt) => (
+									<option key={opt.value} value={opt.value}>
+										{opt.label}
+									</option>
+								))}
+							</select>
+							<ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+						</div>
 					</div>
 
 					{hasError && firstPage?.error && (
