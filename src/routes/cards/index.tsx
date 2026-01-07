@@ -167,6 +167,11 @@ function CardsPage() {
 				rowIndex,
 			}),
 		);
+		// Reset window scroll before navigation. useWindowVirtualizer reads
+		// window.scrollY during React reconciliation and calls scrollTo() with
+		// that value—causing the old scroll position to bleed into the new page.
+		// This must happen before navigation starts, not in a cleanup effect.
+		window.scrollTo(0, 0);
 	};
 
 	// Restore scroll position after data loads

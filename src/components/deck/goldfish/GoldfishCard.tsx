@@ -13,6 +13,7 @@ interface GoldfishCardProps {
 	positioning?: "relative" | "absolute";
 	className?: string;
 	style?: React.CSSProperties;
+	fromLibrary?: boolean;
 }
 
 export function GoldfishCard({
@@ -24,10 +25,13 @@ export function GoldfishCard({
 	positioning = "relative",
 	className = "",
 	style,
+	fromLibrary = false,
 }: GoldfishCardProps) {
 	const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-		id: `card-${instance.instanceId}`,
-		data: { instance },
+		id: fromLibrary
+			? `library-top-${instance.instanceId}`
+			: `card-${instance.instanceId}`,
+		data: { instance, fromLibrary },
 	});
 
 	const isFlipped = instance.faceIndex > 0;
@@ -44,7 +48,7 @@ export function GoldfishCard({
 		<button
 			type="button"
 			ref={setNodeRef}
-			className={`${positioning} select-none ${className} ${isDragging ? "opacity-0" : ""} ${instance.isTapped ? "rotate-90" : ""}`}
+			className={`${positioning} select-none w-fit ${className} ${isDragging ? "opacity-0" : ""} ${instance.isTapped ? "rotate-90" : ""}`}
 			style={style}
 			onMouseEnter={() => onHover?.(instance.instanceId)}
 			onMouseLeave={() => onHover?.(null)}

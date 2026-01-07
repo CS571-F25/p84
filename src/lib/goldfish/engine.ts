@@ -61,7 +61,8 @@ export function createInitialState(
 	return {
 		...createEmptyGameState(startingLife),
 		hand: shuffled.slice(0, 7),
-		library: shuffled.slice(7),
+		// Library cards are face-down by default (can be revealed with F)
+		library: shuffled.slice(7).map((c) => ({ ...c, isFaceDown: true })),
 	};
 }
 
@@ -71,7 +72,7 @@ export function draw(state: GameState): GameState {
 	const [drawn, ...rest] = state.library;
 	return {
 		...state,
-		hand: [...state.hand, drawn],
+		hand: [...state.hand, { ...drawn, isFaceDown: false }],
 		library: rest,
 	};
 }
@@ -102,7 +103,7 @@ export function mulligan(
 	return {
 		...createEmptyGameState(startingLife),
 		hand: shuffled.slice(0, 7),
-		library: shuffled.slice(7),
+		library: shuffled.slice(7).map((c) => ({ ...c, isFaceDown: true })),
 	};
 }
 
@@ -160,6 +161,42 @@ export function toggleFaceDown(
 	}));
 }
 
+/**
+ * Smart flip - combines morph/manifest and DFC flipping into one action:
+ * 1. If face-down: reveal (set isFaceDown: false)
+ * 2. Else if DFC (maxFaces > 1): cycle to next face
+ * 3. Else (single-faced, face-up): morph (set isFaceDown: true)
+ */
+export function flipCard(
+	state: GameState,
+	instanceId: number,
+	maxFaces: number,
+): GameState {
+	const found = findCard(state, instanceId);
+	if (!found) return state;
+
+	const { card } = found;
+
+	if (card.isFaceDown) {
+		return updateCardInState(state, instanceId, (c) => ({
+			...c,
+			isFaceDown: false,
+		}));
+	}
+
+	if (maxFaces > 1) {
+		return updateCardInState(state, instanceId, (c) => ({
+			...c,
+			faceIndex: (c.faceIndex + 1) % maxFaces,
+		}));
+	}
+
+	return updateCardInState(state, instanceId, (c) => ({
+		...c,
+		isFaceDown: true,
+	}));
+}
+
 export interface MoveCardOptions {
 	position?: { x: number; y: number };
 	faceDown?: boolean;
@@ -200,16 +237,28 @@ export function moveCard(
 					zIndex: state.nextZIndex,
 					isFaceDown: faceDown ?? card.isFaceDown,
 				}
-			: {
-					...card,
-					position: undefined,
-					isFaceDown: faceDown ?? card.isFaceDown,
-				};
+			: toZone === "library"
+				? {
+						...card,
+						position: undefined,
+						isFaceDown: true, // Always face-down when going to library
+					}
+				: {
+						...card,
+						position: undefined,
+						isFaceDown: faceDown ?? card.isFaceDown,
+					};
+
+	// Library: add to front (top of deck), others: add to end
+	const newZoneCards =
+		toZone === "library"
+			? [movedCard, ...state[toZone]]
+			: [...state[toZone], movedCard];
 
 	return {
 		...state,
 		[fromZone]: state[fromZone].filter((c) => c.instanceId !== instanceId),
-		[toZone]: [...state[toZone], movedCard],
+		[toZone]: newZoneCards,
 		nextZIndex:
 			toZone === "battlefield" ? state.nextZIndex + 1 : state.nextZIndex,
 	};

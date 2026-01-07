@@ -1,7 +1,8 @@
+import { useDroppable } from "@dnd-kit/core";
 import { Droplet, Minus, Plus, RefreshCw, RotateCcw } from "lucide-react";
 import type { CardInstance, PlayerState } from "@/lib/goldfish/types";
 import type { Card, ScryfallId } from "@/lib/scryfall-types";
-import { GoldfishLibraryCard } from "./GoldfishLibraryCard";
+import { GoldfishCard } from "./GoldfishCard";
 import { GoldfishPile } from "./GoldfishPile";
 
 interface GoldfishSidebarProps {
@@ -35,10 +36,22 @@ export function GoldfishSidebar({
 	onAdjustLife,
 	onAdjustPoison,
 }: GoldfishSidebarProps) {
+	const { setNodeRef: setLibraryRef, isOver: isOverLibrary } = useDroppable({
+		id: "zone-library",
+		data: { zone: "library" },
+	});
+
 	return (
 		<div className="w-48 flex flex-col gap-3 p-2 bg-gray-100 dark:bg-slate-900 rounded-lg overflow-y-auto overflow-x-hidden">
 			{/* Library */}
-			<div className="rounded-lg border-2 border-dashed border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50 p-2">
+			<div
+				ref={setLibraryRef}
+				className={`rounded-lg border-2 border-dashed p-2 transition-colors ${
+					isOverLibrary
+						? "border-green-500 bg-green-500/10"
+						: "border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50"
+				}`}
+			>
 				<div className="flex items-center justify-between mb-2">
 					<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
 						Library ({library.length})
@@ -48,11 +61,15 @@ export function GoldfishSidebar({
 					</span>
 				</div>
 				{library.length > 0 ? (
-					<div className="w-16">
-						<GoldfishLibraryCard topCard={library[0]} onDraw={onDraw} />
-					</div>
+					<GoldfishCard
+						instance={library[0]}
+						card={cardLookup?.(library[0].cardId)}
+						onHover={onHover}
+						onClick={onDraw}
+						fromLibrary
+					/>
 				) : (
-					<div className="w-16 aspect-[5/7] rounded-[4.75%/3.5%] border-2 border-dashed border-gray-300 dark:border-slate-600" />
+					<div className="h-40 aspect-[5/7] rounded-[4.75%/3.5%] border-2 border-dashed border-gray-300 dark:border-slate-600" />
 				)}
 			</div>
 
@@ -156,8 +173,8 @@ export function GoldfishSidebar({
 			{/* Keyboard hints */}
 			<div className="text-xs text-gray-400 dark:text-gray-500 space-y-1">
 				<p>T/Space: tap • F: flip</p>
-				<p>M: morph • G: graveyard</p>
-				<p>E: exile • H: hand • B: play</p>
+				<p>G: graveyard • E: exile</p>
+				<p>H: hand • B: play</p>
 			</div>
 		</div>
 	);

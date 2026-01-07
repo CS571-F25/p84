@@ -10,6 +10,7 @@ import {
 	createInitialState,
 	cycleFace,
 	draw,
+	flipCard,
 	moveCard,
 	mulligan,
 	removeCounter,
@@ -97,7 +98,21 @@ describe("draw", () => {
 
 		expect(newState.hand).toHaveLength(8);
 		expect(newState.library).toHaveLength(52);
-		expect(newState.hand[7]).toBe(topCard);
+		expect(newState.hand[7].instanceId).toBe(topCard.instanceId);
+		expect(newState.hand[7].cardId).toBe(topCard.cardId);
+	});
+
+	it("reveals drawn card (sets isFaceDown to false)", () => {
+		const deck = mockDeck(60);
+		const state = createInitialState(deck, createTestRng());
+
+		// Library cards start face-down
+		expect(state.library[0].isFaceDown).toBe(true);
+
+		const newState = draw(state);
+
+		// Drawn card should be face-up
+		expect(newState.hand[7].isFaceDown).toBe(false);
 	});
 
 	it("returns same state if library is empty", () => {
@@ -264,6 +279,86 @@ describe("toggleFaceDown", () => {
 
 		state = toggleFaceDown(state, cardId);
 		expect(state.hand[0].isFaceDown).toBe(false);
+	});
+});
+
+describe("flipCard", () => {
+	it("reveals face-down card", () => {
+		const deck = mockDeck(10);
+		let state = createInitialState(deck, createTestRng());
+		const cardId = state.hand[0].instanceId;
+
+		state = toggleFaceDown(state, cardId);
+		expect(state.hand[0].isFaceDown).toBe(true);
+
+		state = flipCard(state, cardId, 1);
+
+		expect(state.hand[0].isFaceDown).toBe(false);
+	});
+
+	it("cycles face for DFC when face-up", () => {
+		const deck = mockDeck(10);
+		let state = createInitialState(deck, createTestRng());
+		const cardId = state.hand[0].instanceId;
+
+		expect(state.hand[0].faceIndex).toBe(0);
+
+		state = flipCard(state, cardId, 2);
+
+		expect(state.hand[0].faceIndex).toBe(1);
+		expect(state.hand[0].isFaceDown).toBe(false);
+	});
+
+	it("wraps around when cycling DFC faces", () => {
+		const deck = mockDeck(10);
+		let state = createInitialState(deck, createTestRng());
+		const cardId = state.hand[0].instanceId;
+
+		state = flipCard(state, cardId, 2);
+		state = flipCard(state, cardId, 2);
+
+		expect(state.hand[0].faceIndex).toBe(0);
+	});
+
+	it("morphs single-faced card when face-up", () => {
+		const deck = mockDeck(10);
+		let state = createInitialState(deck, createTestRng());
+		const cardId = state.hand[0].instanceId;
+
+		expect(state.hand[0].isFaceDown).toBe(false);
+
+		state = flipCard(state, cardId, 1);
+
+		expect(state.hand[0].isFaceDown).toBe(true);
+	});
+
+	it("reveals face-down DFC to front face", () => {
+		const deck = mockDeck(10);
+		let state = createInitialState(deck, createTestRng());
+		const cardId = state.hand[0].instanceId;
+
+		state = toggleFaceDown(state, cardId);
+		expect(state.hand[0].isFaceDown).toBe(true);
+
+		state = flipCard(state, cardId, 2);
+
+		expect(state.hand[0].isFaceDown).toBe(false);
+		expect(state.hand[0].faceIndex).toBe(0);
+	});
+
+	it("toggles between morph and reveal for single-faced card", () => {
+		const deck = mockDeck(10);
+		let state = createInitialState(deck, createTestRng());
+		const cardId = state.hand[0].instanceId;
+
+		state = flipCard(state, cardId, 1);
+		expect(state.hand[0].isFaceDown).toBe(true);
+
+		state = flipCard(state, cardId, 1);
+		expect(state.hand[0].isFaceDown).toBe(false);
+
+		state = flipCard(state, cardId, 1);
+		expect(state.hand[0].isFaceDown).toBe(true);
 	});
 });
 

@@ -15,6 +15,7 @@ export interface GoldfishActions {
 	untapAll: () => void;
 	cycleFace: (instanceId: number, maxFaces: number) => void;
 	toggleFaceDown: (instanceId: number) => void;
+	flipCard: (instanceId: number, maxFaces: number) => void;
 	moveCard: (
 		instanceId: number,
 		toZone: Zone,
@@ -71,6 +72,8 @@ export function useGoldfishGame(
 			cycleFace: (id, maxFaces) =>
 				setState((s) => engine.cycleFace(s, id, maxFaces)),
 			toggleFaceDown: (id) => setState((s) => engine.toggleFaceDown(s, id)),
+			flipCard: (id, maxFaces) =>
+				setState((s) => engine.flipCard(s, id, maxFaces)),
 			moveCard: (id, zone, opts) =>
 				setState((s) => engine.moveCard(s, id, zone, opts)),
 			setHoveredCard: (id) => setState((s) => engine.setHoveredCard(s, id)),
@@ -127,21 +130,17 @@ export function useGoldfishGame(
 				case "f":
 					if (hoveredId !== null) {
 						e.preventDefault();
+						// Include library top so it can be revealed
 						const card = [
 							...state.hand,
 							...state.battlefield,
 							...state.graveyard,
 							...state.exile,
+							...state.library.slice(0, 1),
 						].find((c) => c.instanceId === hoveredId);
 						if (card) {
-							actions.cycleFace(hoveredId, getFaceCount(card.cardId));
+							actions.flipCard(hoveredId, getFaceCount(card.cardId));
 						}
-					}
-					break;
-				case "m":
-					if (hoveredId !== null) {
-						e.preventDefault();
-						actions.toggleFaceDown(hoveredId);
 					}
 					break;
 				case "g":
@@ -176,6 +175,7 @@ export function useGoldfishGame(
 	}, [
 		state.hoveredId,
 		state.hand,
+		state.library,
 		state.battlefield,
 		state.graveyard,
 		state.exile,

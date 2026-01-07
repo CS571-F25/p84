@@ -72,19 +72,27 @@ export function GoldfishBoard({
 						y = battlefieldRect.height / 2;
 					}
 
+					// Only force face-down if from library AND not already revealed
+					const faceDown =
+						fromLibrary && instance.isFaceDown ? true : undefined;
 					actions.moveCard(instanceId, targetZone, {
 						position: { x, y },
-						faceDown: fromLibrary ? true : undefined,
+						faceDown,
 					});
 				} else {
-					actions.moveCard(instanceId, targetZone, {
-						faceDown: fromLibrary ? true : undefined,
-					});
+					const faceDown =
+						fromLibrary && instance.isFaceDown ? true : undefined;
+					actions.moveCard(instanceId, targetZone, { faceDown });
 				}
 			} else {
-				actions.moveCard(instanceId, targetZone, {
-					faceDown: fromLibrary ? true : undefined,
-				});
+				// From library: hand = always reveal, other = preserve state
+				const faceDown =
+					targetZone === "hand"
+						? false
+						: fromLibrary && instance.isFaceDown
+							? true
+							: undefined;
+				actions.moveCard(instanceId, targetZone, { faceDown });
 			}
 		},
 		[actions],
@@ -96,6 +104,7 @@ export function GoldfishBoard({
 				...state.battlefield,
 				...state.graveyard,
 				...state.exile,
+				...state.library.slice(0, 1),
 			].find((c) => c.instanceId === state.hoveredId)
 		: null;
 
@@ -107,7 +116,7 @@ export function GoldfishBoard({
 			<div className="flex h-full gap-4 p-4 bg-white dark:bg-slate-950">
 				{/* Left: Card Preview */}
 				<div className="w-64 flex-shrink-0">
-					{hoveredCardData ? (
+					{hoveredCardData && !hoveredCard?.isFaceDown ? (
 						<CardImage
 							card={hoveredCardData}
 							size="large"
@@ -118,7 +127,7 @@ export function GoldfishBoard({
 						/>
 					) : (
 						<div className="w-full aspect-[5/7] rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
-							Hover a card
+							{hoveredCard?.isFaceDown ? "Face down" : "Hover a card"}
 						</div>
 					)}
 				</div>
