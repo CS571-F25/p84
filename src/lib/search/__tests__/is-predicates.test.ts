@@ -506,123 +506,72 @@ describe("is: predicate tests", () => {
 			}
 		});
 
-		it("is:frenchvanilla matches creatures with only keywords", async () => {
-			const angel = await cards.get("Serra Angel");
-			const result = search("is:frenchvanilla");
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.value.match(angel)).toBe(true);
-			}
-		});
-
-		it("is:frenchvanilla matches creatures with keywords on one line", () => {
+		// Inline card tests for frenchvanilla
+		it.each([
+			[
+				"keywords on one line",
+				"Flying, first strike, lifelink",
+				["Flying", "First strike", "Lifelink"],
+				true,
+			],
+			[
+				"keywords with reminder text",
+				"Flying\nVigilance (Attacking doesn't cause this creature to tap.)",
+				["Flying", "Vigilance"],
+				true,
+			],
+			["vanilla creature (no keywords)", "", [], false],
+		])("is:frenchvanilla with %s", (_desc, oracle, keywords, expected) => {
 			const card = {
-				type_line: "Creature — Angel",
-				oracle_text: "Flying, first strike, lifelink",
-				keywords: ["Flying", "First strike", "Lifelink"],
+				type_line: "Creature — Test",
+				oracle_text: oracle,
+				keywords,
 			} as Card;
 			const result = search("is:frenchvanilla");
 			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.value.match(card)).toBe(true);
-			}
+			if (result.ok) expect(result.value.match(card)).toBe(expected);
 		});
 
-		it("is:frenchvanilla matches keywords with reminder text", () => {
-			const card = {
-				type_line: "Creature — Spirit",
-				oracle_text:
-					"Flying\nVigilance (Attacking doesn't cause this creature to tap.)",
-				keywords: ["Flying", "Vigilance"],
-			} as Card;
+		// Real card lookups - cards that SHOULD match
+		it.each([
+			["Serra Angel", "basic keywords"],
+			["Gallowbraid", "Cumulative upkeep—Pay 1 life"],
+			["Aboroth", "Cumulative upkeep—Put counter"],
+			["Deepcavern Imp", "Echo with discard cost"],
+			["Bird Admirer", "transform with keyword-only faces"],
+			["Black Knight", "protection with reminder text"],
+			["Blood Knight", "protection without reminder"],
+			["Beloved Chaplain", "protection from creatures"],
+			["Tel-Jilad Chosen", "protection from artifacts"],
+			["Vault Skirge", "Phyrexian mana with keywords"],
+			["Arcbound Wanderer", "Modular—Sunburst (keyword as cost)"],
+			["Axebane Ferox", "Ward—Collect evidence (keyword as cost)"],
+			["Bloodbraid Challenger", "Escape with mana cost first"],
+			["Lunar Hatchling", "complex Escape costs"],
+			["Toy Boat", "Cumulative upkeep—Say (unusual verb)"],
+			["Wall of Shards", "Cumulative upkeep—An opponent"],
+		])("is:frenchvanilla matches %s (%s)", async (name) => {
+			const card = await cards.get(name);
 			const result = search("is:frenchvanilla");
 			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.value.match(card)).toBe(true);
-			}
+			if (result.ok) expect(result.value.match(card)).toBe(true);
 		});
 
-		it("is:frenchvanilla does NOT match vanilla creatures (no keywords)", () => {
-			const vanilla = {
-				type_line: "Creature — Bear",
-				oracle_text: "",
-				keywords: [] as string[],
-			} as Card;
+		// Real card lookups - cards that should NOT match
+		it.each([
+			["Llanowar Elves", "has mana ability"],
+			["Aerathi Berserker", "Rampage N (direct numeric param)"],
+			["Akki Lavarunner", "flip card layout"],
+			["Akoum Warrior", "MDFC layout"],
+			["A-Lantern Bearer", "transform with non-keyword face"],
+			["A-Llanowar Greenwidow", "ability word with activated ability"],
+			["Barbara Wright", "ability word with static effect"],
+			["Karlach, Raging Tiefling", "keyword cost with extra rules text"],
+		])("is:frenchvanilla does NOT match %s (%s)", async (name) => {
+			const card = await cards.get(name);
 			const result = search("is:frenchvanilla");
 			expect(result.ok).toBe(true);
-			if (result.ok) {
-				expect(result.value.match(vanilla)).toBe(false);
-			}
-		});
-
-		it("is:frenchvanilla does NOT match creatures with abilities", async () => {
-			const elves = await cards.get("Llanowar Elves");
-			const result = search("is:frenchvanilla");
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				// Llanowar Elves has a mana ability, not just keywords
-				expect(result.value.match(elves)).toBe(false);
-			}
-		});
-
-		it("is:frenchvanilla does NOT match Rampage (bare numeric parameter)", async () => {
-			const berserker = await cards.get("Aerathi Berserker");
-			const result = search("is:frenchvanilla");
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				// Rampage 3 has a bare numeric parameter - not French vanilla
-				expect(result.value.match(berserker)).toBe(false);
-			}
-		});
-
-		it("is:frenchvanilla does NOT match flip cards", async () => {
-			const lavarunner = await cards.get("Akki Lavarunner");
-			const result = search("is:frenchvanilla");
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				// Flip cards have trigger conditions to flip, never french vanilla
-				expect(result.value.match(lavarunner)).toBe(false);
-			}
-		});
-
-		it("is:frenchvanilla does NOT match MDFCs (creature // land)", async () => {
-			const akoum = await cards.get("Akoum Warrior");
-			const result = search("is:frenchvanilla");
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				// MDFCs have two distinct card faces, not purely a creature
-				expect(result.value.match(akoum)).toBe(false);
-			}
-		});
-
-		it("is:frenchvanilla does NOT match transform cards", async () => {
-			const lantern = await cards.get("A-Lantern Bearer");
-			const result = search("is:frenchvanilla");
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				// Transform cards have two faces, not purely a creature
-				expect(result.value.match(lantern)).toBe(false);
-			}
-		});
-
-		it("is:frenchvanilla does NOT match ability words with activated abilities", async () => {
-			const greenwidow = await cards.get("A-Llanowar Greenwidow");
-			const result = search("is:frenchvanilla");
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				// Domain — {5}{G}: ... is an activated ability, not french vanilla
-				expect(result.value.match(greenwidow)).toBe(false);
-			}
-		});
-
-		it("is:frenchvanilla does NOT match ability words with static effects", async () => {
-			const barbara = await cards.get("Barbara Wright");
-			const result = search("is:frenchvanilla");
-			expect(result.ok).toBe(true);
-			if (result.ok) {
-				// "History Teacher — Sagas you control have read ahead" is a static ability
-				expect(result.value.match(barbara)).toBe(false);
-			}
+			if (result.ok) expect(result.value.match(card)).toBe(false);
 		});
 
 		it("is:bear matches 2/2 for 2 creatures", () => {

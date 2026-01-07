@@ -905,54 +905,96 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 		const keywords = card.keywords ?? [];
 		if (!types.includes("creature") || keywords.length === 0) return false;
 
-		// Multi-faced cards are never french vanilla
-		const multiFaceLayouts = new Set([
-			"adventure",
-			"flip",
-			"modal_dfc",
-			"transform",
-		]);
-		if (multiFaceLayouts.has(card.layout ?? "")) return false;
+		// Adventure, flip, and MDFC are never french vanilla
+		const neverVanillaLayouts = new Set(["adventure", "flip", "modal_dfc"]);
+		if (neverVanillaLayouts.has(card.layout ?? "")) return false;
 
-		// Get oracle text, checking card_faces for multi-faced cards
+		// Helper to check if oracle text is keyword-only
+		const isKeywordOnly = (oracle: string, kws: string[]): boolean => {
+			oracle = oracle.replace(/\([^)]*\)/g, "").trim();
+			if (!oracle) return true;
+
+			const kwLower = kws.map((k) => k.toLowerCase());
+			const lines = oracle.split(/\n/).map((s) => s.trim().toLowerCase());
+
+			// Helper to validate a single keyword segment
+			const isValidKeywordSegment = (seg: string): boolean => {
+				if (!seg) return true;
+				if (seg.includes(":")) return false; // Activated ability
+
+				const kw = kwLower.find((k) => seg.startsWith(k));
+				if (!kw) return false;
+
+				const afterKw = seg.slice(kw.length).trim();
+				if (!afterKw) return true; // Just the keyword
+
+				// "keyword N" = direct numeric parameter (Rampage 3, Bushido 2) - NOT french vanilla
+				if (/^\d+($|—)/.test(afterKw)) return false;
+
+				// "from X" - protection/hexproof targets
+				if (afterKw.startsWith("from ")) return true;
+
+				// "with X" (partner with)
+				if (afterKw.startsWith("with ")) return true;
+
+				// Mana cost
+				if (afterKw.startsWith("{")) return true;
+
+				// Em dash for keyword costs - the whole rest of the line is the cost
+				if (afterKw.startsWith("—") || afterKw.startsWith("— ")) {
+					const afterDash = afterKw.replace(/^—\s*/, "");
+					// Reject if there's an additional sentence (period followed by more text)
+					// e.g. "Specialize {6}. You may also activate..." has extra rules
+					if (/\.\s+\S/.test(afterDash)) return false;
+					// Mana cost first (Escape—{3}{R}{G}, ...)
+					if (afterDash.startsWith("{")) return true;
+					// Another keyword as cost (Modular—Sunburst, Ward—Collect evidence)
+					if (kwLower.some((k) => afterDash.startsWith(k))) return true;
+					// Cost verbs or patterns - everything after dash is the cost clause
+					const costPatterns =
+						/^(put|discard|pay|sacrifice|remove|exile|tap|untap|return|reveal|say|an opponent)/i;
+					if (costPatterns.test(afterDash)) return true;
+					return false;
+				}
+
+				return false;
+			};
+
+			return lines.every((line) => {
+				if (!line) return true;
+				// If line has em dash, treat whole line as one keyword clause
+				if (line.includes("—")) {
+					return isValidKeywordSegment(line);
+				}
+				// Otherwise comma-separated keywords (Flying, vigilance)
+				const parts = line.split(/,/).map((s) => s.trim());
+				return parts.every(isValidKeywordSegment);
+			});
+		};
+
+		// For transform cards, check if BOTH faces are keyword-only
+		if (card.layout === "transform" && card.card_faces?.length === 2) {
+			const face0 = card.card_faces[0];
+			const face1 = card.card_faces[1];
+			// Both faces must be creatures with keywords
+			if (
+				!face0.type_line?.toLowerCase().includes("creature") ||
+				!face1.type_line?.toLowerCase().includes("creature")
+			) {
+				return false;
+			}
+			return (
+				isKeywordOnly(face0.oracle_text ?? "", keywords) &&
+				isKeywordOnly(face1.oracle_text ?? "", keywords)
+			);
+		}
+
+		// For normal cards
 		let oracle = card.oracle_text ?? "";
 		if (!oracle && card.card_faces?.[0]?.oracle_text) {
 			oracle = card.card_faces[0].oracle_text;
 		}
-
-		// Strip reminder text (parenthesized)
-		oracle = oracle.replace(/\([^)]*\)/g, "").trim();
-		if (!oracle) return true; // Keywords with only reminder text
-
-		// Keywords with bare numeric parameters (Rampage 3, Bushido 2) are NOT French vanilla
-		// But mana costs like {2}{G} are fine
-		if (/\b\d+\b/.test(oracle.replace(/\{[^}]+\}/g, ""))) {
-			return false;
-		}
-
-		// Valid continuations after a keyword:
-		// - End of segment
-		// - " from X" (protection, hexproof)
-		// - " with X" (partner)
-		// - Mana cost {X}
-		// - Em dash — (companion, suspend)
-		const validAfterKw = /^($| from | with | ?\{| ?—)/;
-
-		const kwLower = keywords.map((k) => k.toLowerCase());
-		const segments = oracle.split(/[,\n]/).map((s) => s.trim().toLowerCase());
-
-		return segments.every((seg) => {
-			if (!seg) return true;
-			// Activated abilities have ":" - reject them (e.g., "Domain — {5}{G}: ...")
-			if (seg.includes(":")) return false;
-			const kw = kwLower.find((k) => seg.startsWith(k));
-			if (!kw) return false;
-			const afterKw = seg.slice(kw.length);
-			// Ability words have "—" followed by rules text (letters)
-			// e.g., "History Teacher — Sagas you control..." is NOT french vanilla
-			if (/—\s*[a-z]/i.test(afterKw)) return false;
-			return validAfterKw.test(afterKw);
-		});
+		return isKeywordOnly(oracle, keywords);
 	},
 	bear: (card) => {
 		const types = card.type_line?.toLowerCase() ?? "";
