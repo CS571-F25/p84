@@ -258,7 +258,7 @@ export function isDefaultPrinting(card: ScryfallCard): boolean {
 
 /**
  * Comparator for selecting canonical card printings.
- * Priority: english > is:default > non-memorabilia > non-promo > non-arena-only > highres > non-UB > black border > modern frame > non-plst/sld > newer > non-variant > paper
+ * Priority: english > is:default > non-memorabilia > non-promo > non-arena-without-paper > highres > non-UB > black border > modern frame > non-plst/sld > newer > non-variant > paper
  *
  * Accepts ScryfallCard (raw) to access fields like security_stamp before filtering.
  */
@@ -285,11 +285,14 @@ export function compareCards(a: ScryfallCard, b: ScryfallCard): number {
 	if (!aPromo && bPromo) return -1;
 	if (aPromo && !bPromo) return 1;
 
-	// Deprioritize Arena-only (paper and MTGO are both fine)
-	const aArenaOnly = a.games?.length === 1 && a.games[0] === "arena";
-	const bArenaOnly = b.games?.length === 1 && b.games[0] === "arena";
-	if (!aArenaOnly && bArenaOnly) return -1;
-	if (aArenaOnly && !bArenaOnly) return 1;
+	// Deprioritize arena printings without paper release
+	// (arena-style images are condensed/smoothed; MTGO-only is fine)
+	const aArenaWithoutPaper =
+		a.games?.includes("arena") && !a.games?.includes("paper");
+	const bArenaWithoutPaper =
+		b.games?.includes("arena") && !b.games?.includes("paper");
+	if (!aArenaWithoutPaper && bArenaWithoutPaper) return -1;
+	if (aArenaWithoutPaper && !bArenaWithoutPaper) return 1;
 
 	// Highres (image quality - digital-only may have better scans)
 	if (a.highres_image && !b.highres_image) return -1;
