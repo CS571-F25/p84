@@ -355,8 +355,14 @@ class Parser {
 		if (this.match("WORD")) {
 			const value = this.previous().value;
 
-			// For color fields, parse as colors
+			// For color fields, parse as colors - but identity can also take numeric values
+			// for counting colors (id>1 = "more than 1 color in identity")
 			if (field === "color" || field === "identity") {
+				// Check if value is purely numeric (for identity count queries like id>1)
+				if (field === "identity" && /^\d+$/.test(value)) {
+					const num = parseInt(value, 10);
+					return ok({ kind: "number", value: num });
+				}
 				return ok({
 					kind: "colors",
 					colors: this.parseColors(value),

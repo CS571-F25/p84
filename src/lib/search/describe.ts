@@ -197,6 +197,28 @@ function describeField(node: FieldNode): string {
 	const fieldLabel = FIELD_LABELS[node.field];
 	const isColorField = node.field === "color" || node.field === "identity";
 
+	// Special handling for identity count queries (id>1, id=2, etc.)
+	if (node.field === "identity" && node.value.kind === "number") {
+		const n = node.value.value;
+		// Grammatically: "1 color" but "0/2/3 colors", "fewer than 3 colors", "2 or more colors"
+		const colorWordExact = n === 1 ? "color" : "colors";
+		switch (node.operator) {
+			case ":":
+			case "=":
+				return `cards with exactly ${n} identity ${colorWordExact}`;
+			case "!=":
+				return `cards without exactly ${n} identity ${colorWordExact}`;
+			case "<":
+				return `cards with fewer than ${n} identity colors`;
+			case ">":
+				return `cards with more than ${n} identity ${colorWordExact}`;
+			case "<=":
+				return `cards with ${n} or fewer identity colors`;
+			case ">=":
+				return `cards with ${n} or more identity colors`;
+		}
+	}
+
 	// Special handling for is:/not: predicates
 	if (
 		(node.field === "is" || node.field === "not") &&

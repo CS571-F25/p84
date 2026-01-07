@@ -77,6 +77,14 @@ export function compileField(
 			return compileColorField((c) => c.colors, operator, value);
 
 		case "identity":
+			// Numeric comparison: id>1 means "more than 1 color in identity"
+			if (value.kind === "number") {
+				return createOrderedMatcher(
+					(card) => card.color_identity?.length ?? 0,
+					value.value,
+					operator,
+				);
+			}
 			return compileColorField((c) => c.color_identity, operator, value);
 
 		// Mana fields

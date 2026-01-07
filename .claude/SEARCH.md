@@ -161,6 +161,16 @@ Color comparisons use set theory:
 - `>` - Strict superset
 - `!=` - Not exactly these colors
 
+### Identity Count Queries
+
+The `identity` field also supports numeric comparisons on the *number* of colors:
+- `id>1` - Cards with more than 1 identity color (multicolor+)
+- `id=2` - Cards with exactly 2 identity colors
+- `id<=1` - Mono-color or colorless cards
+- `id=0` - Colorless cards only
+
+This is useful for finding mono-color commanders, multicolor cards, etc.
+
 ### The `in:` Field
 
 The `in:` field is a unified filter that matches multiple contexts:

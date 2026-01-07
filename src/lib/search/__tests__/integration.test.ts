@@ -219,6 +219,99 @@ describe("Scryfall search integration", () => {
 		});
 	});
 
+	describe("color identity count matching", () => {
+		const mockColorless = { color_identity: [] as string[] } as Card;
+		const mockMono = { color_identity: ["R"] } as Card;
+		const mockTwoColor = { color_identity: ["U", "R"] } as Card;
+		const mockThreeColor = { color_identity: ["W", "U", "B"] } as Card;
+		const mockFiveColor = {
+			color_identity: ["W", "U", "B", "R", "G"],
+		} as Card;
+
+		it.each([
+			["id=0", mockColorless, true],
+			["id=0", mockMono, false],
+			["id=1", mockMono, true],
+			["id=1", mockTwoColor, false],
+			["id=2", mockTwoColor, true],
+			["id=3", mockThreeColor, true],
+			["id=5", mockFiveColor, true],
+		])(
+			"%s matches card with %d identity colors: %s",
+			(query, card, expected) => {
+				const result = search(query);
+				expect(result.ok).toBe(true);
+				if (result.ok) {
+					expect(result.value.match(card)).toBe(expected);
+				}
+			},
+		);
+
+		it.each([
+			["id>0", mockColorless, false],
+			["id>0", mockMono, true],
+			["id>1", mockMono, false],
+			["id>1", mockTwoColor, true],
+			["id>2", mockThreeColor, true],
+		])("%s (more than N colors) matches correctly", (query, card, expected) => {
+			const result = search(query);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(expected);
+			}
+		});
+
+		it.each([
+			["id<1", mockColorless, true],
+			["id<1", mockMono, false],
+			["id<2", mockMono, true],
+			["id<2", mockTwoColor, false],
+			["id<3", mockTwoColor, true],
+		])(
+			"%s (fewer than N colors) matches correctly",
+			(query, card, expected) => {
+				const result = search(query);
+				expect(result.ok).toBe(true);
+				if (result.ok) {
+					expect(result.value.match(card)).toBe(expected);
+				}
+			},
+		);
+
+		it.each([
+			["id>=1", mockColorless, false],
+			["id>=1", mockMono, true],
+			["id>=2", mockMono, false],
+			["id>=2", mockTwoColor, true],
+			["id<=2", mockThreeColor, false],
+			["id<=3", mockThreeColor, true],
+		])(
+			"%s (N or more/fewer colors) matches correctly",
+			(query, card, expected) => {
+				const result = search(query);
+				expect(result.ok).toBe(true);
+				if (result.ok) {
+					expect(result.value.match(card)).toBe(expected);
+				}
+			},
+		);
+
+		it.each([
+			["id!=1", mockMono, false],
+			["id!=1", mockTwoColor, true],
+			["id!=2", mockTwoColor, false],
+		])(
+			"%s (not exactly N colors) matches correctly",
+			(query, card, expected) => {
+				const result = search(query);
+				expect(result.ok).toBe(true);
+				if (result.ok) {
+					expect(result.value.match(card)).toBe(expected);
+				}
+			},
+		);
+	});
+
 	describe("mana value matching", () => {
 		it.each([
 			["cmc=1", "Lightning Bolt", true],
