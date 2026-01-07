@@ -18,7 +18,7 @@ export interface GoldfishActions {
 	moveCard: (
 		instanceId: number,
 		toZone: Zone,
-		position?: { x: number; y: number },
+		options?: { position?: { x: number; y: number }; faceDown?: boolean },
 	) => void;
 	setHoveredCard: (instanceId: number | null) => void;
 	addCounter: (
@@ -71,8 +71,8 @@ export function useGoldfishGame(
 			cycleFace: (id, maxFaces) =>
 				setState((s) => engine.cycleFace(s, id, maxFaces)),
 			toggleFaceDown: (id) => setState((s) => engine.toggleFaceDown(s, id)),
-			moveCard: (id, zone, pos) =>
-				setState((s) => engine.moveCard(s, id, zone, pos)),
+			moveCard: (id, zone, opts) =>
+				setState((s) => engine.moveCard(s, id, zone, opts)),
 			setHoveredCard: (id) => setState((s) => engine.setHoveredCard(s, id)),
 			addCounter: (id, type, amount) =>
 				setState((s) => engine.addCounter(s, id, type, amount)),

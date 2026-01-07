@@ -7,6 +7,7 @@ export interface CardInstance {
 	isFaceDown: boolean;
 	faceIndex: number;
 	position?: { x: number; y: number };
+	zIndex: number;
 	counters: Record<string, number>;
 }
 
@@ -25,6 +26,7 @@ export interface GameState {
 	graveyard: CardInstance[];
 	exile: CardInstance[];
 	hoveredId: number | null;
+	nextZIndex: number;
 	player: PlayerState;
 }
 
@@ -38,6 +40,7 @@ export function createCardInstance(
 		isTapped: false,
 		isFaceDown: false,
 		faceIndex: 0,
+		zIndex: 0,
 		counters: {},
 	};
 }
@@ -58,6 +61,7 @@ export function createEmptyGameState(startingLife = 20): GameState {
 		graveyard: [],
 		exile: [],
 		hoveredId: null,
+		nextZIndex: 1,
 		player: createPlayerState(startingLife),
 	};
 }

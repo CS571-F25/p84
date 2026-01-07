@@ -526,16 +526,18 @@ function DeckEditorInner({
 			</div>
 
 			{/* Sticky header with search */}
-			{isOwner && (
-				<div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
-					<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 py-3 flex items-center justify-between gap-4">
-						<div className="flex items-center gap-2">
-							<DeckActionsMenu
-								deck={deck}
-								rkey={asRkey(rkey)}
-								onUpdateDeck={updateDeck}
-								onCardsChanged={handleCardsChanged}
-							/>
+			<div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
+				<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 py-3 flex items-center justify-between gap-4">
+					<div className="flex items-center gap-2">
+						<DeckActionsMenu
+							deck={deck}
+							did={did}
+							rkey={asRkey(rkey)}
+							onUpdateDeck={isOwner ? updateDeck : undefined}
+							onCardsChanged={handleCardsChanged}
+							readOnly={!isOwner}
+						/>
+						{isOwner && (
 							<Link
 								to="/profile/$did/deck/$rkey/bulk-edit"
 								params={{ did, rkey }}
@@ -543,7 +545,9 @@ function DeckEditorInner({
 							>
 								Bulk Edit
 							</Link>
-						</div>
+						)}
+					</div>
+					{isOwner && (
 						<div className="w-full max-w-md">
 							<CardSearchAutocomplete
 								deck={deck}
@@ -552,9 +556,9 @@ function DeckEditorInner({
 								onCardHover={handleCardHover}
 							/>
 						</div>
-					</div>
+					)}
 				</div>
-			)}
+			</div>
 
 			{/* Trash drop zone - only show while dragging, hide on mobile */}
 			<div className="hidden md:block">

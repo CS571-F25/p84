@@ -92,6 +92,7 @@ export function mulligan(
 		isTapped: false,
 		isFaceDown: false,
 		faceIndex: 0,
+		zIndex: 0,
 		counters: {},
 		position: undefined,
 	}));
@@ -159,12 +160,18 @@ export function toggleFaceDown(
 	}));
 }
 
+export interface MoveCardOptions {
+	position?: { x: number; y: number };
+	faceDown?: boolean;
+}
+
 export function moveCard(
 	state: GameState,
 	instanceId: number,
 	toZone: Zone,
-	position?: { x: number; y: number },
+	options: MoveCardOptions = {},
 ): GameState {
+	const { position, faceDown } = options;
 	const found = findCard(state, instanceId);
 	if (!found) return state;
 
@@ -172,23 +179,39 @@ export function moveCard(
 
 	if (fromZone === toZone) {
 		if (toZone === "battlefield" && position) {
-			return updateCardInState(state, instanceId, (c) => ({
-				...c,
-				position,
-			}));
+			// Moving within battlefield - bring to front
+			return {
+				...updateCardInState(state, instanceId, (c) => ({
+					...c,
+					position,
+					zIndex: state.nextZIndex,
+				})),
+				nextZIndex: state.nextZIndex + 1,
+			};
 		}
 		return state;
 	}
 
 	const movedCard: CardInstance =
 		toZone === "battlefield"
-			? { ...card, position: position ?? { x: 100, y: 100 } }
-			: { ...card, position: undefined };
+			? {
+					...card,
+					position: position ?? { x: 100, y: 100 },
+					zIndex: state.nextZIndex,
+					isFaceDown: faceDown ?? card.isFaceDown,
+				}
+			: {
+					...card,
+					position: undefined,
+					isFaceDown: faceDown ?? card.isFaceDown,
+				};
 
 	return {
 		...state,
 		[fromZone]: state[fromZone].filter((c) => c.instanceId !== instanceId),
 		[toZone]: [...state[toZone], movedCard],
+		nextZIndex:
+			toZone === "battlefield" ? state.nextZIndex + 1 : state.nextZIndex,
 	};
 }
 

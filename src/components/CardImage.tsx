@@ -14,7 +14,7 @@ import type {
 } from "../lib/scryfall-types";
 import { type CardFaceType, getImageUri } from "../lib/scryfall-utils";
 
-const PLACEHOLDER_STRIPES = `repeating-linear-gradient(
+export const PLACEHOLDER_STRIPES = `repeating-linear-gradient(
 	-45deg,
 	transparent,
 	transparent 8px,

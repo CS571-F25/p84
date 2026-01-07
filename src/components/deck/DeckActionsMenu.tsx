@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { MoreVertical, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { MoreVertical, Play, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DeleteDeckDialog } from "@/components/deck/DeleteDeckDialog";
@@ -17,16 +18,20 @@ import type { ScryfallId } from "@/lib/scryfall-types";
 
 interface DeckActionsMenuProps {
 	deck: Deck;
+	did: string;
 	rkey: Rkey;
-	onUpdateDeck: (updater: (prev: Deck) => Deck) => Promise<void>;
+	onUpdateDeck?: (updater: (prev: Deck) => Deck) => Promise<void>;
 	onCardsChanged?: (changedIds: Set<ScryfallId>) => void;
+	readOnly?: boolean;
 }
 
 export function DeckActionsMenu({
 	deck,
+	did,
 	rkey,
 	onUpdateDeck,
 	onCardsChanged,
+	readOnly = false,
 }: DeckActionsMenuProps) {
 	const queryClient = useQueryClient();
 	const [isOpen, setIsOpen] = useState(false);
@@ -49,6 +54,7 @@ export function DeckActionsMenu({
 	}, [isOpen]);
 
 	const handleSetAllToCheapest = async () => {
+		if (!onUpdateDeck) return;
 		setIsOpen(false);
 		const toastId = toast.loading("Finding cheapest printings...");
 
@@ -71,6 +77,7 @@ export function DeckActionsMenu({
 	};
 
 	const handleSetAllToBest = async () => {
+		if (!onUpdateDeck) return;
 		setIsOpen(false);
 		const toastId = toast.loading("Finding best printings...");
 
@@ -106,32 +113,46 @@ export function DeckActionsMenu({
 
 			{isOpen && (
 				<div className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
-					<button
-						type="button"
-						onClick={handleSetAllToCheapest}
-						className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm"
+					<Link
+						to="/profile/$did/deck/$rkey/play"
+						params={{ did, rkey }}
+						className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm flex items-center gap-2"
+						onClick={() => setIsOpen(false)}
 					>
-						Set all to cheapest
-					</button>
-					<button
-						type="button"
-						onClick={handleSetAllToBest}
-						className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm"
-					>
-						Set all to best
-					</button>
-					<div className="border-t border-gray-200 dark:border-gray-700" />
-					<button
-						type="button"
-						onClick={() => {
-							setIsOpen(false);
-							setShowDeleteDialog(true);
-						}}
-						className="w-full text-left px-4 py-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400 text-sm flex items-center gap-2"
-					>
-						<Trash2 size={14} />
-						Delete deck
-					</button>
+						<Play size={14} />
+						Playtest
+					</Link>
+					{!readOnly && (
+						<>
+							<div className="border-t border-gray-200 dark:border-gray-700" />
+							<button
+								type="button"
+								onClick={handleSetAllToCheapest}
+								className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm"
+							>
+								Set all to cheapest
+							</button>
+							<button
+								type="button"
+								onClick={handleSetAllToBest}
+								className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm"
+							>
+								Set all to best
+							</button>
+							<div className="border-t border-gray-200 dark:border-gray-700" />
+							<button
+								type="button"
+								onClick={() => {
+									setIsOpen(false);
+									setShowDeleteDialog(true);
+								}}
+								className="w-full text-left px-4 py-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400 text-sm flex items-center gap-2"
+							>
+								<Trash2 size={14} />
+								Delete deck
+							</button>
+						</>
+					)}
 				</div>
 			)}
 

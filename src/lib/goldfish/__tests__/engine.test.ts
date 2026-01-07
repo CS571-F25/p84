@@ -108,6 +108,7 @@ describe("draw", () => {
 			graveyard: [],
 			exile: [],
 			hoveredId: null,
+			nextZIndex: 1,
 			player: { life: 20, poison: 0, counters: {} },
 		};
 
@@ -284,7 +285,9 @@ describe("moveCard", () => {
 		let state = createInitialState(deck, createTestRng());
 		const cardId = state.hand[0].instanceId;
 
-		state = moveCard(state, cardId, "battlefield", { x: 200, y: 300 });
+		state = moveCard(state, cardId, "battlefield", {
+			position: { x: 200, y: 300 },
+		});
 
 		expect(state.battlefield[0].position).toEqual({ x: 200, y: 300 });
 	});
@@ -303,8 +306,7 @@ describe("moveCard", () => {
 		const deck = mockDeck(10);
 		let state = createInitialState(deck, createTestRng());
 		state = moveCard(state, state.hand[0].instanceId, "battlefield", {
-			x: 200,
-			y: 300,
+			position: { x: 200, y: 300 },
 		});
 		const cardId = state.battlefield[0].instanceId;
 
@@ -317,12 +319,13 @@ describe("moveCard", () => {
 		const deck = mockDeck(10);
 		let state = createInitialState(deck, createTestRng());
 		state = moveCard(state, state.hand[0].instanceId, "battlefield", {
-			x: 100,
-			y: 100,
+			position: { x: 100, y: 100 },
 		});
 		const cardId = state.battlefield[0].instanceId;
 
-		state = moveCard(state, cardId, "battlefield", { x: 500, y: 600 });
+		state = moveCard(state, cardId, "battlefield", {
+			position: { x: 500, y: 600 },
+		});
 
 		expect(state.battlefield[0].position).toEqual({ x: 500, y: 600 });
 	});

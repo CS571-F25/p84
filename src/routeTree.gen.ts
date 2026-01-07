@@ -19,6 +19,7 @@ import { Route as CardIdRouteImport } from './routes/card/$id'
 import { Route as ProfileDidIndexRouteImport } from './routes/profile/$did/index'
 import { Route as ProfileDidDeckRkeyRouteImport } from './routes/profile/$did/deck/$rkey'
 import { Route as ProfileDidDeckRkeyIndexRouteImport } from './routes/profile/$did/deck/$rkey/index'
+import { Route as ProfileDidDeckRkeyPlayRouteImport } from './routes/profile/$did/deck/$rkey/play'
 import { Route as ProfileDidDeckRkeyBulkEditRouteImport } from './routes/profile/$did/deck/$rkey/bulk-edit'
 
 const SigninRoute = SigninRouteImport.update({
@@ -71,6 +72,11 @@ const ProfileDidDeckRkeyIndexRoute = ProfileDidDeckRkeyIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ProfileDidDeckRkeyRoute,
 } as any)
+const ProfileDidDeckRkeyPlayRoute = ProfileDidDeckRkeyPlayRouteImport.update({
+  id: '/play',
+  path: '/play',
+  getParentRoute: () => ProfileDidDeckRkeyRoute,
+} as any)
 const ProfileDidDeckRkeyBulkEditRoute =
   ProfileDidDeckRkeyBulkEditRouteImport.update({
     id: '/bulk-edit',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/profile/$did': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRouteWithChildren
   '/profile/$did/deck/$rkey/bulk-edit': typeof ProfileDidDeckRkeyBulkEditRoute
+  '/profile/$did/deck/$rkey/play': typeof ProfileDidDeckRkeyPlayRoute
   '/profile/$did/deck/$rkey/': typeof ProfileDidDeckRkeyIndexRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/cards': typeof CardsIndexRoute
   '/profile/$did': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey/bulk-edit': typeof ProfileDidDeckRkeyBulkEditRoute
+  '/profile/$did/deck/$rkey/play': typeof ProfileDidDeckRkeyPlayRoute
   '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyIndexRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/profile/$did/': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRouteWithChildren
   '/profile/$did/deck/$rkey/bulk-edit': typeof ProfileDidDeckRkeyBulkEditRoute
+  '/profile/$did/deck/$rkey/play': typeof ProfileDidDeckRkeyPlayRoute
   '/profile/$did/deck/$rkey/': typeof ProfileDidDeckRkeyIndexRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/profile/$did'
     | '/profile/$did/deck/$rkey'
     | '/profile/$did/deck/$rkey/bulk-edit'
+    | '/profile/$did/deck/$rkey/play'
     | '/profile/$did/deck/$rkey/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/cards'
     | '/profile/$did'
     | '/profile/$did/deck/$rkey/bulk-edit'
+    | '/profile/$did/deck/$rkey/play'
     | '/profile/$did/deck/$rkey'
   id:
     | '__root__'
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/profile/$did/'
     | '/profile/$did/deck/$rkey'
     | '/profile/$did/deck/$rkey/bulk-edit'
+    | '/profile/$did/deck/$rkey/play'
     | '/profile/$did/deck/$rkey/'
   fileRoutesById: FileRoutesById
 }
@@ -242,6 +254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileDidDeckRkeyIndexRouteImport
       parentRoute: typeof ProfileDidDeckRkeyRoute
     }
+    '/profile/$did/deck/$rkey/play': {
+      id: '/profile/$did/deck/$rkey/play'
+      path: '/play'
+      fullPath: '/profile/$did/deck/$rkey/play'
+      preLoaderRoute: typeof ProfileDidDeckRkeyPlayRouteImport
+      parentRoute: typeof ProfileDidDeckRkeyRoute
+    }
     '/profile/$did/deck/$rkey/bulk-edit': {
       id: '/profile/$did/deck/$rkey/bulk-edit'
       path: '/bulk-edit'
@@ -254,11 +273,13 @@ declare module '@tanstack/react-router' {
 
 interface ProfileDidDeckRkeyRouteChildren {
   ProfileDidDeckRkeyBulkEditRoute: typeof ProfileDidDeckRkeyBulkEditRoute
+  ProfileDidDeckRkeyPlayRoute: typeof ProfileDidDeckRkeyPlayRoute
   ProfileDidDeckRkeyIndexRoute: typeof ProfileDidDeckRkeyIndexRoute
 }
 
 const ProfileDidDeckRkeyRouteChildren: ProfileDidDeckRkeyRouteChildren = {
   ProfileDidDeckRkeyBulkEditRoute: ProfileDidDeckRkeyBulkEditRoute,
+  ProfileDidDeckRkeyPlayRoute: ProfileDidDeckRkeyPlayRoute,
   ProfileDidDeckRkeyIndexRoute: ProfileDidDeckRkeyIndexRoute,
 }
 
