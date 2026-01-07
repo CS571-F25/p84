@@ -5,6 +5,7 @@ import { CardImage } from "@/components/CardImage";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
 import { getAllFaces } from "@/lib/card-faces";
+import { FORMAT_GROUPS } from "@/lib/format-utils";
 import {
 	getCardByIdQueryOptions,
 	getCardPrintingsQueryOptions,
@@ -400,6 +401,8 @@ function CardDetailPage() {
 								</div>
 							</div>
 						) : null}
+
+						{card.legalities && <LegalityTable legalities={card.legalities} />}
 					</div>
 				</div>
 			</div>
@@ -475,5 +478,71 @@ function FaceInfo({ face, primary = false }: FaceInfoProps) {
 				</div>
 			)}
 		</div>
+	);
+}
+
+interface LegalityTableProps {
+	legalities: Record<string, string>;
+}
+
+function LegalityTable({ legalities }: LegalityTableProps) {
+	return (
+		<div>
+			<h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+				Format Legality
+			</h2>
+			<div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+				{FORMAT_GROUPS.map((group) => (
+					<div key={group.label}>
+						<h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+							{group.label}
+						</h3>
+						<div className="space-y-1">
+							{group.formats.map((format) => {
+								const legality = legalities[format.value] ?? "not_legal";
+								return (
+									<div
+										key={format.value}
+										className="flex items-center justify-between text-sm"
+									>
+										<span className="text-gray-700 dark:text-gray-300">
+											{format.label}
+										</span>
+										<LegalityBadge legality={legality} />
+									</div>
+								);
+							})}
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
+function LegalityBadge({ legality }: { legality: string }) {
+	const styles: Record<string, string> = {
+		legal:
+			"bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300",
+		restricted:
+			"bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300",
+		banned: "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300",
+		not_legal:
+			"bg-gray-100 dark:bg-slate-700/50 text-gray-500 dark:text-gray-500",
+	};
+
+	const labels: Record<string, string> = {
+		legal: "Legal",
+		restricted: "Restricted",
+		banned: "Banned",
+		not_legal: "—",
+	};
+
+	return (
+		<span
+			className={`px-1.5 py-0.5 rounded text-xs font-medium ${styles[legality] ?? styles.not_legal}`}
+		>
+			{labels[legality] ?? legality}
+		</span>
 	);
 }
