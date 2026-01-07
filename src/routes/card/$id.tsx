@@ -136,6 +136,7 @@ function CardDetailPage() {
 		null,
 	);
 	const currentPrintingRef = useRef<HTMLAnchorElement>(null);
+	const printingsContainerRef = useRef<HTMLDivElement>(null);
 
 	const isValidId = isScryfallId(id);
 	const { data: card, isLoading: cardLoading } = useQuery(
@@ -162,13 +163,24 @@ function CardDetailPage() {
 	});
 
 	useEffect(() => {
-		if (currentPrintingRef.current) {
-			currentPrintingRef.current.scrollIntoView({
-				behavior: "smooth",
-				block: "nearest",
-			});
-		}
-	}, []);
+		const container = printingsContainerRef.current;
+		const element = currentPrintingRef.current;
+
+		if (!printingsMap || !container || !element) return;
+
+		requestAnimationFrame(() => {
+			const elementTop = element.offsetTop - container.offsetTop;
+			const elementBottom = elementTop + element.offsetHeight;
+			const containerScroll = container.scrollTop;
+			const containerHeight = container.clientHeight;
+
+			if (elementTop < containerScroll) {
+				container.scrollTop = elementTop;
+			} else if (elementBottom > containerScroll + containerHeight) {
+				container.scrollTop = elementBottom - containerHeight;
+			}
+		});
+	}, [printingsMap]);
 
 	if (!isValidId) {
 		return (
@@ -371,7 +383,10 @@ function CardDetailPage() {
 								<h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
 									Printings ({allPrintings.length})
 								</h2>
-								<div className="max-h-96 overflow-y-auto border border-gray-300 dark:border-slate-700 rounded-lg p-3 bg-gray-50 dark:bg-slate-800/50">
+								<div
+									ref={printingsContainerRef}
+									className="max-h-96 overflow-y-auto border border-gray-300 dark:border-slate-700 rounded-lg p-3 bg-gray-50 dark:bg-slate-800/50"
+								>
 									<div className="flex flex-wrap gap-2">
 										{allPrintings.map((printing) => (
 											<Link
