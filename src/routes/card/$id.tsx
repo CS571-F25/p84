@@ -253,50 +253,54 @@ function CardDetailPage() {
 								gridTemplateColumns: "minmax(50%, auto) minmax(0, 1fr)",
 							}}
 						>
-							{displayCard.set_name && (
-								<>
-									<div className="min-w-0">
-										<p className="text-gray-600 dark:text-gray-400">Set</p>
-										<p
-											className="text-gray-900 dark:text-white truncate"
-											title={`${displayCard.set_name} (${displayCard.set?.toUpperCase()})`}
-										>
+							<div className="min-w-0">
+								<p className="text-gray-600 dark:text-gray-400">Set</p>
+								<p
+									className="text-gray-900 dark:text-white truncate"
+									title={
+										displayCard.set_name
+											? `${displayCard.set_name} (${displayCard.set?.toUpperCase()})`
+											: undefined
+									}
+								>
+									{displayCard.set_name ? (
+										<>
 											{displayCard.set_name} ({displayCard.set?.toUpperCase()})
-										</p>
-									</div>
-									{displayCard.rarity && (
-										<div className="min-w-0">
-											<p className="text-gray-600 dark:text-gray-400">Rarity</p>
-											<p className="text-gray-900 dark:text-white capitalize truncate">
-												{displayCard.rarity}
-											</p>
-										</div>
+										</>
+									) : (
+										<span className="text-gray-400 dark:text-gray-600">—</span>
 									)}
-								</>
-							)}
-							{displayCard.artist && (
-								<>
-									<div className="min-w-0">
-										<p className="text-gray-600 dark:text-gray-400">Artist</p>
-										<p
-											className="text-gray-900 dark:text-white truncate"
-											title={displayCard.artist}
-										>
-											{displayCard.artist}
-										</p>
-									</div>
-									{displayCard.collector_number && (
-										<div className="min-w-0">
-											<p className="text-gray-600 dark:text-gray-400">
-												Collector Number
-											</p>
-											<p className="text-gray-900 dark:text-white truncate">
-												{displayCard.collector_number}
-											</p>
-										</div>
+								</p>
+							</div>
+							<div className="min-w-0">
+								<p className="text-gray-600 dark:text-gray-400">Rarity</p>
+								<p className="text-gray-900 dark:text-white capitalize truncate">
+									{displayCard.rarity ?? (
+										<span className="text-gray-400 dark:text-gray-600">—</span>
 									)}
-								</>
-							)}
+								</p>
+							</div>
+							<div className="min-w-0">
+								<p className="text-gray-600 dark:text-gray-400">Artist</p>
+								<p
+									className="text-gray-900 dark:text-white truncate"
+									title={displayCard.artist}
+								>
+									{displayCard.artist ?? (
+										<span className="text-gray-400 dark:text-gray-600">—</span>
+									)}
+								</p>
+							</div>
+							<div className="min-w-0">
+								<p className="text-gray-600 dark:text-gray-400">
+									Collector Number
+								</p>
+								<p className="text-gray-900 dark:text-white truncate">
+									{displayCard.collector_number ?? (
+										<span className="text-gray-400 dark:text-gray-600">—</span>
+									)}
+								</p>
+							</div>
 						</div>
 
 						<div className="h-10 overflow-x-auto overflow-y-hidden">
