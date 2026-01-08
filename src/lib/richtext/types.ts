@@ -1,8 +1,17 @@
+import type { Main as LexiconRichText } from "@/lib/lexicons/types/com/deckbelcher/richtext";
+import type {
+	ByteSlice as LexiconByteSlice,
+	Link as LexiconLink,
+	Mention as LexiconMention,
+} from "@/lib/lexicons/types/com/deckbelcher/richtext/facet";
+
+// ByteSlice matches lexicon exactly
 export interface ByteSlice {
 	byteStart: number;
 	byteEnd: number;
 }
 
+// Feature types with required $type for our internal use
 export interface BoldFeature {
 	$type: "com.deckbelcher.richtext.facet#bold";
 }
@@ -21,12 +30,17 @@ export interface CodeBlockFeature {
 
 export interface LinkFeature {
 	$type: "com.deckbelcher.richtext.facet#link";
-	uri: string;
+	uri: LexiconLink["uri"];
 }
 
 export interface MentionFeature {
 	$type: "com.deckbelcher.richtext.facet#mention";
-	did: string;
+	did: LexiconMention["did"];
+}
+
+export interface TagFeature {
+	$type: "com.deckbelcher.richtext.facet#tag";
+	tag: string;
 }
 
 export type FormatFeature =
@@ -35,7 +49,8 @@ export type FormatFeature =
 	| CodeFeature
 	| CodeBlockFeature
 	| LinkFeature
-	| MentionFeature;
+	| MentionFeature
+	| TagFeature;
 
 export interface Facet {
 	index: ByteSlice;
@@ -46,6 +61,10 @@ export interface ParseResult {
 	text: string;
 	facets: Facet[];
 }
+
+// Type alias for lexicon compatibility
+export type RichText = LexiconRichText;
+export type { LexiconByteSlice };
 
 export function isBold(feature: FormatFeature): feature is BoldFeature {
 	return feature.$type === "com.deckbelcher.richtext.facet#bold";
@@ -73,6 +92,10 @@ export function isMention(feature: FormatFeature): feature is MentionFeature {
 	return feature.$type === "com.deckbelcher.richtext.facet#mention";
 }
 
+export function isTag(feature: FormatFeature): feature is TagFeature {
+	return feature.$type === "com.deckbelcher.richtext.facet#tag";
+}
+
 export const BOLD: BoldFeature = {
 	$type: "com.deckbelcher.richtext.facet#bold",
 };
@@ -90,9 +113,22 @@ export const CODE_BLOCK: CodeBlockFeature = {
 };
 
 export function link(uri: string): LinkFeature {
-	return { $type: "com.deckbelcher.richtext.facet#link", uri };
+	return {
+		$type: "com.deckbelcher.richtext.facet#link",
+		uri: uri as LinkFeature["uri"],
+	};
 }
 
 export function mention(did: string): MentionFeature {
-	return { $type: "com.deckbelcher.richtext.facet#mention", did };
+	return {
+		$type: "com.deckbelcher.richtext.facet#mention",
+		did: did as MentionFeature["did"],
+	};
+}
+
+export function tag(value: string): TagFeature {
+	return {
+		$type: "com.deckbelcher.richtext.facet#tag",
+		tag: value,
+	};
 }

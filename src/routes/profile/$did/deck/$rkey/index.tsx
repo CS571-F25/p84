@@ -16,6 +16,7 @@ import { DeckStats } from "@/components/deck/DeckStats";
 import { DragDropProvider } from "@/components/deck/DragDropProvider";
 import type { DragData } from "@/components/deck/DraggableCard";
 import { GoldfishView } from "@/components/deck/GoldfishView";
+import { PrimerSection } from "@/components/deck/PrimerSection";
 import { StatsCardList } from "@/components/deck/stats/StatsCardList";
 import { TrashDropZone } from "@/components/deck/TrashDropZone";
 import { ViewControls } from "@/components/deck/ViewControls";
@@ -35,12 +36,14 @@ import {
 } from "@/lib/deck-types";
 import { formatDisplayName } from "@/lib/format-utils";
 import { getCardByIdQueryOptions } from "@/lib/queries";
+import { serializeToMarkdown } from "@/lib/richtext";
 import type { ScryfallId } from "@/lib/scryfall-types";
 import { getImageUri } from "@/lib/scryfall-utils";
 import { getSelectedCards, type StatsSelection } from "@/lib/stats-selection";
 import { useAuth } from "@/lib/useAuth";
 import { useDeckStats } from "@/lib/useDeckStats";
 import { usePersistedState } from "@/lib/usePersistedState";
+import { useRichText } from "@/lib/useRichText";
 
 export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 	component: DeckEditorPage,
@@ -153,6 +156,21 @@ function DeckEditorPage() {
 
 	// Check if current user is the owner
 	const isOwner = session?.info.sub === did;
+
+	// Primer editor state
+	const primerInitialValue = useMemo(
+		() =>
+			serializeToMarkdown(deck.primer?.text ?? "", deck.primer?.facets ?? []),
+		[deck.primer],
+	);
+	const primer = useRichText({
+		initialValue: primerInitialValue,
+		onSave: (parsed) => {
+			if (!isOwner) return;
+			mutation.mutate({ ...deck, primer: parsed });
+		},
+		debounceMs: 1500,
+	});
 
 	// Helper to update deck via mutation
 	const updateDeck = async (updater: (prev: Deck) => Deck) => {
@@ -420,6 +438,8 @@ function DeckEditorPage() {
 				updateDeck={updateDeck}
 				highlightedCards={highlightedCards}
 				handleCardsChanged={handleCardsChanged}
+				primer={primer}
+				isSaving={mutation.isPending}
 			/>
 		</DragDropProvider>
 	);
@@ -458,6 +478,8 @@ interface DeckEditorInnerProps {
 	updateDeck: (updater: (prev: Deck) => Deck) => Promise<void>;
 	highlightedCards: Set<ScryfallId>;
 	handleCardsChanged: (changedIds: Set<ScryfallId>) => void;
+	primer: ReturnType<typeof useRichText>;
+	isSaving: boolean;
 }
 
 function DeckEditorInner({
@@ -493,6 +515,8 @@ function DeckEditorInner({
 	updateDeck,
 	highlightedCards,
 	handleCardsChanged,
+	primer,
+	isSaving,
 }: DeckEditorInnerProps) {
 	// Track drag state globally (must be inside DndContext)
 	useDndMonitor({
@@ -516,7 +540,7 @@ function DeckEditorInner({
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
 			{/* Deck name and format */}
-			<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 pt-8 pb-4">
+			<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 pt-8 pb-4 space-y-4">
 				<DeckHeader
 					name={deck.name}
 					format={deck.format}
@@ -524,6 +548,7 @@ function DeckEditorInner({
 					onFormatChange={handleFormatChange}
 					readOnly={!isOwner}
 				/>
+				<PrimerSection {...primer} isSaving={isSaving} readOnly={!isOwner} />
 			</div>
 
 			{/* Sticky header with search */}
