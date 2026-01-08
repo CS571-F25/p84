@@ -31,7 +31,7 @@ exports[`parseMarkdown > snapshot: *** > parses correctly 1`] = `
 exports[`parseMarkdown > snapshot: **** > parses correctly 1`] = `
 {
   "facets": [],
-  "text": "",
+  "text": "****",
 }
 `;
 
@@ -269,6 +269,72 @@ exports[`parseMarkdown > snapshot: *🔥* and **🔥** > parses correctly 1`] = 
     },
   ],
   "text": "🔥 and 🔥",
+}
+`;
+
+exports[`parseMarkdown > snapshot: @user.bsky.social > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#mention",
+          "did": "user.bsky.social",
+        },
+      ],
+      "index": {
+        "byteEnd": 17,
+        "byteStart": 0,
+      },
+    },
+  ],
+  "text": "@user.bsky.social",
+}
+`;
+
+exports[`parseMarkdown > snapshot: [link](https://example.com) > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#link",
+          "uri": "https://example.com",
+        },
+      ],
+      "index": {
+        "byteEnd": 4,
+        "byteStart": 0,
+      },
+    },
+  ],
+  "text": "link",
+}
+`;
+
+exports[`parseMarkdown > snapshot: \`\` > parses correctly 1`] = `
+{
+  "facets": [],
+  "text": "\`\`",
+}
+`;
+
+exports[`parseMarkdown > snapshot: \`code\` > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#code",
+        },
+      ],
+      "index": {
+        "byteEnd": 4,
+        "byteStart": 0,
+      },
+    },
+  ],
+  "text": "code",
 }
 `;
 

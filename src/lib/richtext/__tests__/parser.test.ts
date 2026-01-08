@@ -107,9 +107,9 @@ describe("parseMarkdown", () => {
 	});
 
 	describe("empty spans", () => {
-		it("ignores empty bold ****", () => {
+		it("preserves empty bold **** as literal text", () => {
 			const result = parseMarkdown("a****b");
-			expect(result.text).toBe("ab");
+			expect(result.text).toBe("a****b");
 			expect(result.facets).toEqual([]);
 		});
 
@@ -146,6 +146,119 @@ describe("parseMarkdown", () => {
 		});
 	});
 
+	describe("inline code", () => {
+		it("parses inline code", () => {
+			const result = parseMarkdown("`code`");
+			expect(result.text).toBe("code");
+			expect(result.facets).toHaveLength(1);
+			expect(result.facets[0].features[0].$type).toBe(
+				"com.deckbelcher.richtext.facet#code",
+			);
+		});
+
+		it("parses code in text", () => {
+			const result = parseMarkdown("run `npm install` now");
+			expect(result.text).toBe("run npm install now");
+			expect(result.facets[0].index).toEqual({ byteStart: 4, byteEnd: 15 });
+		});
+
+		it("preserves empty code `` as literal", () => {
+			const result = parseMarkdown("a``b");
+			expect(result.text).toBe("a``b");
+			expect(result.facets).toEqual([]);
+		});
+	});
+
+	describe("code blocks", () => {
+		it("parses code block", () => {
+			const result = parseMarkdown("```\nconst x = 1;\n```");
+			expect(result.text).toBe("const x = 1;");
+			expect(result.facets).toHaveLength(1);
+			expect(result.facets[0].features[0].$type).toBe(
+				"com.deckbelcher.richtext.facet#codeBlock",
+			);
+		});
+
+		it("parses code block with language", () => {
+			const result = parseMarkdown("```typescript\nconst x = 1;\n```");
+			expect(result.text).toBe("const x = 1;");
+		});
+
+		it("parses multi-line code block", () => {
+			const result = parseMarkdown("```\nline1\nline2\n```");
+			expect(result.text).toBe("line1\nline2");
+		});
+
+		it("ignores ``` in middle of line", () => {
+			const result = parseMarkdown("text ``` more");
+			expect(result.text).toBe("text ``` more");
+		});
+
+		it("preserves newline between code block and content after", () => {
+			const result = parseMarkdown("```\ncode\n```\ncontent after");
+			expect(result.text).toBe("code\ncontent after");
+			expect(result.facets).toHaveLength(1);
+			expect(result.facets[0].index).toEqual({ byteStart: 0, byteEnd: 4 });
+		});
+	});
+
+	describe("links", () => {
+		it("parses markdown link", () => {
+			const result = parseMarkdown("[click here](https://example.com)");
+			expect(result.text).toBe("click here");
+			expect(result.facets).toHaveLength(1);
+			expect(result.facets[0].features[0]).toEqual({
+				$type: "com.deckbelcher.richtext.facet#link",
+				uri: "https://example.com",
+			});
+		});
+
+		it("parses link in text", () => {
+			const result = parseMarkdown("check [this](https://x.com) out");
+			expect(result.text).toBe("check this out");
+		});
+
+		it("treats incomplete link as literal", () => {
+			const result = parseMarkdown("[text]");
+			expect(result.text).toBe("[text]");
+		});
+
+		it("treats link without url as literal", () => {
+			const result = parseMarkdown("[text]()");
+			expect(result.text).toBe("[text]()");
+		});
+	});
+
+	describe("mentions", () => {
+		it("parses valid handle", () => {
+			const result = parseMarkdown("@user.bsky.social");
+			expect(result.text).toBe("@user.bsky.social");
+			expect(result.facets).toHaveLength(1);
+			expect(result.facets[0].features[0]).toEqual({
+				$type: "com.deckbelcher.richtext.facet#mention",
+				did: "user.bsky.social",
+			});
+		});
+
+		it("ignores @ without valid handle", () => {
+			const result = parseMarkdown("email@");
+			expect(result.text).toBe("email@");
+			expect(result.facets).toEqual([]);
+		});
+
+		it("ignores @ without dot", () => {
+			const result = parseMarkdown("@username");
+			expect(result.text).toBe("@username");
+			expect(result.facets).toEqual([]);
+		});
+
+		it("parses mention in sentence", () => {
+			const result = parseMarkdown("hello @alice.dev!");
+			expect(result.text).toBe("hello @alice.dev!");
+			expect(result.facets[0].index).toEqual({ byteStart: 6, byteEnd: 16 });
+		});
+	});
+
 	describe.each([
 		["Hello **world**!"],
 		["This is *italic* text"],
@@ -172,6 +285,11 @@ describe("parseMarkdown", () => {
 		["prefix **日本語** suffix"],
 		["*🔥* and **🔥**"],
 		["**a日b**"],
+		// New features
+		["`code`"],
+		["``"],
+		["[link](https://example.com)"],
+		["@user.bsky.social"],
 	])("snapshot: %s", (input) => {
 		it("parses correctly", () => {
 			expect(parseMarkdown(input)).toMatchSnapshot();
