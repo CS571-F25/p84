@@ -1,6 +1,6 @@
 import "@typelex/emitter";
 import "./externals.tsp";
-import "./richtext-facet.tsp";
+import "./richtext.tsp";
 
 namespace com.deckbelcher.deck.list {
   /** A Magic: The Gathering decklist. */
@@ -22,12 +22,7 @@ namespace com.deckbelcher.deck.list {
     cards: Card[];
 
     /** Deck primer with strategy, combos, and card choices. */
-    @maxGraphemes(10000)
-    @maxLength(100000)
-    primer?: string;
-
-    /** Annotations of text in the primer (mentions, URLs, hashtags, card references, etc). */
-    primerFacets?: com.deckbelcher.richtext.facet.Main[];
+    primer?: com.deckbelcher.richtext.Main;
 
     /** Timestamp when the decklist was created. */
     @required

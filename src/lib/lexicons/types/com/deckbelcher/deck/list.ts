@@ -1,7 +1,7 @@
 import type {} from "@atcute/lexicons";
 import type {} from "@atcute/lexicons/ambient";
 import * as v from "@atcute/lexicons/validations";
-import * as ComDeckbelcherRichtextFacet from "../richtext/facet.js";
+import * as ComDeckbelcherRichtext from "../richtext.js";
 
 const _cardSchema = /*#__PURE__*/ v.object({
 	$type: /*#__PURE__*/ v.optional(
@@ -76,22 +76,9 @@ const _mainSchema = /*#__PURE__*/ v.record(
 		]),
 		/**
 		 * Deck primer with strategy, combos, and card choices.
-		 * @maxLength 100000
-		 * @maxGraphemes 10000
 		 */
-		primer: /*#__PURE__*/ v.optional(
-			/*#__PURE__*/ v.constrain(/*#__PURE__*/ v.string(), [
-				/*#__PURE__*/ v.stringLength(0, 100000),
-				/*#__PURE__*/ v.stringGraphemes(0, 10000),
-			]),
-		),
-		/**
-		 * Annotations of text in the primer (mentions, URLs, hashtags, card references, etc).
-		 */
-		get primerFacets() {
-			return /*#__PURE__*/ v.optional(
-				/*#__PURE__*/ v.array(ComDeckbelcherRichtextFacet.mainSchema),
-			);
+		get primer() {
+			return /*#__PURE__*/ v.optional(ComDeckbelcherRichtext.mainSchema);
 		},
 		/**
 		 * Timestamp when the decklist was last updated.

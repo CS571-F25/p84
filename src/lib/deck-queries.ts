@@ -141,7 +141,6 @@ export function useUpdateDeckMutation(did: Did, rkey: Rkey) {
 					scryfallId: card.scryfallId as string,
 				})),
 				primer: deck.primer,
-				primerFacets: deck.primerFacets,
 				createdAt: deck.createdAt,
 				updatedAt: new Date().toISOString(),
 			});

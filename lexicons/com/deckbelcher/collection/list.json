@@ -1,0 +1,92 @@
+{
+  "lexicon": 1,
+  "id": "com.deckbelcher.collection.list",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 1280,
+            "maxGraphemes": 128,
+            "description": "Name of the list."
+          },
+          "description": {
+            "type": "ref",
+            "ref": "com.deckbelcher.richtext",
+            "description": "Description of the list."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "union",
+              "refs": [
+                "#cardItem",
+                "#deckItem"
+              ]
+            },
+            "description": "Items in the list."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when the list was created."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp when the list was last updated."
+          }
+        },
+        "required": [
+          "name",
+          "items",
+          "createdAt"
+        ]
+      },
+      "description": "A curated list of cards and/or decks."
+    },
+    "cardItem": {
+      "type": "object",
+      "properties": {
+        "scryfallId": {
+          "type": "string",
+          "description": "Scryfall UUID for the card."
+        },
+        "addedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this item was added to the list."
+        }
+      },
+      "description": "A card saved to the list.",
+      "required": [
+        "scryfallId",
+        "addedAt"
+      ]
+    },
+    "deckItem": {
+      "type": "object",
+      "properties": {
+        "deckUri": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the deck record."
+        },
+        "addedAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Timestamp when this item was added to the list."
+        }
+      },
+      "description": "A deck saved to the list.",
+      "required": [
+        "deckUri",
+        "addedAt"
+      ]
+    }
+  }
+}

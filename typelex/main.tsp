@@ -1,7 +1,9 @@
 import "@typelex/emitter";
 import "./externals.tsp";
 import "./richtext-facet.tsp";
+import "./richtext.tsp";
 import "./deck-list.tsp";
+import "./collection-list.tsp";
 import "./social-like.tsp";
 
 namespace com.deckbelcher.actor.profile {

@@ -65,8 +65,7 @@ interface DeckState {
   name: string;
   format?: string;
   cards: DeckCard[];
-  primer?: string;
-  primerFacets?: RichtextFacet[];
+  primer?: RichText;  // { text?: string, facets?: RichtextFacet[] }
   createdAt: string;
   updatedAt?: string;
 }

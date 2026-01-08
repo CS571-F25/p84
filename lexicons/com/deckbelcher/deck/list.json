@@ -29,18 +29,9 @@
             "description": "Array of cards in the decklist."
           },
           "primer": {
-            "type": "string",
-            "maxLength": 100000,
-            "maxGraphemes": 10000,
+            "type": "ref",
+            "ref": "com.deckbelcher.richtext",
             "description": "Deck primer with strategy, combos, and card choices."
-          },
-          "primerFacets": {
-            "type": "array",
-            "items": {
-              "type": "ref",
-              "ref": "com.deckbelcher.richtext.facet"
-            },
-            "description": "Annotations of text in the primer (mentions, URLs, hashtags, card references, etc)."
           },
           "createdAt": {
             "type": "string",

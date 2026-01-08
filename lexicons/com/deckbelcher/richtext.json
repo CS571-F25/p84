@@ -1,0 +1,26 @@
+{
+  "lexicon": 1,
+  "id": "com.deckbelcher.richtext",
+  "defs": {
+    "main": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 500000,
+          "maxGraphemes": 50000,
+          "description": "The text content."
+        },
+        "facets": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "com.deckbelcher.richtext.facet"
+          },
+          "description": "Annotations of text (mentions, URLs, hashtags, card references, etc)."
+        }
+      },
+      "description": "Rich text content with optional facet annotations.\nUsed for primers, descriptions, and other formatted text."
+    }
+  }
+}
