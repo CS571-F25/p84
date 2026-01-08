@@ -43,7 +43,7 @@ export function CardSearchAutocomplete({
 	const resultRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 
 	const queryClient = useQueryClient();
-	const debouncedSearch = useDebounce(inputValue, 300);
+	const { value: debouncedSearch } = useDebounce(inputValue, 300);
 	const toggleId = useId();
 
 	// Calculate search restrictions

@@ -131,7 +131,7 @@ const DEFAULT_SORT = SORT_OPTIONS[0];
 function CardsPage() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const debouncedSearchQuery = useDebounce(search.q || "", 400);
+	const { value: debouncedSearchQuery } = useDebounce(search.q || "", 400);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const listRef = useRef<HTMLDivElement>(null);
 	const columns = useColumns();

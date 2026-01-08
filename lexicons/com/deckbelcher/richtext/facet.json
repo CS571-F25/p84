@@ -18,7 +18,9 @@
               "#link",
               "#tag",
               "#bold",
-              "#italic"
+              "#italic",
+              "#code",
+              "#codeBlock"
             ]
           }
         }
@@ -96,6 +98,16 @@
       "type": "object",
       "properties": {},
       "description": "Facet feature for italic text formatting.\nTypically rendered as `<em>` in HTML."
+    },
+    "code": {
+      "type": "object",
+      "properties": {},
+      "description": "Facet feature for inline code.\nTypically rendered as `<code>` in HTML."
+    },
+    "codeBlock": {
+      "type": "object",
+      "properties": {},
+      "description": "Facet feature for code blocks.\nTypically rendered as `<pre><code>` in HTML."
     }
   }
 }

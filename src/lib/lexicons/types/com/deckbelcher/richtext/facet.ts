@@ -19,6 +19,16 @@ const _byteSliceSchema = /*#__PURE__*/ v.object({
 	 */
 	byteStart: /*#__PURE__*/ v.integer(),
 });
+const _codeSchema = /*#__PURE__*/ v.object({
+	$type: /*#__PURE__*/ v.optional(
+		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#code"),
+	),
+});
+const _codeBlockSchema = /*#__PURE__*/ v.object({
+	$type: /*#__PURE__*/ v.optional(
+		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#codeBlock"),
+	),
+});
 const _italicSchema = /*#__PURE__*/ v.object({
 	$type: /*#__PURE__*/ v.optional(
 		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#italic"),
@@ -38,6 +48,8 @@ const _mainSchema = /*#__PURE__*/ v.object({
 		return /*#__PURE__*/ v.array(
 			/*#__PURE__*/ v.variant([
 				boldSchema,
+				codeSchema,
+				codeBlockSchema,
 				italicSchema,
 				linkSchema,
 				mentionSchema,
@@ -71,6 +83,8 @@ const _tagSchema = /*#__PURE__*/ v.object({
 
 type bold$schematype = typeof _boldSchema;
 type byteSlice$schematype = typeof _byteSliceSchema;
+type code$schematype = typeof _codeSchema;
+type codeBlock$schematype = typeof _codeBlockSchema;
 type italic$schematype = typeof _italicSchema;
 type link$schematype = typeof _linkSchema;
 type main$schematype = typeof _mainSchema;
@@ -79,6 +93,8 @@ type tag$schematype = typeof _tagSchema;
 
 export interface boldSchema extends bold$schematype {}
 export interface byteSliceSchema extends byteSlice$schematype {}
+export interface codeSchema extends code$schematype {}
+export interface codeBlockSchema extends codeBlock$schematype {}
 export interface italicSchema extends italic$schematype {}
 export interface linkSchema extends link$schematype {}
 export interface mainSchema extends main$schematype {}
@@ -87,6 +103,8 @@ export interface tagSchema extends tag$schematype {}
 
 export const boldSchema = _boldSchema as boldSchema;
 export const byteSliceSchema = _byteSliceSchema as byteSliceSchema;
+export const codeSchema = _codeSchema as codeSchema;
+export const codeBlockSchema = _codeBlockSchema as codeBlockSchema;
 export const italicSchema = _italicSchema as italicSchema;
 export const linkSchema = _linkSchema as linkSchema;
 export const mainSchema = _mainSchema as mainSchema;
@@ -95,6 +113,8 @@ export const tagSchema = _tagSchema as tagSchema;
 
 export interface Bold extends v.InferInput<typeof boldSchema> {}
 export interface ByteSlice extends v.InferInput<typeof byteSliceSchema> {}
+export interface Code extends v.InferInput<typeof codeSchema> {}
+export interface CodeBlock extends v.InferInput<typeof codeBlockSchema> {}
 export interface Italic extends v.InferInput<typeof italicSchema> {}
 export interface Link extends v.InferInput<typeof linkSchema> {}
 export interface Main extends v.InferInput<typeof mainSchema> {}

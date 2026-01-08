@@ -11,7 +11,7 @@ namespace com.deckbelcher.richtext.facet {
     index: ByteSlice;
 
     @required
-    features: (Mention | Link | Tag | Bold | Italic | unknown)[];
+    features: (Mention | Link | Tag | Bold | Italic | Code | CodeBlock | unknown)[];
   }
 
   /**
@@ -69,4 +69,16 @@ namespace com.deckbelcher.richtext.facet {
    * Typically rendered as `<em>` in HTML.
    */
   model Italic {}
+
+  /**
+   * Facet feature for inline code.
+   * Typically rendered as `<code>` in HTML.
+   */
+  model Code {}
+
+  /**
+   * Facet feature for code blocks.
+   * Typically rendered as `<pre><code>` in HTML.
+   */
+  model CodeBlock {}
 }
