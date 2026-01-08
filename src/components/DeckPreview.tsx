@@ -102,7 +102,7 @@ export function DeckPreview({
 				<CardImage
 					card={{ id: thumbnailId, name: deck.name }}
 					size="small"
-					className="row-span-5 h-0 min-h-full w-auto rounded"
+					className="row-span-5 h-0 min-h-full aspect-[5/7]"
 				/>
 			)}
 
