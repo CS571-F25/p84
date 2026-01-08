@@ -12,7 +12,6 @@ import {
 	createDeckRecord,
 	deleteDeckRecord,
 	getDeckRecord,
-	type ListRecordsResponse,
 	listUserDecks,
 	type Rkey,
 	updateDeckRecord,
@@ -55,7 +54,7 @@ export const getDeckQueryOptions = (did: Did, rkey: Rkey) =>
 export const listUserDecksQueryOptions = (did: Did) =>
 	queryOptions({
 		queryKey: ["decks", did] as const,
-		queryFn: async (): Promise<ListRecordsResponse> => {
+		queryFn: async () => {
 			const pds = await getPdsForDid(did);
 			const result = await listUserDecks(asPdsUrl(pds), did);
 			if (!result.success) {

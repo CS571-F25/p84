@@ -17,7 +17,9 @@ import { Route as OauthCallbackRouteImport } from './routes/oauth/callback'
 import { Route as DeckNewRouteImport } from './routes/deck/new'
 import { Route as CardIdRouteImport } from './routes/card/$id'
 import { Route as ProfileDidIndexRouteImport } from './routes/profile/$did/index'
+import { Route as ProfileDidListRkeyRouteImport } from './routes/profile/$did/list/$rkey'
 import { Route as ProfileDidDeckRkeyRouteImport } from './routes/profile/$did/deck/$rkey'
+import { Route as ProfileDidListRkeyIndexRouteImport } from './routes/profile/$did/list/$rkey/index'
 import { Route as ProfileDidDeckRkeyIndexRouteImport } from './routes/profile/$did/deck/$rkey/index'
 import { Route as ProfileDidDeckRkeyPlayRouteImport } from './routes/profile/$did/deck/$rkey/play'
 import { Route as ProfileDidDeckRkeyBulkEditRouteImport } from './routes/profile/$did/deck/$rkey/bulk-edit'
@@ -62,10 +64,20 @@ const ProfileDidIndexRoute = ProfileDidIndexRouteImport.update({
   path: '/profile/$did/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileDidListRkeyRoute = ProfileDidListRkeyRouteImport.update({
+  id: '/profile/$did/list/$rkey',
+  path: '/profile/$did/list/$rkey',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileDidDeckRkeyRoute = ProfileDidDeckRkeyRouteImport.update({
   id: '/profile/$did/deck/$rkey',
   path: '/profile/$did/deck/$rkey',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileDidListRkeyIndexRoute = ProfileDidListRkeyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfileDidListRkeyRoute,
 } as any)
 const ProfileDidDeckRkeyIndexRoute = ProfileDidDeckRkeyIndexRouteImport.update({
   id: '/',
@@ -94,9 +106,11 @@ export interface FileRoutesByFullPath {
   '/cards': typeof CardsIndexRoute
   '/profile/$did': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRouteWithChildren
+  '/profile/$did/list/$rkey': typeof ProfileDidListRkeyRouteWithChildren
   '/profile/$did/deck/$rkey/bulk-edit': typeof ProfileDidDeckRkeyBulkEditRoute
   '/profile/$did/deck/$rkey/play': typeof ProfileDidDeckRkeyPlayRoute
   '/profile/$did/deck/$rkey/': typeof ProfileDidDeckRkeyIndexRoute
+  '/profile/$did/list/$rkey/': typeof ProfileDidListRkeyIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +124,7 @@ export interface FileRoutesByTo {
   '/profile/$did/deck/$rkey/bulk-edit': typeof ProfileDidDeckRkeyBulkEditRoute
   '/profile/$did/deck/$rkey/play': typeof ProfileDidDeckRkeyPlayRoute
   '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyIndexRoute
+  '/profile/$did/list/$rkey': typeof ProfileDidListRkeyIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,9 +137,11 @@ export interface FileRoutesById {
   '/cards/': typeof CardsIndexRoute
   '/profile/$did/': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRouteWithChildren
+  '/profile/$did/list/$rkey': typeof ProfileDidListRkeyRouteWithChildren
   '/profile/$did/deck/$rkey/bulk-edit': typeof ProfileDidDeckRkeyBulkEditRoute
   '/profile/$did/deck/$rkey/play': typeof ProfileDidDeckRkeyPlayRoute
   '/profile/$did/deck/$rkey/': typeof ProfileDidDeckRkeyIndexRoute
+  '/profile/$did/list/$rkey/': typeof ProfileDidListRkeyIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,9 +155,11 @@ export interface FileRouteTypes {
     | '/cards'
     | '/profile/$did'
     | '/profile/$did/deck/$rkey'
+    | '/profile/$did/list/$rkey'
     | '/profile/$did/deck/$rkey/bulk-edit'
     | '/profile/$did/deck/$rkey/play'
     | '/profile/$did/deck/$rkey/'
+    | '/profile/$did/list/$rkey/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -154,6 +173,7 @@ export interface FileRouteTypes {
     | '/profile/$did/deck/$rkey/bulk-edit'
     | '/profile/$did/deck/$rkey/play'
     | '/profile/$did/deck/$rkey'
+    | '/profile/$did/list/$rkey'
   id:
     | '__root__'
     | '/'
@@ -165,9 +185,11 @@ export interface FileRouteTypes {
     | '/cards/'
     | '/profile/$did/'
     | '/profile/$did/deck/$rkey'
+    | '/profile/$did/list/$rkey'
     | '/profile/$did/deck/$rkey/bulk-edit'
     | '/profile/$did/deck/$rkey/play'
     | '/profile/$did/deck/$rkey/'
+    | '/profile/$did/list/$rkey/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -180,6 +202,7 @@ export interface RootRouteChildren {
   CardsIndexRoute: typeof CardsIndexRoute
   ProfileDidIndexRoute: typeof ProfileDidIndexRoute
   ProfileDidDeckRkeyRoute: typeof ProfileDidDeckRkeyRouteWithChildren
+  ProfileDidListRkeyRoute: typeof ProfileDidListRkeyRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -240,12 +263,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileDidIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile/$did/list/$rkey': {
+      id: '/profile/$did/list/$rkey'
+      path: '/profile/$did/list/$rkey'
+      fullPath: '/profile/$did/list/$rkey'
+      preLoaderRoute: typeof ProfileDidListRkeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile/$did/deck/$rkey': {
       id: '/profile/$did/deck/$rkey'
       path: '/profile/$did/deck/$rkey'
       fullPath: '/profile/$did/deck/$rkey'
       preLoaderRoute: typeof ProfileDidDeckRkeyRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/profile/$did/list/$rkey/': {
+      id: '/profile/$did/list/$rkey/'
+      path: '/'
+      fullPath: '/profile/$did/list/$rkey/'
+      preLoaderRoute: typeof ProfileDidListRkeyIndexRouteImport
+      parentRoute: typeof ProfileDidListRkeyRoute
     }
     '/profile/$did/deck/$rkey/': {
       id: '/profile/$did/deck/$rkey/'
@@ -286,6 +323,17 @@ const ProfileDidDeckRkeyRouteChildren: ProfileDidDeckRkeyRouteChildren = {
 const ProfileDidDeckRkeyRouteWithChildren =
   ProfileDidDeckRkeyRoute._addFileChildren(ProfileDidDeckRkeyRouteChildren)
 
+interface ProfileDidListRkeyRouteChildren {
+  ProfileDidListRkeyIndexRoute: typeof ProfileDidListRkeyIndexRoute
+}
+
+const ProfileDidListRkeyRouteChildren: ProfileDidListRkeyRouteChildren = {
+  ProfileDidListRkeyIndexRoute: ProfileDidListRkeyIndexRoute,
+}
+
+const ProfileDidListRkeyRouteWithChildren =
+  ProfileDidListRkeyRoute._addFileChildren(ProfileDidListRkeyRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SigninRoute: SigninRoute,
@@ -296,6 +344,7 @@ const rootRouteChildren: RootRouteChildren = {
   CardsIndexRoute: CardsIndexRoute,
   ProfileDidIndexRoute: ProfileDidIndexRoute,
   ProfileDidDeckRkeyRoute: ProfileDidDeckRkeyRouteWithChildren,
+  ProfileDidListRkeyRoute: ProfileDidListRkeyRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

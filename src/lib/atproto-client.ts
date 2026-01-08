@@ -1,5 +1,5 @@
 /**
- * ATProto client utilities for deck record CRUD operations
+ * ATProto client utilities for record CRUD operations
  * Reads via Slingshot (cached), writes via PDS (authenticated)
  */
 
@@ -7,12 +7,18 @@ import type {} from "@atcute/atproto";
 import { Client } from "@atcute/client";
 import type { Did } from "@atcute/lexicons";
 import type { OAuthUserAgent } from "@atcute/oauth-browser-client";
-import type { ComDeckbelcherDeckList } from "./lexicons/index";
+import type {
+	ComDeckbelcherCollectionList,
+	ComDeckbelcherDeckList,
+} from "./lexicons/index";
 
 type AtUri = `at://${string}`;
 
 const SLINGSHOT_BASE = "https://slingshot.microcosm.blue";
-const COLLECTION = "com.deckbelcher.deck.list";
+const DECK_COLLECTION = "com.deckbelcher.deck.list" as const;
+const LIST_COLLECTION = "com.deckbelcher.collection.list" as const;
+
+type Collection = typeof DECK_COLLECTION | typeof LIST_COLLECTION;
 
 // Branded types for type safety
 declare const PdsUrlBrand: unique symbol;
@@ -29,32 +35,35 @@ export function asRkey(rkey: string): Rkey {
 	return rkey as Rkey;
 }
 
-export interface DeckRecordResponse {
-	uri: AtUri;
-	cid: string;
-	value: ComDeckbelcherDeckList.Main;
-}
-
-export interface ListRecordsResponse {
-	records: DeckRecordResponse[];
-	cursor?: string;
-}
-
 export type Result<T, E = Error> =
 	| { success: true; data: T }
 	| { success: false; error: E };
 
-/**
- * Fetch a deck record via Slingshot (cached, public read)
- */
-export async function getDeckRecord(
+export interface RecordResponse<T> {
+	uri: AtUri;
+	cid: string;
+	value: T;
+}
+
+export interface ListRecordsResponse<T> {
+	records: RecordResponse<T>[];
+	cursor?: string;
+}
+
+// ============================================================================
+// Generic ATProto Operations
+// ============================================================================
+
+async function getRecord<T>(
 	did: Did,
 	rkey: Rkey,
-): Promise<Result<DeckRecordResponse>> {
+	collection: Collection,
+	entityName: string,
+): Promise<Result<RecordResponse<T>>> {
 	try {
 		const url = new URL(`${SLINGSHOT_BASE}/xrpc/com.atproto.repo.getRecord`);
 		url.searchParams.set("repo", did);
-		url.searchParams.set("collection", COLLECTION);
+		url.searchParams.set("collection", collection);
 		url.searchParams.set("rkey", rkey);
 
 		const response = await fetch(url.toString());
@@ -66,12 +75,13 @@ export async function getDeckRecord(
 			return {
 				success: false,
 				error: new Error(
-					error.message || `Failed to fetch deck: ${response.statusText}`,
+					error.message ||
+						`Failed to fetch ${entityName}: ${response.statusText}`,
 				),
 			};
 		}
 
-		const data = (await response.json()) as DeckRecordResponse;
+		const data = (await response.json()) as RecordResponse<T>;
 		return { success: true, data };
 	} catch (error) {
 		return {
@@ -81,19 +91,18 @@ export async function getDeckRecord(
 	}
 }
 
-/**
- * Create a new deck record (authenticated write to PDS)
- */
-export async function createDeckRecord(
+async function createRecord<T extends Record<string, unknown>>(
 	agent: OAuthUserAgent,
-	record: ComDeckbelcherDeckList.Main,
+	record: T,
+	collection: Collection,
+	entityName: string,
 ): Promise<Result<{ uri: AtUri; cid: string; rkey: Rkey }>> {
 	try {
 		const client = new Client({ handler: agent });
 		const response = await client.post("com.atproto.repo.createRecord", {
 			input: {
 				repo: agent.sub,
-				collection: COLLECTION,
+				collection,
 				record,
 			},
 		});
@@ -102,12 +111,11 @@ export async function createDeckRecord(
 			return {
 				success: false,
 				error: new Error(
-					response.data.message || "Failed to create deck record",
+					response.data.message || `Failed to create ${entityName} record`,
 				),
 			};
 		}
 
-		// Extract rkey from the URI (at://did:plc:.../collection/rkey)
 		const uri = response.data.uri as string;
 		const cid = response.data.cid as string;
 		const rkey = uri.split("/").pop();
@@ -130,20 +138,19 @@ export async function createDeckRecord(
 	}
 }
 
-/**
- * Update an existing deck record (authenticated write to PDS)
- */
-export async function updateDeckRecord(
+async function updateRecord<T extends Record<string, unknown>>(
 	agent: OAuthUserAgent,
 	rkey: Rkey,
-	record: ComDeckbelcherDeckList.Main,
+	record: T,
+	collection: Collection,
+	entityName: string,
 ): Promise<Result<{ uri: AtUri; cid: string }>> {
 	try {
 		const client = new Client({ handler: agent });
 		const response = await client.post("com.atproto.repo.putRecord", {
 			input: {
 				repo: agent.sub,
-				collection: COLLECTION,
+				collection,
 				rkey,
 				record,
 			},
@@ -153,7 +160,7 @@ export async function updateDeckRecord(
 			return {
 				success: false,
 				error: new Error(
-					response.data.message || "Failed to update deck record",
+					response.data.message || `Failed to update ${entityName} record`,
 				),
 			};
 		}
@@ -173,18 +180,16 @@ export async function updateDeckRecord(
 	}
 }
 
-/**
- * List all deck records for a user (direct PDS call)
- * Requires PDS URL for the target user
- */
-export async function listUserDecks(
+async function listRecords<T>(
 	pdsUrl: PdsUrl,
 	did: Did,
-): Promise<Result<ListRecordsResponse>> {
+	collection: Collection,
+	entityName: string,
+): Promise<Result<ListRecordsResponse<T>>> {
 	try {
 		const url = new URL(`${pdsUrl}/xrpc/com.atproto.repo.listRecords`);
 		url.searchParams.set("repo", did);
-		url.searchParams.set("collection", COLLECTION);
+		url.searchParams.set("collection", collection);
 
 		const response = await fetch(url.toString());
 
@@ -195,12 +200,13 @@ export async function listUserDecks(
 			return {
 				success: false,
 				error: new Error(
-					error.message || `Failed to list decks: ${response.statusText}`,
+					error.message ||
+						`Failed to list ${entityName}s: ${response.statusText}`,
 				),
 			};
 		}
 
-		const data = (await response.json()) as ListRecordsResponse;
+		const data = (await response.json()) as ListRecordsResponse<T>;
 		return { success: true, data };
 	} catch (error) {
 		return {
@@ -210,19 +216,18 @@ export async function listUserDecks(
 	}
 }
 
-/**
- * Delete a deck record (authenticated write to PDS)
- */
-export async function deleteDeckRecord(
+async function deleteRecord(
 	agent: OAuthUserAgent,
 	rkey: Rkey,
+	collection: Collection,
+	entityName: string,
 ): Promise<Result<void>> {
 	try {
 		const client = new Client({ handler: agent });
 		const response = await client.post("com.atproto.repo.deleteRecord", {
 			input: {
 				repo: agent.sub,
-				collection: COLLECTION,
+				collection,
 				rkey,
 			},
 		});
@@ -231,7 +236,7 @@ export async function deleteDeckRecord(
 			return {
 				success: false,
 				error: new Error(
-					response.data.message || "Failed to delete deck record",
+					response.data.message || `Failed to delete ${entityName} record`,
 				),
 			};
 		}
@@ -243,4 +248,91 @@ export async function deleteDeckRecord(
 			error: error instanceof Error ? error : new Error(String(error)),
 		};
 	}
+}
+
+// ============================================================================
+// Deck Records
+// ============================================================================
+
+export type DeckRecordResponse = RecordResponse<ComDeckbelcherDeckList.Main>;
+
+export function getDeckRecord(did: Did, rkey: Rkey) {
+	return getRecord<ComDeckbelcherDeckList.Main>(
+		did,
+		rkey,
+		DECK_COLLECTION,
+		"deck",
+	);
+}
+
+export function createDeckRecord(
+	agent: OAuthUserAgent,
+	record: ComDeckbelcherDeckList.Main,
+) {
+	return createRecord(agent, record, DECK_COLLECTION, "deck");
+}
+
+export function updateDeckRecord(
+	agent: OAuthUserAgent,
+	rkey: Rkey,
+	record: ComDeckbelcherDeckList.Main,
+) {
+	return updateRecord(agent, rkey, record, DECK_COLLECTION, "deck");
+}
+
+export function listUserDecks(pdsUrl: PdsUrl, did: Did) {
+	return listRecords<ComDeckbelcherDeckList.Main>(
+		pdsUrl,
+		did,
+		DECK_COLLECTION,
+		"deck",
+	);
+}
+
+export function deleteDeckRecord(agent: OAuthUserAgent, rkey: Rkey) {
+	return deleteRecord(agent, rkey, DECK_COLLECTION, "deck");
+}
+
+// ============================================================================
+// Collection List Records
+// ============================================================================
+
+export type CollectionListRecordResponse =
+	RecordResponse<ComDeckbelcherCollectionList.Main>;
+
+export function getCollectionListRecord(did: Did, rkey: Rkey) {
+	return getRecord<ComDeckbelcherCollectionList.Main>(
+		did,
+		rkey,
+		LIST_COLLECTION,
+		"list",
+	);
+}
+
+export function createCollectionListRecord(
+	agent: OAuthUserAgent,
+	record: ComDeckbelcherCollectionList.Main,
+) {
+	return createRecord(agent, record, LIST_COLLECTION, "list");
+}
+
+export function updateCollectionListRecord(
+	agent: OAuthUserAgent,
+	rkey: Rkey,
+	record: ComDeckbelcherCollectionList.Main,
+) {
+	return updateRecord(agent, rkey, record, LIST_COLLECTION, "list");
+}
+
+export function listUserCollectionLists(pdsUrl: PdsUrl, did: Did) {
+	return listRecords<ComDeckbelcherCollectionList.Main>(
+		pdsUrl,
+		did,
+		LIST_COLLECTION,
+		"list",
+	);
+}
+
+export function deleteCollectionListRecord(agent: OAuthUserAgent, rkey: Rkey) {
+	return deleteRecord(agent, rkey, LIST_COLLECTION, "list");
 }

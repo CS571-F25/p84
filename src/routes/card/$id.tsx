@@ -2,6 +2,7 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { CardImage } from "@/components/CardImage";
+import { SaveToListButton } from "@/components/list/SaveToListButton";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
 import { getAllFaces } from "@/lib/card-faces";
@@ -243,7 +244,11 @@ function CardDetailPage() {
 								{idx > 0 && (
 									<div className="border-t border-gray-300 dark:border-slate-600 mb-4" />
 								)}
-								<FaceInfo face={face} primary={idx === 0} />
+								<FaceInfo
+									face={face}
+									primary={idx === 0}
+									cardId={idx === 0 ? id : undefined}
+								/>
 							</div>
 						))}
 
@@ -432,28 +437,37 @@ function CardDetailPage() {
 interface FaceInfoProps {
 	face: CardFace;
 	primary?: boolean;
+	cardId?: ScryfallId;
 }
 
-function FaceInfo({ face, primary = false }: FaceInfoProps) {
+function FaceInfo({ face, primary = false, cardId }: FaceInfoProps) {
 	const hasStats = face.power || face.toughness || face.loyalty || face.defense;
 
 	return (
 		<div className="space-y-3">
 			<div>
-				<div className="flex items-baseline gap-3 mb-2 flex-wrap">
-					{primary ? (
-						<h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-							{face.name}
-						</h1>
-					) : (
-						<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-							{face.name}
-						</h2>
-					)}
-					{face.mana_cost && (
-						<ManaCost
-							cost={face.mana_cost}
-							size={primary ? "large" : "medium"}
+				<div className="flex items-center justify-between gap-3 mb-2">
+					<div className="flex items-center gap-3 flex-wrap">
+						{primary ? (
+							<h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+								{face.name}
+							</h1>
+						) : (
+							<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+								{face.name}
+							</h2>
+						)}
+						{face.mana_cost && (
+							<ManaCost
+								cost={face.mana_cost}
+								size={primary ? "large" : "medium"}
+							/>
+						)}
+					</div>
+					{cardId && (
+						<SaveToListButton
+							item={{ type: "card", scryfallId: cardId }}
+							itemName={face.name}
 						/>
 					)}
 				</div>
