@@ -50,33 +50,35 @@ function CardSpread({ cardIds }: { cardIds: string[] }) {
 		);
 	}
 
-	const rotations = [-12, 0, 12];
-	const xPercents = [10, 22, 34];
+	const layouts: Record<number, { rotations: number[]; xPercents: number[] }> =
+		{
+			1: { rotations: [0], xPercents: [20] },
+			2: { rotations: [-8, 8], xPercents: [12, 28] },
+			3: { rotations: [-12, 0, 12], xPercents: [10, 22, 34] },
+		};
+
+	const layout = layouts[cards.length] ?? layouts[3];
 
 	return (
 		<div className="relative shrink-0 w-24 h-[90px]">
-			{cards.map((id, i) => {
-				const rotation = rotations[i] ?? 0;
-				const xPct = xPercents[i] ?? 25;
-				return (
-					<div
-						key={id}
-						className="absolute w-3/5 shadow-md origin-bottom"
-						style={{
-							left: `${xPct}%`,
-							bottom: "5%",
-							transform: `rotate(${rotation}deg)`,
-							zIndex: i,
-						}}
-					>
-						<CardImage
-							card={{ id: id as ScryfallId, name: "" }}
-							size="small"
-							className="rounded"
-						/>
-					</div>
-				);
-			})}
+			{cards.map((id, i) => (
+				<div
+					key={id}
+					className="absolute w-3/5 shadow-md origin-bottom"
+					style={{
+						left: `${layout.xPercents[i]}%`,
+						bottom: "5%",
+						transform: `rotate(${layout.rotations[i]}deg)`,
+						zIndex: i,
+					}}
+				>
+					<CardImage
+						card={{ id: id as ScryfallId, name: "" }}
+						size="small"
+						className="rounded"
+					/>
+				</div>
+			))}
 		</div>
 	);
 }
