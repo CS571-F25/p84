@@ -131,8 +131,7 @@ const DEFAULT_SORT = SORT_OPTIONS[0];
 function CardsPage() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const [searchQuery, setSearchQuery] = useState(search.q || "");
-	const debouncedSearchQuery = useDebounce(searchQuery, 400);
+	const debouncedSearchQuery = useDebounce(search.q || "", 400);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const listRef = useRef<HTMLDivElement>(null);
 	const columns = useColumns();
@@ -262,19 +261,6 @@ function CardsPage() {
 		searchInputRef.current?.focus();
 	}, []);
 
-	useEffect(() => {
-		setSearchQuery(search.q || "");
-	}, [search.q]);
-
-	useEffect(() => {
-		if (searchQuery !== search.q) {
-			navigate({
-				search: { q: searchQuery, sort: search.sort },
-				replace: true,
-			});
-		}
-	}, [searchQuery, search.q, search.sort, navigate]);
-
 	const firstPage = firstPageQuery.data;
 
 	return (
@@ -295,8 +281,13 @@ function CardsPage() {
 								ref={searchInputRef}
 								type="text"
 								placeholder="Search by name or try t:creature cmc<=3"
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
+								value={search.q}
+								onChange={(e) =>
+									navigate({
+										search: (prev) => ({ ...prev, q: e.target.value }),
+										replace: true,
+									})
+								}
 								className={`w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-slate-800 border rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-colors ${
 									hasError
 										? "border-red-500 focus:border-red-500"
@@ -307,12 +298,12 @@ function CardsPage() {
 						<div className="relative">
 							<select
 								value={sortOption.value}
-								onChange={(e) => {
+								onChange={(e) =>
 									navigate({
-										search: { q: searchQuery, sort: e.target.value },
+										search: (prev) => ({ ...prev, sort: e.target.value }),
 										replace: true,
-									});
-								}}
+									})
+								}
 								className="appearance-none h-full px-4 pr-10 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
 							>
 								{SORT_OPTIONS.map((opt) => (
@@ -338,7 +329,7 @@ function CardsPage() {
 						</p>
 					)}
 
-					{searchQuery && !hasError && (
+					{search.q && !hasError && (
 						<p className="text-sm text-gray-400 mt-2">
 							{totalCount > 0 && (
 								<>
@@ -354,7 +345,7 @@ function CardsPage() {
 						</p>
 					)}
 
-					{!searchQuery && (
+					{!search.q && (
 						<p className="text-sm text-gray-400 mt-2">
 							Enter a search query to find cards
 						</p>
