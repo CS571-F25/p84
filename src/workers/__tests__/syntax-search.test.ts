@@ -626,11 +626,11 @@ describe("CardsWorker syntaxSearch", () => {
 			}
 		});
 
-		it("is:tangoland returns exactly 7 cards", () => {
+		it("is:tangoland returns exactly 8 cards", () => {
 			const result = worker.syntaxSearch("is:tangoland", 100);
 			expect(result.ok).toBe(true);
 			if (result.ok) {
-				expect(result.cards.length).toBe(7);
+				expect(result.cards.length).toBe(8);
 				for (const card of result.cards) {
 					expect(card.type_line).toContain("Land");
 					expect(card.oracle_text).toMatch(/two or more basic/i);
