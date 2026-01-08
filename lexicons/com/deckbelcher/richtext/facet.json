@@ -16,7 +16,9 @@
             "refs": [
               "#mention",
               "#link",
-              "#tag"
+              "#tag",
+              "#bold",
+              "#italic"
             ]
           }
         }
@@ -84,6 +86,16 @@
       "required": [
         "tag"
       ]
+    },
+    "bold": {
+      "type": "object",
+      "properties": {},
+      "description": "Facet feature for bold text formatting.\nTypically rendered as `<strong>` in HTML."
+    },
+    "italic": {
+      "type": "object",
+      "properties": {},
+      "description": "Facet feature for italic text formatting.\nTypically rendered as `<em>` in HTML."
     }
   }
 }

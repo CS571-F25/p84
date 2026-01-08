@@ -11,7 +11,7 @@ namespace com.deckbelcher.richtext.facet {
     index: ByteSlice;
 
     @required
-    features: (Mention | Link | Tag | unknown)[];
+    features: (Mention | Link | Tag | Bold | Italic | unknown)[];
   }
 
   /**
@@ -57,4 +57,16 @@ namespace com.deckbelcher.richtext.facet {
     @maxLength(640)
     tag: string;
   }
+
+  /**
+   * Facet feature for bold text formatting.
+   * Typically rendered as `<strong>` in HTML.
+   */
+  model Bold {}
+
+  /**
+   * Facet feature for italic text formatting.
+   * Typically rendered as `<em>` in HTML.
+   */
+  model Italic {}
 }

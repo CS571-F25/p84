@@ -1,0 +1,449 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`parseMarkdown > snapshot:  > parses correctly 1`] = `
+{
+  "facets": [],
+  "text": "",
+}
+`;
+
+exports[`parseMarkdown > snapshot: * > parses correctly 1`] = `
+{
+  "facets": [],
+  "text": "*",
+}
+`;
+
+exports[`parseMarkdown > snapshot: ** > parses correctly 1`] = `
+{
+  "facets": [],
+  "text": "**",
+}
+`;
+
+exports[`parseMarkdown > snapshot: *** > parses correctly 1`] = `
+{
+  "facets": [],
+  "text": "***",
+}
+`;
+
+exports[`parseMarkdown > snapshot: **** > parses correctly 1`] = `
+{
+  "facets": [],
+  "text": "",
+}
+`;
+
+exports[`parseMarkdown > snapshot: ***bold and italic*** > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 15,
+        "byteStart": 0,
+      },
+    },
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#italic",
+        },
+      ],
+      "index": {
+        "byteEnd": 15,
+        "byteStart": 0,
+      },
+    },
+  ],
+  "text": "bold and italic",
+}
+`;
+
+exports[`parseMarkdown > snapshot: **a**b**c** > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 1,
+        "byteStart": 0,
+      },
+    },
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 3,
+        "byteStart": 2,
+      },
+    },
+  ],
+  "text": "abc",
+}
+`;
+
+exports[`parseMarkdown > snapshot: **a日b** > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 5,
+        "byteStart": 0,
+      },
+    },
+  ],
+  "text": "a日b",
+}
+`;
+
+exports[`parseMarkdown > snapshot: **bold** and *italic* together > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 4,
+        "byteStart": 0,
+      },
+    },
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#italic",
+        },
+      ],
+      "index": {
+        "byteEnd": 15,
+        "byteStart": 9,
+      },
+    },
+  ],
+  "text": "bold and italic together",
+}
+`;
+
+exports[`parseMarkdown > snapshot: **nested *italic* in bold** > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 21,
+        "byteStart": 0,
+      },
+    },
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#italic",
+        },
+      ],
+      "index": {
+        "byteEnd": 13,
+        "byteStart": 7,
+      },
+    },
+  ],
+  "text": "nested italic in bold",
+}
+`;
+
+exports[`parseMarkdown > snapshot: **日本語** > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 9,
+        "byteStart": 0,
+      },
+    },
+  ],
+  "text": "日本語",
+}
+`;
+
+exports[`parseMarkdown > snapshot: **🔥** > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 4,
+        "byteStart": 0,
+      },
+    },
+  ],
+  "text": "🔥",
+}
+`;
+
+exports[`parseMarkdown > snapshot: *a*b*c* > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#italic",
+        },
+      ],
+      "index": {
+        "byteEnd": 1,
+        "byteStart": 0,
+      },
+    },
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#italic",
+        },
+      ],
+      "index": {
+        "byteEnd": 3,
+        "byteStart": 2,
+      },
+    },
+  ],
+  "text": "abc",
+}
+`;
+
+exports[`parseMarkdown > snapshot: *🔥* and **🔥** > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#italic",
+        },
+      ],
+      "index": {
+        "byteEnd": 4,
+        "byteStart": 0,
+      },
+    },
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 13,
+        "byteStart": 9,
+      },
+    },
+  ],
+  "text": "🔥 and 🔥",
+}
+`;
+
+exports[`parseMarkdown > snapshot: Hello **world**! > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 11,
+        "byteStart": 6,
+      },
+    },
+  ],
+  "text": "Hello world!",
+}
+`;
+
+exports[`parseMarkdown > snapshot: Multi-byte: **日本語** emoji **🔥** > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 21,
+        "byteStart": 12,
+      },
+    },
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 32,
+        "byteStart": 28,
+      },
+    },
+  ],
+  "text": "Multi-byte: 日本語 emoji 🔥",
+}
+`;
+
+exports[`parseMarkdown > snapshot: This is *italic* text > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#italic",
+        },
+      ],
+      "index": {
+        "byteEnd": 14,
+        "byteStart": 8,
+      },
+    },
+  ],
+  "text": "This is italic text",
+}
+`;
+
+exports[`parseMarkdown > snapshot: Unclosed **bold > parses correctly 1`] = `
+{
+  "facets": [],
+  "text": "Unclosed **bold",
+}
+`;
+
+exports[`parseMarkdown > snapshot: Unclosed *italic > parses correctly 1`] = `
+{
+  "facets": [],
+  "text": "Unclosed *italic",
+}
+`;
+
+exports[`parseMarkdown > snapshot: a**b**c**d**e > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 2,
+        "byteStart": 1,
+      },
+    },
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 4,
+        "byteStart": 3,
+      },
+    },
+  ],
+  "text": "abcde",
+}
+`;
+
+exports[`parseMarkdown > snapshot: no formatting here > parses correctly 1`] = `
+{
+  "facets": [],
+  "text": "no formatting here",
+}
+`;
+
+exports[`parseMarkdown > snapshot: prefix **日本語** suffix > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 16,
+        "byteStart": 7,
+      },
+    },
+  ],
+  "text": "prefix 日本語 suffix",
+}
+`;
+
+exports[`parseMarkdown > snapshot: 👨‍👩‍👧‍👧 **text** 🔥 > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 30,
+        "byteStart": 26,
+      },
+    },
+  ],
+  "text": "👨‍👩‍👧‍👧 text 🔥",
+}
+`;
+
+exports[`parseMarkdown > snapshot: 🔥 **bold** > parses correctly 1`] = `
+{
+  "facets": [
+    {
+      "features": [
+        {
+          "$type": "com.deckbelcher.richtext.facet#bold",
+        },
+      ],
+      "index": {
+        "byteEnd": 9,
+        "byteStart": 5,
+      },
+    },
+  ],
+  "text": "🔥 bold",
+}
+`;
