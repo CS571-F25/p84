@@ -1,10 +1,12 @@
 import type { Did } from "@atcute/lexicons";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { useState } from "react";
 import { CardImage } from "@/components/CardImage";
 import { ClientDate } from "@/components/ClientDate";
 import { type DeckData, DeckPreview } from "@/components/DeckPreview";
+import { ListActionsMenu } from "@/components/list/ListActionsMenu";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
 import {
 	getCollectionListQueryOptions,
@@ -19,6 +21,7 @@ import {
 	removeDeckFromList,
 } from "@/lib/collection-list-types";
 import { getDeckQueryOptions } from "@/lib/deck-queries";
+import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import { useAuth } from "@/lib/useAuth";
 
@@ -40,9 +43,14 @@ function ListDetailPage() {
 	const { data: list, isLoading } = useQuery(
 		getCollectionListQueryOptions(did as Did, asRkey(rkey)),
 	);
+	const { data: didDocument } = useQuery(didDocumentQueryOptions(did as Did));
+	const handle = extractHandle(didDocument ?? null);
 
 	const mutation = useUpdateCollectionListMutation(did as Did, asRkey(rkey));
 	const isOwner = session?.info.sub === did;
+
+	const [isEditingName, setIsEditingName] = useState(false);
+	const [editedName, setEditedName] = useState("");
 
 	if (isLoading || !list) {
 		return (
@@ -62,23 +70,82 @@ function ListDetailPage() {
 		mutation.mutate(updated);
 	};
 
+	const handleNameClick = () => {
+		if (!isOwner) return;
+		setEditedName(list.name);
+		setIsEditingName(true);
+	};
+
+	const handleNameSubmit = () => {
+		const newName = editedName.trim() || "Untitled List";
+		if (newName !== list.name) {
+			mutation.mutate({ ...list, name: newName });
+		}
+		setIsEditingName(false);
+	};
+
+	const handleNameKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === "Enter") {
+			handleNameSubmit();
+		} else if (e.key === "Escape") {
+			setEditedName(list.name);
+			setIsEditingName(false);
+		}
+	};
+
 	const dateString = list.updatedAt ?? list.createdAt;
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
 			<div className="max-w-4xl mx-auto px-6 py-8">
-				<Link
-					to="/profile/$did"
-					params={{ did }}
-					className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
-				>
-					<ArrowLeft className="w-4 h-4" />
-					Back to profile
-				</Link>
+				<div className="flex items-start justify-between gap-4 mb-2">
+					<div className="flex-1 min-w-0">
+						{isEditingName ? (
+							<input
+								type="text"
+								value={editedName}
+								onChange={(e) => setEditedName(e.target.value)}
+								onBlur={handleNameSubmit}
+								onKeyDown={handleNameKeyDown}
+								className="text-3xl font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-cyan-500 focus:outline-none w-full"
+							/>
+						) : (
+							<h1
+								className={`text-3xl font-bold text-gray-900 dark:text-white truncate ${isOwner ? "cursor-pointer hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors" : ""}`}
+								onClick={handleNameClick}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") {
+										handleNameClick();
+									}
+								}}
+								tabIndex={isOwner ? 0 : undefined}
+								role={isOwner ? "button" : undefined}
+							>
+								{list.name}
+							</h1>
+						)}
+					</div>
+					{isOwner && (
+						<ListActionsMenu listName={list.name} rkey={asRkey(rkey)} />
+					)}
+				</div>
 
-				<h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-					{list.name}
-				</h1>
+				<p className="text-sm text-gray-500 dark:text-gray-500 mb-1">
+					{handle ? (
+						<>
+							by{" "}
+							<Link
+								to="/profile/$did"
+								params={{ did }}
+								className="hover:text-cyan-600 dark:hover:text-cyan-400"
+							>
+								@{handle}
+							</Link>
+						</>
+					) : (
+						<span className="inline-block h-4 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse align-middle" />
+					)}
+				</p>
 				<p className="text-sm text-gray-500 dark:text-gray-500 mb-8">
 					Updated <ClientDate dateString={dateString} />
 				</p>
