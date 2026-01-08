@@ -23,18 +23,61 @@ import {
 import { getDeckQueryOptions } from "@/lib/deck-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { getCardByIdQueryOptions } from "@/lib/queries";
+import { getImageUri } from "@/lib/scryfall-utils";
 import { useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/profile/$did/list/$rkey/")({
 	component: ListDetailPage,
 	loader: async ({ context, params }) => {
-		await context.queryClient.ensureQueryData(
+		const list = await context.queryClient.ensureQueryData(
 			getCollectionListQueryOptions(params.did as Did, asRkey(params.rkey)),
 		);
+		return list;
 	},
-	head: () => ({
-		meta: [{ title: "List | DeckBelcher" }],
-	}),
+	head: ({ loaderData: list }) => {
+		if (!list) {
+			return { meta: [{ title: "List Not Found | DeckBelcher" }] };
+		}
+
+		const title = `${list.name} | DeckBelcher`;
+		const cardCount = list.items.filter(isCardItem).length;
+		const deckCount = list.items.filter(isDeckItem).length;
+
+		const parts: string[] = [];
+		if (cardCount > 0)
+			parts.push(`${cardCount} card${cardCount === 1 ? "" : "s"}`);
+		if (deckCount > 0)
+			parts.push(`${deckCount} deck${deckCount === 1 ? "" : "s"}`);
+		const description = parts.length > 0 ? parts.join(", ") : "Empty list";
+
+		const firstCard = list.items.find(isCardItem);
+		const cardImageUrl = firstCard
+			? getImageUri(firstCard.scryfallId, "large")
+			: undefined;
+
+		return {
+			meta: [
+				{ title },
+				{ name: "description", content: description },
+				{ property: "og:title", content: list.name },
+				{ property: "og:description", content: description },
+				...(cardImageUrl
+					? [
+							{ property: "og:image", content: cardImageUrl },
+							{ property: "og:image:width", content: "672" },
+							{ property: "og:image:height", content: "936" },
+						]
+					: []),
+				{ property: "og:type", content: "website" },
+				{ name: "twitter:card", content: "summary_large_image" },
+				{ name: "twitter:title", content: list.name },
+				{ name: "twitter:description", content: description },
+				...(cardImageUrl
+					? [{ name: "twitter:image", content: cardImageUrl }]
+					: []),
+			],
+		};
+	},
 });
 
 function ListDetailPage() {
