@@ -100,11 +100,14 @@ The underlying `initializeWorker()` is idempotent—safe to call multiple times.
 
 **Location**: `src/lib/useDebounce.ts`
 
-Standard debounce hook. Value updates are delayed by specified milliseconds.
+Debounce hook with flush capability. Value updates are delayed by specified milliseconds.
 
 ```typescript
 const [search, setSearch] = useState("");
-const debouncedSearch = useDebounce(search, 300);
+const { value: debouncedSearch, flush, isPending } = useDebounce(search, 300);
+
+// flush() immediately updates to current value (useful for beforeunload)
+// isPending is true when there's a pending debounced update
 ```
 
 ## useCommonTags
