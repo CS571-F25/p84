@@ -2,6 +2,7 @@ import type { Did } from "@atcute/lexicons";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Bookmark } from "lucide-react";
+import { CardImage } from "@/components/CardImage";
 import { ClientDate } from "@/components/ClientDate";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
 import {
@@ -10,6 +11,7 @@ import {
 	isDeckItem,
 } from "@/lib/collection-list-types";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
+import type { ScryfallId } from "@/lib/scryfall-types";
 
 export interface ListPreviewProps {
 	did: Did;
@@ -33,6 +35,52 @@ function getItemSummary(list: CollectionList): string {
 	return parts.length > 0 ? parts.join(" · ") : "Empty";
 }
 
+function getCardIds(list: CollectionList): string[] {
+	return list.items.filter(isCardItem).map((item) => item.scryfallId);
+}
+
+function CardSpread({ cardIds }: { cardIds: string[] }) {
+	const cards = cardIds.slice(-3);
+
+	if (cards.length === 0) {
+		return (
+			<div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg shrink-0">
+				<Bookmark className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+			</div>
+		);
+	}
+
+	const rotations = [-12, 0, 12];
+	const xPercents = [10, 22, 34];
+
+	return (
+		<div className="relative shrink-0 w-24 h-[90px]">
+			{cards.map((id, i) => {
+				const rotation = rotations[i] ?? 0;
+				const xPct = xPercents[i] ?? 25;
+				return (
+					<div
+						key={id}
+						className="absolute w-3/5 shadow-md origin-bottom"
+						style={{
+							left: `${xPct}%`,
+							bottom: "5%",
+							transform: `rotate(${rotation}deg)`,
+							zIndex: i,
+						}}
+					>
+						<CardImage
+							card={{ id: id as ScryfallId, name: "" }}
+							size="small"
+							className="rounded"
+						/>
+					</div>
+				);
+			})}
+		</div>
+	);
+}
+
 export function ListPreview({
 	did,
 	rkey,
@@ -47,6 +95,7 @@ export function ListPreview({
 
 	const dateString = list.updatedAt ?? list.createdAt;
 	const itemSummary = getItemSummary(list);
+	const cardIds = getCardIds(list);
 
 	return (
 		<Link
@@ -54,9 +103,7 @@ export function ListPreview({
 			params={{ did, rkey: asRkey(rkey) }}
 			className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 transition-colors"
 		>
-			<div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg shrink-0">
-				<Bookmark className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-			</div>
+			<CardSpread cardIds={cardIds} />
 
 			<div className="flex-1 min-w-0">
 				{showHandle &&
