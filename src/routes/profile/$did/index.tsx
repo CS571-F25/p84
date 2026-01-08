@@ -2,13 +2,11 @@ import type { Did } from "@atcute/lexicons";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { CardImage } from "@/components/CardImage";
-import { ClientDate } from "@/components/ClientDate";
-import { asRkey, type DeckRecordResponse } from "@/lib/atproto-client";
+import { DeckPreview } from "@/components/DeckPreview";
+import type { DeckRecordResponse } from "@/lib/atproto-client";
 import { listUserDecksQueryOptions } from "@/lib/deck-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { formatDisplayName } from "@/lib/format-utils";
-import type { ScryfallId } from "@/lib/scryfall-types";
 import { useAuth } from "@/lib/useAuth";
 
 type SortOption = "updated-desc" | "updated-asc" | "name-asc" | "name-desc";
@@ -36,64 +34,6 @@ export const Route = createFileRoute("/profile/$did/")({
 		]);
 	},
 });
-
-function getSectionCounts(cards: { quantity: number; section: string }[]) {
-	const counts: Record<string, number> = {};
-	for (const card of cards) {
-		counts[card.section] = (counts[card.section] ?? 0) + card.quantity;
-	}
-	return counts;
-}
-
-function formatSectionCounts(counts: Record<string, number>): string {
-	const parts: string[] = [];
-
-	// Show commander first if present
-	if (counts.commander) {
-		parts.push(`${counts.commander} cmdr`);
-	}
-
-	// Main deck
-	if (counts.mainboard) {
-		parts.push(`${counts.mainboard} main`);
-	}
-
-	// Sideboard
-	if (counts.sideboard) {
-		parts.push(`${counts.sideboard} side`);
-	}
-
-	// Maybeboard
-	if (counts.maybeboard) {
-		parts.push(`${counts.maybeboard} maybe`);
-	}
-
-	// Any other sections
-	for (const [section, count] of Object.entries(counts)) {
-		if (
-			!["commander", "mainboard", "sideboard", "maybeboard"].includes(section)
-		) {
-			parts.push(`${count} ${section}`);
-		}
-	}
-
-	return parts.join(" · ");
-}
-
-function getThumbnailId(
-	cards: { scryfallId: string; section: string }[],
-): ScryfallId | null {
-	// Prefer commander
-	const commander = cards.find((c) => c.section === "commander");
-	if (commander) return commander.scryfallId as ScryfallId;
-
-	// Fall back to first mainboard card
-	const mainboard = cards.find((c) => c.section === "mainboard");
-	if (mainboard) return mainboard.scryfallId as ScryfallId;
-
-	// Fall back to any card
-	return cards[0]?.scryfallId as ScryfallId | null;
-}
 
 function sortDecks(
 	records: DeckRecordResponse[],
@@ -274,49 +214,13 @@ function ProfilePage() {
 							const rkey = record.uri.split("/").pop();
 							if (!rkey) return null;
 
-							const sectionCounts = getSectionCounts(record.value.cards);
-							const sectionString = formatSectionCounts(sectionCounts);
-							const dateString =
-								record.value.updatedAt ?? record.value.createdAt;
-							const thumbnailId = getThumbnailId(record.value.cards);
-
 							return (
-								<Link
+								<DeckPreview
 									key={record.uri}
-									to="/profile/$did/deck/$rkey"
-									params={{ did, rkey: asRkey(rkey) }}
-									className="flex gap-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 transition-colors"
-								>
-									{/* Thumbnail */}
-									{thumbnailId && (
-										<div className="flex-shrink-0 w-16 h-[90px] rounded overflow-hidden">
-											<CardImage
-												card={{ id: thumbnailId, name: record.value.name }}
-												size="small"
-												className="w-full h-full object-cover"
-											/>
-										</div>
-									)}
-
-									{/* Deck info */}
-									<div className="flex-1 min-w-0">
-										<h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">
-											{record.value.name}
-										</h2>
-										<p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-											{record.value.format && (
-												<>
-													{formatDisplayName(record.value.format)}
-													{sectionString && " · "}
-												</>
-											)}
-											{sectionString}
-										</p>
-										<p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-											Updated <ClientDate dateString={dateString} />
-										</p>
-									</div>
-								</Link>
+									did={did as Did}
+									rkey={rkey}
+									deck={record.value}
+								/>
 							);
 						})}
 					</div>

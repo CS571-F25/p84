@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus, Search, User } from "lucide-react";
+import { ActivityFeed } from "@/components/ActivityFeed";
 import { useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/")({ component: App });
@@ -97,6 +98,24 @@ function App() {
 							Search the database
 						</span>
 					</Link>
+				</div>
+
+				<div className="mt-16">
+					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1 text-center">
+						Recent Activity
+					</h2>
+					<p className="text-sm text-gray-500 dark:text-gray-400 mb-6 text-center">
+						powered by{" "}
+						<a
+							href="https://ufos.microcosm.blue"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-cyan-600 dark:text-cyan-400 hover:underline"
+						>
+							UFOs
+						</a>
+					</p>
+					<ActivityFeed limit={9} />
 				</div>
 
 				<div className="mt-16 text-center">
