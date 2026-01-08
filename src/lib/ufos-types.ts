@@ -4,7 +4,10 @@
  */
 
 import type { Did } from "@atcute/lexicons";
-import type { ComDeckbelcherDeckList } from "./lexicons/index";
+import type {
+	ComDeckbelcherCollectionList,
+	ComDeckbelcherDeckList,
+} from "./lexicons/index";
 
 /**
  * A record from the UFOs API firehose
@@ -24,7 +27,13 @@ export interface UfosRecord<T = unknown> {
 export type UfosDeckRecord = UfosRecord<ComDeckbelcherDeckList.Main>;
 
 /**
+ * Collection list record from UFOs API
+ */
+export type UfosListRecord = UfosRecord<ComDeckbelcherCollectionList.Main>;
+
+/**
  * Supported collection NSIDs for the activity feed
  */
-export type ActivityCollection = "com.deckbelcher.deck.list";
-// Future: | "com.deckbelcher.social.comment" | "com.deckbelcher.social.like"
+export type ActivityCollection =
+	| "com.deckbelcher.deck.list"
+	| "com.deckbelcher.collection.list";

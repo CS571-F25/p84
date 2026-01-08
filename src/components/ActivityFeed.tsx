@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { DeckPreview } from "@/components/DeckPreview";
-import { recentDecksQueryOptions } from "@/lib/ufos-queries";
+import { ListPreview } from "@/components/ListPreview";
+import type { CollectionList } from "@/lib/collection-list-types";
+import {
+	isDeckRecord,
+	isListRecord,
+	recentActivityQueryOptions,
+} from "@/lib/ufos-queries";
 
 interface ActivityFeedProps {
 	limit?: number;
@@ -11,7 +17,7 @@ export function ActivityFeed({ limit = 6 }: ActivityFeedProps) {
 		data: records,
 		isLoading,
 		error,
-	} = useQuery(recentDecksQueryOptions(limit));
+	} = useQuery(recentActivityQueryOptions(limit));
 
 	if (isLoading) {
 		return <ActivityFeedSkeleton count={limit} />;
@@ -35,16 +41,32 @@ export function ActivityFeed({ limit = 6 }: ActivityFeedProps) {
 
 	return (
 		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-			{records.map((record) => (
-				<DeckPreview
-					key={`${record.did}/${record.rkey}`}
-					did={record.did}
-					rkey={record.rkey}
-					deck={record.record}
-					showHandle
-					showCounts={false}
-				/>
-			))}
+			{records.map((record) => {
+				if (isDeckRecord(record)) {
+					return (
+						<DeckPreview
+							key={`${record.did}/${record.rkey}`}
+							did={record.did}
+							rkey={record.rkey}
+							deck={record.record}
+							showHandle
+							showCounts={false}
+						/>
+					);
+				}
+				if (isListRecord(record)) {
+					return (
+						<ListPreview
+							key={`${record.did}/${record.rkey}`}
+							did={record.did}
+							rkey={record.rkey}
+							list={record.record as CollectionList}
+							showHandle
+						/>
+					);
+				}
+				return null;
+			})}
 		</div>
 	);
 }

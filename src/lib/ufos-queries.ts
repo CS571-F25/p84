@@ -5,10 +5,14 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import type { Result } from "./atproto-client";
-import type { ComDeckbelcherDeckList } from "./lexicons/index";
+import type {
+	ComDeckbelcherCollectionList,
+	ComDeckbelcherDeckList,
+} from "./lexicons/index";
 import type {
 	ActivityCollection,
 	UfosDeckRecord,
+	UfosListRecord,
 	UfosRecord,
 } from "./ufos-types";
 
@@ -18,12 +22,15 @@ const UFOS_BASE = "https://ufos-api.microcosm.blue";
  * Fetch recent records from UFOs API
  */
 async function fetchRecentRecords<T>(
-	collection: ActivityCollection,
+	collections: ActivityCollection | ActivityCollection[],
 	limit: number,
 ): Promise<Result<UfosRecord<T>[]>> {
 	try {
 		const url = new URL(`${UFOS_BASE}/records`);
-		url.searchParams.set("collection", collection);
+		const collectionParam = Array.isArray(collections)
+			? collections.join(",")
+			: collections;
+		url.searchParams.set("collection", collectionParam);
 		url.searchParams.set("limit", String(limit));
 
 		const response = await fetch(url.toString());
@@ -45,22 +52,34 @@ async function fetchRecentRecords<T>(
 	}
 }
 
+export type ActivityRecord = UfosDeckRecord | UfosListRecord;
+
+export function isDeckRecord(record: ActivityRecord): record is UfosDeckRecord {
+	return record.collection === "com.deckbelcher.deck.list";
+}
+
+export function isListRecord(record: ActivityRecord): record is UfosListRecord {
+	return record.collection === "com.deckbelcher.collection.list";
+}
+
 /**
- * Query options for recent deck activity
+ * Query options for recent activity (decks + lists)
  */
-export const recentDecksQueryOptions = (limit = 10) =>
+export const recentActivityQueryOptions = (limit = 10) =>
 	queryOptions({
-		queryKey: ["ufos", "recentDecks", limit] as const,
+		queryKey: ["ufos", "recentActivity", limit] as const,
 		queryFn: async () => {
-			const result = await fetchRecentRecords<ComDeckbelcherDeckList.Main>(
-				"com.deckbelcher.deck.list",
+			const result = await fetchRecentRecords<
+				ComDeckbelcherDeckList.Main | ComDeckbelcherCollectionList.Main
+			>(
+				["com.deckbelcher.deck.list", "com.deckbelcher.collection.list"],
 				limit,
 			);
 			if (!result.success) {
 				throw result.error;
 			}
-			return result.data as UfosDeckRecord[];
+			return result.data as ActivityRecord[];
 		},
-		staleTime: 60 * 1000, // 1 minute
+		staleTime: 60 * 1000,
 		refetchOnWindowFocus: true,
 	});
