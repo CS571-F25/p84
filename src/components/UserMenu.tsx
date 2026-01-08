@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { ChevronDown, LogOut, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
@@ -54,6 +55,15 @@ export default function UserMenu() {
 
 			{isOpen && (
 				<div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
+					<Link
+						to="/profile/$did"
+						params={{ did: session.info.sub }}
+						onClick={() => setIsOpen(false)}
+						className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm"
+					>
+						<User size={16} />
+						<span>View Profile</span>
+					</Link>
 					<button
 						type="button"
 						onClick={() => {
