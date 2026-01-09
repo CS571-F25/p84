@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { ByteString } from "./byte-string";
 import {
 	type Facet,
@@ -29,25 +29,23 @@ interface Segment {
 	mention: MentionFeature | null;
 }
 
-export function RichText({
+export const RichText = memo(function RichText({
 	text,
-	facets = [],
+	facets,
 	className,
 }: RichTextProps): ReactNode {
 	if (!text) {
 		return null;
 	}
 
-	const segments = segmentText(text, facets);
+	const segments = segmentText(text, facets ?? []);
 
 	return (
 		<span className={className}>
 			{segments.map((segment, i) => renderSegment(segment, i))}
 		</span>
 	);
-}
-
-type Wrapper = (content: ReactNode, key: string) => ReactNode;
+});
 
 function renderSegment(segment: Segment, key: number): ReactNode {
 	if (segment.codeBlock) {
@@ -61,52 +59,63 @@ function renderSegment(segment: Segment, key: number): ReactNode {
 		);
 	}
 
-	const wrappers: Wrapper[] = [];
+	// Plain text - no wrapper needed
+	if (
+		!segment.bold &&
+		!segment.italic &&
+		!segment.code &&
+		!segment.link &&
+		!segment.mention
+	) {
+		return segment.text;
+	}
 
+	let content: ReactNode = segment.text;
+
+	// Wrap in formatting elements (innermost to outermost)
 	if (segment.code) {
-		wrappers.push((c, k) => (
-			<code key={k} className="bg-gray-100 dark:bg-slate-800 px-1 rounded">
-				{c}
+		content = (
+			<code className="bg-gray-100 dark:bg-slate-800 px-1 rounded font-mono text-sm">
+				{content}
 			</code>
-		));
+		);
 	}
 	if (segment.italic) {
-		wrappers.push((c, k) => <em key={k}>{c}</em>);
+		content = <em>{content}</em>;
 	}
 	if (segment.bold) {
-		wrappers.push((c, k) => <strong key={k}>{c}</strong>);
+		content = <strong>{content}</strong>;
 	}
+
+	// Links and mentions wrap the formatted content
 	if (segment.link) {
-		const uri = segment.link.uri;
-		wrappers.push((c, k) => (
+		return (
 			<a
-				key={k}
-				href={uri}
+				key={key}
+				href={segment.link.uri}
 				className="text-blue-600 dark:text-blue-400 hover:underline"
 				target="_blank"
 				rel="noopener noreferrer"
 			>
-				{c}
+				{content}
 			</a>
-		));
-	}
-	if (segment.mention) {
-		const did = segment.mention.did;
-		wrappers.push((c, k) => (
-			<span
-				key={k}
-				className="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
-				data-did={did}
-			>
-				{c}
-			</span>
-		));
+		);
 	}
 
-	return wrappers.reduce<ReactNode>(
-		(content, wrap, i) => wrap(content, `${key}-${i}`),
-		segment.text,
-	);
+	if (segment.mention) {
+		return (
+			<span
+				key={key}
+				className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+				data-did={segment.mention.did}
+			>
+				{content}
+			</span>
+		);
+	}
+
+	// Non-link/mention formatted content needs a keyed wrapper
+	return <span key={key}>{content}</span>;
 }
 
 function collectFeatures(

@@ -1,3 +1,4 @@
+import type { RefObject } from "react";
 import type { ParseResult } from "@/lib/richtext";
 import { RichText } from "@/lib/richtext";
 
@@ -5,16 +6,13 @@ type SaveState = "saved" | "dirty" | "saving";
 
 function getSaveState({
 	isDirty,
-	isPending,
 	isSaving,
 }: {
 	isDirty?: boolean;
-	isPending?: boolean;
 	isSaving?: boolean;
 }): SaveState {
 	if (isSaving) return "saving";
-	// isPending (debounce buffering) or isDirty both show as "dirty"
-	if (isPending || isDirty) return "dirty";
+	if (isDirty) return "dirty";
 	return "saved";
 }
 
@@ -45,37 +43,38 @@ function SaveIndicator({ state }: { state: SaveState }) {
 }
 
 export interface RichTextEditorProps {
-	markdown: string;
-	setMarkdown: (value: string) => void;
+	inputRef: RefObject<HTMLTextAreaElement | null>;
+	onInput: () => void;
+	defaultValue: string;
 	parsed: ParseResult;
 	isDirty?: boolean;
-	isPending?: boolean;
 	isSaving?: boolean;
 	placeholder?: string;
 	className?: string;
 }
 
 export function RichTextEditor({
-	markdown,
-	setMarkdown,
+	inputRef,
+	onInput,
+	defaultValue,
 	parsed,
 	isDirty,
-	isPending,
 	isSaving,
 	placeholder = "Write something...",
 	className,
 }: RichTextEditorProps) {
-	const saveState = getSaveState({ isDirty, isPending, isSaving });
+	const saveState = getSaveState({ isDirty, isSaving });
 
 	return (
 		<div className={className}>
-			<div className="grid grid-cols-2 gap-4">
-				<div className="relative">
+			<div className="grid grid-cols-2 gap-4 items-stretch">
+				<div className="relative flex flex-col">
 					<textarea
-						value={markdown}
-						onChange={(e) => setMarkdown(e.target.value)}
+						ref={inputRef}
+						defaultValue={defaultValue}
+						onInput={onInput}
 						placeholder={placeholder}
-						className="w-full h-64 p-3 pr-8 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-y font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+						className="w-full min-h-64 flex-1 p-3 pr-8 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-y font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
 					/>
 					<div className="absolute top-2 right-2">
 						<SaveIndicator state={saveState} />

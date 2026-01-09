@@ -1,26 +1,28 @@
+import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
+import type { RefObject } from "react";
 import { useState } from "react";
 import { RichTextEditor } from "@/components/richtext/RichTextEditor";
 import { type ParseResult, RichText } from "@/lib/richtext";
 
 interface PrimerSectionProps {
-	markdown: string;
-	setMarkdown: (value: string) => void;
+	inputRef: RefObject<HTMLTextAreaElement | null>;
+	onInput: () => void;
+	defaultValue: string;
 	parsed: ParseResult;
 	isDirty?: boolean;
-	isPending?: boolean;
 	isSaving?: boolean;
 	readOnly?: boolean;
 }
 
-const COLLAPSED_LINES = 4;
+const COLLAPSED_LINES = 8;
 const LINE_HEIGHT = 1.5;
 
 export function PrimerSection({
-	markdown,
-	setMarkdown,
+	inputRef,
+	onInput,
+	defaultValue,
 	parsed,
 	isDirty,
-	isPending,
 	isSaving,
 	readOnly = false,
 }: PrimerSectionProps) {
@@ -34,24 +36,24 @@ export function PrimerSection({
 	if (isEditing && !readOnly) {
 		return (
 			<div className="space-y-3">
+				<RichTextEditor
+					inputRef={inputRef}
+					onInput={onInput}
+					defaultValue={defaultValue}
+					parsed={parsed}
+					isDirty={isDirty}
+					isSaving={isSaving}
+					placeholder="Write about your deck's strategy, key combos, card choices..."
+				/>
 				<div className="flex justify-end">
 					<button
 						type="button"
 						onClick={() => setIsEditing(false)}
-						className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+						className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300"
 					>
 						Done
 					</button>
 				</div>
-				<RichTextEditor
-					markdown={markdown}
-					setMarkdown={setMarkdown}
-					parsed={parsed}
-					isDirty={isDirty}
-					isPending={isPending}
-					isSaving={isSaving}
-					placeholder="Write about your deck's strategy, key combos, card choices..."
-				/>
 			</div>
 		);
 	}
@@ -73,44 +75,57 @@ export function PrimerSection({
 	}
 
 	return (
-		<div className="relative">
-			<div
-				className={
-					!isExpanded && needsTruncation ? "overflow-hidden" : undefined
-				}
-				style={
-					!isExpanded && needsTruncation
-						? { maxHeight: `${COLLAPSED_LINES * LINE_HEIGHT}em` }
-						: undefined
-				}
-			>
-				<RichText
-					text={parsed.text}
-					facets={parsed.facets}
-					className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap"
-				/>
+		<div>
+			<div className="relative">
+				<div
+					className={
+						!isExpanded && needsTruncation ? "overflow-hidden" : undefined
+					}
+					style={
+						!isExpanded && needsTruncation
+							? { maxHeight: `${COLLAPSED_LINES * LINE_HEIGHT}em` }
+							: undefined
+					}
+				>
+					<RichText
+						text={parsed.text}
+						facets={parsed.facets}
+						className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap"
+					/>
+				</div>
+
+				{needsTruncation && !isExpanded && (
+					<div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white dark:from-slate-900 to-transparent pointer-events-none" />
+				)}
 			</div>
 
-			{needsTruncation && !isExpanded && (
-				<div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white dark:from-slate-900 to-transparent" />
-			)}
-
-			<div className="flex items-center gap-3 mt-1">
+			<div className="flex items-center gap-2 mt-2">
 				{needsTruncation && (
 					<button
 						type="button"
 						onClick={() => setIsExpanded(!isExpanded)}
-						className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+						className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium rounded-md bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300"
 					>
-						{isExpanded ? "Show less" : "Show more"}
+						{isExpanded ? (
+							<>
+								<ChevronUp className="w-4 h-4" />
+								Show less
+							</>
+						) : (
+							<>
+								<ChevronDown className="w-4 h-4" />
+								Show more
+							</>
+						)}
 					</button>
 				)}
 				{!readOnly && (
 					<button
 						type="button"
 						onClick={() => setIsEditing(true)}
-						className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+						className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium rounded-md bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300"
 					>
+						<Pencil className="w-4 h-4" />
 						Edit
 					</button>
 				)}

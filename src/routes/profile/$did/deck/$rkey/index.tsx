@@ -169,7 +169,7 @@ function DeckEditorPage() {
 			if (!isOwner) return;
 			mutation.mutate({ ...deck, primer: parsed });
 		},
-		debounceMs: 1500,
+		saveDebounceMs: 1500,
 	});
 
 	// Helper to update deck via mutation
