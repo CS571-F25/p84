@@ -72,3 +72,32 @@ code {
     transform: translateX(100%);
   }
 }
+
+/* ProseMirror editor styles */
+.prosemirror-editor .ProseMirror {
+  outline: none;
+}
+
+.prosemirror-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--color-gray-400);
+  pointer-events: none;
+  height: 0;
+}
+
+.dark .prosemirror-editor .ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--color-gray-500);
+}
+
+/* Empty editor placeholder using data attribute */
+.prosemirror-editor .ProseMirror:has(> p:only-child:empty)::before {
+  content: attr(data-placeholder);
+  color: var(--color-gray-400);
+  pointer-events: none;
+  position: absolute;
+}
+
+.dark .prosemirror-editor .ProseMirror:has(> p:only-child:empty)::before {
+  color: var(--color-gray-500);
+}

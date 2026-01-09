@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as PmDemoRouteImport } from './routes/pm-demo'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CardsIndexRouteImport } from './routes/cards/index'
 import { Route as UHandleRouteImport } from './routes/u/$handle'
@@ -27,6 +28,11 @@ import { Route as ProfileDidDeckRkeyBulkEditRouteImport } from './routes/profile
 const SigninRoute = SigninRouteImport.update({
   id: '/signin',
   path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PmDemoRoute = PmDemoRouteImport.update({
+  id: '/pm-demo',
+  path: '/pm-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -98,6 +104,7 @@ const ProfileDidDeckRkeyBulkEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/pm-demo': typeof PmDemoRoute
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
   '/deck/new': typeof DeckNewRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/pm-demo': typeof PmDemoRoute
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
   '/deck/new': typeof DeckNewRoute
@@ -129,6 +137,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/pm-demo': typeof PmDemoRoute
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
   '/deck/new': typeof DeckNewRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/pm-demo'
     | '/signin'
     | '/card/$id'
     | '/deck/new'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/pm-demo'
     | '/signin'
     | '/card/$id'
     | '/deck/new'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/pm-demo'
     | '/signin'
     | '/card/$id'
     | '/deck/new'
@@ -194,6 +206,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PmDemoRoute: typeof PmDemoRoute
   SigninRoute: typeof SigninRoute
   CardIdRoute: typeof CardIdRoute
   DeckNewRoute: typeof DeckNewRoute
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       path: '/signin'
       fullPath: '/signin'
       preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pm-demo': {
+      id: '/pm-demo'
+      path: '/pm-demo'
+      fullPath: '/pm-demo'
+      preLoaderRoute: typeof PmDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -336,6 +356,7 @@ const ProfileDidListRkeyRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PmDemoRoute: PmDemoRoute,
   SigninRoute: SigninRoute,
   CardIdRoute: CardIdRoute,
   DeckNewRoute: DeckNewRoute,
