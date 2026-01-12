@@ -2,83 +2,83 @@ import type {} from "@atcute/lexicons";
 import * as v from "@atcute/lexicons/validations";
 
 const _boldSchema = /*#__PURE__*/ v.object({
-	$type: /*#__PURE__*/ v.optional(
-		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#bold"),
-	),
+  $type: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#bold"),
+  ),
 });
 const _byteSliceSchema = /*#__PURE__*/ v.object({
-	$type: /*#__PURE__*/ v.optional(
-		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#byteSlice"),
-	),
-	/**
-	 * @minimum 0
-	 */
-	byteEnd: /*#__PURE__*/ v.integer(),
-	/**
-	 * @minimum 0
-	 */
-	byteStart: /*#__PURE__*/ v.integer(),
+  $type: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#byteSlice"),
+  ),
+  /**
+   * @minimum 0
+   */
+  byteEnd: /*#__PURE__*/ v.integer(),
+  /**
+   * @minimum 0
+   */
+  byteStart: /*#__PURE__*/ v.integer(),
 });
 const _codeSchema = /*#__PURE__*/ v.object({
-	$type: /*#__PURE__*/ v.optional(
-		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#code"),
-	),
+  $type: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#code"),
+  ),
 });
 const _codeBlockSchema = /*#__PURE__*/ v.object({
-	$type: /*#__PURE__*/ v.optional(
-		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#codeBlock"),
-	),
+  $type: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#codeBlock"),
+  ),
 });
 const _italicSchema = /*#__PURE__*/ v.object({
-	$type: /*#__PURE__*/ v.optional(
-		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#italic"),
-	),
+  $type: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#italic"),
+  ),
 });
 const _linkSchema = /*#__PURE__*/ v.object({
-	$type: /*#__PURE__*/ v.optional(
-		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#link"),
-	),
-	uri: /*#__PURE__*/ v.genericUriString(),
+  $type: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#link"),
+  ),
+  uri: /*#__PURE__*/ v.genericUriString(),
 });
 const _mainSchema = /*#__PURE__*/ v.object({
-	$type: /*#__PURE__*/ v.optional(
-		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet"),
-	),
-	get features() {
-		return /*#__PURE__*/ v.array(
-			/*#__PURE__*/ v.variant([
-				boldSchema,
-				codeSchema,
-				codeBlockSchema,
-				italicSchema,
-				linkSchema,
-				mentionSchema,
-				tagSchema,
-			]),
-		);
-	},
-	get index() {
-		return byteSliceSchema;
-	},
+  $type: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet"),
+  ),
+  get features() {
+    return /*#__PURE__*/ v.array(
+      /*#__PURE__*/ v.variant([
+        boldSchema,
+        codeSchema,
+        codeBlockSchema,
+        italicSchema,
+        linkSchema,
+        mentionSchema,
+        tagSchema,
+      ]),
+    );
+  },
+  get index() {
+    return byteSliceSchema;
+  },
 });
 const _mentionSchema = /*#__PURE__*/ v.object({
-	$type: /*#__PURE__*/ v.optional(
-		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#mention"),
-	),
-	did: /*#__PURE__*/ v.didString(),
+  $type: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#mention"),
+  ),
+  did: /*#__PURE__*/ v.didString(),
 });
 const _tagSchema = /*#__PURE__*/ v.object({
-	$type: /*#__PURE__*/ v.optional(
-		/*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#tag"),
-	),
-	/**
-	 * @maxLength 640
-	 * @maxGraphemes 64
-	 */
-	tag: /*#__PURE__*/ v.constrain(/*#__PURE__*/ v.string(), [
-		/*#__PURE__*/ v.stringLength(0, 640),
-		/*#__PURE__*/ v.stringGraphemes(0, 64),
-	]),
+  $type: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#tag"),
+  ),
+  /**
+   * @maxLength 640
+   * @maxGraphemes 64
+   */
+  tag: /*#__PURE__*/ v.constrain(/*#__PURE__*/ v.string(), [
+    /*#__PURE__*/ v.stringLength(0, 640),
+    /*#__PURE__*/ v.stringGraphemes(0, 64),
+  ]),
 });
 
 type bold$schematype = typeof _boldSchema;

@@ -17,12 +17,12 @@ namespace com.deckbelcher.deck.list {
     @maxLength(320)
     format?: string;
 
+    /** Deck primer with strategy, combos, and card choices. */
+    primer?: com.deckbelcher.richtext.Document;
+
     /** Array of cards in the decklist. */
     @required
     cards: Card[];
-
-    /** Deck primer with strategy, combos, and card choices. */
-    primer?: com.deckbelcher.richtext.Main;
 
     /** Timestamp when the decklist was created. */
     @required

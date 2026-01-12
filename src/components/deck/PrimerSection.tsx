@@ -1,15 +1,15 @@
 import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
-import type { RefObject } from "react";
-import { useState } from "react";
-import { RichTextEditor } from "@/components/richtext/RichTextEditor";
-import { type ParseResult, RichText } from "@/lib/richtext";
+import { useCallback, useMemo, useState } from "react";
+import { ProseMirrorEditor } from "@/components/richtext/ProseMirrorEditor";
+import { RichtextRenderer } from "@/components/richtext/RichtextRenderer";
+import { schema } from "@/components/richtext/schema";
+import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
+import { lexiconToTree, treeToLexicon } from "@/lib/richtext-convert";
+import { type PMDocJSON, useProseMirror } from "@/lib/useProseMirror";
 
 interface PrimerSectionProps {
-	inputRef: RefObject<HTMLTextAreaElement | null>;
-	onInput: () => void;
-	defaultValue: string;
-	parsed: ParseResult;
-	isDirty?: boolean;
+	primer?: Document;
+	onSave?: (doc: Document) => void;
 	isSaving?: boolean;
 	readOnly?: boolean;
 }
@@ -18,34 +18,61 @@ const COLLAPSED_LINES = 8;
 const LINE_HEIGHT = 1.5;
 
 export function PrimerSection({
-	inputRef,
-	onInput,
-	defaultValue,
-	parsed,
-	isDirty,
+	primer,
+	onSave,
 	isSaving,
 	readOnly = false,
 }: PrimerSectionProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isExpanded, setIsExpanded] = useState(false);
 
-	const hasContent = parsed.text.trim().length > 0;
-	const lineCount = parsed.text.split("\n").length;
+	// Convert lexicon to PM tree for editing
+	const initialPMDoc = useMemo(() => {
+		if (!primer) return undefined;
+		return lexiconToTree(primer).toJSON();
+	}, [primer]);
+
+	// Wrap onSave to convert PM tree back to lexicon
+	const handleSave = useCallback(
+		(pmDocJSON: PMDocJSON) => {
+			if (!onSave) return;
+			const pmNode = schema.nodeFromJSON(pmDocJSON);
+			const lexicon = treeToLexicon(pmNode);
+			onSave(lexicon);
+		},
+		[onSave],
+	);
+
+	const { doc, onChange, isDirty } = useProseMirror({
+		initialDoc: initialPMDoc,
+		onSave: handleSave,
+		saveDebounceMs: 1500,
+	});
+
+	// Get plain text for content check and line count
+	const plainText = useMemo(() => {
+		if (!primer?.content) return "";
+		return primer.content.map((block) => block.text ?? "").join("\n");
+	}, [primer]);
+
+	const hasContent = plainText.trim().length > 0;
+	const lineCount = plainText.split("\n").length;
 	const needsTruncation = lineCount > COLLAPSED_LINES;
 
 	if (isEditing && !readOnly) {
 		return (
 			<div className="space-y-3">
-				<RichTextEditor
-					inputRef={inputRef}
-					onInput={onInput}
-					defaultValue={defaultValue}
-					parsed={parsed}
-					isDirty={isDirty}
-					isSaving={isSaving}
+				<ProseMirrorEditor
+					defaultValue={doc}
+					onChange={onChange}
 					placeholder="Write about your deck's strategy, key combos, card choices..."
 				/>
-				<div className="flex justify-end">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+						{isSaving && <span>Saving...</span>}
+						{!isSaving && isDirty && <span>Unsaved changes</span>}
+						{!isSaving && !isDirty && hasContent && <span>Saved</span>}
+					</div>
 					<button
 						type="button"
 						onClick={() => setIsEditing(false)}
@@ -87,10 +114,9 @@ export function PrimerSection({
 							: undefined
 					}
 				>
-					<RichText
-						text={parsed.text}
-						facets={parsed.facets}
-						className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap"
+					<RichtextRenderer
+						doc={primer}
+						className="text-gray-700 dark:text-gray-300"
 					/>
 				</div>
 

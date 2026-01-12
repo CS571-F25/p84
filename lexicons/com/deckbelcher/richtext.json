@@ -9,7 +9,7 @@
           "type": "string",
           "maxLength": 500000,
           "maxGraphemes": 50000,
-          "description": "The text content."
+          "description": "The plain text content (no markdown symbols)."
         },
         "facets": {
           "type": "array",
@@ -17,10 +17,79 @@
             "type": "ref",
             "ref": "com.deckbelcher.richtext.facet"
           },
-          "description": "Annotations of text (mentions, URLs, hashtags, card references, etc)."
+          "description": "Annotations of text (mentions, URLs, hashtags, formatting, etc)."
         }
       },
-      "description": "Rich text content with optional facet annotations.\nUsed for primers, descriptions, and other formatted text."
+      "description": "A single paragraph of rich text with optional facet annotations.\nUsed for descriptions and other short formatted text."
+    },
+    "document": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "array",
+          "items": {
+            "type": "union",
+            "refs": [
+              "#paragraphBlock",
+              "#headingBlock"
+            ]
+          },
+          "description": "Array of blocks (paragraphs, headings, etc)."
+        }
+      },
+      "description": "A multi-block rich text document.\nUsed for primers and other long-form content.",
+      "required": [
+        "content"
+      ]
+    },
+    "paragraphBlock": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 500000,
+          "maxGraphemes": 50000,
+          "description": "The plain text content (no markdown symbols)."
+        },
+        "facets": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "com.deckbelcher.richtext.facet"
+          },
+          "description": "Annotations of text (formatting, mentions, links, etc)."
+        }
+      },
+      "description": "A paragraph block with text and optional facets."
+    },
+    "headingBlock": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6,
+          "description": "Heading level (1-6)."
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 10000,
+          "maxGraphemes": 1000,
+          "description": "The plain text content (no markdown symbols)."
+        },
+        "facets": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "com.deckbelcher.richtext.facet"
+          },
+          "description": "Annotations of text (formatting, mentions, links, etc)."
+        }
+      },
+      "description": "A heading block with level, text, and optional facets.",
+      "required": [
+        "level"
+      ]
     }
   }
 }

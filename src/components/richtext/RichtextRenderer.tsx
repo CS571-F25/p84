@@ -1,0 +1,166 @@
+import { sanitizeUrl } from "@braintree/sanitize-url";
+import { memo, type ReactNode } from "react";
+import type {
+	Document,
+	HeadingBlock,
+	ParagraphBlock,
+} from "@/lib/lexicons/types/com/deckbelcher/richtext";
+import type { Main as Facet } from "@/lib/lexicons/types/com/deckbelcher/richtext/facet";
+import { segmentize } from "@/lib/richtext-convert";
+
+export interface RichtextRendererProps {
+	doc: Document | undefined;
+	className?: string;
+}
+
+export const RichtextRenderer = memo(function RichtextRenderer({
+	doc,
+	className,
+}: RichtextRendererProps) {
+	if (!doc?.content) {
+		return null;
+	}
+
+	return (
+		<div className={className}>
+			{doc.content.map((block, i) => (
+				// biome-ignore lint/suspicious/noArrayIndexKey: doc is immutable during render
+				<BlockRenderer key={i} block={block} />
+			))}
+		</div>
+	);
+});
+
+const BlockRenderer = memo(function BlockRenderer({
+	block,
+}: {
+	block: ParagraphBlock | HeadingBlock;
+}): ReactNode {
+	switch (block.$type) {
+		case "com.deckbelcher.richtext#headingBlock": {
+			const level = block.level ?? 1;
+			const content = (
+				<TextWithFacets text={block.text} facets={block.facets} />
+			);
+			switch (level) {
+				case 1:
+					return <h1 className="text-2xl font-bold mt-4 mb-2">{content}</h1>;
+				case 2:
+					return <h2 className="text-xl font-bold mt-3 mb-2">{content}</h2>;
+				case 3:
+					return <h3 className="text-lg font-semibold mt-3 mb-1">{content}</h3>;
+				case 4:
+					return (
+						<h4 className="text-base font-semibold mt-2 mb-1">{content}</h4>
+					);
+				case 5:
+					return <h5 className="text-sm font-semibold mt-2 mb-1">{content}</h5>;
+				case 6:
+					return <h6 className="text-sm font-medium mt-2 mb-1">{content}</h6>;
+				default:
+					return <h1 className="text-2xl font-bold mt-4 mb-2">{content}</h1>;
+			}
+		}
+
+		default: {
+			const isEmpty = !block.text?.trim();
+			return (
+				<p>
+					{isEmpty ? (
+						<br />
+					) : (
+						<TextWithFacets text={block.text} facets={block.facets} />
+					)}
+				</p>
+			);
+		}
+	}
+});
+
+function TextWithFacets({
+	text,
+	facets,
+}: {
+	text?: string;
+	facets?: Facet[];
+}): ReactNode {
+	if (!text) {
+		return null;
+	}
+
+	if (!facets || facets.length === 0) {
+		return text;
+	}
+
+	const segments = segmentize(text, facets);
+
+	return (
+		<>
+			{segments.map((segment, i) => (
+				// biome-ignore lint/suspicious/noArrayIndexKey: segments are immutable
+				<SegmentRenderer key={i} segment={segment} />
+			))}
+		</>
+	);
+}
+
+function SegmentRenderer({
+	segment,
+}: {
+	segment: { text: string; features: unknown[] };
+}): ReactNode {
+	let content: ReactNode = segment.text;
+
+	for (const feature of segment.features) {
+		content = applyFeature(content, feature as Facet["features"][number]);
+	}
+
+	return content;
+}
+
+function applyFeature(
+	content: ReactNode,
+	feature: Facet["features"][number],
+): ReactNode {
+	switch (feature.$type) {
+		case "com.deckbelcher.richtext.facet#bold":
+			return <strong>{content}</strong>;
+
+		case "com.deckbelcher.richtext.facet#italic":
+			return <em>{content}</em>;
+
+		case "com.deckbelcher.richtext.facet#code":
+			return (
+				<code className="bg-gray-100 dark:bg-slate-800 px-1 rounded font-mono text-sm">
+					{content}
+				</code>
+			);
+
+		case "com.deckbelcher.richtext.facet#link": {
+			const safeUrl = sanitizeUrl(feature.uri);
+			if (safeUrl === "about:blank") {
+				return content;
+			}
+			return (
+				<a
+					href={safeUrl}
+					className="text-blue-600 dark:text-blue-400 hover:underline"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					{content}
+				</a>
+			);
+		}
+
+		case "com.deckbelcher.richtext.facet#mention":
+			return (
+				<span className="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-medium">
+					{content}
+				</span>
+			);
+
+		default:
+			return content;
+	}
+}

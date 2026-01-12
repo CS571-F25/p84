@@ -76,6 +76,8 @@ code {
 /* ProseMirror editor styles */
 .prosemirror-editor .ProseMirror {
   outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .prosemirror-editor .ProseMirror p.is-editor-empty:first-child::before {

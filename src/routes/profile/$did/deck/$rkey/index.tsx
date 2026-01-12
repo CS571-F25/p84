@@ -2,7 +2,8 @@ import type { Did } from "@atcute/lexicons";
 import { type DragEndEvent, useDndMonitor } from "@dnd-kit/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
 import { CardDragOverlay } from "@/components/deck/CardDragOverlay";
 import { CardModal } from "@/components/deck/CardModal";
@@ -35,15 +36,14 @@ import {
 	updateCardTags,
 } from "@/lib/deck-types";
 import { formatDisplayName } from "@/lib/format-utils";
+import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { getCardByIdQueryOptions } from "@/lib/queries";
-import { serializeToMarkdown } from "@/lib/richtext";
 import type { ScryfallId } from "@/lib/scryfall-types";
 import { getImageUri } from "@/lib/scryfall-utils";
 import { getSelectedCards, type StatsSelection } from "@/lib/stats-selection";
 import { useAuth } from "@/lib/useAuth";
 import { useDeckStats } from "@/lib/useDeckStats";
 import { usePersistedState } from "@/lib/usePersistedState";
-import { useRichText } from "@/lib/useRichText";
 
 export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 	component: DeckEditorPage,
@@ -157,20 +157,14 @@ function DeckEditorPage() {
 	// Check if current user is the owner
 	const isOwner = session?.info.sub === did;
 
-	// Primer editor state
-	const primerInitialValue = useMemo(
-		() =>
-			serializeToMarkdown(deck.primer?.text ?? "", deck.primer?.facets ?? []),
-		[deck.primer],
-	);
-	const primer = useRichText({
-		initialValue: primerInitialValue,
-		onSave: (parsed) => {
+	// Primer save handler
+	const handlePrimerSave = useCallback(
+		(doc: Document) => {
 			if (!isOwner) return;
-			mutation.mutate({ ...deck, primer: parsed });
+			mutation.mutate({ ...deck, primer: doc });
 		},
-		saveDebounceMs: 1500,
-	});
+		[isOwner, mutation, deck],
+	);
 
 	// Helper to update deck via mutation
 	const updateDeck = async (updater: (prev: Deck) => Deck) => {
@@ -438,7 +432,8 @@ function DeckEditorPage() {
 				updateDeck={updateDeck}
 				highlightedCards={highlightedCards}
 				handleCardsChanged={handleCardsChanged}
-				primer={primer}
+				primer={deck.primer}
+				onPrimerSave={handlePrimerSave}
 				isSaving={mutation.isPending}
 			/>
 		</DragDropProvider>
@@ -478,7 +473,8 @@ interface DeckEditorInnerProps {
 	updateDeck: (updater: (prev: Deck) => Deck) => Promise<void>;
 	highlightedCards: Set<ScryfallId>;
 	handleCardsChanged: (changedIds: Set<ScryfallId>) => void;
-	primer: ReturnType<typeof useRichText>;
+	primer?: Document;
+	onPrimerSave: (doc: Document) => void;
 	isSaving: boolean;
 }
 
@@ -516,6 +512,7 @@ function DeckEditorInner({
 	highlightedCards,
 	handleCardsChanged,
 	primer,
+	onPrimerSave,
 	isSaving,
 }: DeckEditorInnerProps) {
 	// Track drag state globally (must be inside DndContext)
@@ -548,7 +545,14 @@ function DeckEditorInner({
 					onFormatChange={handleFormatChange}
 					readOnly={!isOwner}
 				/>
-				<PrimerSection {...primer} isSaving={isSaving} readOnly={!isOwner} />
+				<ErrorBoundary fallback={null}>
+					<PrimerSection
+						primer={primer}
+						onSave={onPrimerSave}
+						isSaving={isSaving}
+						readOnly={!isOwner}
+					/>
+				</ErrorBoundary>
 			</div>
 
 			{/* Sticky header with search */}

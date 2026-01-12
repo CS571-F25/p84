@@ -82,7 +82,9 @@ export function useCreateDeckMutation() {
 
 			const result = await createDeckRecord(agent, {
 				$type: "com.deckbelcher.deck.list",
-				...deck,
+				name: deck.name,
+				format: deck.format,
+				primer: deck.primer,
 				cards: deck.cards.map((card) => ({
 					...card,
 					scryfallId: card.scryfallId as string,
@@ -135,11 +137,11 @@ export function useUpdateDeckMutation(did: Did, rkey: Rkey) {
 				$type: "com.deckbelcher.deck.list",
 				name: deck.name,
 				format: deck.format,
+				primer: deck.primer,
 				cards: deck.cards.map((card) => ({
 					...card,
 					scryfallId: card.scryfallId as string,
 				})),
-				primer: deck.primer,
 				createdAt: deck.createdAt,
 				updatedAt: new Date().toISOString(),
 			});

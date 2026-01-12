@@ -20,6 +20,11 @@
             "maxGraphemes": 32,
             "description": "Format of the deck (e.g., \"commander\", \"cube\", \"pauper\")."
           },
+          "primer": {
+            "type": "ref",
+            "ref": "com.deckbelcher.richtext#document",
+            "description": "Deck primer with strategy, combos, and card choices."
+          },
           "cards": {
             "type": "array",
             "items": {
@@ -27,11 +32,6 @@
               "ref": "#card"
             },
             "description": "Array of cards in the decklist."
-          },
-          "primer": {
-            "type": "ref",
-            "ref": "com.deckbelcher.richtext",
-            "description": "Deck primer with strategy, combos, and card choices."
           },
           "createdAt": {
             "type": "string",
