@@ -225,6 +225,41 @@ const nodes: Record<string, NodeSpec> = {
 			},
 		],
 	},
+
+	cardRef: {
+		inline: true,
+		group: "inline",
+		atom: true,
+		attrs: {
+			name: { default: "" },
+			scryfallId: { default: "" },
+		},
+		toDOM(node) {
+			return [
+				"span",
+				{
+					class:
+						"inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-sm font-medium",
+					"data-cardref": "",
+					"data-name": node.attrs.name,
+					"data-scryfall-id": node.attrs.scryfallId,
+				},
+				node.attrs.name,
+			];
+		},
+		parseDOM: [
+			{
+				tag: "span[data-cardref]",
+				getAttrs(dom) {
+					if (typeof dom === "string") return false;
+					return {
+						name: dom.getAttribute("data-name") ?? "",
+						scryfallId: dom.getAttribute("data-scryfall-id") ?? "",
+					};
+				},
+			},
+		],
+	},
 };
 
 const marks: Record<string, MarkSpec> = {

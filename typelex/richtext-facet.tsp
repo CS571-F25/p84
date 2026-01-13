@@ -11,7 +11,7 @@ namespace com.deckbelcher.richtext.facet {
     index: ByteSlice;
 
     @required
-    features: (Mention | Link | Tag | Bold | Italic | Code | CodeBlock | unknown)[];
+    features: (Mention | Link | Tag | Bold | Italic | Code | CodeBlock | CardRef | unknown)[];
   }
 
   /**
@@ -81,4 +81,14 @@ namespace com.deckbelcher.richtext.facet {
    * Typically rendered as `<pre><code>` in HTML.
    */
   model CodeBlock {}
+
+  /**
+   * Facet feature for a card reference.
+   * Links to a Magic: The Gathering card by Scryfall ID.
+   * The text is usually the card name.
+   */
+  model CardRef {
+    @required
+    scryfallId: string;
+  }
 }

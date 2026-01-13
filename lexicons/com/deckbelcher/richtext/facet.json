@@ -20,7 +20,8 @@
               "#bold",
               "#italic",
               "#code",
-              "#codeBlock"
+              "#codeBlock",
+              "#cardRef"
             ]
           }
         }
@@ -108,6 +109,18 @@
       "type": "object",
       "properties": {},
       "description": "Facet feature for code blocks.\nTypically rendered as `<pre><code>` in HTML."
+    },
+    "cardRef": {
+      "type": "object",
+      "properties": {
+        "scryfallId": {
+          "type": "string"
+        }
+      },
+      "description": "Facet feature for a card reference.\nLinks to a Magic: The Gathering card by Scryfall ID.\nThe text is usually the card name.",
+      "required": [
+        "scryfallId"
+      ]
     }
   }
 }

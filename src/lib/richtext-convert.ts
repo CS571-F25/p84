@@ -260,8 +260,30 @@ function extractTextAndFacets(node: ProseMirrorNode): {
 			}
 
 			byteOffset += textBytes.length;
+		} else if (child.type.name === "cardRef") {
+			const name = (child.attrs.name as string) || "";
+			const scryfallId = (child.attrs.scryfallId as string) || "";
+			const textBytes = new TextEncoder().encode(name);
+
+			textParts.push(name);
+
+			if (scryfallId) {
+				facets.push({
+					index: {
+						byteStart: byteOffset,
+						byteEnd: byteOffset + textBytes.length,
+					},
+					features: [
+						{
+							$type: "com.deckbelcher.richtext.facet#cardRef",
+							scryfallId,
+						},
+					],
+				});
+			}
+
+			byteOffset += textBytes.length;
 		}
-		// TODO: handle cardRef and other inline nodes
 	});
 
 	// Close any remaining active marks
@@ -515,6 +537,23 @@ function textAndFacetsToNodes(
 				schema.nodes.mention.create({
 					handle,
 					did: mentionFeature.did || null,
+				}),
+			);
+			continue;
+		}
+
+		// Check for cardRef facet - these become inline nodes
+		const cardRefFeature = segment.features.find(
+			(f) =>
+				(f as { $type?: string }).$type ===
+				"com.deckbelcher.richtext.facet#cardRef",
+		) as { $type: string; scryfallId?: string } | undefined;
+
+		if (cardRefFeature) {
+			nodes.push(
+				schema.nodes.cardRef.create({
+					name: segment.text,
+					scryfallId: cardRefFeature.scryfallId || "",
 				}),
 			);
 			continue;

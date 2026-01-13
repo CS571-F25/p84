@@ -9,17 +9,22 @@ import {
 } from "prosemirror-schema-list";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
 	type ActorSearchResult,
 	searchActorsQueryOptions,
 } from "@/lib/actor-search";
-import { buildInputRules } from "./inputRules";
+import { searchCardsQueryOptions } from "@/lib/queries";
+import type { Card } from "@/lib/search-types";
 import {
-	createMentionPlugin,
+	type CardOption,
+	CardPopupContent,
+	type CombinedCallbacks,
+	createCombinedAutocompletePlugin,
 	type MentionOption,
 	MentionPopupContent,
-} from "./MentionAutocomplete";
+} from "./CombinedAutocomplete";
+import { buildInputRules } from "./inputRules";
 import { createUpdatePlugin } from "./plugins";
 import { schema } from "./schema";
 import { Toolbar } from "./Toolbar";
@@ -94,6 +99,55 @@ export function ProseMirrorEditor({
 		renderPopup: (props) => <MentionPopupContent {...props} />,
 	});
 
+	// Card autocomplete
+	const handleCardSelect = useCallback(
+		(
+			option: CardOption,
+			state: { range: { from: number; to: number } },
+			view: EditorView,
+		) => {
+			const cardRefNode = schema.nodes.cardRef.create({
+				name: option.name,
+				scryfallId: option.scryfallId,
+			});
+
+			const tr = view.state.tr
+				.delete(state.range.from, state.range.to)
+				.insert(state.range.from, cardRefNode)
+				.insertText(" ", state.range.from + 1);
+
+			view.dispatch(tr);
+			view.focus();
+		},
+		[],
+	);
+
+	const getCardQueryOptions = useCallback(
+		(query: string) => ({
+			...searchCardsQueryOptions(query, undefined, 10),
+			select: (result: { cards: Card[]; totalCount: number }): CardOption[] =>
+				result.cards.map((c) => ({ name: c.name, scryfallId: c.id })),
+		}),
+		[],
+	);
+
+	const card = useEditorAutocomplete({
+		viewRef,
+		containerRef: wrapperRef,
+		getQueryOptions: getCardQueryOptions,
+		onSelect: handleCardSelect,
+		renderPopup: (props) => <CardPopupContent {...props} />,
+	});
+
+	// Combined callbacks for the single autocomplete plugin
+	const combinedCallbacks: CombinedCallbacks = useMemo(
+		() => ({
+			mention: mention.callbacks,
+			card: card.callbacks,
+		}),
+		[mention.callbacks, card.callbacks],
+	);
+
 	// biome-ignore lint/correctness/useExhaustiveDependencies: editor created once on mount
 	useEffect(() => {
 		if (!containerRef.current) return;
@@ -104,7 +158,7 @@ export function ProseMirrorEditor({
 				schema.node("doc", null, [schema.node("paragraph")]),
 			schema,
 			plugins: [
-				...createMentionPlugin(mention.callbacks),
+				...createCombinedAutocompletePlugin(combinedCallbacks),
 				buildInputRules(schema),
 				history(),
 				keymap({
@@ -158,6 +212,7 @@ export function ProseMirrorEditor({
 				<div ref={containerRef} />
 			</div>
 			{mention.popup}
+			{card.popup}
 		</div>
 	);
 }

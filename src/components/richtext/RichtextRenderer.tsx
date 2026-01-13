@@ -252,6 +252,17 @@ function applyFeature(
 				</Link>
 			);
 
+		case "com.deckbelcher.richtext.facet#cardRef":
+			return (
+				<Link
+					to="/card/$id"
+					params={{ id: feature.scryfallId }}
+					className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-sm font-medium hover:bg-amber-200 dark:hover:bg-amber-900/70"
+				>
+					{content}
+				</Link>
+			);
+
 		default:
 			return content;
 	}
