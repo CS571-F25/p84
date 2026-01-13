@@ -131,7 +131,7 @@ const nodes: Record<string, NodeSpec> = {
 			return [
 				"ol",
 				{
-					class: "list-decimal list-inside my-2 space-y-1",
+					class: "list-decimal pl-6 my-2 space-y-1",
 					start: node.attrs.order === 1 ? null : node.attrs.order,
 					"data-tight": node.attrs.tight ? "true" : null,
 				},
@@ -156,7 +156,7 @@ const nodes: Record<string, NodeSpec> = {
 			return [
 				"ul",
 				{
-					class: "list-disc list-inside my-2 space-y-1",
+					class: "list-disc pl-6 my-2 space-y-1",
 					"data-tight": node.attrs.tight ? "true" : null,
 				},
 				0,
@@ -165,11 +165,11 @@ const nodes: Record<string, NodeSpec> = {
 	},
 
 	list_item: {
-		content: "block+",
+		content: "paragraph block*",
 		defining: true,
 		parseDOM: [{ tag: "li" }],
 		toDOM() {
-			return ["li", 0];
+			return ["li", { class: "[&>p]:inline" }, 0];
 		},
 	},
 

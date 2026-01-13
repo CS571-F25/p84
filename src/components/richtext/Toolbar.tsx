@@ -117,9 +117,31 @@ export function Toolbar({ view }: ToolbarProps) {
 
 	const toggleList = (listType: NodeType) => {
 		return () => {
+			const otherListType =
+				listType === schema.nodes.bullet_list
+					? schema.nodes.ordered_list
+					: schema.nodes.bullet_list;
+
 			if (isBlockActive(listType)) {
+				// Already in this list type - lift out
 				liftListItem(schema.nodes.list_item)(state, view.dispatch);
+			} else if (isBlockActive(otherListType)) {
+				// In the other list type - switch by changing the list node type
+				const { $from } = state.selection;
+				for (let d = $from.depth; d > 0; d--) {
+					const node = $from.node(d);
+					if (
+						node.type === schema.nodes.bullet_list ||
+						node.type === schema.nodes.ordered_list
+					) {
+						const pos = $from.before(d);
+						const tr = state.tr.setNodeMarkup(pos, listType, node.attrs);
+						view.dispatch(tr);
+						break;
+					}
+				}
 			} else {
+				// Not in any list - wrap in new list
 				wrapInList(listType)(state, view.dispatch);
 			}
 			view.focus();
