@@ -2,6 +2,7 @@ import {
 	InputRule,
 	inputRules,
 	textblockTypeInputRule,
+	wrappingInputRule,
 } from "prosemirror-inputrules";
 import type { MarkType, NodeType, Schema } from "prosemirror-model";
 
@@ -48,6 +49,25 @@ export function buildInputRules(schema: Schema) {
 				}),
 			);
 		}
+	}
+
+	// Bullet list: -, +, or * at start of line
+	if (schema.nodes.bullet_list) {
+		rules.push(
+			wrappingInputRule(/^([-+*])\s$/, schema.nodes.bullet_list as NodeType),
+		);
+	}
+
+	// Ordered list: 1. at start of line
+	if (schema.nodes.ordered_list) {
+		rules.push(
+			wrappingInputRule(
+				/^(\d+)\.\s$/,
+				schema.nodes.ordered_list as NodeType,
+				(match) => ({ order: +match[1] }),
+				(match, node) => node.childCount + node.attrs.order === +match[1],
+			),
+		);
 	}
 
 	return inputRules({ rules });
