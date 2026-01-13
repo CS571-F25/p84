@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { PrimerSection } from "@/components/deck/PrimerSection";
+import { RichtextSection } from "@/components/richtext/RichtextSection";
 import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { lexiconToTree, treeToLexicon } from "@/lib/richtext-convert";
 import type { PMDocJSON } from "@/lib/useProseMirror";
@@ -92,8 +92,8 @@ function ProseMirrorDemo() {
 					<h2 className="text-lg font-semibold text-gray-900 dark:text-white">
 						Editor
 					</h2>
-					<PrimerSection
-						primer={savedDoc}
+					<RichtextSection
+						document={savedDoc}
 						onSave={handleSave}
 						readOnly={false}
 					/>
@@ -104,7 +104,7 @@ function ProseMirrorDemo() {
 						Read-only View
 					</h2>
 					<div className="p-4 border border-gray-200 dark:border-slate-700 rounded-lg bg-gray-50 dark:bg-slate-800/50">
-						<PrimerSection primer={savedDoc} readOnly />
+						<RichtextSection document={savedDoc} readOnly />
 					</div>
 				</div>
 

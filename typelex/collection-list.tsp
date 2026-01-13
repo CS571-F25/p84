@@ -13,7 +13,7 @@ namespace com.deckbelcher.collection.list {
     name: string;
 
     /** Description of the list. */
-    description?: com.deckbelcher.richtext.Main;
+    description?: com.deckbelcher.richtext.Document;
 
     /** Items in the list. */
     @required

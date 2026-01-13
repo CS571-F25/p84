@@ -16,7 +16,7 @@
           },
           "description": {
             "type": "ref",
-            "ref": "com.deckbelcher.richtext",
+            "ref": "com.deckbelcher.richtext#document",
             "description": "Description of the list."
           },
           "items": {

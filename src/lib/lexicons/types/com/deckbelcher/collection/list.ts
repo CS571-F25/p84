@@ -41,7 +41,7 @@ const _mainSchema = /*#__PURE__*/ v.record(
      * Description of the list.
      */
     get description() {
-      return /*#__PURE__*/ v.optional(ComDeckbelcherRichtext.mainSchema);
+      return /*#__PURE__*/ v.optional(ComDeckbelcherRichtext.documentSchema);
     },
     /**
      * Items in the list.

@@ -26,30 +26,34 @@ function getBlockPlainText(block: Block): string {
 	}
 }
 
-interface PrimerSectionProps {
-	primer?: Document;
+interface RichtextSectionProps {
+	document?: Document;
 	onSave?: (doc: Document) => void;
 	isSaving?: boolean;
 	readOnly?: boolean;
+	placeholder?: string;
+	emptyText?: string;
 }
 
 const COLLAPSED_LINES = 8;
 const LINE_HEIGHT = 1.5;
 
-export function PrimerSection({
-	primer,
+export function RichtextSection({
+	document,
 	onSave,
 	isSaving,
 	readOnly = false,
-}: PrimerSectionProps) {
+	placeholder = "Write something...",
+	emptyText = "Add a description...",
+}: RichtextSectionProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isExpanded, setIsExpanded] = useState(false);
 
 	// Convert lexicon to PM tree for editing
 	const initialPMDoc = useMemo(() => {
-		if (!primer) return undefined;
-		return lexiconToTree(primer).toJSON();
-	}, [primer]);
+		if (!document) return undefined;
+		return lexiconToTree(document).toJSON();
+	}, [document]);
 
 	// Wrap onSave to convert PM tree back to lexicon
 	const handleSave = useCallback(
@@ -70,9 +74,9 @@ export function PrimerSection({
 
 	// Get plain text for content check and line count
 	const plainText = useMemo(() => {
-		if (!primer?.content) return "";
-		return primer.content.map(getBlockPlainText).join("\n");
-	}, [primer]);
+		if (!document?.content) return "";
+		return document.content.map(getBlockPlainText).join("\n");
+	}, [document]);
 
 	const hasContent = plainText.trim().length > 0;
 	const lineCount = plainText.split("\n").length;
@@ -84,7 +88,7 @@ export function PrimerSection({
 				<ProseMirrorEditor
 					defaultValue={doc}
 					onChange={onChange}
-					placeholder="Write about your deck's strategy, key combos, card choices..."
+					placeholder={placeholder}
 				/>
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -115,7 +119,7 @@ export function PrimerSection({
 				onClick={() => setIsEditing(true)}
 				className="text-sm text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 italic"
 			>
-				Add a description...
+				{emptyText}
 			</button>
 		);
 	}
@@ -134,7 +138,7 @@ export function PrimerSection({
 					}
 				>
 					<RichtextRenderer
-						doc={primer}
+						doc={document}
 						className="text-gray-700 dark:text-gray-300"
 					/>
 				</div>

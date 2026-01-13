@@ -17,11 +17,11 @@ import { DeckStats } from "@/components/deck/DeckStats";
 import { DragDropProvider } from "@/components/deck/DragDropProvider";
 import type { DragData } from "@/components/deck/DraggableCard";
 import { GoldfishView } from "@/components/deck/GoldfishView";
-import { PrimerSection } from "@/components/deck/PrimerSection";
 import { StatsCardList } from "@/components/deck/stats/StatsCardList";
 import { TrashDropZone } from "@/components/deck/TrashDropZone";
 import { ViewControls } from "@/components/deck/ViewControls";
 import { SaveToListButton } from "@/components/list/SaveToListButton";
+import { RichtextSection } from "@/components/richtext/RichtextSection";
 import { asRkey } from "@/lib/atproto-client";
 import { prefetchCards } from "@/lib/card-prefetch";
 import { getDeckQueryOptions, useUpdateDeckMutation } from "@/lib/deck-queries";
@@ -546,11 +546,12 @@ function DeckEditorInner({
 					readOnly={!isOwner}
 				/>
 				<ErrorBoundary fallback={null}>
-					<PrimerSection
-						primer={primer}
+					<RichtextSection
+						document={primer}
 						onSave={onPrimerSave}
 						isSaving={isSaving}
 						readOnly={!isOwner}
+						placeholder="Write about your deck's strategy, key combos, card choices..."
 					/>
 				</ErrorBoundary>
 			</div>

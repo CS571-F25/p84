@@ -3,10 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { CardImage } from "@/components/CardImage";
 import { ClientDate } from "@/components/ClientDate";
 import { type DeckData, DeckPreview } from "@/components/DeckPreview";
 import { ListActionsMenu } from "@/components/list/ListActionsMenu";
+import { RichtextSection } from "@/components/richtext/RichtextSection";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
 import {
 	getCollectionListQueryOptions,
@@ -22,6 +24,7 @@ import {
 } from "@/lib/collection-list-types";
 import { getDeckQueryOptions } from "@/lib/deck-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
+import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import { getImageUri } from "@/lib/scryfall-utils";
 import { useAuth } from "@/lib/useAuth";
@@ -136,6 +139,11 @@ function ListDetailPage() {
 		}
 	};
 
+	const handleDescriptionSave = (doc: Document) => {
+		if (!isOwner) return;
+		mutation.mutate({ ...list, description: doc });
+	};
+
 	const dateString = list.updatedAt ?? list.createdAt;
 
 	return (
@@ -189,9 +197,21 @@ function ListDetailPage() {
 						<span className="inline-block h-4 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse align-middle" />
 					)}
 				</p>
-				<p className="text-sm text-gray-500 dark:text-gray-500 mb-8">
+				<p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
 					Updated <ClientDate dateString={dateString} />
 				</p>
+
+				<div className="mb-8">
+					<ErrorBoundary fallback={null}>
+						<RichtextSection
+							document={list.description}
+							onSave={handleDescriptionSave}
+							isSaving={mutation.isPending}
+							readOnly={!isOwner}
+							placeholder="Describe what this list is about..."
+						/>
+					</ErrorBoundary>
+				</div>
 
 				{list.items.length === 0 ? (
 					<p className="text-gray-600 dark:text-gray-400 text-center py-12">
