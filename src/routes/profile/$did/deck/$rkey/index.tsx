@@ -72,7 +72,12 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 		const ogTitle = format ? `${deck.name} (${format})` : deck.name;
 
 		const cardCount = deck.cards.reduce((sum, c) => sum + c.quantity, 0);
-		const description = `${cardCount} card${cardCount === 1 ? "" : "s"}`;
+		const primerText = deck.primer
+			? documentToPlainText(deck.primer)
+			: undefined;
+		const description = primerText
+			? `${primerText.slice(0, 150)}${primerText.length > 150 ? "..." : ""}`
+			: `${cardCount} card${cardCount === 1 ? "" : "s"}`;
 
 		// Use first commander's image, or first card if no commanders
 		const commanders = deck.cards.filter((c) => c.section === "commander");

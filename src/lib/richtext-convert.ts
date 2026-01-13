@@ -550,3 +550,33 @@ function featureToMark(feature: unknown): Mark | null {
 			return null;
 	}
 }
+
+function blockToPlainText(
+	block: NonNullable<LexiconDocument["content"]>[number],
+): string {
+	switch (block.$type) {
+		case "com.deckbelcher.richtext#headingBlock":
+		case "com.deckbelcher.richtext#paragraphBlock":
+			return block.text ?? "";
+		case "com.deckbelcher.richtext#codeBlock":
+			return block.text;
+		case "com.deckbelcher.richtext#bulletListBlock":
+		case "com.deckbelcher.richtext#orderedListBlock":
+			return block.items.map((item) => item.text ?? "").join("\n");
+		case "com.deckbelcher.richtext#horizontalRuleBlock":
+			return "";
+		default:
+			return "";
+	}
+}
+
+/**
+ * Convert a lexicon Document to plain text, stripping all formatting.
+ * Useful for OpenGraph descriptions and other plain text contexts.
+ * Returns undefined if there's no content.
+ */
+export function documentToPlainText(doc: LexiconDocument): string | undefined {
+	if (!doc.content) return undefined;
+	const text = doc.content.map(blockToPlainText).join("\n").trim();
+	return text || undefined;
+}

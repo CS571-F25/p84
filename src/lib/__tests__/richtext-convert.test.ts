@@ -8,6 +8,7 @@ import type {
 	ParagraphBlock,
 } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import {
+	documentToPlainText,
 	type LexiconDocument,
 	lexiconToTree,
 	treeToLexicon,
@@ -1990,5 +1991,172 @@ describe("property tests", () => {
 			}),
 			{ numRuns: 1000 },
 		);
+	});
+});
+
+describe("documentToPlainText", () => {
+	it("returns undefined for empty content", () => {
+		const doc: LexiconDocument = { content: [] };
+		expect(documentToPlainText(doc)).toBeUndefined();
+	});
+
+	it("returns undefined for missing content", () => {
+		const doc: LexiconDocument = {} as LexiconDocument;
+		expect(documentToPlainText(doc)).toBeUndefined();
+	});
+
+	it("extracts text from paragraph", () => {
+		const doc: LexiconDocument = {
+			content: [
+				{
+					$type: "com.deckbelcher.richtext#paragraphBlock",
+					text: "Hello world",
+				},
+			],
+		};
+		expect(documentToPlainText(doc)).toMatchInlineSnapshot(`"Hello world"`);
+	});
+
+	it("extracts text from heading", () => {
+		const doc: LexiconDocument = {
+			content: [
+				{
+					$type: "com.deckbelcher.richtext#headingBlock",
+					level: 1,
+					text: "My Heading",
+				},
+			],
+		};
+		expect(documentToPlainText(doc)).toMatchInlineSnapshot(`"My Heading"`);
+	});
+
+	it("extracts text from code block", () => {
+		const doc: LexiconDocument = {
+			content: [
+				{
+					$type: "com.deckbelcher.richtext#codeBlock",
+					text: "const x = 1;",
+				},
+			],
+		};
+		expect(documentToPlainText(doc)).toMatchInlineSnapshot(`"const x = 1;"`);
+	});
+
+	it("extracts text from bullet list", () => {
+		const doc: LexiconDocument = {
+			content: [
+				{
+					$type: "com.deckbelcher.richtext#bulletListBlock",
+					items: [
+						{ $type: "com.deckbelcher.richtext#listItem", text: "Item one" },
+						{ $type: "com.deckbelcher.richtext#listItem", text: "Item two" },
+					],
+				},
+			],
+		};
+		expect(documentToPlainText(doc)).toMatchInlineSnapshot(`
+			"Item one
+			Item two"
+		`);
+	});
+
+	it("extracts text from ordered list", () => {
+		const doc: LexiconDocument = {
+			content: [
+				{
+					$type: "com.deckbelcher.richtext#orderedListBlock",
+					items: [
+						{ $type: "com.deckbelcher.richtext#listItem", text: "First" },
+						{ $type: "com.deckbelcher.richtext#listItem", text: "Second" },
+					],
+				},
+			],
+		};
+		expect(documentToPlainText(doc)).toMatchInlineSnapshot(`
+			"First
+			Second"
+		`);
+	});
+
+	it("ignores horizontal rules", () => {
+		const doc: LexiconDocument = {
+			content: [
+				{
+					$type: "com.deckbelcher.richtext#paragraphBlock",
+					text: "Before",
+				},
+				{ $type: "com.deckbelcher.richtext#horizontalRuleBlock" },
+				{
+					$type: "com.deckbelcher.richtext#paragraphBlock",
+					text: "After",
+				},
+			],
+		};
+		expect(documentToPlainText(doc)).toMatchInlineSnapshot(`
+			"Before
+
+			After"
+		`);
+	});
+
+	it("joins multiple blocks with newlines", () => {
+		const doc: LexiconDocument = {
+			content: [
+				{
+					$type: "com.deckbelcher.richtext#headingBlock",
+					level: 1,
+					text: "Title",
+				},
+				{
+					$type: "com.deckbelcher.richtext#paragraphBlock",
+					text: "First paragraph.",
+				},
+				{
+					$type: "com.deckbelcher.richtext#paragraphBlock",
+					text: "Second paragraph.",
+				},
+			],
+		};
+		expect(documentToPlainText(doc)).toMatchInlineSnapshot(`
+			"Title
+			First paragraph.
+			Second paragraph."
+		`);
+	});
+
+	it("strips formatting facets", () => {
+		const doc: LexiconDocument = {
+			content: [
+				{
+					$type: "com.deckbelcher.richtext#paragraphBlock",
+					text: "Bold and italic text",
+					facets: [
+						{
+							index: { byteStart: 0, byteEnd: 4 },
+							features: [{ $type: "com.deckbelcher.richtext.facet#bold" }],
+						},
+						{
+							index: { byteStart: 9, byteEnd: 15 },
+							features: [{ $type: "com.deckbelcher.richtext.facet#italic" }],
+						},
+					],
+				},
+			],
+		};
+		expect(documentToPlainText(doc)).toMatchInlineSnapshot(
+			`"Bold and italic text"`,
+		);
+	});
+
+	it("returns undefined for whitespace-only content", () => {
+		const doc: LexiconDocument = {
+			content: [
+				{
+					$type: "com.deckbelcher.richtext#paragraphBlock",
+					text: "   ",
+				},
+			],
+		};
+		expect(documentToPlainText(doc)).toBeUndefined();
 	});
 });

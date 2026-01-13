@@ -26,6 +26,7 @@ import { getDeckQueryOptions } from "@/lib/deck-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { getCardByIdQueryOptions } from "@/lib/queries";
+import { documentToPlainText } from "@/lib/richtext-convert";
 import { getImageUri } from "@/lib/scryfall-utils";
 import { useAuth } from "@/lib/useAuth";
 
@@ -51,7 +52,14 @@ export const Route = createFileRoute("/profile/$did/list/$rkey/")({
 			parts.push(`${cardCount} card${cardCount === 1 ? "" : "s"}`);
 		if (deckCount > 0)
 			parts.push(`${deckCount} deck${deckCount === 1 ? "" : "s"}`);
-		const description = parts.length > 0 ? parts.join(", ") : "Empty list";
+		const itemSummary = parts.length > 0 ? parts.join(", ") : "Empty list";
+
+		const descriptionText = list.description
+			? documentToPlainText(list.description)
+			: undefined;
+		const description = descriptionText
+			? `${descriptionText.slice(0, 150)}${descriptionText.length > 150 ? "..." : ""}`
+			: itemSummary;
 
 		const firstCard = list.items.find(isCardItem);
 		const cardImageUrl = firstCard
