@@ -1,7 +1,13 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { AlertCircle, ChevronDown, Loader2, Search } from "lucide-react";
+import {
+	AlertCircle,
+	ArrowUpDown,
+	ChevronDown,
+	Loader2,
+	Search,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CardSkeleton, CardThumbnail } from "@/components/CardImage";
 import { OracleText } from "@/components/OracleText";
@@ -312,7 +318,7 @@ function CardsPage() {
 
 				<div className="mb-4">
 					<div className="flex gap-2">
-						<div className="relative flex-1">
+						<div className="relative flex-1 min-w-0">
 							<Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
 							<input
 								ref={searchInputRef}
@@ -333,7 +339,7 @@ function CardsPage() {
 								}`}
 							/>
 						</div>
-						<div className="relative">
+						<div className="relative flex-shrink-0">
 							<select
 								value={sortOption.value}
 								onChange={(e) =>
@@ -342,7 +348,7 @@ function CardsPage() {
 										replace: true,
 									})
 								}
-								className="appearance-none h-full px-4 pr-10 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+								className="appearance-none h-full w-11 sm:w-auto pl-3 sm:pl-4 pr-3 sm:pr-10 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-transparent sm:text-gray-900 dark:sm:text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
 							>
 								{SORT_OPTIONS.map((opt) => (
 									<option key={opt.value} value={opt.value}>
@@ -350,7 +356,8 @@ function CardsPage() {
 									</option>
 								))}
 							</select>
-							<ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+							<ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none sm:hidden" />
+							<ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none hidden sm:block" />
 						</div>
 					</div>
 
