@@ -150,7 +150,7 @@ describe("parser property tests", () => {
 						}
 					},
 				),
-				{ numRuns: 50 },
+				{ numRuns: 500 },
 			);
 		});
 
@@ -166,7 +166,7 @@ describe("parser property tests", () => {
 						}
 					},
 				),
-				{ numRuns: 50 },
+				{ numRuns: 500 },
 			);
 		});
 
@@ -186,7 +186,7 @@ describe("parser property tests", () => {
 						}
 					}
 				}),
-				{ numRuns: 30 },
+				{ numRuns: 200 },
 			);
 		});
 
@@ -199,7 +199,7 @@ describe("parser property tests", () => {
 						expect(result.value.type).toBe("AND");
 					}
 				}),
-				{ numRuns: 50 },
+				{ numRuns: 500 },
 			);
 		});
 
@@ -209,7 +209,7 @@ describe("parser property tests", () => {
 					const result = parse(`((${a} or ${b}) (${c} or ${d}))`);
 					expect(result.ok).toBe(true);
 				}),
-				{ numRuns: 30 },
+				{ numRuns: 500 },
 			);
 		});
 	});

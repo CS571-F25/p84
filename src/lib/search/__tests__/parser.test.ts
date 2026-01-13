@@ -245,7 +245,9 @@ describe("parse", () => {
 	});
 
 	describe("property tests", () => {
-		const wordArb = fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9]{0,8}$/);
+		const wordArb = fc
+			.stringMatching(/^[a-zA-Z][a-zA-Z0-9]{0,8}$/)
+			.filter((w) => w.toLowerCase() !== "or");
 		const fieldArb = fc.constantFrom("t", "o", "c", "cmc", "pow");
 		const opArb = fc.constantFrom(":", "=", ">=", "<=", ">", "<");
 
@@ -255,7 +257,7 @@ describe("parse", () => {
 					const result = parse(`${field}${op}${value}`);
 					expect(result.ok).toBe(true);
 				}),
-				{ numRuns: 100 },
+				{ numRuns: 500 },
 			);
 		});
 
@@ -268,7 +270,7 @@ describe("parse", () => {
 						expect(result.ok).toBe(true);
 					},
 				),
-				{ numRuns: 100 },
+				{ numRuns: 500 },
 			);
 		});
 
@@ -281,7 +283,7 @@ describe("parse", () => {
 						expect(result.value.type).toBe("OR");
 					}
 				}),
-				{ numRuns: 50 },
+				{ numRuns: 500 },
 			);
 		});
 
@@ -294,7 +296,7 @@ describe("parse", () => {
 						expect(result.value.type).toBe("NOT");
 					}
 				}),
-				{ numRuns: 50 },
+				{ numRuns: 500 },
 			);
 		});
 
@@ -304,7 +306,7 @@ describe("parse", () => {
 					const result = parse(`(${a} or ${b})`);
 					expect(result.ok).toBe(true);
 				}),
-				{ numRuns: 50 },
+				{ numRuns: 500 },
 			);
 		});
 	});
