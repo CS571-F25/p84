@@ -2,21 +2,11 @@ import autocomplete, {
 	ActionKind,
 	type AutocompleteAction,
 	closeAutocomplete,
-	type FromTo,
 } from "prosemirror-autocomplete";
 import type { Plugin } from "prosemirror-state";
-import type { EditorView } from "prosemirror-view";
-import type { RefObject } from "react";
-import { useEffect, useLayoutEffect, useState } from "react";
-import { schema } from "./schema";
+import type { AutocompleteCallbacks } from "./useEditorAutocomplete";
 
-export interface MentionState {
-	active: boolean;
-	query: string;
-	range: FromTo;
-}
-
-interface MentionOption {
+export interface MentionOption {
 	handle: string;
 	did?: string;
 }
@@ -29,7 +19,7 @@ const MOCK_HANDLES: MentionOption[] = [
 	{ handle: "eve.example" },
 ];
 
-function filterHandles(query: string): MentionOption[] {
+export function filterHandles(query: string): MentionOption[] {
 	if (!query) return MOCK_HANDLES.slice(0, 5);
 	const lower = query.toLowerCase();
 	return MOCK_HANDLES.filter((h) =>
@@ -37,14 +27,8 @@ function filterHandles(query: string): MentionOption[] {
 	).slice(0, 5);
 }
 
-interface MentionPluginCallbacks {
-	onStateChange: (state: MentionState | null) => void;
-	getSelectedIndex: () => number;
-	getOptions: () => MentionOption[];
-}
-
 export function createMentionPlugin(
-	callbacks: MentionPluginCallbacks,
+	callbacks: AutocompleteCallbacks<MentionOption>,
 ): Plugin[] {
 	return autocomplete({
 		triggers: [{ name: "mention", trigger: "@" }],
@@ -60,7 +44,6 @@ export function createMentionPlugin(
 
 				case ActionKind.filter: {
 					const query = action.filter || "";
-					// Close on space - handles don't have spaces
 					if (query.includes(" ")) {
 						closeAutocomplete(action.view);
 						return true;
@@ -75,21 +58,10 @@ export function createMentionPlugin(
 
 				case ActionKind.up:
 				case ActionKind.down:
-					// Let the React component handle arrow keys via document listener
 					return false;
 
-				case ActionKind.enter: {
-					const options = callbacks.getOptions();
-					const selectedIndex = callbacks.getSelectedIndex();
-					const selected = options[selectedIndex];
-
-					if (selected) {
-						insertMention(action.view, action.range, selected);
-						callbacks.onStateChange(null);
-						return true;
-					}
-					return false;
-				}
+				case ActionKind.enter:
+					return false; // Let hook handle selection
 
 				case ActionKind.close:
 					callbacks.onStateChange(null);
@@ -102,102 +74,21 @@ export function createMentionPlugin(
 	});
 }
 
-function insertMention(
-	view: EditorView,
-	range: FromTo,
-	option: MentionOption,
-): void {
-	const mentionNode = schema.nodes.mention.create({
-		handle: option.handle,
-		did: option.did || null,
-	});
-
-	const tr = view.state.tr
-		.delete(range.from, range.to)
-		.insert(range.from, mentionNode)
-		.insertText(" ", range.from + 1);
-
-	view.dispatch(tr);
-	view.focus();
-}
-
-interface MentionPopupProps {
-	view: EditorView;
-	state: MentionState;
+interface MentionPopupContentProps {
+	options: MentionOption[];
 	selectedIndex: number;
-	onSelectIndex: (index: number) => void;
+	onSelectIndex: (i: number) => void;
 	onSelect: (option: MentionOption) => void;
-	onClose: () => void;
-	containerRef: RefObject<HTMLDivElement | null>;
+	position: { top: number; left: number };
 }
 
-export function MentionPopup({
-	view,
-	state,
+export function MentionPopupContent({
+	options,
 	selectedIndex,
 	onSelectIndex,
 	onSelect,
-	onClose,
-	containerRef,
-}: MentionPopupProps) {
-	const [position, setPosition] = useState<{ top: number; left: number }>({
-		top: 0,
-		left: 0,
-	});
-
-	const options = filterHandles(state.query);
-
-	// Position the popup relative to the container
-	useLayoutEffect(() => {
-		const container = containerRef.current;
-		if (!container) return;
-
-		try {
-			const coords = view.coordsAtPos(state.range.from);
-			const containerRect = container.getBoundingClientRect();
-			setPosition({
-				top: coords.bottom - containerRect.top + 4,
-				left: coords.left - containerRect.left,
-			});
-		} catch {
-			// Position might be invalid during rapid typing
-		}
-	}, [view, state.range.from, containerRef]);
-
-	// Keyboard navigation
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			switch (e.key) {
-				case "ArrowDown":
-					e.preventDefault();
-					e.stopPropagation();
-					onSelectIndex(Math.min(selectedIndex + 1, options.length - 1));
-					break;
-				case "ArrowUp":
-					e.preventDefault();
-					e.stopPropagation();
-					onSelectIndex(Math.max(selectedIndex - 1, 0));
-					break;
-				case "Enter":
-				case "Tab":
-					if (options[selectedIndex]) {
-						e.preventDefault();
-						e.stopPropagation();
-						onSelect(options[selectedIndex]);
-					}
-					break;
-				case "Escape":
-					e.preventDefault();
-					e.stopPropagation();
-					onClose();
-					break;
-			}
-		};
-
-		document.addEventListener("keydown", handleKeyDown, true);
-		return () => document.removeEventListener("keydown", handleKeyDown, true);
-	}, [options, selectedIndex, onSelectIndex, onSelect, onClose]);
-
+	position,
+}: MentionPopupContentProps) {
 	return (
 		<div
 			className="absolute z-50 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-lg py-1 w-56"
@@ -222,7 +113,7 @@ export function MentionPopup({
 						}`}
 						onMouseEnter={() => onSelectIndex(i)}
 						onMouseDown={(e) => {
-							e.preventDefault(); // Prevent blur
+							e.preventDefault();
 							onSelect(option);
 						}}
 					>
@@ -233,5 +124,3 @@ export function MentionPopup({
 		</div>
 	);
 }
-
-export { filterHandles, type MentionOption };
