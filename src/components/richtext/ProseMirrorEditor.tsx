@@ -76,7 +76,7 @@ export function ProseMirrorEditor({
 			},
 			attributes: {
 				class:
-					"prose dark:prose-invert prose-sm max-w-none focus:outline-none min-h-[8rem] p-3",
+					"focus:outline-none min-h-[8rem] p-3 text-gray-900 dark:text-gray-100",
 				"data-placeholder": initialPlaceholderRef.current,
 			},
 		});
