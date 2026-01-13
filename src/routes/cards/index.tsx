@@ -160,18 +160,20 @@ function CardsPage() {
 	const search = Route.useSearch();
 	const { value: debouncedSearchQuery } = useDebounce(search.q || "", 400);
 	const searchInputRef = useRef<HTMLInputElement>(null);
-	const lastTypedValue = useRef<string | null>(null);
+	const lastSyncedQuery = useRef<string>(search.q || "");
 
 	// Sync URL → input only for external changes (back button, link clicks)
 	useEffect(() => {
-		// If URL matches what we last typed, we caused this change - ignore
-		if (lastTypedValue.current === (search.q || "")) {
+		const urlQuery = search.q || "";
+		// Skip if we already synced this value (from typing or previous sync)
+		if (lastSyncedQuery.current === urlQuery) {
 			return;
 		}
 		// External change - sync input
 		if (searchInputRef.current) {
-			searchInputRef.current.value = search.q || "";
+			searchInputRef.current.value = urlQuery;
 		}
+		lastSyncedQuery.current = urlQuery;
 	}, [search.q]);
 	const listRef = useRef<HTMLDivElement>(null);
 	const columns = useColumns();
@@ -326,7 +328,7 @@ function CardsPage() {
 								placeholder="Search by name or try t:creature cmc<=3"
 								defaultValue={search.q}
 								onChange={(e) => {
-									lastTypedValue.current = e.target.value;
+									lastSyncedQuery.current = e.target.value;
 									navigate({
 										search: (prev) => ({ ...prev, q: e.target.value }),
 										replace: true,
