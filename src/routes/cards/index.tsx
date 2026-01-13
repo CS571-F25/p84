@@ -154,6 +154,19 @@ function CardsPage() {
 	const search = Route.useSearch();
 	const { value: debouncedSearchQuery } = useDebounce(search.q || "", 400);
 	const searchInputRef = useRef<HTMLInputElement>(null);
+	const lastTypedValue = useRef<string | null>(null);
+
+	// Sync URL → input only for external changes (back button, link clicks)
+	useEffect(() => {
+		// If URL matches what we last typed, we caused this change - ignore
+		if (lastTypedValue.current === (search.q || "")) {
+			return;
+		}
+		// External change - sync input
+		if (searchInputRef.current) {
+			searchInputRef.current.value = search.q || "";
+		}
+	}, [search.q]);
 	const listRef = useRef<HTMLDivElement>(null);
 	const columns = useColumns();
 	const hasRestoredScroll = useRef(false);
@@ -305,13 +318,14 @@ function CardsPage() {
 								ref={searchInputRef}
 								type="text"
 								placeholder="Search by name or try t:creature cmc<=3"
-								value={search.q}
-								onChange={(e) =>
+								defaultValue={search.q}
+								onChange={(e) => {
+									lastTypedValue.current = e.target.value;
 									navigate({
 										search: (prev) => ({ ...prev, q: e.target.value }),
 										replace: true,
-									})
-								}
+									});
+								}}
 								className={`w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-slate-800 border rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-colors ${
 									hasError
 										? "border-red-500 focus:border-red-500"
