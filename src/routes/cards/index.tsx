@@ -81,6 +81,27 @@ function useColumns() {
 	return columns;
 }
 
+// Calculate row height from viewport to avoid dynamic measurement (causes scroll stutter on mobile).
+// SYNC WARNING: These values must match the grid CSS in the render below:
+//   - gap-4 = 16px, pb-4 = 16px, px-6 = 24px each side, max-w-7xl = 1280px
+//   - Cards use aspect-[5/7]
+function getRowHeight(columns: number) {
+	if (typeof window === "undefined") return 300;
+
+	const GAP = 16;
+	const ROW_PADDING = 16;
+	const CONTAINER_PADDING = 24 * 2;
+	const MAX_WIDTH = 1280;
+
+	const viewportWidth = window.innerWidth;
+	const containerWidth = Math.min(viewportWidth, MAX_WIDTH) - CONTAINER_PADDING;
+	const totalGapWidth = GAP * (columns - 1);
+	const cardWidth = (containerWidth - totalGapWidth) / columns;
+	const cardHeight = cardWidth * (7 / 5);
+
+	return cardHeight + ROW_PADDING;
+}
+
 const SCROLL_STORAGE_KEY = "cards-scroll-position";
 
 const SORT_OPTIONS: { value: string; label: string; sort: SortOption }[] = [
@@ -148,9 +169,12 @@ function CardsPage() {
 
 	const rowCount = Math.ceil(totalCount / columns);
 
+	// Use calculated row height to minimize measurement corrections (causes scroll stutter on mobile)
+	const rowHeight = getRowHeight(columns);
+
 	const virtualizer = useWindowVirtualizer({
 		count: rowCount,
-		estimateSize: () => 300, // Initial estimate, measureElement will correct it
+		estimateSize: () => rowHeight,
 		overscan: 2,
 		scrollMargin: listRef.current?.offsetTop ?? 0,
 	});
