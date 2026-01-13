@@ -7,6 +7,25 @@ import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { lexiconToTree, treeToLexicon } from "@/lib/richtext-convert";
 import { type PMDocJSON, useProseMirror } from "@/lib/useProseMirror";
 
+type Block = NonNullable<Document["content"]>[number];
+
+function getBlockPlainText(block: Block): string {
+	switch (block.$type) {
+		case "com.deckbelcher.richtext#headingBlock":
+		case "com.deckbelcher.richtext#paragraphBlock":
+			return block.text ?? "";
+		case "com.deckbelcher.richtext#codeBlock":
+			return block.text;
+		case "com.deckbelcher.richtext#bulletListBlock":
+		case "com.deckbelcher.richtext#orderedListBlock":
+			return block.items.map((item) => item.text ?? "").join("\n");
+		case "com.deckbelcher.richtext#horizontalRuleBlock":
+			return "---";
+		default:
+			return "";
+	}
+}
+
 interface PrimerSectionProps {
 	primer?: Document;
 	onSave?: (doc: Document) => void;
@@ -52,7 +71,7 @@ export function PrimerSection({
 	// Get plain text for content check and line count
 	const plainText = useMemo(() => {
 		if (!primer?.content) return "";
-		return primer.content.map((block) => block.text ?? "").join("\n");
+		return primer.content.map(getBlockPlainText).join("\n");
 	}, [primer]);
 
 	const hasContent = plainText.trim().length > 0;

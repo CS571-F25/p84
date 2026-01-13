@@ -23,7 +23,15 @@ namespace com.deckbelcher.richtext {
   model Document {
     /** Array of blocks (paragraphs, headings, etc). */
     @required
-    content: (ParagraphBlock | HeadingBlock | unknown)[];
+    content: (
+      | ParagraphBlock
+      | HeadingBlock
+      | CodeBlock
+      | BulletListBlock
+      | OrderedListBlock
+      | HorizontalRuleBlock
+      | unknown
+    )[];
   }
 
   /** A paragraph block with text and optional facets. */
@@ -53,4 +61,47 @@ namespace com.deckbelcher.richtext {
     /** Annotations of text (formatting, mentions, links, etc). */
     facets?: com.deckbelcher.richtext.facet.Main[];
   }
+
+  /** A code block with optional language hint. */
+  model CodeBlock {
+    /** The code content (plain text, no facets). */
+    @required
+    @maxLength(100000)
+    text: string;
+
+    /** Optional language identifier for syntax highlighting. */
+    @maxLength(50)
+    language?: string;
+  }
+
+  /** An unordered (bullet) list. */
+  model BulletListBlock {
+    /** The list items. */
+    @required
+    items: ListItem[];
+  }
+
+  /** An ordered (numbered) list. */
+  model OrderedListBlock {
+    /** The list items. */
+    @required
+    items: ListItem[];
+
+    /** Starting number (default 1). */
+    start?: integer;
+  }
+
+  /** A single list item with text and optional facets. */
+  model ListItem {
+    /** The plain text content (no markdown symbols). */
+    @maxGraphemes(10000)
+    @maxLength(100000)
+    text?: string;
+
+    /** Annotations of text (formatting, mentions, links, etc). */
+    facets?: com.deckbelcher.richtext.facet.Main[];
+  }
+
+  /** A horizontal rule (thematic break). */
+  model HorizontalRuleBlock {}
 }

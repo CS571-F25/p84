@@ -1,12 +1,25 @@
 import { sanitizeUrl } from "@braintree/sanitize-url";
 import { memo, type ReactNode } from "react";
 import type {
+	BulletListBlock,
+	CodeBlock,
 	Document,
 	HeadingBlock,
+	HorizontalRuleBlock,
+	ListItem,
+	OrderedListBlock,
 	ParagraphBlock,
 } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import type { Main as Facet } from "@/lib/lexicons/types/com/deckbelcher/richtext/facet";
 import { segmentize } from "@/lib/richtext-convert";
+
+type Block =
+	| ParagraphBlock
+	| HeadingBlock
+	| CodeBlock
+	| BulletListBlock
+	| OrderedListBlock
+	| HorizontalRuleBlock;
 
 export interface RichtextRendererProps {
 	doc: Document | undefined;
@@ -34,7 +47,7 @@ export const RichtextRenderer = memo(function RichtextRenderer({
 const BlockRenderer = memo(function BlockRenderer({
 	block,
 }: {
-	block: ParagraphBlock | HeadingBlock;
+	block: Block;
 }): ReactNode {
 	switch (block.$type) {
 		case "com.deckbelcher.richtext#headingBlock": {
@@ -62,19 +75,72 @@ const BlockRenderer = memo(function BlockRenderer({
 			}
 		}
 
+		case "com.deckbelcher.richtext#codeBlock":
+			return (
+				<pre className="bg-gray-100 dark:bg-slate-800 rounded-lg p-3 my-2 overflow-x-auto">
+					<code className="font-mono text-sm text-gray-800 dark:text-gray-200">
+						{block.text}
+					</code>
+				</pre>
+			);
+
+		case "com.deckbelcher.richtext#bulletListBlock":
+			return (
+				<ul className="list-disc list-inside my-2 space-y-1">
+					{block.items.map((item, i) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: doc is immutable
+						<ListItemRenderer key={i} item={item} />
+					))}
+				</ul>
+			);
+
+		case "com.deckbelcher.richtext#orderedListBlock":
+			return (
+				<ol
+					className="list-decimal list-inside my-2 space-y-1"
+					start={block.start ?? 1}
+				>
+					{block.items.map((item, i) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: doc is immutable
+						<ListItemRenderer key={i} item={item} />
+					))}
+				</ol>
+			);
+
+		case "com.deckbelcher.richtext#horizontalRuleBlock":
+			return <hr className="my-4 border-gray-300 dark:border-slate-600" />;
+
 		default: {
-			const isEmpty = !block.text?.trim();
+			const para = block as ParagraphBlock;
+			const isEmpty = !para.text?.trim();
 			return (
 				<p>
 					{isEmpty ? (
 						<br />
 					) : (
-						<TextWithFacets text={block.text} facets={block.facets} />
+						<TextWithFacets text={para.text} facets={para.facets} />
 					)}
 				</p>
 			);
 		}
 	}
+});
+
+const ListItemRenderer = memo(function ListItemRenderer({
+	item,
+}: {
+	item: ListItem;
+}): ReactNode {
+	const isEmpty = !item.text?.trim();
+	return (
+		<li>
+			{isEmpty ? (
+				<br />
+			) : (
+				<TextWithFacets text={item.text} facets={item.facets} />
+			)}
+		</li>
+	);
 });
 
 function TextWithFacets({

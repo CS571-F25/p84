@@ -1,6 +1,22 @@
-import { Bold, Code, Italic, Link } from "lucide-react";
-import { toggleMark } from "prosemirror-commands";
-import type { MarkType } from "prosemirror-model";
+import {
+	Bold,
+	Code,
+	Heading1,
+	Heading2,
+	Italic,
+	Link,
+	List,
+	ListOrdered,
+	Minus,
+	Redo,
+	SquareCode,
+	Undo,
+} from "lucide-react";
+import { setBlockType, toggleMark } from "prosemirror-commands";
+import { redo, undo } from "prosemirror-history";
+import type { MarkType, NodeType } from "prosemirror-model";
+import { liftListItem, wrapInList } from "prosemirror-schema-list";
+import { TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { useCallback, useState } from "react";
 import { LinkModal } from "./LinkModal";
@@ -15,25 +31,21 @@ export function Toolbar({ view }: ToolbarProps) {
 		initialUrl: "",
 		initialText: "",
 		showTextInput: false,
-		// Range of existing link being edited, if any
 		linkRange: null as { from: number; to: number } | null,
 	});
 
 	const handleLinkSubmit = useCallback(
 		(url: string, text?: string) => {
 			if (!view) return;
-			// Default to https:// if no protocol provided
 			const href = /^[a-z][a-z0-9+.-]*:/i.test(url) ? url : `https://${url}`;
 			const linkMark = view.state.schema.marks.link.create({ href });
 			const tr = view.state.tr;
 
 			if (linkModalState.linkRange) {
-				// Editing existing link - remove old mark first, then add new one
 				const { from, to } = linkModalState.linkRange;
 				tr.removeMark(from, to, view.state.schema.marks.link);
 				tr.addMark(from, to, linkMark);
 			} else {
-				// New link
 				const { from, to } = view.state.selection;
 				const selectedText = view.state.doc.textBetween(from, to);
 
@@ -57,6 +69,7 @@ export function Toolbar({ view }: ToolbarProps) {
 	const { state } = view;
 	const { schema } = state;
 
+	// Mark helpers
 	const isMarkActive = (markType: MarkType) => {
 		const { from, $from, to, empty } = state.selection;
 		if (empty) {
@@ -72,18 +85,71 @@ export function Toolbar({ view }: ToolbarProps) {
 		};
 	};
 
+	// Block type helpers
+	const isBlockActive = (
+		nodeType: NodeType,
+		attrs?: Record<string, unknown>,
+	) => {
+		const { $from } = state.selection;
+		for (let d = $from.depth; d > 0; d--) {
+			const node = $from.node(d);
+			if (node.type === nodeType) {
+				if (!attrs) return true;
+				return Object.entries(attrs).every(
+					([key, value]) => node.attrs[key] === value,
+				);
+			}
+		}
+		return false;
+	};
+
+	const setBlock = (nodeType: NodeType, attrs?: Record<string, unknown>) => {
+		return () => {
+			// If already this block type, convert back to paragraph
+			if (isBlockActive(nodeType, attrs)) {
+				setBlockType(schema.nodes.paragraph)(state, view.dispatch);
+			} else {
+				setBlockType(nodeType, attrs)(state, view.dispatch);
+			}
+			view.focus();
+		};
+	};
+
+	const toggleList = (listType: NodeType) => {
+		return () => {
+			if (isBlockActive(listType)) {
+				liftListItem(schema.nodes.list_item)(state, view.dispatch);
+			} else {
+				wrapInList(listType)(state, view.dispatch);
+			}
+			view.focus();
+		};
+	};
+
+	const insertHorizontalRule = () => {
+		const tr = state.tr.replaceSelectionWith(
+			schema.nodes.horizontal_rule.create(),
+		);
+		// Always insert a paragraph after HR and move cursor there
+		const insertPos = tr.doc.content.size;
+		tr.insert(insertPos, schema.nodes.paragraph.create());
+		// Move selection to the new paragraph (position inside the paragraph)
+		tr.setSelection(TextSelection.near(tr.doc.resolve(insertPos + 1)));
+		view.dispatch(tr);
+		view.focus();
+	};
+
+	// Link modal logic
 	const openLinkModal = () => {
 		const { from, to, $from } = state.selection;
 		const selectedText = state.doc.textBetween(from, to);
 
-		// Check for existing link mark - either at cursor or in selection
 		let linkMark = schema.marks.link.isInSet($from.marks());
 		let existingUrl = linkMark?.attrs.href as string | undefined;
 
-		// If selection spans text, check if it contains a link
 		if (!linkMark && from !== to) {
 			state.doc.nodesBetween(from, to, (node) => {
-				if (linkMark) return false; // Already found one
+				if (linkMark) return false;
 				const mark = schema.marks.link.isInSet(node.marks);
 				if (mark) {
 					linkMark = mark;
@@ -93,11 +159,8 @@ export function Toolbar({ view }: ToolbarProps) {
 			});
 		}
 
-		// Find the full extent of the link mark if editing
 		let linkRange: { from: number; to: number } | null = null;
 		if (linkMark) {
-			// Walk through parent's inline content to find link boundaries
-			// We check actual node marks, not insertion marks (which differ for non-inclusive marks)
 			const $pos = from !== to ? state.doc.resolve(from + 1) : $from;
 			const parent = $pos.parent;
 			const parentOffset = $pos.start();
@@ -109,7 +172,6 @@ export function Toolbar({ view }: ToolbarProps) {
 
 			parent.forEach((node) => {
 				if (foundEnd) return;
-
 				const nodeEnd = pos + node.nodeSize;
 				const nodeLinkMark = schema.marks.link.isInSet(node.marks);
 
@@ -119,7 +181,6 @@ export function Toolbar({ view }: ToolbarProps) {
 				} else if (linkStart !== null) {
 					foundEnd = true;
 				}
-
 				pos = nodeEnd;
 			});
 
@@ -137,9 +198,34 @@ export function Toolbar({ view }: ToolbarProps) {
 		setLinkModalOpen(true);
 	};
 
+	const runUndo = () => {
+		undo(state, view.dispatch);
+		view.focus();
+	};
+
+	const runRedo = () => {
+		redo(state, view.dispatch);
+		view.focus();
+	};
+
 	return (
 		<>
-			<div className="flex items-center gap-1 p-2 border-b border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50">
+			<div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50">
+				{/* History */}
+				<ToolbarButton onClick={runUndo} active={false} title="Undo (Cmd+Z)">
+					<Undo className="w-4 h-4" />
+				</ToolbarButton>
+				<ToolbarButton
+					onClick={runRedo}
+					active={false}
+					title="Redo (Cmd+Shift+Z)"
+				>
+					<Redo className="w-4 h-4" />
+				</ToolbarButton>
+
+				<ToolbarDivider />
+
+				{/* Inline marks */}
 				<ToolbarButton
 					onClick={toggleMarkCommand(schema.marks.strong)}
 					active={isMarkActive(schema.marks.strong)}
@@ -157,17 +243,70 @@ export function Toolbar({ view }: ToolbarProps) {
 				<ToolbarButton
 					onClick={toggleMarkCommand(schema.marks.code)}
 					active={isMarkActive(schema.marks.code)}
-					title="Code (Cmd+`)"
+					title="Inline Code (Cmd+`)"
 				>
 					<Code className="w-4 h-4" />
 				</ToolbarButton>
-				<div className="w-px h-5 bg-gray-300 dark:bg-slate-600 mx-1" />
 				<ToolbarButton
 					onClick={openLinkModal}
 					active={isMarkActive(schema.marks.link)}
 					title={isMarkActive(schema.marks.link) ? "Edit Link" : "Insert Link"}
 				>
 					<Link className="w-4 h-4" />
+				</ToolbarButton>
+
+				<ToolbarDivider />
+
+				{/* Block types */}
+				<ToolbarButton
+					onClick={setBlock(schema.nodes.heading, { level: 1 })}
+					active={isBlockActive(schema.nodes.heading, { level: 1 })}
+					title="Heading 1"
+				>
+					<Heading1 className="w-4 h-4" />
+				</ToolbarButton>
+				<ToolbarButton
+					onClick={setBlock(schema.nodes.heading, { level: 2 })}
+					active={isBlockActive(schema.nodes.heading, { level: 2 })}
+					title="Heading 2"
+				>
+					<Heading2 className="w-4 h-4" />
+				</ToolbarButton>
+				<ToolbarButton
+					onClick={setBlock(schema.nodes.code_block)}
+					active={isBlockActive(schema.nodes.code_block)}
+					title="Code Block"
+				>
+					<SquareCode className="w-4 h-4" />
+				</ToolbarButton>
+
+				<ToolbarDivider />
+
+				{/* Lists */}
+				<ToolbarButton
+					onClick={toggleList(schema.nodes.bullet_list)}
+					active={isBlockActive(schema.nodes.bullet_list)}
+					title="Bullet List"
+				>
+					<List className="w-4 h-4" />
+				</ToolbarButton>
+				<ToolbarButton
+					onClick={toggleList(schema.nodes.ordered_list)}
+					active={isBlockActive(schema.nodes.ordered_list)}
+					title="Numbered List"
+				>
+					<ListOrdered className="w-4 h-4" />
+				</ToolbarButton>
+
+				<ToolbarDivider />
+
+				{/* Insert */}
+				<ToolbarButton
+					onClick={insertHorizontalRule}
+					active={false}
+					title="Horizontal Rule"
+				>
+					<Minus className="w-4 h-4" />
 				</ToolbarButton>
 			</div>
 			<LinkModal
@@ -180,6 +319,10 @@ export function Toolbar({ view }: ToolbarProps) {
 			/>
 		</>
 	);
+}
+
+function ToolbarDivider() {
+	return <div className="w-px h-5 bg-gray-300 dark:bg-slate-600 mx-1" />;
 }
 
 interface ToolbarButtonProps {

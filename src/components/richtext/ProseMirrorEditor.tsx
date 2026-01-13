@@ -2,6 +2,11 @@ import { baseKeymap, toggleMark } from "prosemirror-commands";
 import { history, redo, undo } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
+import {
+	liftListItem,
+	sinkListItem,
+	splitListItem,
+} from "prosemirror-schema-list";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -58,6 +63,12 @@ export function ProseMirrorEditor({
 					"Mod-b": toggleMark(schema.marks.strong),
 					"Mod-i": toggleMark(schema.marks.em),
 					"Mod-`": toggleMark(schema.marks.code),
+				}),
+				// List keybindings - must come before baseKeymap
+				keymap({
+					Enter: splitListItem(schema.nodes.list_item),
+					Tab: sinkListItem(schema.nodes.list_item),
+					"Shift-Tab": liftListItem(schema.nodes.list_item),
 				}),
 				keymap(baseKeymap),
 				// Trigger React re-render on state changes for toolbar updates

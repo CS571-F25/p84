@@ -2,7 +2,6 @@ import {
 	InputRule,
 	inputRules,
 	textblockTypeInputRule,
-	wrappingInputRule,
 } from "prosemirror-inputrules";
 import type { MarkType, NodeType, Schema } from "prosemirror-model";
 
@@ -36,13 +35,6 @@ export function buildInputRules(schema: Schema) {
 	if (schema.nodes.code_block) {
 		rules.push(
 			textblockTypeInputRule(/^```$/, schema.nodes.code_block as NodeType),
-		);
-	}
-
-	// Blockquote: > at start of line
-	if (schema.nodes.blockquote) {
-		rules.push(
-			wrappingInputRule(/^\s*>\s$/, schema.nodes.blockquote as NodeType),
 		);
 	}
 

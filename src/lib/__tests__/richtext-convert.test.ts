@@ -1,11 +1,18 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { schema } from "@/components/richtext/schema";
+import type {
+	HeadingBlock,
+	ParagraphBlock,
+} from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import {
 	type LexiconDocument,
 	lexiconToTree,
 	treeToLexicon,
 } from "@/lib/richtext-convert";
+
+/** Type helper for tests that expect paragraph/heading blocks */
+type TextBlock = ParagraphBlock | HeadingBlock;
 
 describe("treeToLexicon", () => {
 	describe("paragraphs", () => {
@@ -307,10 +314,11 @@ describe("treeToLexicon", () => {
 				]),
 			]);
 			const result = treeToLexicon(doc);
+			const block = result.content[0] as TextBlock;
 
 			// Marks with the same byte range are merged into a single facet
-			expect(result.content[0]?.facets).toHaveLength(1);
-			expect(result.content[0]?.facets?.[0]).toMatchObject({
+			expect(block.facets).toHaveLength(1);
+			expect(block.facets?.[0]).toMatchObject({
 				index: { byteStart: 0, byteEnd: 4 },
 				features: expect.arrayContaining([
 					{ $type: "com.deckbelcher.richtext.facet#bold" },
@@ -334,13 +342,14 @@ describe("treeToLexicon", () => {
 				]),
 			]);
 			const result = treeToLexicon(doc);
+			const block = result.content[0] as TextBlock;
 
 			// Should have facets for the bold region and italic region
 			// Bold: "BOLD both" = bytes 7-16
 			// Italic: "both ITALIC" = bytes 12-23
-			expect(result.content[0]?.text).toBe("normal BOLD both ITALIC normal");
+			expect(block.text).toBe("normal BOLD both ITALIC normal");
 
-			const facets = result.content[0]?.facets ?? [];
+			const facets = block.facets ?? [];
 			const boldFacet = facets.find(
 				(f) => f.features[0]?.$type === "com.deckbelcher.richtext.facet#bold",
 			);
@@ -362,10 +371,11 @@ describe("treeToLexicon", () => {
 				]),
 			]);
 			const result = treeToLexicon(doc);
+			const block = result.content[0] as TextBlock;
 
 			// Marks with the same byte range are merged into a single facet
-			expect(result.content[0]?.facets).toHaveLength(1);
-			expect(result.content[0]?.facets?.[0]).toMatchObject({
+			expect(block.facets).toHaveLength(1);
+			expect(block.facets?.[0]).toMatchObject({
 				index: { byteStart: 0, byteEnd: 5 },
 				features: expect.arrayContaining([
 					{ $type: "com.deckbelcher.richtext.facet#bold" },
@@ -1190,7 +1200,7 @@ describe("property tests", () => {
 
 				for (let i = 0; i < doc.childCount; i++) {
 					const blockText = doc.child(i).textContent;
-					const lexiconBlock = lexicon.content[i];
+					const lexiconBlock = lexicon.content[i] as TextBlock | undefined;
 					const lexiconText = lexiconBlock?.text ?? "";
 
 					if (blockText !== lexiconText) {
@@ -1210,7 +1220,7 @@ describe("property tests", () => {
 
 				for (let i = 0; i < doc.childCount; i++) {
 					const block = doc.child(i);
-					const lexiconBlock = lexicon.content[i];
+					const lexiconBlock = lexicon.content[i] as TextBlock | undefined;
 
 					// Count unique marks in this block
 					const markTypes = new Set<string>();
@@ -1244,7 +1254,8 @@ describe("property tests", () => {
 			fc.property(arbDocument, (doc) => {
 				const lexicon = treeToLexicon(doc);
 
-				for (const block of lexicon.content) {
+				for (const lexiconBlock of lexicon.content) {
+					const block = lexiconBlock as TextBlock;
 					const text = block.text ?? "";
 					const textBytes = new TextEncoder().encode(text);
 					const facets = block.facets ?? [];

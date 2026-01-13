@@ -1,8 +1,13 @@
 import type { Mark, Node as ProseMirrorNode } from "prosemirror-model";
 import { schema } from "@/components/richtext/schema";
 import type {
+	BulletListBlock,
+	CodeBlock,
 	HeadingBlock,
+	HorizontalRuleBlock,
 	Document as LexiconDocument,
+	ListItem,
+	OrderedListBlock,
 	ParagraphBlock,
 } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import type {
@@ -23,7 +28,14 @@ type Typed<T> = T extends { $type?: string }
 	? T & { $type: NonNullable<T["$type"]> }
 	: T;
 
-type Block = Typed<ParagraphBlock | HeadingBlock>;
+type Block = Typed<
+	| ParagraphBlock
+	| HeadingBlock
+	| CodeBlock
+	| BulletListBlock
+	| OrderedListBlock
+	| HorizontalRuleBlock
+>;
 type Feature = Typed<Bold | Italic | Code | Link>;
 
 /**
@@ -33,12 +45,26 @@ export function treeToLexicon(doc: ProseMirrorNode): LexiconDocument {
 	const content: Block[] = [];
 
 	doc.forEach((block) => {
-		if (block.type.name === "paragraph") {
-			content.push(paragraphToLexicon(block));
-		} else if (block.type.name === "heading") {
-			content.push(headingToLexicon(block));
+		switch (block.type.name) {
+			case "paragraph":
+				content.push(paragraphToLexicon(block));
+				break;
+			case "heading":
+				content.push(headingToLexicon(block));
+				break;
+			case "code_block":
+				content.push(codeBlockToLexicon(block));
+				break;
+			case "bullet_list":
+				content.push(bulletListToLexicon(block));
+				break;
+			case "ordered_list":
+				content.push(orderedListToLexicon(block));
+				break;
+			case "horizontal_rule":
+				content.push(horizontalRuleToLexicon());
+				break;
 		}
-		// TODO: handle other block types (code_block, blockquote)
 	});
 
 	return { content };
@@ -68,6 +94,74 @@ function headingToLexicon(node: ProseMirrorNode): Typed<HeadingBlock> {
 		text: text || undefined,
 		facets: facets.length > 0 ? facets : undefined,
 	};
+}
+
+/**
+ * Convert a code_block node to lexicon format.
+ */
+function codeBlockToLexicon(node: ProseMirrorNode): Typed<CodeBlock> {
+	return {
+		$type: "com.deckbelcher.richtext#codeBlock",
+		text: node.textContent,
+		language: (node.attrs.params as string) || undefined,
+	};
+}
+
+/**
+ * Collect children of a node into an array.
+ */
+function childrenOf(node: ProseMirrorNode): ProseMirrorNode[] {
+	const children: ProseMirrorNode[] = [];
+	node.forEach((child) => {
+		children.push(child);
+	});
+	return children;
+}
+
+/**
+ * Convert a bullet_list node to lexicon format.
+ */
+function bulletListToLexicon(node: ProseMirrorNode): Typed<BulletListBlock> {
+	return {
+		$type: "com.deckbelcher.richtext#bulletListBlock",
+		items: childrenOf(node).map(listItemToLexicon),
+	};
+}
+
+/**
+ * Convert an ordered_list node to lexicon format.
+ */
+function orderedListToLexicon(node: ProseMirrorNode): Typed<OrderedListBlock> {
+	const start = (node.attrs.order as number) || 1;
+	return {
+		$type: "com.deckbelcher.richtext#orderedListBlock",
+		items: childrenOf(node).map(listItemToLexicon),
+		start: start !== 1 ? start : undefined,
+	};
+}
+
+/**
+ * Convert a list_item node to lexicon format.
+ * Extracts text from the first paragraph child.
+ */
+function listItemToLexicon(node: ProseMirrorNode): Typed<ListItem> {
+	const firstParagraph = node.firstChild;
+	if (firstParagraph?.type.name === "paragraph") {
+		const { text, facets } = extractTextAndFacets(firstParagraph);
+		return {
+			$type: "com.deckbelcher.richtext#listItem",
+			text: text || undefined,
+			facets: facets.length > 0 ? facets : undefined,
+		};
+	}
+	return { $type: "com.deckbelcher.richtext#listItem" };
+}
+
+/**
+ * Convert a horizontal_rule node to lexicon format.
+ */
+function horizontalRuleToLexicon(): Typed<HorizontalRuleBlock> {
+	return { $type: "com.deckbelcher.richtext#horizontalRuleBlock" };
 }
 
 /**
@@ -224,12 +318,18 @@ export function lexiconToTree(doc: LexiconDocument): ProseMirrorNode {
 	return schema.node("doc", null, blocks);
 }
 
-function lexiconBlockToTree(
-	block: ParagraphBlock | HeadingBlock,
-): ProseMirrorNode {
+function lexiconBlockToTree(block: Block): ProseMirrorNode {
 	switch (block.$type) {
 		case "com.deckbelcher.richtext#headingBlock":
 			return lexiconHeadingToTree(block);
+		case "com.deckbelcher.richtext#codeBlock":
+			return lexiconCodeBlockToTree(block);
+		case "com.deckbelcher.richtext#bulletListBlock":
+			return lexiconBulletListToTree(block);
+		case "com.deckbelcher.richtext#orderedListBlock":
+			return lexiconOrderedListToTree(block);
+		case "com.deckbelcher.richtext#horizontalRuleBlock":
+			return schema.node("horizontal_rule");
 		default:
 			return lexiconParagraphToTree(block as ParagraphBlock);
 	}
@@ -259,6 +359,35 @@ function lexiconHeadingToTree(block: HeadingBlock): ProseMirrorNode {
 		{ level },
 		nodes.length > 0 ? nodes : undefined,
 	);
+}
+
+function lexiconCodeBlockToTree(block: CodeBlock): ProseMirrorNode {
+	return schema.node(
+		"code_block",
+		{ params: block.language || "" },
+		block.text ? [schema.text(block.text)] : undefined,
+	);
+}
+
+function lexiconBulletListToTree(block: BulletListBlock): ProseMirrorNode {
+	const items = block.items.map(lexiconListItemToTree);
+	return schema.node("bullet_list", null, items);
+}
+
+function lexiconOrderedListToTree(block: OrderedListBlock): ProseMirrorNode {
+	const items = block.items.map(lexiconListItemToTree);
+	return schema.node("ordered_list", { order: block.start || 1 }, items);
+}
+
+function lexiconListItemToTree(item: ListItem): ProseMirrorNode {
+	const text = item.text || "";
+	if (!text) {
+		return schema.node("list_item", null, [schema.node("paragraph")]);
+	}
+	const nodes = textAndFacetsToNodes(text, item.facets || []);
+	return schema.node("list_item", null, [
+		schema.node("paragraph", null, nodes.length > 0 ? nodes : undefined),
+	]);
 }
 
 export interface Segment {
