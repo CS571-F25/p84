@@ -7,6 +7,9 @@ import type { PMDocJSON } from "@/lib/useProseMirror";
 
 export const Route = createFileRoute("/pm-demo")({
 	component: ProseMirrorDemo,
+	head: () => ({
+		meta: [{ title: "Editor Demo | DeckBelcher" }],
+	}),
 });
 
 const SAMPLE_DOC: Document = {

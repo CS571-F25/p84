@@ -7,6 +7,9 @@ import { RETURN_TO_KEY, useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/signin")({
 	component: SignIn,
+	head: () => ({
+		meta: [{ title: "Sign In | DeckBelcher" }],
+	}),
 });
 
 function SignIn() {

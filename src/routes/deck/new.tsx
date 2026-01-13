@@ -5,6 +5,9 @@ import { FORMAT_GROUPS } from "@/lib/format-utils";
 
 export const Route = createFileRoute("/deck/new")({
 	component: NewDeckPage,
+	head: () => ({
+		meta: [{ title: "New Deck | DeckBelcher" }],
+	}),
 });
 
 function NewDeckPage() {

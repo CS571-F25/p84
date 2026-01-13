@@ -28,6 +28,9 @@ export const Route = createFileRoute("/cards/")({
 			sort: (search.sort as string) || undefined,
 		};
 	},
+	head: () => ({
+		meta: [{ title: "Cards | DeckBelcher" }],
+	}),
 });
 
 function MetadataDisplay() {

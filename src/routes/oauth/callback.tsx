@@ -6,6 +6,9 @@ import { RETURN_TO_KEY, useAuth } from "@/lib/useAuth";
 export const Route = createFileRoute("/oauth/callback")({
 	component: OAuthCallback,
 	ssr: false,
+	head: () => ({
+		meta: [{ title: "Signing In... | DeckBelcher" }],
+	}),
 });
 
 function OAuthCallback() {

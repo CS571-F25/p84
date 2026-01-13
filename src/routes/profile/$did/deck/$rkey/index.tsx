@@ -38,6 +38,7 @@ import {
 import { formatDisplayName } from "@/lib/format-utils";
 import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { getCardByIdQueryOptions } from "@/lib/queries";
+import { documentToPlainText } from "@/lib/richtext-convert";
 import type { ScryfallId } from "@/lib/scryfall-types";
 import { getImageUri } from "@/lib/scryfall-utils";
 import { getSelectedCards, type StatsSelection } from "@/lib/stats-selection";

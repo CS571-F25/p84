@@ -30,7 +30,7 @@ export const Route = createFileRoute("/profile/$did/")({
 	}),
 	loader: async ({ context, params }) => {
 		// Prefetch deck list, collection lists, and DID document during SSR
-		await Promise.all([
+		const [, , didDocument] = await Promise.all([
 			context.queryClient.ensureQueryData(
 				listUserDecksQueryOptions(params.did as Did),
 			),
@@ -41,6 +41,11 @@ export const Route = createFileRoute("/profile/$did/")({
 				didDocumentQueryOptions(params.did as Did),
 			),
 		]);
+		return { handle: extractHandle(didDocument) };
+	},
+	head: ({ loaderData }) => {
+		const display = loaderData?.handle ? `@${loaderData.handle}` : "Profile";
+		return { meta: [{ title: `${display} | DeckBelcher` }] };
 	},
 });
 
