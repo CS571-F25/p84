@@ -86,7 +86,7 @@ const BlockRenderer = memo(function BlockRenderer({
 
 		case "com.deckbelcher.richtext#bulletListBlock":
 			return (
-				<ul className="list-disc list-inside my-2 space-y-1">
+				<ul className="list-disc pl-6 my-2 space-y-1">
 					{block.items.map((item, i) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: doc is immutable
 						<ListItemRenderer key={i} item={item} />
@@ -97,7 +97,7 @@ const BlockRenderer = memo(function BlockRenderer({
 		case "com.deckbelcher.richtext#orderedListBlock":
 			return (
 				<ol
-					className="list-decimal list-inside my-2 space-y-1"
+					className="list-decimal pl-6 my-2 space-y-1"
 					start={block.start ?? 1}
 				>
 					{block.items.map((item, i) => (

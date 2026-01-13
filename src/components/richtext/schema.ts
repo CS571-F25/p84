@@ -131,7 +131,9 @@ const nodes: Record<string, NodeSpec> = {
 			return [
 				"ol",
 				{
-					class: "list-decimal pl-6 my-2 space-y-1",
+					// Nested: 1,2,3 → a,b,c → i,ii,iii
+					class:
+						"list-decimal pl-6 my-2 space-y-1 [&_ol]:list-[lower-alpha] [&_ol_ol]:list-[lower-roman]",
 					start: node.attrs.order === 1 ? null : node.attrs.order,
 					"data-tight": node.attrs.tight ? "true" : null,
 				},
@@ -156,7 +158,9 @@ const nodes: Record<string, NodeSpec> = {
 			return [
 				"ul",
 				{
-					class: "list-disc pl-6 my-2 space-y-1",
+					// Nested: disc → circle → square
+					class:
+						"list-disc pl-6 my-2 space-y-1 [&_ul]:list-[circle] [&_ul_ul]:list-[square]",
 					"data-tight": node.attrs.tight ? "true" : null,
 				},
 				0,
