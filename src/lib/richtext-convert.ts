@@ -142,19 +142,41 @@ function orderedListToLexicon(node: ProseMirrorNode): Typed<OrderedListBlock> {
 
 /**
  * Convert a list_item node to lexicon format.
- * Extracts text from the first paragraph child.
+ * Extracts text from the first paragraph child and any nested list.
  */
 function listItemToLexicon(node: ProseMirrorNode): Typed<ListItem> {
-	const firstParagraph = node.firstChild;
+	const children = childrenOf(node);
+	const firstParagraph = children[0];
+
+	let text: string | undefined;
+	let facets: Facet[] | undefined;
+
 	if (firstParagraph?.type.name === "paragraph") {
-		const { text, facets } = extractTextAndFacets(firstParagraph);
-		return {
-			$type: "com.deckbelcher.richtext#listItem",
-			text: text || undefined,
-			facets: facets.length > 0 ? facets : undefined,
-		};
+		const extracted = extractTextAndFacets(firstParagraph);
+		text = extracted.text || undefined;
+		facets = extracted.facets.length > 0 ? extracted.facets : undefined;
 	}
-	return { $type: "com.deckbelcher.richtext#listItem" };
+
+	// Look for nested list after the first paragraph
+	let sublist: Typed<BulletListBlock> | Typed<OrderedListBlock> | undefined;
+	for (let i = 1; i < children.length; i++) {
+		const child = children[i];
+		if (child.type.name === "bullet_list") {
+			sublist = bulletListToLexicon(child);
+			break;
+		}
+		if (child.type.name === "ordered_list") {
+			sublist = orderedListToLexicon(child);
+			break;
+		}
+	}
+
+	return {
+		$type: "com.deckbelcher.richtext#listItem",
+		text,
+		facets,
+		sublist,
+	};
 }
 
 /**
@@ -381,13 +403,33 @@ function lexiconOrderedListToTree(block: OrderedListBlock): ProseMirrorNode {
 
 function lexiconListItemToTree(item: ListItem): ProseMirrorNode {
 	const text = item.text || "";
-	if (!text) {
-		return schema.node("list_item", null, [schema.node("paragraph")]);
+	const content: ProseMirrorNode[] = [];
+
+	// First paragraph (required by schema)
+	if (text) {
+		const nodes = textAndFacetsToNodes(text, item.facets || []);
+		content.push(
+			schema.node("paragraph", null, nodes.length > 0 ? nodes : undefined),
+		);
+	} else {
+		content.push(schema.node("paragraph"));
 	}
-	const nodes = textAndFacetsToNodes(text, item.facets || []);
-	return schema.node("list_item", null, [
-		schema.node("paragraph", null, nodes.length > 0 ? nodes : undefined),
-	]);
+
+	// Nested sublist if present
+	if (item.sublist) {
+		const sublistType = (item.sublist as { $type?: string }).$type;
+		if (sublistType === "com.deckbelcher.richtext#bulletListBlock") {
+			content.push(
+				lexiconBulletListToTree(item.sublist as unknown as BulletListBlock),
+			);
+		} else if (sublistType === "com.deckbelcher.richtext#orderedListBlock") {
+			content.push(
+				lexiconOrderedListToTree(item.sublist as unknown as OrderedListBlock),
+			);
+		}
+	}
+
+	return schema.node("list_item", null, content);
 }
 
 export interface Segment {

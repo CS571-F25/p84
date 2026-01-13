@@ -147,9 +147,17 @@
             "ref": "com.deckbelcher.richtext.facet"
           },
           "description": "Annotations of text (formatting, mentions, links, etc)."
+        },
+        "sublist": {
+          "type": "union",
+          "refs": [
+            "#bulletListBlock",
+            "#orderedListBlock"
+          ],
+          "description": "Optional nested sublist (bullet or ordered)."
         }
       },
-      "description": "A single list item with text and optional facets."
+      "description": "A single list item with text, optional facets, and optional sublist."
     },
     "orderedListBlock": {
       "type": "object",

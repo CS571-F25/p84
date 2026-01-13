@@ -326,6 +326,107 @@ describe("treeToLexicon", () => {
 		});
 	});
 
+	describe("nested lists", () => {
+		it("converts bullet list with nested bullet list", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("bullet_list", null, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Parent item")]),
+						schema.node("bullet_list", null, [
+							schema.node("list_item", null, [
+								schema.node("paragraph", null, [schema.text("Nested item 1")]),
+							]),
+							schema.node("list_item", null, [
+								schema.node("paragraph", null, [schema.text("Nested item 2")]),
+							]),
+						]),
+					]),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+			const block = result.content[0] as BulletListBlock;
+
+			expect(block.items).toHaveLength(1);
+			expect(block.items[0].text).toBe("Parent item");
+			expect(block.items[0].sublist).toBeDefined();
+			expect(block.items[0].sublist?.$type).toBe(
+				"com.deckbelcher.richtext#bulletListBlock",
+			);
+			const sublist = block.items[0].sublist as BulletListBlock;
+			expect(sublist.items).toHaveLength(2);
+			expect(sublist.items[0].text).toBe("Nested item 1");
+			expect(sublist.items[1].text).toBe("Nested item 2");
+		});
+
+		it("converts ordered list with nested ordered list", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("ordered_list", { order: 1 }, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Step 1")]),
+						schema.node("ordered_list", { order: 1 }, [
+							schema.node("list_item", null, [
+								schema.node("paragraph", null, [schema.text("Step 1.a")]),
+							]),
+						]),
+					]),
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Step 2")]),
+					]),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+			const block = result.content[0] as OrderedListBlock;
+
+			expect(block.items).toHaveLength(2);
+			expect(block.items[0].text).toBe("Step 1");
+			expect(block.items[0].sublist?.$type).toBe(
+				"com.deckbelcher.richtext#orderedListBlock",
+			);
+			expect(block.items[1].text).toBe("Step 2");
+			expect(block.items[1].sublist).toBeUndefined();
+		});
+
+		it("converts mixed nested lists (bullet in ordered)", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("ordered_list", { order: 1 }, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Main point")]),
+						schema.node("bullet_list", null, [
+							schema.node("list_item", null, [
+								schema.node("paragraph", null, [schema.text("Sub-bullet")]),
+							]),
+						]),
+					]),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+			const block = result.content[0] as OrderedListBlock;
+
+			expect(block.items[0].sublist?.$type).toBe(
+				"com.deckbelcher.richtext#bulletListBlock",
+			);
+		});
+
+		it("roundtrips nested list structure", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("bullet_list", null, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Parent")]),
+						schema.node("bullet_list", null, [
+							schema.node("list_item", null, [
+								schema.node("paragraph", null, [schema.text("Child")]),
+							]),
+						]),
+					]),
+				]),
+			]);
+			const lexicon = treeToLexicon(doc);
+			const result = lexiconToTree(lexicon);
+
+			expect(result.eq(doc)).toBe(true);
+		});
+	});
+
 	describe("horizontal rules", () => {
 		it("converts horizontal rule", () => {
 			const doc = schema.node("doc", null, [schema.node("horizontal_rule")]);
@@ -1501,17 +1602,46 @@ describe("property tests", () => {
 			),
 		);
 
-	// Arbitrary for a list item
-	const arbListItem = arbParagraphContent.map((content) =>
+	// Arbitrary for a flat list item (no nesting)
+	const arbFlatListItem = arbParagraphContent.map((content) =>
 		schema.node("list_item", null, [schema.node("paragraph", null, content)]),
 	);
 
-	// Arbitrary for bullet list (1-4 items)
+	// Arbitrary for flat bullet list (no nesting)
+	const arbFlatBulletList = fc
+		.array(arbFlatListItem, { minLength: 1, maxLength: 3 })
+		.map((items) => schema.node("bullet_list", null, items));
+
+	// Arbitrary for flat ordered list (no nesting)
+	const arbFlatOrderedList = fc
+		.tuple(
+			fc.array(arbFlatListItem, { minLength: 1, maxLength: 3 }),
+			fc.integer({ min: 1, max: 10 }),
+		)
+		.map(([items, start]) =>
+			schema.node("ordered_list", { order: start }, items),
+		);
+
+	// Arbitrary for a nested sublist (bullet or ordered, flat)
+	const arbSublist = fc.oneof(arbFlatBulletList, arbFlatOrderedList);
+
+	// Arbitrary for a list item with optional nested sublist
+	const arbListItem = fc
+		.tuple(arbParagraphContent, fc.option(arbSublist, { nil: undefined }))
+		.map(([content, sublist]) => {
+			const children = [schema.node("paragraph", null, content)];
+			if (sublist) {
+				children.push(sublist);
+			}
+			return schema.node("list_item", null, children);
+		});
+
+	// Arbitrary for bullet list (1-4 items, may have nesting)
 	const arbBulletList = fc
 		.array(arbListItem, { minLength: 1, maxLength: 4 })
 		.map((items) => schema.node("bullet_list", null, items));
 
-	// Arbitrary for ordered list with optional start number
+	// Arbitrary for ordered list with optional start number (may have nesting)
 	const arbOrderedList = fc
 		.tuple(
 			fc.array(arbListItem, { minLength: 1, maxLength: 4 }),

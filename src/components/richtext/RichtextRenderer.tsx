@@ -86,7 +86,7 @@ const BlockRenderer = memo(function BlockRenderer({
 
 		case "com.deckbelcher.richtext#bulletListBlock":
 			return (
-				<ul className="list-disc pl-6 my-2 space-y-1">
+				<ul className="list-disc pl-6 my-2 space-y-1 [&_ul]:list-[circle] [&_ul_ul]:list-[square]">
 					{block.items.map((item, i) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: doc is immutable
 						<ListItemRenderer key={i} item={item} />
@@ -97,7 +97,7 @@ const BlockRenderer = memo(function BlockRenderer({
 		case "com.deckbelcher.richtext#orderedListBlock":
 			return (
 				<ol
-					className="list-decimal pl-6 my-2 space-y-1"
+					className="list-decimal pl-6 my-2 space-y-1 [&_ol]:list-[lower-alpha] [&_ol_ol]:list-[lower-roman]"
 					start={block.start ?? 1}
 				>
 					{block.items.map((item, i) => (
@@ -132,12 +132,33 @@ const ListItemRenderer = memo(function ListItemRenderer({
 	item: ListItem;
 }): ReactNode {
 	const isEmpty = !item.text?.trim();
+	const sublistType = (item.sublist as { $type?: string } | undefined)?.$type;
+
 	return (
 		<li>
 			{isEmpty ? (
 				<br />
 			) : (
 				<TextWithFacets text={item.text} facets={item.facets} />
+			)}
+			{sublistType === "com.deckbelcher.richtext#bulletListBlock" && (
+				<ul className="list-disc pl-6 mt-1 space-y-1">
+					{(item.sublist as BulletListBlock).items.map((subItem, i) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: doc is immutable
+						<ListItemRenderer key={i} item={subItem} />
+					))}
+				</ul>
+			)}
+			{sublistType === "com.deckbelcher.richtext#orderedListBlock" && (
+				<ol
+					className="list-decimal pl-6 mt-1 space-y-1"
+					start={(item.sublist as OrderedListBlock).start ?? 1}
+				>
+					{(item.sublist as OrderedListBlock).items.map((subItem, i) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: doc is immutable
+						<ListItemRenderer key={i} item={subItem} />
+					))}
+				</ol>
 			)}
 		</li>
 	);

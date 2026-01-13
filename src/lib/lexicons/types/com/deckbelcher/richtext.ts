@@ -104,6 +104,14 @@ const _listItemSchema = /*#__PURE__*/ v.object({
     );
   },
   /**
+   * Optional nested sublist (bullet or ordered).
+   */
+  get sublist() {
+    return /*#__PURE__*/ v.optional(
+      /*#__PURE__*/ v.variant([bulletListBlockSchema, orderedListBlockSchema]),
+    );
+  },
+  /**
    * The plain text content (no markdown symbols).
    * @maxLength 100000
    * @maxGraphemes 10000

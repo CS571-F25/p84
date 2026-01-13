@@ -91,7 +91,7 @@ namespace com.deckbelcher.richtext {
     start?: integer;
   }
 
-  /** A single list item with text and optional facets. */
+  /** A single list item with text, optional facets, and optional sublist. */
   model ListItem {
     /** The plain text content (no markdown symbols). */
     @maxGraphemes(10000)
@@ -100,6 +100,9 @@ namespace com.deckbelcher.richtext {
 
     /** Annotations of text (formatting, mentions, links, etc). */
     facets?: com.deckbelcher.richtext.facet.Main[];
+
+    /** Optional nested sublist (bullet or ordered). */
+    sublist?: BulletListBlock | OrderedListBlock | unknown;
   }
 
   /** A horizontal rule (thematic break). */
