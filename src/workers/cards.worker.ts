@@ -296,7 +296,7 @@ class CardsWorker implements CardsWorkerAPI {
 			storeFields: ["id", "oracle_id", "name"],
 			searchOptions: {
 				prefix: true, // "bol" matches "bolt"
-				fuzzy: 0.2, // ~2 char tolerance
+				fuzzy: 0.3, // ~2 char tolerance
 				combineWith: "AND", // all terms must match
 				weights: {
 					prefix: 0.7, // exact (1.0) > prefix (0.7) > fuzzy
