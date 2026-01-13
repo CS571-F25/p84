@@ -8,6 +8,12 @@ import {
 
 type Theme = "light" | "dark";
 
+// Theme colors for browser chrome (theme-color meta tag)
+export const THEME_COLORS = {
+	light: "#ffffff",
+	dark: "#0f172a", // slate-900
+} as const;
+
 interface ThemeContextValue {
 	theme: Theme | undefined;
 	setTheme: (theme: Theme) => void;
@@ -58,6 +64,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 		const root = document.documentElement;
 		root.classList.remove("light", "dark");
 		root.classList.add(theme);
+	}, [theme]);
+
+	// Update theme-color meta tag (browsers use this to theme their chrome)
+	useEffect(() => {
+		if (!theme) return;
+		const meta = document.getElementById("theme-color");
+		if (meta) {
+			meta.setAttribute("content", THEME_COLORS[theme]);
+		}
 	}, [theme]);
 
 	// Sync theme changes across tabs

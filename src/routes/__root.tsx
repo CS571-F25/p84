@@ -10,7 +10,7 @@ import Header from "../components/Header";
 import { WorkerStatusIndicator } from "../components/WorkerStatusIndicator";
 import { initializeApp } from "../lib/app-init";
 import { AuthProvider } from "../lib/useAuth";
-import { ThemeProvider, useTheme } from "../lib/useTheme";
+import { THEME_COLORS, ThemeProvider, useTheme } from "../lib/useTheme";
 import appCss from "../styles.css?url";
 
 const DevTools = import.meta.env.DEV
@@ -54,6 +54,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
+				id: "theme-color",
+				name: "theme-color",
+				content: THEME_COLORS.light,
+			},
+			{
 				title: "DeckBelcher",
 			},
 		],
@@ -91,7 +96,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
-				{/* Blocking script to set theme class before React hydrates - prevents flash */}
+				{/* Blocking script to set theme class + theme-color before React hydrates - prevents flash */}
 				<script>
 					{`
 						(function() {
@@ -102,6 +107,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 									? 'dark'
 									: 'light';
 							document.documentElement.classList.add(theme);
+							const meta = document.getElementById('theme-color');
+							if (meta) meta.content = theme === 'dark' ? '${THEME_COLORS.dark}' : '${THEME_COLORS.light}';
 						})();
 					`}
 				</script>
