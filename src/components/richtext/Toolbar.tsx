@@ -64,7 +64,13 @@ export function Toolbar({ view }: ToolbarProps) {
 		[view, linkModalState.linkRange],
 	);
 
-	if (!view) return null;
+	if (!view) {
+		// Render placeholder to reserve space and prevent layout shift
+		// Height matches: p-2 (8px*2) + button p-1.5 (6px*2) + icon h-4 (16px) = 44px
+		return (
+			<div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 min-h-11" />
+		);
+	}
 
 	const { state } = view;
 	const { schema } = state;
