@@ -19,7 +19,7 @@ export default function Header() {
 
 	return (
 		<>
-			<header className="p-4 flex items-center bg-gray-800 dark:bg-gray-900 text-white shadow-lg">
+			<header className="p-2 sm:p-4 flex items-center bg-gray-800 dark:bg-gray-900 text-white shadow-lg">
 				<div className="flex items-center">
 					<button
 						type="button"
@@ -29,16 +29,16 @@ export default function Header() {
 					>
 						<Menu size={24} />
 					</button>
-					<h1 className="ml-4 text-xl font-semibold">
+					<h1 className="ml-2 sm:ml-4 text-lg sm:text-xl font-semibold hidden sm:block">
 						<Link to="/">DeckBelcher</Link>
 					</h1>
 				</div>
 
-				<div className="flex-1 flex justify-center px-4">
+				<div className="flex-1 flex justify-center px-2 sm:px-4">
 					<Link
 						to="/cards"
 						search={{ q: "", sort: undefined }}
-						className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors text-white text-sm font-medium"
+						className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors text-white text-sm font-medium"
 					>
 						<Search size={18} />
 						<span className="hidden sm:inline">Search Cards</span>
@@ -57,10 +57,12 @@ export default function Header() {
 						<Link
 							to="/signin"
 							onClick={handleSignInClick}
-							className="flex items-center gap-2 px-3 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
+							className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
 						>
 							<LogIn size={16} />
-							<span className="text-sm font-medium">Sign In</span>
+							<span className="text-sm font-medium hidden sm:inline">
+								Sign In
+							</span>
 						</Link>
 					)}
 					<button
