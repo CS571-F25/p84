@@ -1033,6 +1033,38 @@ describe("lexiconToTree", () => {
 			expect(link.marks[0].attrs.href).toBe("https://example.com");
 		});
 
+		it("converts mention facet to inline node", () => {
+			const lexicon: LexiconDocument = {
+				content: [
+					{
+						$type: "com.deckbelcher.richtext#paragraphBlock",
+						text: "hello @alice.test world",
+						facets: [
+							{
+								index: { byteStart: 6, byteEnd: 17 },
+								features: [
+									{
+										$type: "com.deckbelcher.richtext.facet#mention",
+										did: "did:plc:12345",
+									},
+								],
+							},
+						],
+					},
+				],
+			};
+			const result = lexiconToTree(lexicon);
+			const para = result.child(0);
+
+			// Should have 3 children: "hello ", mention node, " world"
+			expect(para.childCount).toBe(3);
+			expect(para.child(0).text).toBe("hello ");
+			expect(para.child(1).type.name).toBe("mention");
+			expect(para.child(1).attrs.handle).toBe("alice.test");
+			expect(para.child(1).attrs.did).toBe("did:plc:12345");
+			expect(para.child(2).text).toBe(" world");
+		});
+
 		it("converts adjacent facets", () => {
 			const lexicon: LexiconDocument = {
 				content: [
@@ -1309,6 +1341,41 @@ describe("roundtrip", () => {
 		const result = roundtrip(original);
 
 		expect(result.eq(original)).toBe(true);
+	});
+
+	it("preserves mentions", () => {
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [
+				schema.text("hello "),
+				schema.nodes.mention.create({
+					handle: "alice.test",
+					did: "did:plc:12345",
+				}),
+				schema.text(" world"),
+			]),
+		]);
+		const result = roundtrip(original);
+
+		expect(result.eq(original)).toBe(true);
+	});
+
+	it("assigns placeholder DID to mentions without one", () => {
+		// Mentions without DID get a placeholder did:handle:xyz during serialization
+		// TODO: replace with real handle resolution
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [
+				schema.nodes.mention.create({
+					handle: "bob.example",
+					did: null,
+				}),
+			]),
+		]);
+		const result = roundtrip(original);
+		const mention = result.child(0).child(0);
+
+		expect(mention.type.name).toBe("mention");
+		expect(mention.attrs.handle).toBe("bob.example");
+		expect(mention.attrs.did).toBe("did:handle:bob.example");
 	});
 
 	it("preserves headings", () => {

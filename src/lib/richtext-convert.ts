@@ -244,20 +244,24 @@ function extractTextAndFacets(node: ProseMirrorNode): {
 
 			textParts.push(displayText);
 
-			if (child.attrs.did) {
-				facets.push({
-					index: {
-						byteStart: byteOffset,
-						byteEnd: byteOffset + textBytes.length,
+			// TODO: resolve handle to DID if not already resolved
+			// For now, use a placeholder DID based on handle to preserve roundtrip
+			const did =
+				(child.attrs.did as `did:${string}:${string}` | null) ||
+				(`did:handle:${handle}` as `did:${string}:${string}`);
+
+			facets.push({
+				index: {
+					byteStart: byteOffset,
+					byteEnd: byteOffset + textBytes.length,
+				},
+				features: [
+					{
+						$type: "com.deckbelcher.richtext.facet#mention",
+						did,
 					},
-					features: [
-						{
-							$type: "com.deckbelcher.richtext.facet#mention",
-							did: child.attrs.did as `did:${string}:${string}`,
-						},
-					],
-				});
-			}
+				],
+			});
 
 			byteOffset += textBytes.length;
 		}
@@ -499,6 +503,27 @@ function textAndFacetsToNodes(
 	for (const segment of segments) {
 		if (!segment.text) continue;
 
+		// Check for mention facet - these become inline nodes, not marked text
+		const mentionFeature = segment.features.find(
+			(f) =>
+				(f as { $type?: string }).$type ===
+				"com.deckbelcher.richtext.facet#mention",
+		) as { $type: string; did?: string } | undefined;
+
+		if (mentionFeature) {
+			// Extract handle from text (strip @ prefix)
+			const handle = segment.text.startsWith("@")
+				? segment.text.slice(1)
+				: segment.text;
+			nodes.push(
+				schema.nodes.mention.create({
+					handle,
+					did: mentionFeature.did || null,
+				}),
+			);
+			continue;
+		}
+
 		const marks: Mark[] = [];
 		for (const feature of segment.features) {
 			const mark = featureToMark(feature);
@@ -506,8 +531,6 @@ function textAndFacetsToNodes(
 				marks.push(mark);
 			}
 		}
-
-		// TODO: handle mentions as inline nodes instead of marked text
 
 		nodes.push(schema.text(segment.text, marks));
 	}
