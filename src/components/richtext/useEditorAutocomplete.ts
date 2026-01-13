@@ -1,3 +1,9 @@
+import {
+	type DefaultError,
+	type QueryKey,
+	type UseQueryOptions,
+	useQuery,
+} from "@tanstack/react-query";
 import type { FromTo } from "prosemirror-autocomplete";
 import type { EditorView } from "prosemirror-view";
 import type { ReactNode, RefObject } from "react";
@@ -8,6 +14,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { useDebounce } from "@/lib/useDebounce";
 
 export interface AutocompleteState {
 	active: boolean;
@@ -21,9 +28,19 @@ export interface AutocompleteCallbacks<T> {
 	getOptions: () => T[];
 }
 
-export interface UseEditorAutocompleteConfig<T> {
+export interface UseEditorAutocompleteConfig<
+	T,
+	TQueryFnData = unknown,
+	TError = DefaultError,
+	TQueryKey extends QueryKey = QueryKey,
+> {
 	viewRef: RefObject<EditorView | null>;
-	filterOptions: (query: string) => T[];
+	containerRef: RefObject<HTMLElement | null>;
+	getQueryOptions: (
+		query: string,
+	) => UseQueryOptions<TQueryFnData, TError, T[], TQueryKey>;
+	minQueryLength?: number;
+	debounceMs?: number;
 	onSelect: (option: T, state: AutocompleteState, view: EditorView) => void;
 	renderPopup: (props: {
 		options: T[];
@@ -32,7 +49,6 @@ export interface UseEditorAutocompleteConfig<T> {
 		onSelect: (option: T) => void;
 		position: { top: number; left: number };
 	}) => ReactNode;
-	containerRef: RefObject<HTMLElement | null>;
 }
 
 export interface UseEditorAutocompleteReturn<T> {
@@ -41,31 +57,46 @@ export interface UseEditorAutocompleteReturn<T> {
 	popup: ReactNode;
 }
 
-export function useEditorAutocomplete<T>({
+export function useEditorAutocomplete<
+	T,
+	TQueryFnData = unknown,
+	TError = DefaultError,
+	TQueryKey extends QueryKey = QueryKey,
+>({
 	viewRef,
-	filterOptions,
+	containerRef,
+	getQueryOptions,
+	minQueryLength = 2,
+	debounceMs = 150,
 	onSelect,
 	renderPopup,
-	containerRef,
-}: UseEditorAutocompleteConfig<T>): UseEditorAutocompleteReturn<T> {
+}: UseEditorAutocompleteConfig<
+	T,
+	TQueryFnData,
+	TError,
+	TQueryKey
+>): UseEditorAutocompleteReturn<T> {
 	const [state, setState] = useState<AutocompleteState | null>(null);
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [position, setPosition] = useState({ top: 0, left: 0 });
 
+	const { value: debouncedQuery } = useDebounce(state?.query || "", debounceMs);
+
+	const { data: options = [] } = useQuery({
+		...getQueryOptions(debouncedQuery),
+		enabled: debouncedQuery.length >= minQueryLength,
+	});
+
 	// Refs for stable access in callbacks
 	const stateRef = useRef(state);
 	const selectedIndexRef = useRef(selectedIndex);
-	const filterRef = useRef(filterOptions);
+	const optionsRef = useRef(options);
 	const onSelectRef = useRef(onSelect);
 
 	stateRef.current = state;
 	selectedIndexRef.current = selectedIndex;
-	filterRef.current = filterOptions;
-	onSelectRef.current = onSelect;
-
-	const options = filterOptions(state?.query || "");
-	const optionsRef = useRef(options);
 	optionsRef.current = options;
+	onSelectRef.current = onSelect;
 
 	// Reset selection when query changes
 	useEffect(() => {
@@ -154,7 +185,7 @@ export function useEditorAutocomplete<T>({
 	const callbacks = useRef<AutocompleteCallbacks<T>>({
 		onStateChange: (s) => setState(s),
 		getSelectedIndex: () => selectedIndexRef.current,
-		getOptions: () => filterRef.current(stateRef.current?.query || ""),
+		getOptions: () => optionsRef.current,
 	}).current;
 
 	// Render popup

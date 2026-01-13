@@ -10,10 +10,13 @@ import {
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+	type ActorSearchResult,
+	searchActorsQueryOptions,
+} from "@/lib/actor-search";
 import { buildInputRules } from "./inputRules";
 import {
 	createMentionPlugin,
-	filterHandles,
 	type MentionOption,
 	MentionPopupContent,
 } from "./MentionAutocomplete";
@@ -60,7 +63,7 @@ export function ProseMirrorEditor({
 		) => {
 			const mentionNode = schema.nodes.mention.create({
 				handle: option.handle,
-				did: option.did || null,
+				did: option.did,
 			});
 
 			const tr = view.state.tr
@@ -74,10 +77,19 @@ export function ProseMirrorEditor({
 		[],
 	);
 
-	const mention = useEditorAutocomplete<MentionOption>({
+	const getMentionQueryOptions = useCallback(
+		(query: string) => ({
+			...searchActorsQueryOptions(query),
+			select: (actors: ActorSearchResult[]): MentionOption[] =>
+				actors.map((a) => ({ handle: a.handle, did: a.did })),
+		}),
+		[],
+	);
+
+	const mention = useEditorAutocomplete({
 		viewRef,
 		containerRef: wrapperRef,
-		filterOptions: filterHandles,
+		getQueryOptions: getMentionQueryOptions,
 		onSelect: handleMentionSelect,
 		renderPopup: (props) => <MentionPopupContent {...props} />,
 	});

@@ -1359,9 +1359,7 @@ describe("roundtrip", () => {
 		expect(result.eq(original)).toBe(true);
 	});
 
-	it("assigns placeholder DID to mentions without one", () => {
-		// Mentions without DID get a placeholder did:handle:xyz during serialization
-		// TODO: replace with real handle resolution
+	it("converts mentions without DID to plain text", () => {
 		const original = schema.node("doc", null, [
 			schema.node("paragraph", null, [
 				schema.nodes.mention.create({
@@ -1370,12 +1368,67 @@ describe("roundtrip", () => {
 				}),
 			]),
 		]);
-		const result = roundtrip(original);
-		const mention = result.child(0).child(0);
 
-		expect(mention.type.name).toBe("mention");
-		expect(mention.attrs.handle).toBe("bob.example");
-		expect(mention.attrs.did).toBe("did:handle:bob.example");
+		const lexicon = treeToLexicon(original);
+		const paragraph = lexicon.content[0] as {
+			text?: string;
+			facets?: unknown[];
+		};
+
+		expect(paragraph.text).toBe("@bob.example");
+		expect(paragraph.facets).toBeUndefined();
+	});
+
+	it("preserves multiple mentions with correct byte offsets", () => {
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [
+				schema.text("cc "),
+				schema.nodes.mention.create({
+					handle: "alice.test",
+					did: "did:plc:alice",
+				}),
+				schema.text(" and "),
+				schema.nodes.mention.create({
+					handle: "bob.test",
+					did: "did:plc:bob",
+				}),
+			]),
+		]);
+		const result = roundtrip(original);
+
+		expect(result.eq(original)).toBe(true);
+	});
+
+	it("preserves mentions adjacent to unicode", () => {
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [
+				schema.text("🎉 "),
+				schema.nodes.mention.create({
+					handle: "alice.test",
+					did: "did:plc:alice",
+				}),
+				schema.text(" 日本語"),
+			]),
+		]);
+		const result = roundtrip(original);
+
+		expect(result.eq(original)).toBe(true);
+	});
+
+	it("preserves mentions mixed with formatting", () => {
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [
+				schema.text("hello ", [schema.marks.strong.create()]),
+				schema.nodes.mention.create({
+					handle: "alice.test",
+					did: "did:plc:alice",
+				}),
+				schema.text(" world", [schema.marks.em.create()]),
+			]),
+		]);
+		const result = roundtrip(original);
+
+		expect(result.eq(original)).toBe(true);
 	});
 
 	it("preserves headings", () => {

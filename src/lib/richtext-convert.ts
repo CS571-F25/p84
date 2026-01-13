@@ -237,31 +237,27 @@ function extractTextAndFacets(node: ProseMirrorNode): {
 
 			byteOffset = endByte;
 		} else if (child.type.name === "mention") {
-			// Inline node - render as @handle placeholder
 			const handle = (child.attrs.handle as string) || "";
+			const did = child.attrs.did as `did:${string}:${string}` | null;
 			const displayText = `@${handle}`;
 			const textBytes = new TextEncoder().encode(displayText);
 
 			textParts.push(displayText);
 
-			// TODO: resolve handle to DID if not already resolved
-			// For now, use a placeholder DID based on handle to preserve roundtrip
-			const did =
-				(child.attrs.did as `did:${string}:${string}` | null) ||
-				(`did:handle:${handle}` as `did:${string}:${string}`);
-
-			facets.push({
-				index: {
-					byteStart: byteOffset,
-					byteEnd: byteOffset + textBytes.length,
-				},
-				features: [
-					{
-						$type: "com.deckbelcher.richtext.facet#mention",
-						did,
+			if (did) {
+				facets.push({
+					index: {
+						byteStart: byteOffset,
+						byteEnd: byteOffset + textBytes.length,
 					},
-				],
-			});
+					features: [
+						{
+							$type: "com.deckbelcher.richtext.facet#mention",
+							did,
+						},
+					],
+				});
+			}
 
 			byteOffset += textBytes.length;
 		}

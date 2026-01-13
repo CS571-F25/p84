@@ -8,23 +8,7 @@ import type { AutocompleteCallbacks } from "./useEditorAutocomplete";
 
 export interface MentionOption {
 	handle: string;
-	did?: string;
-}
-
-const MOCK_HANDLES: MentionOption[] = [
-	{ handle: "alice.test" },
-	{ handle: "bob.test" },
-	{ handle: "charlie.test" },
-	{ handle: "dana.example" },
-	{ handle: "eve.example" },
-];
-
-export function filterHandles(query: string): MentionOption[] {
-	if (!query) return MOCK_HANDLES.slice(0, 5);
-	const lower = query.toLowerCase();
-	return MOCK_HANDLES.filter((h) =>
-		h.handle.toLowerCase().includes(lower),
-	).slice(0, 5);
+	did: string;
 }
 
 export function createMentionPlugin(
