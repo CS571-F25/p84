@@ -2,7 +2,9 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { schema } from "@/components/richtext/schema";
 import type {
+	BulletListBlock,
 	HeadingBlock,
+	OrderedListBlock,
 	ParagraphBlock,
 } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import {
@@ -103,6 +105,303 @@ describe("treeToLexicon", () => {
 				text: undefined,
 				facets: undefined,
 			});
+		});
+	});
+
+	describe("code blocks", () => {
+		it("converts code block with text", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("code_block", { params: "" }, [
+					schema.text("const x = 1;"),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+
+			expect(result.content[0]).toEqual({
+				$type: "com.deckbelcher.richtext#codeBlock",
+				text: "const x = 1;",
+				language: undefined,
+			});
+		});
+
+		it("converts code block with language", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("code_block", { params: "typescript" }, [
+					schema.text("const x: number = 1;"),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+
+			expect(result.content[0]).toEqual({
+				$type: "com.deckbelcher.richtext#codeBlock",
+				text: "const x: number = 1;",
+				language: "typescript",
+			});
+		});
+
+		it("converts empty code block", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("code_block", { params: "" }),
+			]);
+			const result = treeToLexicon(doc);
+
+			expect(result.content[0]).toEqual({
+				$type: "com.deckbelcher.richtext#codeBlock",
+				text: "",
+				language: undefined,
+			});
+		});
+
+		it("converts multiline code block", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("code_block", { params: "js" }, [
+					schema.text("function foo() {\n  return 42;\n}"),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+
+			expect(result.content[0]).toEqual({
+				$type: "com.deckbelcher.richtext#codeBlock",
+				text: "function foo() {\n  return 42;\n}",
+				language: "js",
+			});
+		});
+	});
+
+	describe("bullet lists", () => {
+		it("converts single item bullet list", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("bullet_list", null, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Item one")]),
+					]),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+
+			expect(result.content[0]).toEqual({
+				$type: "com.deckbelcher.richtext#bulletListBlock",
+				items: [
+					{
+						$type: "com.deckbelcher.richtext#listItem",
+						text: "Item one",
+						facets: undefined,
+					},
+				],
+			});
+		});
+
+		it("converts multi-item bullet list", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("bullet_list", null, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("First")]),
+					]),
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Second")]),
+					]),
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Third")]),
+					]),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+			const block = result.content[0] as BulletListBlock;
+
+			expect(block.$type).toBe("com.deckbelcher.richtext#bulletListBlock");
+			expect(block.items).toHaveLength(3);
+			expect(block.items[0].text).toBe("First");
+			expect(block.items[1].text).toBe("Second");
+			expect(block.items[2].text).toBe("Third");
+		});
+
+		it("converts bullet list with formatted text", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("bullet_list", null, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [
+							schema.text("bold", [schema.marks.strong.create()]),
+							schema.text(" item"),
+						]),
+					]),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+			const block = result.content[0] as BulletListBlock;
+
+			expect(block.items[0].text).toBe("bold item");
+			expect(block.items[0].facets).toHaveLength(1);
+			expect(block.items[0].facets?.[0]).toMatchObject({
+				index: { byteStart: 0, byteEnd: 4 },
+				features: [{ $type: "com.deckbelcher.richtext.facet#bold" }],
+			});
+		});
+
+		it("converts empty bullet list item", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("bullet_list", null, [
+					schema.node("list_item", null, [schema.node("paragraph")]),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+			const block = result.content[0] as BulletListBlock;
+
+			expect(block.items[0]).toEqual({
+				$type: "com.deckbelcher.richtext#listItem",
+				text: undefined,
+				facets: undefined,
+			});
+		});
+	});
+
+	describe("ordered lists", () => {
+		it("converts single item ordered list", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("ordered_list", { order: 1 }, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Step one")]),
+					]),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+
+			expect(result.content[0]).toEqual({
+				$type: "com.deckbelcher.richtext#orderedListBlock",
+				items: [
+					{
+						$type: "com.deckbelcher.richtext#listItem",
+						text: "Step one",
+						facets: undefined,
+					},
+				],
+				start: undefined,
+			});
+		});
+
+		it("converts ordered list with custom start", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("ordered_list", { order: 5 }, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Item five")]),
+					]),
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Item six")]),
+					]),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+			const block = result.content[0] as OrderedListBlock;
+
+			expect(block.$type).toBe("com.deckbelcher.richtext#orderedListBlock");
+			expect(block.start).toBe(5);
+			expect(block.items).toHaveLength(2);
+		});
+
+		it("converts ordered list with formatted text", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("ordered_list", { order: 1 }, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [
+							schema.text("Click "),
+							schema.text("here", [
+								schema.marks.link.create({ href: "https://example.com" }),
+							]),
+						]),
+					]),
+				]),
+			]);
+			const result = treeToLexicon(doc);
+			const block = result.content[0] as OrderedListBlock;
+
+			expect(block.items[0].text).toBe("Click here");
+			expect(block.items[0].facets?.[0]).toMatchObject({
+				index: { byteStart: 6, byteEnd: 10 },
+				features: [
+					{
+						$type: "com.deckbelcher.richtext.facet#link",
+						uri: "https://example.com",
+					},
+				],
+			});
+		});
+	});
+
+	describe("horizontal rules", () => {
+		it("converts horizontal rule", () => {
+			const doc = schema.node("doc", null, [schema.node("horizontal_rule")]);
+			const result = treeToLexicon(doc);
+
+			expect(result.content[0]).toEqual({
+				$type: "com.deckbelcher.richtext#horizontalRuleBlock",
+			});
+		});
+
+		it("converts horizontal rule between paragraphs", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("paragraph", null, [schema.text("Before")]),
+				schema.node("horizontal_rule"),
+				schema.node("paragraph", null, [schema.text("After")]),
+			]);
+			const result = treeToLexicon(doc);
+
+			expect(result.content).toHaveLength(3);
+			expect(result.content[0]).toMatchObject({
+				$type: "com.deckbelcher.richtext#paragraphBlock",
+				text: "Before",
+			});
+			expect(result.content[1]).toEqual({
+				$type: "com.deckbelcher.richtext#horizontalRuleBlock",
+			});
+			expect(result.content[2]).toMatchObject({
+				$type: "com.deckbelcher.richtext#paragraphBlock",
+				text: "After",
+			});
+		});
+	});
+
+	describe("mixed block types", () => {
+		it("converts document with all block types", () => {
+			const doc = schema.node("doc", null, [
+				schema.node("heading", { level: 1 }, [schema.text("Title")]),
+				schema.node("paragraph", null, [schema.text("Intro text")]),
+				schema.node("code_block", { params: "js" }, [schema.text("code()")]),
+				schema.node("bullet_list", null, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Bullet")]),
+					]),
+				]),
+				schema.node("ordered_list", { order: 1 }, [
+					schema.node("list_item", null, [
+						schema.node("paragraph", null, [schema.text("Numbered")]),
+					]),
+				]),
+				schema.node("horizontal_rule"),
+				schema.node("paragraph", null, [schema.text("End")]),
+			]);
+			const result = treeToLexicon(doc);
+
+			expect(result.content).toHaveLength(7);
+			expect(result.content[0].$type).toBe(
+				"com.deckbelcher.richtext#headingBlock",
+			);
+			expect(result.content[1].$type).toBe(
+				"com.deckbelcher.richtext#paragraphBlock",
+			);
+			expect(result.content[2].$type).toBe(
+				"com.deckbelcher.richtext#codeBlock",
+			);
+			expect(result.content[3].$type).toBe(
+				"com.deckbelcher.richtext#bulletListBlock",
+			);
+			expect(result.content[4].$type).toBe(
+				"com.deckbelcher.richtext#orderedListBlock",
+			);
+			expect(result.content[5].$type).toBe(
+				"com.deckbelcher.richtext#horizontalRuleBlock",
+			);
+			expect(result.content[6].$type).toBe(
+				"com.deckbelcher.richtext#paragraphBlock",
+			);
 		});
 	});
 
@@ -1174,28 +1473,103 @@ describe("property tests", () => {
 		.tuple(arbHeadingLevel, arbParagraphContent)
 		.map(([level, content]) => schema.node("heading", { level }, content));
 
-	// Arbitrary for a block (paragraph or heading)
-	const arbBlock = fc.oneof(arbParagraph, arbHeading);
+	// Arbitrary for code block text (can include newlines, no marks)
+	const arbCodeText = fc.oneof(
+		fc.string({ minLength: 0, maxLength: 100 }),
+		fc.constant("function foo() {\n  return 42;\n}"),
+		fc.constant("const x = 1;"),
+		fc.constant(""),
+	);
+
+	// Arbitrary for language hint
+	const arbLanguage = fc.oneof(
+		fc.constant(""),
+		fc.constant("js"),
+		fc.constant("typescript"),
+		fc.constant("python"),
+		fc.constant("rust"),
+	);
+
+	// Arbitrary for code block
+	const arbCodeBlock = fc
+		.tuple(arbCodeText, arbLanguage)
+		.map(([text, lang]) =>
+			schema.node(
+				"code_block",
+				{ params: lang },
+				text ? [schema.text(text)] : undefined,
+			),
+		);
+
+	// Arbitrary for a list item
+	const arbListItem = arbParagraphContent.map((content) =>
+		schema.node("list_item", null, [schema.node("paragraph", null, content)]),
+	);
+
+	// Arbitrary for bullet list (1-4 items)
+	const arbBulletList = fc
+		.array(arbListItem, { minLength: 1, maxLength: 4 })
+		.map((items) => schema.node("bullet_list", null, items));
+
+	// Arbitrary for ordered list with optional start number
+	const arbOrderedList = fc
+		.tuple(
+			fc.array(arbListItem, { minLength: 1, maxLength: 4 }),
+			fc.integer({ min: 1, max: 10 }),
+		)
+		.map(([items, start]) =>
+			schema.node("ordered_list", { order: start }, items),
+		);
+
+	// Arbitrary for horizontal rule
+	const arbHorizontalRule = fc.constant(schema.node("horizontal_rule"));
+
+	// Arbitrary for a block (all types)
+	const arbBlock = fc.oneof(
+		{ weight: 3, arbitrary: arbParagraph },
+		{ weight: 2, arbitrary: arbHeading },
+		{ weight: 1, arbitrary: arbCodeBlock },
+		{ weight: 1, arbitrary: arbBulletList },
+		{ weight: 1, arbitrary: arbOrderedList },
+		{ weight: 1, arbitrary: arbHorizontalRule },
+	);
 
 	// Arbitrary for a document
 	const arbDocument = fc
 		.array(arbBlock, { minLength: 1, maxLength: 5 })
 		.map((blocks) => schema.node("doc", null, blocks));
 
-	it("roundtrip preserves document equality", () => {
+	// Arbitrary for documents with only text blocks (for text-specific property tests)
+	const arbTextBlock = fc.oneof(arbParagraph, arbHeading);
+	const arbTextOnlyDocument = fc
+		.array(arbTextBlock, { minLength: 1, maxLength: 5 })
+		.map((blocks) => schema.node("doc", null, blocks));
+
+	it("roundtrip preserves document equality for all block types", () => {
 		fc.assert(
 			fc.property(arbDocument, (doc) => {
 				const lexicon = treeToLexicon(doc);
 				const result = lexiconToTree(lexicon);
 				return result.eq(doc);
 			}),
-			{ numRuns: 1000 },
+			{ numRuns: 10_000 },
 		);
 	});
 
-	it("lexicon text matches tree textContent per block", () => {
+	it("roundtrip preserves text-only documents", () => {
 		fc.assert(
-			fc.property(arbDocument, (doc) => {
+			fc.property(arbTextOnlyDocument, (doc) => {
+				const lexicon = treeToLexicon(doc);
+				const result = lexiconToTree(lexicon);
+				return result.eq(doc);
+			}),
+			{ numRuns: 500 },
+		);
+	});
+
+	it("lexicon text matches tree textContent for text blocks", () => {
+		fc.assert(
+			fc.property(arbTextOnlyDocument, (doc) => {
 				const lexicon = treeToLexicon(doc);
 
 				for (let i = 0; i < doc.childCount; i++) {
@@ -1213,9 +1587,9 @@ describe("property tests", () => {
 		);
 	});
 
-	it("feature count matches or exceeds mark types", () => {
+	it("feature count matches or exceeds mark types for text blocks", () => {
 		fc.assert(
-			fc.property(arbDocument, (doc) => {
+			fc.property(arbTextOnlyDocument, (doc) => {
 				const lexicon = treeToLexicon(doc);
 
 				for (let i = 0; i < doc.childCount; i++) {
@@ -1249,9 +1623,9 @@ describe("property tests", () => {
 		);
 	});
 
-	it("byte offsets are valid UTF-8 positions", () => {
+	it("byte offsets are valid UTF-8 positions for text blocks", () => {
 		fc.assert(
-			fc.property(arbDocument, (doc) => {
+			fc.property(arbTextOnlyDocument, (doc) => {
 				const lexicon = treeToLexicon(doc);
 
 				for (const lexiconBlock of lexicon.content) {
@@ -1279,6 +1653,87 @@ describe("property tests", () => {
 						} catch {
 							return false;
 						}
+					}
+				}
+				return true;
+			}),
+			{ numRuns: 1000 },
+		);
+	});
+
+	it("code blocks preserve text content exactly", () => {
+		fc.assert(
+			fc.property(arbCodeBlock, (codeBlock) => {
+				const doc = schema.node("doc", null, [codeBlock]);
+				const lexicon = treeToLexicon(doc);
+				const result = lexiconToTree(lexicon);
+				return result.eq(doc);
+			}),
+			{ numRuns: 500 },
+		);
+	});
+
+	it("bullet lists preserve all item text and marks", () => {
+		fc.assert(
+			fc.property(arbBulletList, (list) => {
+				const doc = schema.node("doc", null, [list]);
+				const lexicon = treeToLexicon(doc);
+				const result = lexiconToTree(lexicon);
+				return result.eq(doc);
+			}),
+			{ numRuns: 500 },
+		);
+	});
+
+	it("ordered lists preserve start number", () => {
+		fc.assert(
+			fc.property(arbOrderedList, (list) => {
+				const doc = schema.node("doc", null, [list]);
+				const lexicon = treeToLexicon(doc);
+				const block = lexicon.content[0] as OrderedListBlock;
+				const originalStart = list.attrs.order as number;
+				const lexiconStart = block.start ?? 1;
+				return (
+					originalStart === lexiconStart ||
+					(originalStart === 1 && block.start === undefined)
+				);
+			}),
+			{ numRuns: 500 },
+		);
+	});
+
+	it("horizontal rules roundtrip", () => {
+		fc.assert(
+			fc.property(arbHorizontalRule, (hr) => {
+				const doc = schema.node("doc", null, [hr]);
+				const lexicon = treeToLexicon(doc);
+				const result = lexiconToTree(lexicon);
+				return result.eq(doc);
+			}),
+			{ numRuns: 100 },
+		);
+	});
+
+	it("block count is preserved through roundtrip", () => {
+		fc.assert(
+			fc.property(arbDocument, (doc) => {
+				const lexicon = treeToLexicon(doc);
+				const result = lexiconToTree(lexicon);
+				return doc.childCount === result.childCount;
+			}),
+			{ numRuns: 1000 },
+		);
+	});
+
+	it("block types are preserved through roundtrip", () => {
+		fc.assert(
+			fc.property(arbDocument, (doc) => {
+				const lexicon = treeToLexicon(doc);
+				const result = lexiconToTree(lexicon);
+
+				for (let i = 0; i < doc.childCount; i++) {
+					if (doc.child(i).type.name !== result.child(i).type.name) {
+						return false;
 					}
 				}
 				return true;
