@@ -1,4 +1,5 @@
 import { sanitizeUrl } from "@braintree/sanitize-url";
+import { Link } from "@tanstack/react-router";
 import { memo, type ReactNode } from "react";
 import type {
 	BulletListBlock,
@@ -242,9 +243,13 @@ function applyFeature(
 
 		case "com.deckbelcher.richtext.facet#mention":
 			return (
-				<span className="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-medium">
+				<Link
+					to="/profile/$did"
+					params={{ did: feature.did }}
+					className="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/70"
+				>
 					{content}
-				</span>
+				</Link>
 			);
 
 		default:
