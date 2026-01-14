@@ -4,7 +4,11 @@
  */
 
 import type { Did } from "@atcute/lexicons";
-import { queryOptions, useQueryClient } from "@tanstack/react-query";
+import {
+	infiniteQueryOptions,
+	queryOptions,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
@@ -99,11 +103,17 @@ export interface CollectionListRecord {
  * Query options for listing all collection lists for a user
  */
 export const listUserCollectionListsQueryOptions = (did: Did) =>
-	queryOptions({
+	infiniteQueryOptions({
 		queryKey: ["collection-lists", did] as const,
-		queryFn: async (): Promise<{ records: CollectionListRecord[] }> => {
+		queryFn: async ({
+			pageParam,
+		}): Promise<{ records: CollectionListRecord[]; cursor?: string }> => {
 			const pds = await getPdsForDid(did);
-			const result = await listUserCollectionLists(asPdsUrl(pds), did);
+			const result = await listUserCollectionLists(
+				asPdsUrl(pds),
+				did,
+				pageParam,
+			);
 			if (!result.success) {
 				throw result.error;
 			}
@@ -113,8 +123,11 @@ export const listUserCollectionListsQueryOptions = (did: Did) =>
 					cid: record.cid,
 					value: transformListRecord(record.value),
 				})),
+				cursor: result.data.cursor,
 			};
 		},
+		initialPageParam: undefined as string | undefined,
+		getNextPageParam: (lastPage) => lastPage.cursor,
 		staleTime: 60 * 1000,
 	});
 

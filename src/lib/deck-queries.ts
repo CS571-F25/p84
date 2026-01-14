@@ -4,7 +4,11 @@
  */
 
 import type { Did } from "@atcute/lexicons";
-import { queryOptions, useQueryClient } from "@tanstack/react-query";
+import {
+	infiniteQueryOptions,
+	queryOptions,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
@@ -79,11 +83,13 @@ export interface DeckListRecord {
  * Fetches from user's PDS directly
  */
 export const listUserDecksQueryOptions = (did: Did) =>
-	queryOptions({
+	infiniteQueryOptions({
 		queryKey: ["decks", did] as const,
-		queryFn: async (): Promise<{ records: DeckListRecord[] }> => {
+		queryFn: async ({
+			pageParam,
+		}): Promise<{ records: DeckListRecord[]; cursor?: string }> => {
 			const pds = await getPdsForDid(did);
-			const result = await listUserDecks(asPdsUrl(pds), did);
+			const result = await listUserDecks(asPdsUrl(pds), did, pageParam);
 			if (!result.success) {
 				throw result.error;
 			}
@@ -93,8 +99,11 @@ export const listUserDecksQueryOptions = (did: Did) =>
 					cid: record.cid,
 					value: transformDeckRecord(record.value),
 				})),
+				cursor: result.data.cursor,
 			};
 		},
+		initialPageParam: undefined as string | undefined,
+		getNextPageParam: (lastPage) => lastPage.cursor,
 		staleTime: 60 * 1000, // 1 minute
 	});
 

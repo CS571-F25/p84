@@ -211,11 +211,15 @@ async function listRecords<TSchema extends BaseSchema>(
 	collection: Collection,
 	entityName: string,
 	schema: TSchema,
+	cursor?: string,
 ): Promise<Result<ListRecordsResponse<InferOutput<TSchema>>>> {
 	try {
 		const url = new URL(`${pdsUrl}/xrpc/com.atproto.repo.listRecords`);
 		url.searchParams.set("repo", did);
 		url.searchParams.set("collection", collection);
+		if (cursor) {
+			url.searchParams.set("cursor", cursor);
+		}
 
 		const response = await fetch(url.toString());
 
@@ -330,13 +334,14 @@ export function updateDeckRecord(
 	return updateRecord(agent, rkey, record, DECK_COLLECTION, "deck");
 }
 
-export function listUserDecks(pdsUrl: PdsUrl, did: Did) {
+export function listUserDecks(pdsUrl: PdsUrl, did: Did, cursor?: string) {
 	return listRecords(
 		pdsUrl,
 		did,
 		DECK_COLLECTION,
 		"deck",
 		ComDeckbelcherDeckList.mainSchema,
+		cursor,
 	);
 }
 
@@ -376,13 +381,18 @@ export function updateCollectionListRecord(
 	return updateRecord(agent, rkey, record, LIST_COLLECTION, "list");
 }
 
-export function listUserCollectionLists(pdsUrl: PdsUrl, did: Did) {
+export function listUserCollectionLists(
+	pdsUrl: PdsUrl,
+	did: Did,
+	cursor?: string,
+) {
 	return listRecords(
 		pdsUrl,
 		did,
 		LIST_COLLECTION,
 		"list",
 		ComDeckbelcherCollectionList.mainSchema,
+		cursor,
 	);
 }
 

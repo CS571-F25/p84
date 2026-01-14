@@ -1,5 +1,5 @@
 import type { Did } from "@atcute/lexicons";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Bookmark, Loader2, Plus } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
@@ -41,7 +41,7 @@ export function SaveToListDialog({
 	const inputId = useId();
 	const [newListName, setNewListName] = useState("");
 
-	const { data: listsData, isLoading } = useQuery({
+	const { data: listsData, isLoading } = useInfiniteQuery({
 		...listUserCollectionListsQueryOptions(userDid),
 		enabled: isOpen,
 	});
@@ -83,7 +83,7 @@ export function SaveToListDialog({
 		);
 	};
 
-	const lists = listsData?.records ?? [];
+	const lists = listsData?.pages.flatMap((p) => p.records) ?? [];
 
 	return (
 		<>

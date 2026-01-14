@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
 import { useMemo, useState } from "react";
 import { listUserCollectionListsQueryOptions } from "@/lib/collection-list-queries";
@@ -20,19 +20,20 @@ export function SaveToListButton({
 	const { session } = useAuth();
 	const [isOpen, setIsOpen] = useState(false);
 
-	const { data: listsData } = useQuery({
+	const { data: listsData } = useInfiniteQuery({
 		...listUserCollectionListsQueryOptions(session?.info.sub ?? ("" as never)),
 		enabled: !!session,
 	});
 
+	const lists = listsData?.pages.flatMap((p) => p.records) ?? [];
+
 	const isSaved = useMemo(() => {
-		if (!listsData?.records) return false;
-		return listsData.records.some((record) =>
+		return lists.some((record) =>
 			item.type === "card"
 				? hasCard(record.value, item.scryfallId)
 				: hasDeck(record.value, item.deckUri),
 		);
-	}, [listsData, item]);
+	}, [lists, item]);
 
 	if (!session) {
 		return null;

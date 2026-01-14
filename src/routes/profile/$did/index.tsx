@@ -1,5 +1,9 @@
 import type { Did } from "@atcute/lexicons";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import {
+	useInfiniteQuery,
+	useQuery,
+	useSuspenseInfiniteQuery,
+} from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useMemo } from "react";
@@ -33,10 +37,10 @@ export const Route = createFileRoute("/profile/$did/")({
 	loader: async ({ context, params }) => {
 		// Prefetch deck list, collection lists, and DID document during SSR
 		const [, , didDocument] = await Promise.all([
-			context.queryClient.ensureQueryData(
+			context.queryClient.ensureInfiniteQueryData(
 				listUserDecksQueryOptions(params.did as Did),
 			),
-			context.queryClient.ensureQueryData(
+			context.queryClient.ensureInfiniteQueryData(
 				listUserCollectionListsQueryOptions(params.did as Did),
 			),
 			context.queryClient.ensureQueryData(
@@ -95,10 +99,10 @@ function ProfilePage() {
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const { session } = useAuth();
-	const { data: decksData } = useSuspenseQuery(
+	const { data: decksData } = useSuspenseInfiniteQuery(
 		listUserDecksQueryOptions(did as Did),
 	);
-	const { data: listsData } = useQuery(
+	const { data: listsData } = useInfiniteQuery(
 		listUserCollectionListsQueryOptions(did as Did),
 	);
 	const { data: didDocument } = useQuery(didDocumentQueryOptions(did as Did));
@@ -106,22 +110,23 @@ function ProfilePage() {
 
 	const handle = extractHandle(didDocument ?? null);
 	const isOwner = session?.info.sub === did;
-	const lists = listsData?.records ?? [];
+	const decks = decksData.pages.flatMap((p) => p.records);
+	const lists = listsData?.pages.flatMap((p) => p.records) ?? [];
 
 	// Get unique formats for filter dropdown
 	const availableFormats = useMemo(() => {
 		const formats = new Set<string>();
-		for (const record of decksData.records) {
+		for (const record of decks) {
 			if (record.value.format) {
 				formats.add(record.value.format);
 			}
 		}
 		return Array.from(formats).sort();
-	}, [decksData.records]);
+	}, [decks]);
 
 	// Filter and sort
 	const filteredAndSorted = useMemo(() => {
-		let records = decksData.records;
+		let records = decks;
 
 		// Filter by format
 		if (search.format) {
@@ -130,7 +135,7 @@ function ProfilePage() {
 
 		// Sort
 		return sortDecks(records, search.sort);
-	}, [decksData.records, search.format, search.sort]);
+	}, [decks, search.format, search.sort]);
 
 	const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const value = e.target.value as SortOption | "";
@@ -169,7 +174,7 @@ function ProfilePage() {
 				</div>
 
 				{/* Sort and filter controls - only show if there are decks */}
-				{decksData.records.length > 0 && (
+				{decks.length > 0 && (
 					<div className="flex flex-wrap gap-4 mb-6">
 						<select
 							value={search.sort ?? "updated-desc"}
@@ -205,7 +210,7 @@ function ProfilePage() {
 					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
 						Decks
 					</h2>
-					{decksData.records.length === 0 ? (
+					{decks.length === 0 ? (
 						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
 							<p className="text-gray-600 dark:text-gray-400 mb-4">
 								{isOwner ? "No decklists yet" : "No decklists"}
