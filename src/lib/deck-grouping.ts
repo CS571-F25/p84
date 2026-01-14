@@ -254,8 +254,8 @@ export function groupCards(
 					group.cards.push(card);
 					groups.set(type, group);
 				} else {
-					// Has tags → add to each tag group
-					for (const tag of card.tags) {
+					// Has tags → add to each unique tag group (dedupe to handle malformed data)
+					for (const tag of new Set(card.tags)) {
 						const group = groups.get(tag) ?? { cards: [], forTag: true };
 						group.forTag = true;
 						group.cards.push(card);

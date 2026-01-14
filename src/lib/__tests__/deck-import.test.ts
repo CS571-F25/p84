@@ -109,16 +109,17 @@ describe("parseCardLine", () => {
 		});
 	});
 
-	it("handles multiple tags with spaces", () => {
+	it("handles multiple tags with spaces (deduplicates)", () => {
 		const result = parseCardLine(
 			"1 Duskshell Crawler (J25) 653 #counter creatures #!counter creatures #!counter effects",
 		);
+		// Note: duplicate tags are deduplicated (first two are the same after stripping !)
 		expect(result).toEqual({
 			quantity: 1,
 			name: "Duskshell Crawler",
 			setCode: "J25",
 			collectorNumber: "653",
-			tags: ["counter creatures", "counter creatures", "counter effects"],
+			tags: ["counter creatures", "counter effects"],
 			raw: "1 Duskshell Crawler (J25) 653 #counter creatures #!counter creatures #!counter effects",
 		});
 	});

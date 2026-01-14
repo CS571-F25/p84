@@ -59,15 +59,19 @@ export function parseCardLine(line: string): ParsedCardLine | null {
 		const tagsPart = trimmed.slice(firstHashIndex);
 		remaining = trimmed.slice(0, firstHashIndex).trim();
 
-		// Split by # and process each tag
-		tags = tagsPart
-			.split("#")
-			.map((t) => t.trim())
-			.filter((t) => t.length > 0)
-			.map((t) => {
-				// Remove optional ! prefix (Moxfield uses #! for "global" tags)
-				return t.startsWith("!") ? t.slice(1).trim() : t;
-			});
+		// Split by # and process each tag (dedupe to handle #foo #foo)
+		tags = Array.from(
+			new Set(
+				tagsPart
+					.split("#")
+					.map((t) => t.trim())
+					.filter((t) => t.length > 0)
+					.map((t) => {
+						// Remove optional ! prefix (Moxfield uses #! for "global" tags)
+						return t.startsWith("!") ? t.slice(1).trim() : t;
+					}),
+			),
+		);
 	}
 
 	// Parse quantity (default to 1 if not present or invalid)
