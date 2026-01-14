@@ -33,6 +33,7 @@ interface RichtextSectionProps {
 	readOnly?: boolean;
 	placeholder?: string;
 	emptyText?: string;
+	availableTags?: string[];
 }
 
 const COLLAPSED_LINES = 8;
@@ -45,6 +46,7 @@ export function RichtextSection({
 	readOnly = false,
 	placeholder = "Write something...",
 	emptyText = "Add a description...",
+	availableTags,
 }: RichtextSectionProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isExpanded, setIsExpanded] = useState(false);
@@ -89,6 +91,7 @@ export function RichtextSection({
 					defaultValue={doc}
 					onChange={onChange}
 					placeholder={placeholder}
+					availableTags={availableTags}
 				/>
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">

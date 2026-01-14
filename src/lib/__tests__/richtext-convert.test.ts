@@ -1105,10 +1105,10 @@ describe("lexiconToTree", () => {
 				content: [
 					{
 						$type: "com.deckbelcher.richtext#paragraphBlock",
-						text: "tagged with #combo for deck",
+						text: "tagged with combo for deck",
 						facets: [
 							{
-								index: { byteStart: 12, byteEnd: 18 },
+								index: { byteStart: 12, byteEnd: 17 },
 								features: [
 									{
 										$type: "com.deckbelcher.richtext.facet#tag",
@@ -1578,7 +1578,7 @@ describe("roundtrip", () => {
 		expect(result.eq(original)).toBe(true);
 	});
 
-	it("converts tags without tag value to plain text", () => {
+	it("converts tags without tag value to undefined text", () => {
 		const original = schema.node("doc", null, [
 			schema.node("paragraph", null, [schema.nodes.tag.create({ tag: "" })]),
 		]);
@@ -1589,7 +1589,7 @@ describe("roundtrip", () => {
 			facets?: unknown[];
 		};
 
-		expect(paragraph.text).toBe("#");
+		expect(paragraph.text).toBeUndefined();
 		expect(paragraph.facets).toBeUndefined();
 	});
 

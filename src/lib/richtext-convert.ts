@@ -285,10 +285,9 @@ function extractTextAndFacets(node: ProseMirrorNode): {
 			byteOffset += textBytes.length;
 		} else if (child.type.name === "tag") {
 			const tag = (child.attrs.tag as string) || "";
-			const displayText = `#${tag}`;
-			const textBytes = new TextEncoder().encode(displayText);
+			const textBytes = new TextEncoder().encode(tag);
 
-			textParts.push(displayText);
+			textParts.push(tag);
 
 			if (tag) {
 				facets.push({
@@ -590,10 +589,7 @@ function textAndFacetsToNodes(
 		) as { $type: string; tag?: string } | undefined;
 
 		if (tagFeature) {
-			// Strip leading # from display text
-			const tag =
-				tagFeature.tag ||
-				(segment.text.startsWith("#") ? segment.text.slice(1) : segment.text);
+			const tag = tagFeature.tag || segment.text;
 			nodes.push(schema.nodes.tag.create({ tag }));
 			continue;
 		}

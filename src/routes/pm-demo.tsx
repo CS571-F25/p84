@@ -12,6 +12,15 @@ export const Route = createFileRoute("/pm-demo")({
 	}),
 });
 
+const DEMO_TAGS = [
+	"combo",
+	"budget",
+	"competitive",
+	"casual",
+	"aggro",
+	"control",
+];
+
 const SAMPLE_DOC: Document = {
 	content: [
 		{
@@ -99,6 +108,7 @@ function ProseMirrorDemo() {
 						document={savedDoc}
 						onSave={handleSave}
 						readOnly={false}
+						availableTags={DEMO_TAGS}
 					/>
 				</div>
 

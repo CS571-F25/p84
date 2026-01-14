@@ -558,6 +558,7 @@ function DeckEditorInner({
 						isSaving={isSaving}
 						readOnly={!isOwner}
 						placeholder="Write about your deck's strategy, key combos, card choices..."
+						availableTags={allTags}
 					/>
 				</ErrorBoundary>
 			</div>

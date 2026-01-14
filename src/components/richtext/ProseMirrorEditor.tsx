@@ -185,6 +185,7 @@ export function ProseMirrorEditor({
 		getQueryOptions: getTagQueryOptions,
 		onSelect: handleTagSelect,
 		renderPopup: (props) => <TagPopupContent {...props} />,
+		minQueryLength: 0,
 	});
 
 	// Combined callbacks for the single autocomplete plugin
