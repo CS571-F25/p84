@@ -1837,8 +1837,62 @@ describe("property tests", () => {
 		.tuple(arbText, arbMarkSet)
 		.map(([text, marks]) => schema.text(text, marks));
 
-	// Arbitrary for paragraph content (1-5 text nodes)
-	const arbParagraphContent = fc.array(arbTextNode, {
+	// Arbitrary for mention node
+	const arbMention = fc
+		.tuple(
+			fc
+				.string({ minLength: 1, maxLength: 20 })
+				.filter((s) => !s.includes(" ")),
+			fc.string({ minLength: 10, maxLength: 30 }),
+		)
+		.map(([handle, did]) =>
+			schema.nodes.mention.create({ handle, did: `did:plc:${did}` }),
+		);
+
+	// Arbitrary for cardRef node (scryfall IDs are UUIDs, names can have unicode)
+	const arbCardName = fc.oneof(
+		fc.string({ minLength: 1, maxLength: 30 }),
+		fc.constant("Lightning Bolt"),
+		fc.constant("Jötun Grunt"), // non-ASCII
+		fc.constant("Fire // Ice"), // split card
+		fc.constant("闪电击"), // Chinese (Lightning Bolt)
+		fc.constant("בָּרָק"), // Hebrew (lightning) - RTL
+		fc.constant("صاعقة"), // Arabic (thunderbolt) - RTL
+	);
+	const arbCardRef = fc
+		.tuple(arbCardName, fc.uuid())
+		.map(([name, scryfallId]) =>
+			schema.nodes.cardRef.create({ name, scryfallId }),
+		);
+
+	// Arbitrary for tag node (include unicode to catch byte offset bugs)
+	const arbTagText = fc.oneof(
+		fc.string({ minLength: 1, maxLength: 30 }),
+		fc.constant("日本語"), // Japanese
+		fc.constant("🎉party"), // emoji
+		fc.constant("café"), // accented
+		fc.constant("组合技"), // Chinese (combo)
+		fc.constant("תקציב"), // Hebrew (budget) - RTL
+		fc.constant("ميزانية"), // Arabic (budget) - RTL
+	);
+	const arbTag = arbTagText.map((tag) => schema.nodes.tag.create({ tag }));
+
+	// Arbitrary for any inline node (text with marks, or atom nodes)
+	const arbInlineNode = fc.oneof(
+		{ weight: 5, arbitrary: arbTextNode },
+		{ weight: 1, arbitrary: arbMention },
+		{ weight: 1, arbitrary: arbCardRef },
+		{ weight: 1, arbitrary: arbTag },
+	);
+
+	// Arbitrary for paragraph content (1-5 inline nodes, including atoms)
+	const arbParagraphContent = fc.array(arbInlineNode, {
+		minLength: 1,
+		maxLength: 5,
+	});
+
+	// Arbitrary for text-only paragraph content (no atoms - for text-specific tests)
+	const arbTextOnlyParagraphContent = fc.array(arbTextNode, {
 		minLength: 1,
 		maxLength: 5,
 	});
@@ -1952,7 +2006,14 @@ describe("property tests", () => {
 		.map((blocks) => schema.node("doc", null, blocks));
 
 	// Arbitrary for documents with only text blocks (for text-specific property tests)
-	const arbTextBlock = fc.oneof(arbParagraph, arbHeading);
+	// These use text-only content (no atom nodes like mentions/cardRefs/tags)
+	const arbTextOnlyParagraph = arbTextOnlyParagraphContent.map((content) =>
+		schema.node("paragraph", null, content),
+	);
+	const arbTextOnlyHeading = fc
+		.tuple(arbHeadingLevel, arbTextOnlyParagraphContent)
+		.map(([level, content]) => schema.node("heading", { level }, content));
+	const arbTextBlock = fc.oneof(arbTextOnlyParagraph, arbTextOnlyHeading);
 	const arbTextOnlyDocument = fc
 		.array(arbTextBlock, { minLength: 1, maxLength: 5 })
 		.map((blocks) => schema.node("doc", null, blocks));
