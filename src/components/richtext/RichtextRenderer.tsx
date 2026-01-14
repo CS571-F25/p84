@@ -1,6 +1,7 @@
 import { sanitizeUrl } from "@braintree/sanitize-url";
 import { Link } from "@tanstack/react-router";
 import { memo, type ReactNode } from "react";
+import { useCardHover } from "@/components/HoverCardPreview";
 import type {
 	BulletListBlock,
 	CodeBlock,
@@ -13,6 +14,7 @@ import type {
 } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import type { Main as Facet } from "@/lib/lexicons/types/com/deckbelcher/richtext/facet";
 import { segmentize } from "@/lib/richtext-convert";
+import type { ScryfallId } from "@/lib/scryfall-types";
 
 type Block =
 	| ParagraphBlock
@@ -206,6 +208,27 @@ function SegmentRenderer({
 	return content;
 }
 
+function CardRefLink({
+	scryfallId,
+	children,
+}: {
+	scryfallId: ScryfallId;
+	children: ReactNode;
+}) {
+	const hoverProps = useCardHover(scryfallId);
+
+	return (
+		<Link
+			to="/card/$id"
+			params={{ id: scryfallId }}
+			className="inline-flex items-center px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-sm font-medium hover:bg-sky-100 dark:hover:bg-sky-900/50"
+			{...hoverProps}
+		>
+			{children}
+		</Link>
+	);
+}
+
 function applyFeature(
 	content: ReactNode,
 	feature: Facet["features"][number],
@@ -254,13 +277,9 @@ function applyFeature(
 
 		case "com.deckbelcher.richtext.facet#cardRef":
 			return (
-				<Link
-					to="/card/$id"
-					params={{ id: feature.scryfallId }}
-					className="inline-flex items-center px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-sm font-medium hover:bg-sky-100 dark:hover:bg-sky-900/50"
-				>
+				<CardRefLink scryfallId={feature.scryfallId as ScryfallId}>
 					{content}
-				</Link>
+				</CardRefLink>
 			);
 
 		default:

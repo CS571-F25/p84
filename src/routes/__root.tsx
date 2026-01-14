@@ -7,6 +7,7 @@ import {
 import { lazy, Suspense } from "react";
 import { Toaster } from "sonner";
 import Header from "../components/Header";
+import { HoverCardPreviewProvider } from "../components/HoverCardPreview";
 import { WorkerStatusIndicator } from "../components/WorkerStatusIndicator";
 import { initializeApp } from "../lib/app-init";
 import { AuthProvider } from "../lib/useAuth";
@@ -116,13 +117,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body>
 				<ThemeProvider>
 					<AuthProvider>
-						<WorkerStatusIndicator />
-						<Header />
-						{children}
-						<Suspense>
-							<DevTools />
-						</Suspense>
-						<ThemedToaster />
+						<HoverCardPreviewProvider>
+							<WorkerStatusIndicator />
+							<Header />
+							{children}
+							<Suspense>
+								<DevTools />
+							</Suspense>
+							<ThemedToaster />
+						</HoverCardPreviewProvider>
 					</AuthProvider>
 				</ThemeProvider>
 				<Scripts />
