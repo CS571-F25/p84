@@ -282,6 +282,13 @@ function applyFeature(
 				</CardRefLink>
 			);
 
+		case "com.deckbelcher.richtext.facet#tag":
+			return (
+				<span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-medium">
+					{content}
+				</span>
+			);
+
 		default:
 			return content;
 	}

@@ -260,6 +260,37 @@ const nodes: Record<string, NodeSpec> = {
 			},
 		],
 	},
+
+	tag: {
+		inline: true,
+		group: "inline",
+		atom: true,
+		attrs: {
+			tag: { default: "" },
+		},
+		toDOM(node) {
+			return [
+				"span",
+				{
+					class:
+						"inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-medium",
+					"data-tag": node.attrs.tag,
+				},
+				`#${node.attrs.tag}`,
+			];
+		},
+		parseDOM: [
+			{
+				tag: "span[data-tag]",
+				getAttrs(dom) {
+					if (typeof dom === "string") return false;
+					return {
+						tag: dom.getAttribute("data-tag") ?? "",
+					};
+				},
+			},
+		],
+	},
 };
 
 const marks: Record<string, MarkSpec> = {

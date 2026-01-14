@@ -1066,6 +1066,71 @@ describe("lexiconToTree", () => {
 			expect(para.child(2).text).toBe(" world");
 		});
 
+		it("converts cardRef facet to inline node", () => {
+			const lexicon: LexiconDocument = {
+				content: [
+					{
+						$type: "com.deckbelcher.richtext#paragraphBlock",
+						text: "check out Lightning Bolt for removal",
+						facets: [
+							{
+								index: { byteStart: 10, byteEnd: 24 },
+								features: [
+									{
+										$type: "com.deckbelcher.richtext.facet#cardRef",
+										scryfallId: "e3285e6b-3e79-4d7c-bf96-d920f973b122",
+									},
+								],
+							},
+						],
+					},
+				],
+			};
+			const result = lexiconToTree(lexicon);
+			const para = result.child(0);
+
+			// Should have 3 children: "check out ", cardRef node, " for removal"
+			expect(para.childCount).toBe(3);
+			expect(para.child(0).text).toBe("check out ");
+			expect(para.child(1).type.name).toBe("cardRef");
+			expect(para.child(1).attrs.name).toBe("Lightning Bolt");
+			expect(para.child(1).attrs.scryfallId).toBe(
+				"e3285e6b-3e79-4d7c-bf96-d920f973b122",
+			);
+			expect(para.child(2).text).toBe(" for removal");
+		});
+
+		it("converts tag facet to inline node", () => {
+			const lexicon: LexiconDocument = {
+				content: [
+					{
+						$type: "com.deckbelcher.richtext#paragraphBlock",
+						text: "tagged with #combo for deck",
+						facets: [
+							{
+								index: { byteStart: 12, byteEnd: 18 },
+								features: [
+									{
+										$type: "com.deckbelcher.richtext.facet#tag",
+										tag: "combo",
+									},
+								],
+							},
+						],
+					},
+				],
+			};
+			const result = lexiconToTree(lexicon);
+			const para = result.child(0);
+
+			// Should have 3 children: "tagged with ", tag node, " for deck"
+			expect(para.childCount).toBe(3);
+			expect(para.child(0).text).toBe("tagged with ");
+			expect(para.child(1).type.name).toBe("tag");
+			expect(para.child(1).attrs.tag).toBe("combo");
+			expect(para.child(2).text).toBe(" for deck");
+		});
+
 		it("converts adjacent facets", () => {
 			const lexicon: LexiconDocument = {
 				content: [
@@ -1430,6 +1495,102 @@ describe("roundtrip", () => {
 		const result = roundtrip(original);
 
 		expect(result.eq(original)).toBe(true);
+	});
+
+	it("preserves cardRefs", () => {
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [
+				schema.text("run "),
+				schema.nodes.cardRef.create({
+					name: "Lightning Bolt",
+					scryfallId: "e3285e6b-3e79-4d7c-bf96-d920f973b122",
+				}),
+				schema.text(" for removal"),
+			]),
+		]);
+		const result = roundtrip(original);
+
+		expect(result.eq(original)).toBe(true);
+	});
+
+	it("converts cardRefs without scryfallId to plain text", () => {
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [
+				schema.nodes.cardRef.create({
+					name: "Lightning Bolt",
+					scryfallId: "",
+				}),
+			]),
+		]);
+
+		const lexicon = treeToLexicon(original);
+		const paragraph = lexicon.content[0] as {
+			text?: string;
+			facets?: unknown[];
+		};
+
+		expect(paragraph.text).toBe("Lightning Bolt");
+		expect(paragraph.facets).toBeUndefined();
+	});
+
+	it("preserves multiple cardRefs with correct byte offsets", () => {
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [
+				schema.text("run "),
+				schema.nodes.cardRef.create({
+					name: "Lightning Bolt",
+					scryfallId: "e3285e6b-3e79-4d7c-bf96-d920f973b122",
+				}),
+				schema.text(" and "),
+				schema.nodes.cardRef.create({
+					name: "Path to Exile",
+					scryfallId: "163b68e8-33e9-4e4e-a2c1-e1c884c7a3b8",
+				}),
+			]),
+		]);
+		const result = roundtrip(original);
+
+		expect(result.eq(original)).toBe(true);
+	});
+
+	it("preserves tags", () => {
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [
+				schema.text("tagged with "),
+				schema.nodes.tag.create({ tag: "combo" }),
+				schema.text(" and "),
+				schema.nodes.tag.create({ tag: "budget" }),
+			]),
+		]);
+		const result = roundtrip(original);
+
+		expect(result.eq(original)).toBe(true);
+	});
+
+	it("preserves tags with spaces", () => {
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [
+				schema.nodes.tag.create({ tag: "budget friendly" }),
+			]),
+		]);
+		const result = roundtrip(original);
+
+		expect(result.eq(original)).toBe(true);
+	});
+
+	it("converts tags without tag value to plain text", () => {
+		const original = schema.node("doc", null, [
+			schema.node("paragraph", null, [schema.nodes.tag.create({ tag: "" })]),
+		]);
+
+		const lexicon = treeToLexicon(original);
+		const paragraph = lexicon.content[0] as {
+			text?: string;
+			facets?: unknown[];
+		};
+
+		expect(paragraph.text).toBe("#");
+		expect(paragraph.facets).toBeUndefined();
 	});
 
 	it("preserves headings", () => {

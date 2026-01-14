@@ -1,6 +1,7 @@
 import {
 	Bold,
 	Code,
+	Hash,
 	Heading1,
 	Heading2,
 	Italic,
@@ -171,6 +172,11 @@ export function Toolbar({ view }: ToolbarProps) {
 
 	const insertCardTrigger = () => {
 		openAutocomplete(view, "[[");
+		view.focus();
+	};
+
+	const insertTagTrigger = () => {
+		openAutocomplete(view, "#");
 		view.focus();
 	};
 
@@ -349,6 +355,13 @@ export function Toolbar({ view }: ToolbarProps) {
 					title="Insert Card Reference ([[)"
 				>
 					<TextSearch className="w-4 h-4" />
+				</ToolbarButton>
+				<ToolbarButton
+					onClick={insertTagTrigger}
+					active={false}
+					title="Insert Tag (#)"
+				>
+					<Hash className="w-4 h-4" />
 				</ToolbarButton>
 			</div>
 			<LinkModal

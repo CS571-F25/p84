@@ -23,6 +23,8 @@ import {
 	createCombinedAutocompletePlugin,
 	type MentionOption,
 	MentionPopupContent,
+	type TagOption,
+	TagPopupContent,
 } from "./CombinedAutocomplete";
 import { buildInputRules } from "./inputRules";
 import { createUpdatePlugin } from "./plugins";
@@ -36,6 +38,7 @@ export interface ProseMirrorEditorProps {
 	placeholder?: string;
 	className?: string;
 	showToolbar?: boolean;
+	availableTags?: string[];
 }
 
 export function ProseMirrorEditor({
@@ -44,6 +47,7 @@ export function ProseMirrorEditor({
 	placeholder = "Write something...",
 	className,
 	showToolbar = true,
+	availableTags = [],
 }: ProseMirrorEditorProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const viewRef = useRef<EditorView | null>(null);
@@ -139,13 +143,58 @@ export function ProseMirrorEditor({
 		renderPopup: (props) => <CardPopupContent {...props} />,
 	});
 
+	// Tag autocomplete
+	const handleTagSelect = useCallback(
+		(
+			option: TagOption,
+			state: { range: { from: number; to: number } },
+			view: EditorView,
+		) => {
+			const tagNode = schema.nodes.tag.create({
+				tag: option.tag,
+			});
+
+			const tr = view.state.tr
+				.delete(state.range.from, state.range.to)
+				.insert(state.range.from, tagNode)
+				.insertText(" ", state.range.from + 1);
+
+			view.dispatch(tr);
+			view.focus();
+		},
+		[],
+	);
+
+	const getTagQueryOptions = useCallback(
+		(query: string) => ({
+			queryKey: ["tags", query, availableTags],
+			queryFn: () => {
+				const q = query.toLowerCase();
+				return availableTags
+					.filter((t) => t.toLowerCase().includes(q))
+					.map((tag) => ({ tag }));
+			},
+			staleTime: Number.POSITIVE_INFINITY,
+		}),
+		[availableTags],
+	);
+
+	const tag = useEditorAutocomplete({
+		viewRef,
+		containerRef: wrapperRef,
+		getQueryOptions: getTagQueryOptions,
+		onSelect: handleTagSelect,
+		renderPopup: (props) => <TagPopupContent {...props} />,
+	});
+
 	// Combined callbacks for the single autocomplete plugin
 	const combinedCallbacks: CombinedCallbacks = useMemo(
 		() => ({
 			mention: mention.callbacks,
 			card: card.callbacks,
+			tag: tag.callbacks,
 		}),
-		[mention.callbacks, card.callbacks],
+		[mention.callbacks, card.callbacks, tag.callbacks],
 	);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: editor created once on mount
@@ -213,6 +262,7 @@ export function ProseMirrorEditor({
 			</div>
 			{mention.popup}
 			{card.popup}
+			{tag.popup}
 		</div>
 	);
 }

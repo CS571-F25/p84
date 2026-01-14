@@ -283,6 +283,29 @@ function extractTextAndFacets(node: ProseMirrorNode): {
 			}
 
 			byteOffset += textBytes.length;
+		} else if (child.type.name === "tag") {
+			const tag = (child.attrs.tag as string) || "";
+			const displayText = `#${tag}`;
+			const textBytes = new TextEncoder().encode(displayText);
+
+			textParts.push(displayText);
+
+			if (tag) {
+				facets.push({
+					index: {
+						byteStart: byteOffset,
+						byteEnd: byteOffset + textBytes.length,
+					},
+					features: [
+						{
+							$type: "com.deckbelcher.richtext.facet#tag",
+							tag,
+						},
+					],
+				});
+			}
+
+			byteOffset += textBytes.length;
 		}
 	});
 
@@ -556,6 +579,22 @@ function textAndFacetsToNodes(
 					scryfallId: cardRefFeature.scryfallId || "",
 				}),
 			);
+			continue;
+		}
+
+		// Check for tag facet - these become inline nodes
+		const tagFeature = segment.features.find(
+			(f) =>
+				(f as { $type?: string }).$type ===
+				"com.deckbelcher.richtext.facet#tag",
+		) as { $type: string; tag?: string } | undefined;
+
+		if (tagFeature) {
+			// Strip leading # from display text
+			const tag =
+				tagFeature.tag ||
+				(segment.text.startsWith("#") ? segment.text.slice(1) : segment.text);
+			nodes.push(schema.nodes.tag.create({ tag }));
 			continue;
 		}
 
