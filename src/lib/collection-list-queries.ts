@@ -16,16 +16,28 @@ import {
 	type Rkey,
 	updateCollectionListRecord,
 } from "./atproto-client";
-import type {
-	CollectionList,
-	ListCardItem,
-	ListItem,
+import {
+	type CollectionList,
+	isCardItem,
+	isDeckItem,
+	type ListItem,
 } from "./collection-list-types";
 import { getPdsForDid } from "./identity";
 import type { ComDeckbelcherCollectionList } from "./lexicons/index";
-import { parseOracleUri, parseScryfallUri } from "./scryfall-types";
+import {
+	parseOracleUri,
+	parseScryfallUri,
+	toOracleUri,
+	toScryfallUri,
+} from "./scryfall-types";
 import { useAuth } from "./useAuth";
 import { useMutationWithToast } from "./useMutationWithToast";
+
+function assertHasType<T extends { $type?: string }>(
+	item: T,
+): asserts item is T & { $type: string } {
+	if (!item.$type) throw new Error("Item missing $type discriminator");
+}
 
 /**
  * Transform lexicon list record to app CollectionList type
@@ -37,22 +49,22 @@ export function transformListRecord(
 	return {
 		...record,
 		items: record.items.map((item): ListItem => {
+			assertHasType(item);
 			if (item.$type === "com.deckbelcher.collection.list#cardItem") {
-				const cardItem = item as ComDeckbelcherCollectionList.CardItem;
-				const scryfallId = parseScryfallUri(cardItem.ref.scryfallUri);
-				const oracleId = parseOracleUri(cardItem.ref.oracleUri);
+				const scryfallId = parseScryfallUri(item.ref.scryfallUri);
+				const oracleId = parseOracleUri(item.ref.oracleUri);
 
 				if (!scryfallId || !oracleId) {
 					throw new Error(
-						`Invalid card ref URIs: ${cardItem.ref.scryfallUri}, ${cardItem.ref.oracleUri}`,
+						`Invalid card ref URIs: ${item.ref.scryfallUri}, ${item.ref.oracleUri}`,
 					);
 				}
 
-				const { ref: _ref, ...rest } = cardItem;
-				return { ...rest, scryfallId, oracleId } as ListCardItem;
+				const { ref: _ref, ...rest } = item;
+				return { ...rest, scryfallId, oracleId };
 			}
 			if (item.$type === "com.deckbelcher.collection.list#deckItem") {
-				return item as ComDeckbelcherCollectionList.DeckItem;
+				return item;
 			}
 			throw new Error(
 				`Unknown list item type: ${(item as { $type?: string }).$type}`,
@@ -164,7 +176,27 @@ export function useUpdateCollectionListMutation(did: Did, rkey: Rkey) {
 				$type: "com.deckbelcher.collection.list",
 				name: list.name,
 				description: list.description,
-				items: list.items as ComDeckbelcherCollectionList.Main["items"],
+				items: list.items.map((item) => {
+					if (isCardItem(item)) {
+						const { scryfallId, oracleId, ...rest } = item;
+						const result = {
+							...rest,
+							ref: {
+								scryfallUri: toScryfallUri(scryfallId),
+								oracleUri: toOracleUri(oracleId),
+							},
+						};
+						assertHasType(result);
+						return result;
+					}
+					if (isDeckItem(item)) {
+						assertHasType(item);
+						return item;
+					}
+					throw new Error(
+						`Unknown list item type: ${(item as { $type?: string }).$type}`,
+					);
+				}),
 				createdAt: list.createdAt,
 				updatedAt: new Date().toISOString(),
 			});

@@ -6,8 +6,13 @@
 import type {} from "@atcute/atproto";
 import { Client } from "@atcute/client";
 import type { Did } from "@atcute/lexicons";
+import {
+	type BaseSchema,
+	type InferOutput,
+	safeParse,
+} from "@atcute/lexicons/validations";
 import type { OAuthUserAgent } from "@atcute/oauth-browser-client";
-import type {
+import {
 	ComDeckbelcherCollectionList,
 	ComDeckbelcherDeckList,
 } from "./lexicons/index";
@@ -54,12 +59,13 @@ export interface ListRecordsResponse<T> {
 // Generic ATProto Operations
 // ============================================================================
 
-async function getRecord<T>(
+async function getRecord<TSchema extends BaseSchema>(
 	did: Did,
 	rkey: Rkey,
 	collection: Collection,
 	entityName: string,
-): Promise<Result<RecordResponse<T>>> {
+	schema: TSchema,
+): Promise<Result<RecordResponse<InferOutput<TSchema>>>> {
 	try {
 		const url = new URL(`${SLINGSHOT_BASE}/xrpc/com.atproto.repo.getRecord`);
 		url.searchParams.set("repo", did);
@@ -81,8 +87,27 @@ async function getRecord<T>(
 			};
 		}
 
-		const data = (await response.json()) as RecordResponse<T>;
-		return { success: true, data };
+		const json = (await response.json()) as {
+			uri: string;
+			cid: string;
+			value: unknown;
+		};
+		const result = safeParse(schema, json.value);
+		if (!result.ok) {
+			return {
+				success: false,
+				error: new Error(result.message),
+			};
+		}
+
+		return {
+			success: true,
+			data: {
+				uri: json.uri as AtUri,
+				cid: json.cid,
+				value: result.value,
+			},
+		};
 	} catch (error) {
 		return {
 			success: false,
@@ -180,12 +205,13 @@ async function updateRecord<T extends Record<string, unknown>>(
 	}
 }
 
-async function listRecords<T>(
+async function listRecords<TSchema extends BaseSchema>(
 	pdsUrl: PdsUrl,
 	did: Did,
 	collection: Collection,
 	entityName: string,
-): Promise<Result<ListRecordsResponse<T>>> {
+	schema: TSchema,
+): Promise<Result<ListRecordsResponse<InferOutput<TSchema>>>> {
 	try {
 		const url = new URL(`${pdsUrl}/xrpc/com.atproto.repo.listRecords`);
 		url.searchParams.set("repo", did);
@@ -206,8 +232,31 @@ async function listRecords<T>(
 			};
 		}
 
-		const data = (await response.json()) as ListRecordsResponse<T>;
-		return { success: true, data };
+		const json = (await response.json()) as {
+			records: { uri: string; cid: string; value: unknown }[];
+			cursor?: string;
+		};
+
+		const validatedRecords: RecordResponse<InferOutput<TSchema>>[] = [];
+		for (const record of json.records) {
+			const result = safeParse(schema, record.value);
+			if (!result.ok) {
+				return {
+					success: false,
+					error: new Error(result.message),
+				};
+			}
+			validatedRecords.push({
+				uri: record.uri as AtUri,
+				cid: record.cid,
+				value: result.value,
+			});
+		}
+
+		return {
+			success: true,
+			data: { records: validatedRecords, cursor: json.cursor },
+		};
 	} catch (error) {
 		return {
 			success: false,
@@ -257,11 +306,12 @@ async function deleteRecord(
 export type DeckRecordResponse = RecordResponse<ComDeckbelcherDeckList.Main>;
 
 export function getDeckRecord(did: Did, rkey: Rkey) {
-	return getRecord<ComDeckbelcherDeckList.Main>(
+	return getRecord(
 		did,
 		rkey,
 		DECK_COLLECTION,
 		"deck",
+		ComDeckbelcherDeckList.mainSchema,
 	);
 }
 
@@ -281,11 +331,12 @@ export function updateDeckRecord(
 }
 
 export function listUserDecks(pdsUrl: PdsUrl, did: Did) {
-	return listRecords<ComDeckbelcherDeckList.Main>(
+	return listRecords(
 		pdsUrl,
 		did,
 		DECK_COLLECTION,
 		"deck",
+		ComDeckbelcherDeckList.mainSchema,
 	);
 }
 
@@ -301,11 +352,12 @@ export type CollectionListRecordResponse =
 	RecordResponse<ComDeckbelcherCollectionList.Main>;
 
 export function getCollectionListRecord(did: Did, rkey: Rkey) {
-	return getRecord<ComDeckbelcherCollectionList.Main>(
+	return getRecord(
 		did,
 		rkey,
 		LIST_COLLECTION,
 		"list",
+		ComDeckbelcherCollectionList.mainSchema,
 	);
 }
 
@@ -325,11 +377,12 @@ export function updateCollectionListRecord(
 }
 
 export function listUserCollectionLists(pdsUrl: PdsUrl, did: Did) {
-	return listRecords<ComDeckbelcherCollectionList.Main>(
+	return listRecords(
 		pdsUrl,
 		did,
 		LIST_COLLECTION,
 		"list",
+		ComDeckbelcherCollectionList.mainSchema,
 	);
 }
 
