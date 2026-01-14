@@ -28,7 +28,7 @@ import {
 } from "./CombinedAutocomplete";
 import { buildInputRules } from "./inputRules";
 import { createUpdatePlugin } from "./plugins";
-import { schema } from "./schema";
+import { createCardRefNode, schema } from "./schema";
 import { Toolbar } from "./Toolbar";
 import { useEditorAutocomplete } from "./useEditorAutocomplete";
 
@@ -110,9 +110,10 @@ export function ProseMirrorEditor({
 			state: { range: { from: number; to: number } },
 			view: EditorView,
 		) => {
-			const cardRefNode = schema.nodes.cardRef.create({
+			const cardRefNode = createCardRefNode({
 				name: option.name,
 				scryfallId: option.scryfallId,
+				oracleId: option.oracleId,
 			});
 
 			const tr = view.state.tr
@@ -130,7 +131,11 @@ export function ProseMirrorEditor({
 		(query: string) => ({
 			...searchCardsQueryOptions(query, undefined, 10),
 			select: (result: { cards: Card[]; totalCount: number }): CardOption[] =>
-				result.cards.map((c) => ({ name: c.name, scryfallId: c.id })),
+				result.cards.map((c) => ({
+					name: c.name,
+					scryfallId: c.id,
+					oracleId: c.oracle_id,
+				})),
 		}),
 		[],
 	);

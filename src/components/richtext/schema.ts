@@ -1,5 +1,6 @@
 import type { MarkSpec, NodeSpec } from "prosemirror-model";
 import { Schema } from "prosemirror-model";
+import type { OracleId, ScryfallId } from "@/lib/scryfall-types";
 
 /**
  * Vendored and customized schema based on prosemirror-markdown.
@@ -374,3 +375,18 @@ const marks: Record<string, MarkSpec> = {
 };
 
 export const schema = new Schema({ nodes, marks });
+
+/**
+ * Required attrs for cardRef node creation.
+ * Using branded types ensures TypeScript catches missing/wrong fields.
+ */
+export interface CardRefAttrs {
+	name: string;
+	scryfallId: ScryfallId;
+	oracleId: OracleId;
+}
+
+/** Type-safe cardRef node creation - use this instead of schema.nodes.cardRef.create() */
+export function createCardRefNode(attrs: CardRefAttrs) {
+	return schema.nodes.cardRef.create(attrs);
+}

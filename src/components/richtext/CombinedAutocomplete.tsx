@@ -4,6 +4,7 @@ import autocomplete, {
 	closeAutocomplete,
 } from "prosemirror-autocomplete";
 import type { Plugin } from "prosemirror-state";
+import type { OracleId, ScryfallId } from "@/lib/scryfall-types";
 import type { AutocompleteCallbacks } from "./useEditorAutocomplete";
 
 export interface MentionOption {
@@ -13,7 +14,8 @@ export interface MentionOption {
 
 export interface CardOption {
 	name: string;
-	scryfallId: string;
+	scryfallId: ScryfallId;
+	oracleId: OracleId;
 }
 
 export interface TagOption {
