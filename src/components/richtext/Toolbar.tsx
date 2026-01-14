@@ -10,8 +10,10 @@ import {
 	Minus,
 	Redo,
 	SquareCode,
+	TextSearch,
 	Undo,
 } from "lucide-react";
+import { openAutocomplete } from "prosemirror-autocomplete";
 import { setBlockType, toggleMark } from "prosemirror-commands";
 import { redo, undo } from "prosemirror-history";
 import type { MarkType, NodeType } from "prosemirror-model";
@@ -164,6 +166,11 @@ export function Toolbar({ view }: ToolbarProps) {
 		// Move selection to the new paragraph (position inside the paragraph)
 		tr.setSelection(TextSelection.near(tr.doc.resolve(insertPos + 1)));
 		view.dispatch(tr);
+		view.focus();
+	};
+
+	const insertCardTrigger = () => {
+		openAutocomplete(view, "[[");
 		view.focus();
 	};
 
@@ -335,6 +342,13 @@ export function Toolbar({ view }: ToolbarProps) {
 					title="Horizontal Rule"
 				>
 					<Minus className="w-4 h-4" />
+				</ToolbarButton>
+				<ToolbarButton
+					onClick={insertCardTrigger}
+					active={false}
+					title="Insert Card Reference ([[)"
+				>
+					<TextSearch className="w-4 h-4" />
 				</ToolbarButton>
 			</div>
 			<LinkModal

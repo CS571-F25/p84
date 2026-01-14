@@ -33,7 +33,15 @@ export function createCombinedAutocompletePlugin(
 			{ name: "card", trigger: "[[" },
 		],
 		reducer: (action: AutocompleteAction) => {
-			const triggerName = action.type?.name as AutocompleteType | undefined;
+			// Determine trigger type from action.type, or fall back to trigger string
+			// (openAutocomplete sets type: null, so we need this fallback)
+			const triggerName: AutocompleteType | undefined =
+				(action.type?.name as AutocompleteType) ||
+				(action.trigger === "[["
+					? "card"
+					: action.trigger === "@"
+						? "mention"
+						: undefined);
 
 			switch (action.kind) {
 				case ActionKind.open: {
@@ -179,7 +187,7 @@ export function CardPopupContent({
 						aria-selected={i === selectedIndex}
 						className={`w-full px-3 py-2 text-left text-sm ${
 							i === selectedIndex
-								? "bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100"
+								? "bg-sky-50 dark:bg-sky-900/30 text-sky-900 dark:text-sky-100"
 								: "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-700"
 						}`}
 						onMouseEnter={() => onSelectIndex(i)}

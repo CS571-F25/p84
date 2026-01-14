@@ -257,7 +257,7 @@ function applyFeature(
 				<Link
 					to="/card/$id"
 					params={{ id: feature.scryfallId }}
-					className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-sm font-medium hover:bg-amber-200 dark:hover:bg-amber-900/70"
+					className="inline-flex items-center px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-sm font-medium hover:bg-sky-100 dark:hover:bg-sky-900/50"
 				>
 					{content}
 				</Link>
