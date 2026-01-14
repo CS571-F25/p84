@@ -40,10 +40,10 @@ describe("OracleText", () => {
 			expect(symbols[0].getAttribute("src")).toBe("/symbols/rw.svg");
 		});
 
-		it("uses align-middle class for proper alignment", () => {
+		it("uses em-based vertical alignment for proper baseline alignment", () => {
 			const { container } = render(<OracleText text="Pay {G}." />);
 			const symbol = container.querySelector("img");
-			expect(symbol?.className).toContain("align-middle");
+			expect(symbol?.className).toContain("align-[-0.125em]");
 		});
 	});
 

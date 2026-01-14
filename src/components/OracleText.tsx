@@ -111,7 +111,7 @@ function renderParts(
 					key={i}
 					symbol={part.content}
 					size={symbolSize}
-					className="inline align-middle mx-0.5"
+					className="inline align-[-0.125em] mx-0.5"
 				/>
 			);
 		}

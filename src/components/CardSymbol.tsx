@@ -17,6 +17,8 @@ const SIZE_CLASSES = {
 	text: "h-[1.1em] w-[1.1em]",
 };
 
+const SYMBOL_SHADOW = "drop-shadow-[_-1px_1px_0_rgba(0,0,0,0.85)]";
+
 export function CardSymbol({
 	symbol,
 	size = "medium",
@@ -29,7 +31,7 @@ export function CardSymbol({
 		<img
 			src={`/symbols/${normalizedSymbol}.svg`}
 			alt={symbol}
-			className={`${SIZE_CLASSES[size]} ${className ?? ""}`}
+			className={`${SIZE_CLASSES[size]} ${SYMBOL_SHADOW} ${className ?? ""}`}
 			title={symbol}
 		/>
 	);
