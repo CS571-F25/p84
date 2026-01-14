@@ -1,5 +1,6 @@
 import "@typelex/emitter";
 import "./externals.tsp";
+import "./defs.tsp";
 import "./richtext-facet.tsp";
 import "./richtext.tsp";
 import "./deck-list.tsp";

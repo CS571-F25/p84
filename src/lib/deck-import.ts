@@ -23,6 +23,7 @@ export interface ParsedCardLine {
 
 export interface ResolvedCard {
 	scryfallId: ScryfallId;
+	oracleId: OracleId;
 	quantity: number;
 	tags: string[];
 }
@@ -211,6 +212,7 @@ export async function resolveCards(
 
 			resolved.push({
 				scryfallId: finalId,
+				oracleId: baseCard.oracle_id,
 				quantity: line.quantity,
 				tags: line.tags,
 			});

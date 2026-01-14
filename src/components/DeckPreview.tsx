@@ -4,22 +4,15 @@ import { Link } from "@tanstack/react-router";
 import { CardImage } from "@/components/CardImage";
 import { ClientDate } from "@/components/ClientDate";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
+import type { Deck, DeckCard } from "@/lib/deck-types";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { formatDisplayName } from "@/lib/format-utils";
 import type { ScryfallId } from "@/lib/scryfall-types";
 
-export interface DeckData {
-	name: string;
-	format?: string;
-	cards: Array<{ scryfallId: string; quantity: number; section: string }>;
-	createdAt: string;
-	updatedAt?: string;
-}
-
 export interface DeckPreviewProps {
 	did: Did;
 	rkey: Rkey | string;
-	deck: DeckData;
+	deck: Deck;
 	/** Whether to show handle row (fetches DID document, with skeleton while loading) */
 	showHandle?: boolean;
 	/** Whether to show section counts like "100 main · 15 side" (default: true) */
@@ -61,16 +54,14 @@ function formatSectionCounts(counts: Record<string, number>): string {
 	return parts.join(" · ");
 }
 
-function getThumbnailId(
-	cards: { scryfallId: string; section: string }[],
-): ScryfallId | null {
+function getThumbnailId(cards: DeckCard[]): ScryfallId | null {
 	const commander = cards.find((c) => c.section === "commander");
-	if (commander) return commander.scryfallId as ScryfallId;
+	if (commander) return commander.scryfallId;
 
 	const mainboard = cards.find((c) => c.section === "mainboard");
-	if (mainboard) return mainboard.scryfallId as ScryfallId;
+	if (mainboard) return mainboard.scryfallId;
 
-	return cards[0]?.scryfallId as ScryfallId | null;
+	return cards[0]?.scryfallId ?? null;
 }
 
 export function DeckPreview({

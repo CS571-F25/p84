@@ -379,7 +379,8 @@ describe("property-based tests", () => {
 					expect(parsed?.name).toBe(name);
 					expect(parsed?.setCode).toBe(set.toUpperCase());
 					expect(parsed?.collectorNumber).toBe(collectorNumber);
-					expect(parsed?.tags).toEqual(tags);
+					// Tags are deduplicated during parsing
+					expect(parsed?.tags).toEqual(Array.from(new Set(tags)));
 				},
 			),
 			{ numRuns: 200 },
@@ -408,7 +409,8 @@ describe("property-based tests", () => {
 				expect(parsed?.quantity).toBe(quantity);
 				expect(parsed?.name).toBe(name);
 				expect(parsed?.setCode).toBeUndefined();
-				expect(parsed?.tags).toEqual(tags);
+				// Tags are deduplicated during parsing
+				expect(parsed?.tags).toEqual(Array.from(new Set(tags)));
 			}),
 			{ numRuns: 200 },
 		);

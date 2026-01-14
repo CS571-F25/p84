@@ -17,6 +17,14 @@ import type {
 	Italic,
 	Link,
 } from "@/lib/lexicons/types/com/deckbelcher/richtext/facet";
+import {
+	asOracleId,
+	asScryfallId,
+	parseOracleUri,
+	parseScryfallUri,
+	toOracleUri,
+	toScryfallUri,
+} from "./scryfall-types";
 
 export type { LexiconDocument };
 
@@ -263,11 +271,12 @@ function extractTextAndFacets(node: ProseMirrorNode): {
 		} else if (child.type.name === "cardRef") {
 			const name = (child.attrs.name as string) || "";
 			const scryfallId = (child.attrs.scryfallId as string) || "";
+			const oracleId = (child.attrs.oracleId as string) || "";
 			const textBytes = new TextEncoder().encode(name);
 
 			textParts.push(name);
 
-			if (scryfallId) {
+			if (scryfallId && oracleId) {
 				facets.push({
 					index: {
 						byteStart: byteOffset,
@@ -276,7 +285,10 @@ function extractTextAndFacets(node: ProseMirrorNode): {
 					features: [
 						{
 							$type: "com.deckbelcher.richtext.facet#cardRef",
-							scryfallId,
+							ref: {
+								scryfallUri: toScryfallUri(asScryfallId(scryfallId)),
+								oracleUri: toOracleUri(asOracleId(oracleId)),
+							},
 						},
 					],
 				});
@@ -569,16 +581,24 @@ function textAndFacetsToNodes(
 			(f) =>
 				(f as { $type?: string }).$type ===
 				"com.deckbelcher.richtext.facet#cardRef",
-		) as { $type: string; scryfallId?: string } | undefined;
+		) as
+			| { $type: string; ref?: { scryfallUri?: string; oracleUri?: string } }
+			| undefined;
 
-		if (cardRefFeature) {
-			nodes.push(
-				schema.nodes.cardRef.create({
-					name: segment.text,
-					scryfallId: cardRefFeature.scryfallId || "",
-				}),
-			);
-			continue;
+		if (cardRefFeature?.ref) {
+			const scryfallId = parseScryfallUri(cardRefFeature.ref.scryfallUri || "");
+			const oracleId = parseOracleUri(cardRefFeature.ref.oracleUri || "");
+			// Only create cardRef node if both URIs are valid, otherwise fall through to plain text
+			if (scryfallId && oracleId) {
+				nodes.push(
+					schema.nodes.cardRef.create({
+						name: segment.text,
+						scryfallId,
+						oracleId,
+					}),
+				);
+				continue;
+			}
 		}
 
 		// Check for tag facet - these become inline nodes

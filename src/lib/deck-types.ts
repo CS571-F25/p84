@@ -4,12 +4,18 @@
  */
 
 import type { ComDeckbelcherDeckList } from "./lexicons/index";
-import type { Card, ManaColor, ScryfallId } from "./scryfall-types";
+import type { Card, ManaColor, OracleId, ScryfallId } from "./scryfall-types";
 
 export type Section = "commander" | "mainboard" | "sideboard" | "maybeboard";
 
-export type DeckCard = Omit<ComDeckbelcherDeckList.Card, "scryfallId"> & {
+/**
+ * App-side card entry with flat typed IDs.
+ * The lexicon stores ref.scryfallUri and ref.oracleUri as URIs,
+ * but app code works with typed IDs after boundary parsing.
+ */
+export type DeckCard = Omit<ComDeckbelcherDeckList.Card, "ref"> & {
 	scryfallId: ScryfallId;
+	oracleId: OracleId;
 };
 
 export type Deck = Omit<ComDeckbelcherDeckList.Main, "cards"> & {
@@ -73,6 +79,7 @@ export function findCardInSection(
 export function addCardToDeck(
 	deck: Deck,
 	scryfallId: ScryfallId,
+	oracleId: OracleId,
 	section: Section,
 	quantity = 1,
 ): Deck {
@@ -92,7 +99,10 @@ export function addCardToDeck(
 
 	return {
 		...deck,
-		cards: [...deck.cards, { scryfallId, quantity, section, tags: [] }],
+		cards: [
+			...deck.cards,
+			{ scryfallId, oracleId, quantity, section, tags: [] },
+		],
 		updatedAt: new Date().toISOString(),
 	};
 }

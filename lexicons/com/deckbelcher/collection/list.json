@@ -52,9 +52,10 @@
     "cardItem": {
       "type": "object",
       "properties": {
-        "scryfallId": {
-          "type": "string",
-          "description": "Scryfall UUID for the card."
+        "ref": {
+          "type": "ref",
+          "ref": "com.deckbelcher.defs#cardRef",
+          "description": "Reference to the card (scryfall printing + oracle card)."
         },
         "addedAt": {
           "type": "string",
@@ -64,7 +65,7 @@
       },
       "description": "A card saved to the list.",
       "required": [
-        "scryfallId",
+        "ref",
         "addedAt"
       ]
     },

@@ -20,6 +20,7 @@ function mockDeck(commanderIds: string[]): Deck {
 		format: "commander",
 		cards: commanderIds.map((id) => ({
 			scryfallId: asScryfallId(id),
+			oracleId: asOracleId("00000000-0000-0000-0000-000000000000"),
 			quantity: 1,
 			section: "commander" as const,
 			tags: [],

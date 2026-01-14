@@ -29,6 +29,41 @@ export function asOracleId(id: string): OracleId {
 	return id as OracleId;
 }
 
+// URI scheme prefixes for external indexing
+const SCRYFALL_URI_PREFIX = "scry:" as const;
+const ORACLE_URI_PREFIX = "oracle:" as const;
+
+export type ScryfallUri = `${typeof SCRYFALL_URI_PREFIX}${string}`;
+export type OracleUri = `${typeof ORACLE_URI_PREFIX}${string}`;
+
+/** Convert a ScryfallId to a scry: URI */
+export function toScryfallUri(id: ScryfallId): ScryfallUri {
+	return `${SCRYFALL_URI_PREFIX}${id}`;
+}
+
+/** Convert an OracleId to an oracle: URI */
+export function toOracleUri(id: OracleId): OracleUri {
+	return `${ORACLE_URI_PREFIX}${id}`;
+}
+
+/** Parse a scry: URI and return the ScryfallId, or null if invalid */
+export function parseScryfallUri(uri: string): ScryfallId | null {
+	if (!uri.startsWith(SCRYFALL_URI_PREFIX)) {
+		return null;
+	}
+	const id = uri.slice(SCRYFALL_URI_PREFIX.length);
+	return isScryfallId(id) ? id : null;
+}
+
+/** Parse an oracle: URI and return the OracleId, or null if invalid */
+export function parseOracleUri(uri: string): OracleId | null {
+	if (!uri.startsWith(ORACLE_URI_PREFIX)) {
+		return null;
+	}
+	const id = uri.slice(ORACLE_URI_PREFIX.length);
+	return isOracleId(id) ? id : null;
+}
+
 export type Rarity =
 	| "common"
 	| "uncommon"

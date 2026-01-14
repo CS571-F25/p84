@@ -233,6 +233,7 @@ const nodes: Record<string, NodeSpec> = {
 		attrs: {
 			name: { default: "" },
 			scryfallId: { default: "" },
+			oracleId: { default: "" },
 		},
 		toDOM(node) {
 			return [
@@ -243,6 +244,7 @@ const nodes: Record<string, NodeSpec> = {
 					"data-cardref": "",
 					"data-name": node.attrs.name,
 					"data-scryfall-id": node.attrs.scryfallId,
+					"data-oracle-id": node.attrs.oracleId,
 				},
 				node.attrs.name,
 			];
@@ -255,6 +257,7 @@ const nodes: Record<string, NodeSpec> = {
 					return {
 						name: dom.getAttribute("data-name") ?? "",
 						scryfallId: dom.getAttribute("data-scryfall-id") ?? "",
+						oracleId: dom.getAttribute("data-oracle-id") ?? "",
 					};
 				},
 			},

@@ -16,10 +16,10 @@ import {
 	hasCard,
 	hasDeck,
 } from "@/lib/collection-list-types";
-import type { ScryfallId } from "@/lib/scryfall-types";
+import type { OracleId, ScryfallId } from "@/lib/scryfall-types";
 
 export type SaveItem =
-	| { type: "card"; scryfallId: ScryfallId }
+	| { type: "card"; scryfallId: ScryfallId; oracleId: OracleId }
 	| { type: "deck"; deckUri: string };
 
 interface SaveToListDialogProps {
@@ -214,7 +214,7 @@ function ListRow({
 
 		const updatedList =
 			item.type === "card"
-				? addCardToList(list, item.scryfallId)
+				? addCardToList(list, item.scryfallId, item.oracleId)
 				: addDeckToList(list, item.deckUri);
 
 		updateMutation.mutate(updatedList, {

@@ -113,13 +113,15 @@
     "cardRef": {
       "type": "object",
       "properties": {
-        "scryfallId": {
-          "type": "string"
+        "ref": {
+          "type": "ref",
+          "ref": "com.deckbelcher.defs#cardRef",
+          "description": "Reference to the card (scryfall printing + oracle card)."
         }
       },
-      "description": "Facet feature for a card reference.\nLinks to a Magic: The Gathering card by Scryfall ID.\nThe text is usually the card name.",
+      "description": "Facet feature for a card reference.\nLinks to a Magic: The Gathering card.\nThe text is usually the card name.",
       "required": [
-        "scryfallId"
+        "ref"
       ]
     }
   }

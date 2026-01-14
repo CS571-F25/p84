@@ -5,13 +5,19 @@
 
 import type { ResourceUri } from "@atcute/lexicons";
 import type { ComDeckbelcherCollectionList } from "./lexicons/index";
-import type { ScryfallId } from "./scryfall-types";
+import type { OracleId, ScryfallId } from "./scryfall-types";
 
+/**
+ * App-side card item with flat typed IDs.
+ * The lexicon stores ref.scryfallUri and ref.oracleUri as URIs,
+ * but app code works with typed IDs after boundary parsing.
+ */
 export type ListCardItem = Omit<
 	ComDeckbelcherCollectionList.CardItem,
-	"scryfallId"
+	"ref"
 > & {
 	scryfallId: ScryfallId;
+	oracleId: OracleId;
 };
 
 export type ListDeckItem = ComDeckbelcherCollectionList.DeckItem;
@@ -48,6 +54,7 @@ export function hasDeck(list: CollectionList, deckUri: string): boolean {
 export function addCardToList(
 	list: CollectionList,
 	scryfallId: ScryfallId,
+	oracleId: OracleId,
 ): CollectionList {
 	if (hasCard(list, scryfallId)) {
 		return list;
@@ -56,6 +63,7 @@ export function addCardToList(
 	const newItem: ListCardItem = {
 		$type: "com.deckbelcher.collection.list#cardItem",
 		scryfallId,
+		oracleId,
 		addedAt: new Date().toISOString(),
 	};
 

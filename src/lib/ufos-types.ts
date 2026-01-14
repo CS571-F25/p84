@@ -4,6 +4,8 @@
  */
 
 import type { Did } from "@atcute/lexicons";
+import type { CollectionList } from "./collection-list-types";
+import type { Deck } from "./deck-types";
 import type {
 	ComDeckbelcherCollectionList,
 	ComDeckbelcherDeckList,
@@ -22,14 +24,28 @@ export interface UfosRecord<T = unknown> {
 }
 
 /**
- * Deck record from UFOs API
+ * Raw deck record from UFOs API (before boundary transformation)
  */
-export type UfosDeckRecord = UfosRecord<ComDeckbelcherDeckList.Main>;
+export type UfosRawDeckRecord = UfosRecord<ComDeckbelcherDeckList.Main>;
 
 /**
- * Collection list record from UFOs API
+ * Raw list record from UFOs API (before boundary transformation)
  */
-export type UfosListRecord = UfosRecord<ComDeckbelcherCollectionList.Main>;
+export type UfosRawListRecord = UfosRecord<ComDeckbelcherCollectionList.Main>;
+
+/**
+ * Deck record with transformed app types
+ */
+export type UfosDeckRecord = UfosRecord<Deck> & {
+	collection: "com.deckbelcher.deck.list";
+};
+
+/**
+ * Collection list record with transformed app types
+ */
+export type UfosListRecord = UfosRecord<CollectionList> & {
+	collection: "com.deckbelcher.collection.list";
+};
 
 /**
  * Supported collection NSIDs for the activity feed

@@ -28,6 +28,7 @@ function makeCard(overrides: Partial<Card>): Card {
 function makeDeckCard(overrides: Partial<DeckCard> = {}): DeckCard {
 	return {
 		scryfallId: "test-id" as DeckCard["scryfallId"],
+		oracleId: "test-oracle" as DeckCard["oracleId"],
 		quantity: 1,
 		section: "mainboard",
 		...overrides,

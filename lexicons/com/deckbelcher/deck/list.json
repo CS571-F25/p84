@@ -55,9 +55,10 @@
     "card": {
       "type": "object",
       "properties": {
-        "scryfallId": {
-          "type": "string",
-          "description": "Scryfall UUID for the specific printing."
+        "ref": {
+          "type": "ref",
+          "ref": "com.deckbelcher.defs#cardRef",
+          "description": "Reference to the card (scryfall printing + oracle card)."
         },
         "quantity": {
           "type": "integer",
@@ -88,7 +89,7 @@
       },
       "description": "A card entry in a decklist.",
       "required": [
-        "scryfallId",
+        "ref",
         "quantity",
         "section"
       ]

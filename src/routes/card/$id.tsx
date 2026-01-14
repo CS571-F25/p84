@@ -12,7 +12,12 @@ import {
 	getCardPrintingsQueryOptions,
 	getVolatileDataQueryOptions,
 } from "@/lib/queries";
-import type { Card, CardFace, ScryfallId } from "@/lib/scryfall-types";
+import type {
+	Card,
+	CardFace,
+	OracleId,
+	ScryfallId,
+} from "@/lib/scryfall-types";
 import { asOracleId, isScryfallId } from "@/lib/scryfall-types";
 import { getImageUri } from "@/lib/scryfall-utils";
 
@@ -248,6 +253,7 @@ function CardDetailPage() {
 									face={face}
 									primary={idx === 0}
 									cardId={idx === 0 ? id : undefined}
+									oracleId={idx === 0 ? card.oracle_id : undefined}
 								/>
 							</div>
 						))}
@@ -438,9 +444,10 @@ interface FaceInfoProps {
 	face: CardFace;
 	primary?: boolean;
 	cardId?: ScryfallId;
+	oracleId?: OracleId;
 }
 
-function FaceInfo({ face, primary = false, cardId }: FaceInfoProps) {
+function FaceInfo({ face, primary = false, cardId, oracleId }: FaceInfoProps) {
 	const hasStats = face.power || face.toughness || face.loyalty || face.defense;
 
 	return (
@@ -464,9 +471,9 @@ function FaceInfo({ face, primary = false, cardId }: FaceInfoProps) {
 							/>
 						)}
 					</div>
-					{cardId && (
+					{cardId && oracleId && (
 						<SaveToListButton
-							item={{ type: "card", scryfallId: cardId }}
+							item={{ type: "card", scryfallId: cardId, oracleId }}
 							itemName={face.name}
 						/>
 					)}

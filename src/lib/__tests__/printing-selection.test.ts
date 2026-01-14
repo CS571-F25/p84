@@ -32,6 +32,7 @@ function mockVolatileData(overrides: Partial<VolatileData> = {}): VolatileData {
 function mockDeck(
 	cards: Array<{
 		scryfallId: ScryfallId;
+		oracleId?: OracleId;
 		section?: "mainboard" | "sideboard" | "commander" | "maybeboard";
 	}>,
 ): Deck {
@@ -41,6 +42,8 @@ function mockDeck(
 		format: "commander",
 		cards: cards.map((c) => ({
 			scryfallId: c.scryfallId,
+			oracleId:
+				c.oracleId ?? asOracleId("00000000-0000-0000-0000-000000000000"),
 			quantity: 1,
 			section: c.section ?? "mainboard",
 			tags: [],
@@ -174,6 +177,7 @@ describe("updateDeckPrintings", () => {
 			cards: [
 				{
 					scryfallId: oldId,
+					oracleId: asOracleId("00000000-0000-0000-0000-000000000000"),
 					quantity: 4,
 					section: "sideboard",
 					tags: ["removal", "instant"],
@@ -186,6 +190,7 @@ describe("updateDeckPrintings", () => {
 
 		expect(result.cards[0]).toEqual({
 			scryfallId: newId,
+			oracleId: asOracleId("00000000-0000-0000-0000-000000000000"),
 			quantity: 4,
 			section: "sideboard",
 			tags: ["removal", "instant"],
@@ -257,7 +262,7 @@ describe("findAllCheapestPrintings", () => {
 			},
 		});
 
-		const deck = mockDeck([{ scryfallId: card1a }]);
+		const deck = mockDeck([{ scryfallId: card1a, oracleId: oracle1 }]);
 		const updates = await findAllCheapestPrintings(deck, provider);
 
 		expect(updates.get(card1a)).toBe(card1b);
@@ -277,7 +282,7 @@ describe("findAllCheapestPrintings", () => {
 			},
 		});
 
-		const deck = mockDeck([{ scryfallId: card1a }]);
+		const deck = mockDeck([{ scryfallId: card1a, oracleId: oracle1 }]);
 		const updates = await findAllCheapestPrintings(deck, provider);
 
 		expect(updates.size).toBe(0);
@@ -299,8 +304,8 @@ describe("findAllCheapestPrintings", () => {
 		});
 
 		const deck = mockDeck([
-			{ scryfallId: card1a },
-			{ scryfallId: card1a, section: "sideboard" },
+			{ scryfallId: card1a, oracleId: oracle1 },
+			{ scryfallId: card1a, oracleId: oracle1, section: "sideboard" },
 		]);
 		const updates = await findAllCheapestPrintings(deck, provider);
 
@@ -321,7 +326,7 @@ describe("findAllCheapestPrintings", () => {
 			},
 		});
 
-		const deck = mockDeck([{ scryfallId: card1a }]);
+		const deck = mockDeck([{ scryfallId: card1a, oracleId: oracle1 }]);
 		const updates = await findAllCheapestPrintings(deck, provider);
 
 		expect(updates.size).toBe(0);
@@ -344,7 +349,10 @@ describe("findAllCheapestPrintings", () => {
 			},
 		});
 
-		const deck = mockDeck([{ scryfallId: card1a }, { scryfallId: card2a }]);
+		const deck = mockDeck([
+			{ scryfallId: card1a, oracleId: oracle1 },
+			{ scryfallId: card2a, oracleId: oracle2 },
+		]);
 		const updates = await findAllCheapestPrintings(deck, provider);
 
 		expect(updates.get(card1a)).toBe(card1b);
@@ -391,12 +399,14 @@ describe("findAllCheapestPrintings edge cases", () => {
 				// Same oracle, different printings in same section
 				{
 					scryfallId: cardExpensive,
+					oracleId: oracle1,
 					quantity: 2,
 					section: "mainboard",
 					tags: [],
 				},
 				{
 					scryfallId: cardMid,
+					oracleId: oracle1,
 					quantity: 2,
 					section: "mainboard",
 					tags: ["burn"],
@@ -421,12 +431,14 @@ describe("findAllCheapestPrintings edge cases", () => {
 			cards: [
 				{
 					scryfallId: cardExpensive,
+					oracleId: oracle1,
 					quantity: 4,
 					section: "mainboard",
 					tags: [],
 				},
 				{
 					scryfallId: cardMid,
+					oracleId: oracle1,
 					quantity: 2,
 					section: "sideboard",
 					tags: ["sb"],
@@ -453,12 +465,14 @@ describe("findAllCheapestPrintings edge cases", () => {
 			cards: [
 				{
 					scryfallId: cardExpensive,
+					oracleId: oracle1,
 					quantity: 2,
 					section: "mainboard",
 					tags: ["burn"],
 				},
 				{
 					scryfallId: cardExpensive,
+					oracleId: oracle1,
 					quantity: 2,
 					section: "mainboard",
 					tags: ["removal"],
@@ -480,9 +494,16 @@ describe("findAllCheapestPrintings edge cases", () => {
 			name: "Test Deck",
 			format: "modern",
 			cards: [
-				{ scryfallId: cardCheap, quantity: 2, section: "mainboard", tags: [] },
+				{
+					scryfallId: cardCheap,
+					oracleId: oracle1,
+					quantity: 2,
+					section: "mainboard",
+					tags: [],
+				},
 				{
 					scryfallId: cardExpensive,
+					oracleId: oracle1,
 					quantity: 2,
 					section: "mainboard",
 					tags: [],
@@ -512,12 +533,14 @@ describe("updateDeckPrintings edge cases", () => {
 			cards: [
 				{
 					scryfallId: oldPrinting,
+					oracleId: asOracleId("00000000-0000-0000-0000-000000000000"),
 					quantity: 4,
 					section: "mainboard",
 					tags: [],
 				},
 				{
 					scryfallId: oldPrinting,
+					oracleId: asOracleId("00000000-0000-0000-0000-000000000000"),
 					quantity: 2,
 					section: "sideboard",
 					tags: ["sb"],
@@ -541,6 +564,7 @@ describe("updateDeckPrintings edge cases", () => {
 			cards: [
 				{
 					scryfallId: oldPrinting,
+					oracleId: asOracleId("00000000-0000-0000-0000-000000000000"),
 					quantity: 4,
 					section: "mainboard",
 					tags: ["burn", "instant"],
@@ -563,6 +587,7 @@ describe("updateDeckPrintings edge cases", () => {
 			cards: [
 				{
 					scryfallId: oldPrinting,
+					oracleId: asOracleId("00000000-0000-0000-0000-000000000000"),
 					quantity: 4,
 					section: "mainboard",
 					tags: [],
@@ -581,6 +606,7 @@ describe("updateDeckPrintings edge cases", () => {
 		const printingA = asScryfallId("aaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 		const printingB = asScryfallId("bbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
 		const cheapest = asScryfallId("cccc-cccc-cccc-cccc-cccccccccccc");
+		const oracle = asOracleId("00000000-0000-0000-0000-000000000000");
 
 		const deck: Deck = {
 			$type: "com.deckbelcher.deck.list",
@@ -589,12 +615,14 @@ describe("updateDeckPrintings edge cases", () => {
 			cards: [
 				{
 					scryfallId: printingA,
+					oracleId: oracle,
 					quantity: 2,
 					section: "mainboard",
 					tags: ["burn"],
 				},
 				{
 					scryfallId: printingB,
+					oracleId: oracle,
 					quantity: 3,
 					section: "mainboard",
 					tags: ["removal"],
@@ -655,7 +683,7 @@ describe("findAllCanonicalPrintings", () => {
 			},
 		});
 
-		const deck = mockDeck([{ scryfallId: card1a }]);
+		const deck = mockDeck([{ scryfallId: card1a, oracleId: oracle1 }]);
 		const updates = await findAllCanonicalPrintings(deck, provider);
 
 		expect(updates.get(card1a)).toBe(card1b);
@@ -671,7 +699,7 @@ describe("findAllCanonicalPrintings", () => {
 			},
 		});
 
-		const deck = mockDeck([{ scryfallId: card1a }]);
+		const deck = mockDeck([{ scryfallId: card1a, oracleId: oracle1 }]);
 		const updates = await findAllCanonicalPrintings(deck, provider);
 
 		expect(updates.size).toBe(0);
@@ -685,7 +713,7 @@ describe("findAllCanonicalPrintings", () => {
 			canonical: {},
 		});
 
-		const deck = mockDeck([{ scryfallId: card1a }]);
+		const deck = mockDeck([{ scryfallId: card1a, oracleId: oracle1 }]);
 		const updates = await findAllCanonicalPrintings(deck, provider);
 
 		expect(updates.size).toBe(0);

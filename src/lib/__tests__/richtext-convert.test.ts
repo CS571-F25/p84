@@ -1078,7 +1078,10 @@ describe("lexiconToTree", () => {
 								features: [
 									{
 										$type: "com.deckbelcher.richtext.facet#cardRef",
-										scryfallId: "e3285e6b-3e79-4d7c-bf96-d920f973b122",
+										ref: {
+											scryfallUri: "scry:e3285e6b-3e79-4d7c-bf96-d920f973b122",
+											oracleUri: "oracle:11111111-1111-1111-1111-111111111111",
+										},
 									},
 								],
 							},
@@ -1504,6 +1507,7 @@ describe("roundtrip", () => {
 				schema.nodes.cardRef.create({
 					name: "Lightning Bolt",
 					scryfallId: "e3285e6b-3e79-4d7c-bf96-d920f973b122",
+					oracleId: "11111111-1111-1111-1111-111111111111",
 				}),
 				schema.text(" for removal"),
 			]),
@@ -1519,6 +1523,7 @@ describe("roundtrip", () => {
 				schema.nodes.cardRef.create({
 					name: "Lightning Bolt",
 					scryfallId: "",
+					oracleId: "",
 				}),
 			]),
 		]);
@@ -1540,11 +1545,13 @@ describe("roundtrip", () => {
 				schema.nodes.cardRef.create({
 					name: "Lightning Bolt",
 					scryfallId: "e3285e6b-3e79-4d7c-bf96-d920f973b122",
+					oracleId: "11111111-1111-1111-1111-111111111111",
 				}),
 				schema.text(" and "),
 				schema.nodes.cardRef.create({
 					name: "Path to Exile",
 					scryfallId: "163b68e8-33e9-4e4e-a2c1-e1c884c7a3b8",
+					oracleId: "22222222-2222-2222-2222-222222222222",
 				}),
 			]),
 		]);
@@ -1860,9 +1867,9 @@ describe("property tests", () => {
 		fc.constant("صاعقة"), // Arabic (thunderbolt) - RTL
 	);
 	const arbCardRef = fc
-		.tuple(arbCardName, fc.uuid())
-		.map(([name, scryfallId]) =>
-			schema.nodes.cardRef.create({ name, scryfallId }),
+		.tuple(arbCardName, fc.uuid(), fc.uuid())
+		.map(([name, scryfallId, oracleId]) =>
+			schema.nodes.cardRef.create({ name, scryfallId, oracleId }),
 		);
 
 	// Arbitrary for tag node (include unicode to catch byte offset bugs)

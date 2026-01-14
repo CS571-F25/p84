@@ -133,6 +133,7 @@ function BulkEditPage() {
 
 			const newCards: DeckCard[] = result.resolved.map((r) => ({
 				scryfallId: r.scryfallId,
+				oracleId: r.oracleId,
 				quantity: r.quantity,
 				section: activeSection,
 				tags: r.tags,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DeckCard } from "@/lib/deck-types";
-import { asScryfallId } from "@/lib/scryfall-types";
+import { asOracleId, asScryfallId } from "@/lib/scryfall-types";
 import { createSeededRng } from "@/lib/useSeededRandom";
 import {
 	addCounter,
@@ -27,6 +27,7 @@ import type { GameState } from "../types";
 function mockDeck(count: number): DeckCard[] {
 	return Array.from({ length: count }, (_, i) => ({
 		scryfallId: asScryfallId(`card-${i}`),
+		oracleId: asOracleId(`oracle-${i}`),
 		quantity: 1,
 		section: "mainboard" as const,
 		tags: [],

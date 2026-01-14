@@ -1,6 +1,7 @@
 import "@typelex/emitter";
 import "./externals.tsp";
 import "./richtext.tsp";
+import "./defs.tsp";
 
 namespace com.deckbelcher.collection.list {
   /** A curated list of cards and/or decks. */
@@ -29,9 +30,9 @@ namespace com.deckbelcher.collection.list {
 
   /** A card saved to the list. */
   model CardItem {
-    /** Scryfall UUID for the card. */
+    /** Reference to the card (scryfall printing + oracle card). */
     @required
-    scryfallId: string;
+    ref: com.deckbelcher.defs.CardRef;
 
     /** Timestamp when this item was added to the list. */
     @required

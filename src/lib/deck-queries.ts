@@ -18,9 +18,38 @@ import {
 } from "./atproto-client";
 import type { Deck } from "./deck-types";
 import { getPdsForDid } from "./identity";
-import { asScryfallId } from "./scryfall-types";
+import type { ComDeckbelcherDeckList } from "./lexicons/index";
+import {
+	parseOracleUri,
+	parseScryfallUri,
+	toOracleUri,
+	toScryfallUri,
+} from "./scryfall-types";
 import { useAuth } from "./useAuth";
 import { useMutationWithToast } from "./useMutationWithToast";
+
+/**
+ * Transform lexicon deck record to app Deck type
+ * Parses ref URIs to typed IDs at the boundary
+ */
+export function transformDeckRecord(record: ComDeckbelcherDeckList.Main): Deck {
+	return {
+		...record,
+		cards: record.cards.map((card) => {
+			const scryfallId = parseScryfallUri(card.ref.scryfallUri);
+			const oracleId = parseOracleUri(card.ref.oracleUri);
+
+			if (!scryfallId || !oracleId) {
+				throw new Error(
+					`Invalid card ref URIs: ${card.ref.scryfallUri}, ${card.ref.oracleUri}`,
+				);
+			}
+
+			const { ref: _ref, ...rest } = card;
+			return { ...rest, scryfallId, oracleId };
+		}),
+	};
+}
 
 /**
  * Query options for fetching a single deck
@@ -34,18 +63,16 @@ export const getDeckQueryOptions = (did: Did, rkey: Rkey) =>
 			if (!result.success) {
 				throw result.error;
 			}
-
-			// Map DeckRecordResponse to Deck type with branded ScryfallId
-			return {
-				...result.data.value,
-				cards: result.data.value.cards.map((card) => ({
-					...card,
-					scryfallId: asScryfallId(card.scryfallId),
-				})),
-			};
+			return transformDeckRecord(result.data.value);
 		},
 		staleTime: 30 * 1000, // 30 seconds - balance between freshness and cache hits
 	});
+
+export interface DeckListRecord {
+	uri: string;
+	cid: string;
+	value: Deck;
+}
 
 /**
  * Query options for listing all decks for a user
@@ -54,13 +81,19 @@ export const getDeckQueryOptions = (did: Did, rkey: Rkey) =>
 export const listUserDecksQueryOptions = (did: Did) =>
 	queryOptions({
 		queryKey: ["decks", did] as const,
-		queryFn: async () => {
+		queryFn: async (): Promise<{ records: DeckListRecord[] }> => {
 			const pds = await getPdsForDid(did);
 			const result = await listUserDecks(asPdsUrl(pds), did);
 			if (!result.success) {
 				throw result.error;
 			}
-			return result.data;
+			return {
+				records: result.data.records.map((record) => ({
+					uri: record.uri,
+					cid: record.cid,
+					value: transformDeckRecord(record.value),
+				})),
+			};
 		},
 		staleTime: 60 * 1000, // 1 minute
 	});
@@ -85,10 +118,16 @@ export function useCreateDeckMutation() {
 				name: deck.name,
 				format: deck.format,
 				primer: deck.primer,
-				cards: deck.cards.map((card) => ({
-					...card,
-					scryfallId: card.scryfallId as string,
-				})),
+				cards: deck.cards.map((card) => {
+					const { scryfallId, oracleId, ...rest } = card;
+					return {
+						...rest,
+						ref: {
+							scryfallUri: toScryfallUri(scryfallId),
+							oracleUri: toOracleUri(oracleId),
+						},
+					};
+				}),
 				createdAt: new Date().toISOString(),
 			});
 
@@ -138,10 +177,16 @@ export function useUpdateDeckMutation(did: Did, rkey: Rkey) {
 				name: deck.name,
 				format: deck.format,
 				primer: deck.primer,
-				cards: deck.cards.map((card) => ({
-					...card,
-					scryfallId: card.scryfallId as string,
-				})),
+				cards: deck.cards.map((card) => {
+					const { scryfallId, oracleId, ...rest } = card;
+					return {
+						...rest,
+						ref: {
+							scryfallUri: toScryfallUri(scryfallId),
+							oracleUri: toOracleUri(oracleId),
+						},
+					};
+				}),
 				createdAt: deck.createdAt,
 				updatedAt: new Date().toISOString(),
 			});

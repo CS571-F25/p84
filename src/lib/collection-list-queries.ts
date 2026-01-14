@@ -12,16 +12,54 @@ import {
 	createCollectionListRecord,
 	deleteCollectionListRecord,
 	getCollectionListRecord,
-	type ListRecordsResponse,
 	listUserCollectionLists,
 	type Rkey,
 	updateCollectionListRecord,
 } from "./atproto-client";
-import type { CollectionList } from "./collection-list-types";
+import type {
+	CollectionList,
+	ListCardItem,
+	ListItem,
+} from "./collection-list-types";
 import { getPdsForDid } from "./identity";
 import type { ComDeckbelcherCollectionList } from "./lexicons/index";
+import { parseOracleUri, parseScryfallUri } from "./scryfall-types";
 import { useAuth } from "./useAuth";
 import { useMutationWithToast } from "./useMutationWithToast";
+
+/**
+ * Transform lexicon list record to app CollectionList type
+ * Parses ref URIs to typed IDs at the boundary
+ */
+export function transformListRecord(
+	record: ComDeckbelcherCollectionList.Main,
+): CollectionList {
+	return {
+		...record,
+		items: record.items.map((item): ListItem => {
+			if (item.$type === "com.deckbelcher.collection.list#cardItem") {
+				const cardItem = item as ComDeckbelcherCollectionList.CardItem;
+				const scryfallId = parseScryfallUri(cardItem.ref.scryfallUri);
+				const oracleId = parseOracleUri(cardItem.ref.oracleUri);
+
+				if (!scryfallId || !oracleId) {
+					throw new Error(
+						`Invalid card ref URIs: ${cardItem.ref.scryfallUri}, ${cardItem.ref.oracleUri}`,
+					);
+				}
+
+				const { ref: _ref, ...rest } = cardItem;
+				return { ...rest, scryfallId, oracleId } as ListCardItem;
+			}
+			if (item.$type === "com.deckbelcher.collection.list#deckItem") {
+				return item as ComDeckbelcherCollectionList.DeckItem;
+			}
+			throw new Error(
+				`Unknown list item type: ${(item as { $type?: string }).$type}`,
+			);
+		}),
+	};
+}
 
 /**
  * Query options for fetching a single collection list
@@ -34,10 +72,16 @@ export const getCollectionListQueryOptions = (did: Did, rkey: Rkey) =>
 			if (!result.success) {
 				throw result.error;
 			}
-			return result.data.value as CollectionList;
+			return transformListRecord(result.data.value);
 		},
 		staleTime: 30 * 1000,
 	});
+
+export interface CollectionListRecord {
+	uri: string;
+	cid: string;
+	value: CollectionList;
+}
 
 /**
  * Query options for listing all collection lists for a user
@@ -45,13 +89,19 @@ export const getCollectionListQueryOptions = (did: Did, rkey: Rkey) =>
 export const listUserCollectionListsQueryOptions = (did: Did) =>
 	queryOptions({
 		queryKey: ["collection-lists", did] as const,
-		queryFn: async (): Promise<ListRecordsResponse<CollectionList>> => {
+		queryFn: async (): Promise<{ records: CollectionListRecord[] }> => {
 			const pds = await getPdsForDid(did);
 			const result = await listUserCollectionLists(asPdsUrl(pds), did);
 			if (!result.success) {
 				throw result.error;
 			}
-			return result.data as ListRecordsResponse<CollectionList>;
+			return {
+				records: result.data.records.map((record) => ({
+					uri: record.uri,
+					cid: record.cid,
+					value: transformListRecord(record.value),
+				})),
+			};
 		},
 		staleTime: 60 * 1000,
 	});
@@ -139,9 +189,9 @@ export function useUpdateCollectionListMutation(did: Did, rkey: Rkey) {
 				rkey,
 			]);
 
-			const previousLists = queryClient.getQueryData<
-				ListRecordsResponse<CollectionList>
-			>(["collection-lists", did]);
+			const previousLists = queryClient.getQueryData<{
+				records: CollectionListRecord[];
+			}>(["collection-lists", did]);
 
 			queryClient.setQueryData<CollectionList>(
 				["collection-list", did, rkey],
@@ -149,7 +199,7 @@ export function useUpdateCollectionListMutation(did: Did, rkey: Rkey) {
 			);
 
 			if (previousLists) {
-				queryClient.setQueryData<ListRecordsResponse<CollectionList>>(
+				queryClient.setQueryData<{ records: CollectionListRecord[] }>(
 					["collection-lists", did],
 					{
 						...previousLists,
@@ -172,7 +222,7 @@ export function useUpdateCollectionListMutation(did: Did, rkey: Rkey) {
 				);
 			}
 			if (context?.previousLists) {
-				queryClient.setQueryData<ListRecordsResponse<CollectionList>>(
+				queryClient.setQueryData<{ records: CollectionListRecord[] }>(
 					["collection-lists", did],
 					context.previousLists,
 				);

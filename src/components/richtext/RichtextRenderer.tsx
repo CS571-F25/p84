@@ -14,7 +14,7 @@ import type {
 } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import type { Main as Facet } from "@/lib/lexicons/types/com/deckbelcher/richtext/facet";
 import { segmentize } from "@/lib/richtext-convert";
-import type { ScryfallId } from "@/lib/scryfall-types";
+import { parseScryfallUri, type ScryfallId } from "@/lib/scryfall-types";
 
 type Block =
 	| ParagraphBlock
@@ -275,12 +275,11 @@ function applyFeature(
 				</Link>
 			);
 
-		case "com.deckbelcher.richtext.facet#cardRef":
-			return (
-				<CardRefLink scryfallId={feature.scryfallId as ScryfallId}>
-					{content}
-				</CardRefLink>
-			);
+		case "com.deckbelcher.richtext.facet#cardRef": {
+			const scryfallId = parseScryfallUri(feature.ref.scryfallUri);
+			if (!scryfallId) return <>{content}</>;
+			return <CardRefLink scryfallId={scryfallId}>{content}</CardRefLink>;
+		}
 
 		case "com.deckbelcher.richtext.facet#tag":
 			return (

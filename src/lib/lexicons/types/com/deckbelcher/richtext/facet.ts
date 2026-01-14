@@ -1,5 +1,6 @@
 import type {} from "@atcute/lexicons";
 import * as v from "@atcute/lexicons/validations";
+import * as ComDeckbelcherDefs from "../defs.js";
 
 const _boldSchema = /*#__PURE__*/ v.object({
   $type: /*#__PURE__*/ v.optional(
@@ -23,7 +24,12 @@ const _cardRefSchema = /*#__PURE__*/ v.object({
   $type: /*#__PURE__*/ v.optional(
     /*#__PURE__*/ v.literal("com.deckbelcher.richtext.facet#cardRef"),
   ),
-  scryfallId: /*#__PURE__*/ v.string(),
+  /**
+   * Reference to the card (scryfall printing + oracle card).
+   */
+  get ref() {
+    return ComDeckbelcherDefs.cardRefSchema;
+  },
 });
 const _codeSchema = /*#__PURE__*/ v.object({
   $type: /*#__PURE__*/ v.optional(

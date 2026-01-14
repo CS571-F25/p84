@@ -1,5 +1,6 @@
 import "@typelex/emitter";
 import "./externals.tsp";
+import "./defs.tsp";
 
 namespace com.deckbelcher.richtext.facet {
   /**
@@ -84,11 +85,12 @@ namespace com.deckbelcher.richtext.facet {
 
   /**
    * Facet feature for a card reference.
-   * Links to a Magic: The Gathering card by Scryfall ID.
+   * Links to a Magic: The Gathering card.
    * The text is usually the card name.
    */
   model CardRef {
+    /** Reference to the card (scryfall printing + oracle card). */
     @required
-    scryfallId: string;
+    ref: com.deckbelcher.defs.CardRef;
   }
 }

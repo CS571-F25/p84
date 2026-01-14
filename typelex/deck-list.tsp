@@ -1,6 +1,7 @@
 import "@typelex/emitter";
 import "./externals.tsp";
 import "./richtext.tsp";
+import "./defs.tsp";
 
 namespace com.deckbelcher.deck.list {
   /** A Magic: The Gathering decklist. */
@@ -39,9 +40,9 @@ namespace com.deckbelcher.deck.list {
 
   /** A card entry in a decklist. */
   model Card {
-    /** Scryfall UUID for the specific printing. */
+    /** Reference to the card (scryfall printing + oracle card). */
     @required
-    scryfallId: string;
+    ref: com.deckbelcher.defs.CardRef;
 
     /** Number of copies in the deck. */
     @required

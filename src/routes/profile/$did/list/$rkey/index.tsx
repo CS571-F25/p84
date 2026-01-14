@@ -6,7 +6,7 @@ import { useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CardImage } from "@/components/CardImage";
 import { ClientDate } from "@/components/ClientDate";
-import { type DeckData, DeckPreview } from "@/components/DeckPreview";
+import { DeckPreview } from "@/components/DeckPreview";
 import { ListActionsMenu } from "@/components/list/ListActionsMenu";
 import { RichtextSection } from "@/components/richtext/RichtextSection";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
@@ -345,22 +345,10 @@ function DeckListItem({ item, onRemove }: DeckListItemProps) {
 		);
 	}
 
-	const deckData: DeckData = {
-		name: deck.name,
-		format: deck.format,
-		cards: deck.cards.map((c) => ({
-			scryfallId: c.scryfallId as string,
-			quantity: c.quantity,
-			section: c.section,
-		})),
-		createdAt: deck.createdAt,
-		updatedAt: deck.updatedAt,
-	};
-
 	return (
 		<div className="flex items-center gap-4">
 			<div className="flex-1">
-				<DeckPreview did={deckDid} rkey={deckRkey} deck={deckData} />
+				<DeckPreview did={deckDid} rkey={deckRkey} deck={deck} />
 			</div>
 			{onRemove && (
 				<button

@@ -293,11 +293,18 @@ function DeckEditorPage() {
 			getCardByIdQueryOptions(cardId).queryKey,
 		);
 
+		if (!cardData?.oracle_id) {
+			toast.error("Failed to add card: could not get card data");
+			return;
+		}
+
 		await toast.promise(
-			updateDeck((prev) => addCardToDeck(prev, cardId, "mainboard", 1)),
+			updateDeck((prev) =>
+				addCardToDeck(prev, cardId, cardData.oracle_id, "mainboard", 1),
+			),
 			{
 				loading: "Adding card...",
-				success: cardData ? `Added ${cardData.name}` : "Card added to deck",
+				success: `Added ${cardData.name}`,
 				error: (err) => `Failed to add card: ${err.message}`,
 			},
 		);

@@ -71,18 +71,12 @@ export function updateDeckPrintings(
  * Group deck cards by oracle ID.
  * Returns a map of oracle ID to deck cards with that oracle.
  */
-async function groupCardsByOracle(
-	deck: Deck,
-	provider: CardDataProvider,
-): Promise<Map<OracleId, DeckCard[]>> {
+function groupCardsByOracle(deck: Deck): Map<OracleId, DeckCard[]> {
 	const byOracle = new Map<OracleId, DeckCard[]>();
 
 	for (const card of deck.cards) {
-		const cardData = await provider.getCardById(card.scryfallId);
-		if (!cardData) continue;
-
-		const existing = byOracle.get(cardData.oracle_id) ?? [];
-		byOracle.set(cardData.oracle_id, [...existing, card]);
+		const existing = byOracle.get(card.oracleId) ?? [];
+		byOracle.set(card.oracleId, [...existing, card]);
 	}
 
 	return byOracle;
@@ -98,7 +92,7 @@ export async function findAllCheapestPrintings(
 	provider: CardDataProvider,
 ): Promise<Map<ScryfallId, ScryfallId>> {
 	const updates = new Map<ScryfallId, ScryfallId>();
-	const byOracle = await groupCardsByOracle(deck, provider);
+	const byOracle = groupCardsByOracle(deck);
 
 	for (const [oracleId, cards] of byOracle) {
 		const printingIds = await provider.getPrintingsByOracleId(oracleId);
@@ -138,7 +132,7 @@ export async function findAllCanonicalPrintings(
 	provider: CardDataProvider,
 ): Promise<Map<ScryfallId, ScryfallId>> {
 	const updates = new Map<ScryfallId, ScryfallId>();
-	const byOracle = await groupCardsByOracle(deck, provider);
+	const byOracle = groupCardsByOracle(deck);
 
 	for (const [oracleId, cards] of byOracle) {
 		const canonicalId = await provider.getCanonicalPrinting(oracleId);

@@ -5,12 +5,14 @@ import { Plus } from "lucide-react";
 import { useMemo } from "react";
 import { DeckPreview } from "@/components/DeckPreview";
 import { ListPreview } from "@/components/ListPreview";
-import type { DeckRecordResponse } from "@/lib/atproto-client";
 import {
 	listUserCollectionListsQueryOptions,
 	useCreateCollectionListMutation,
 } from "@/lib/collection-list-queries";
-import { listUserDecksQueryOptions } from "@/lib/deck-queries";
+import {
+	type DeckListRecord,
+	listUserDecksQueryOptions,
+} from "@/lib/deck-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { formatDisplayName } from "@/lib/format-utils";
 import { useAuth } from "@/lib/useAuth";
@@ -50,9 +52,9 @@ export const Route = createFileRoute("/profile/$did/")({
 });
 
 function sortDecks(
-	records: DeckRecordResponse[],
+	records: DeckListRecord[],
 	sort: SortOption | undefined,
-): DeckRecordResponse[] {
+): DeckListRecord[] {
 	const sorted = [...records];
 
 	switch (sort) {

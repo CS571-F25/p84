@@ -1,6 +1,7 @@
 import type {} from "@atcute/lexicons";
 import * as v from "@atcute/lexicons/validations";
 import type {} from "@atcute/lexicons/ambient";
+import * as ComDeckbelcherDefs from "../defs.js";
 import * as ComDeckbelcherRichtext from "../richtext.js";
 
 const _cardSchema = /*#__PURE__*/ v.object({
@@ -15,9 +16,11 @@ const _cardSchema = /*#__PURE__*/ v.object({
     /*#__PURE__*/ v.integerRange(1),
   ]),
   /**
-   * Scryfall UUID for the specific printing.
+   * Reference to the card (scryfall printing + oracle card).
    */
-  scryfallId: /*#__PURE__*/ v.string(),
+  get ref() {
+    return ComDeckbelcherDefs.cardRefSchema;
+  },
   /**
    * Which section of the deck this card belongs to. Extensible to support format-specific sections.
    */

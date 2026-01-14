@@ -5,6 +5,8 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import type { Result } from "./atproto-client";
+import { transformListRecord } from "./collection-list-queries";
+import { transformDeckRecord } from "./deck-queries";
 import type {
 	ComDeckbelcherCollectionList,
 	ComDeckbelcherDeckList,
@@ -13,6 +15,8 @@ import type {
 	ActivityCollection,
 	UfosDeckRecord,
 	UfosListRecord,
+	UfosRawDeckRecord,
+	UfosRawListRecord,
 	UfosRecord,
 } from "./ufos-types";
 
@@ -62,13 +66,33 @@ export function isListRecord(record: ActivityRecord): record is UfosListRecord {
 	return record.collection === "com.deckbelcher.collection.list";
 }
 
+function transformActivityRecord(
+	rawRecord: UfosRecord<unknown>,
+): ActivityRecord | null {
+	if (rawRecord.collection === "com.deckbelcher.deck.list") {
+		const deckRecord = rawRecord as UfosRawDeckRecord;
+		return {
+			...deckRecord,
+			record: transformDeckRecord(deckRecord.record),
+		} as UfosDeckRecord;
+	}
+	if (rawRecord.collection === "com.deckbelcher.collection.list") {
+		const listRecord = rawRecord as UfosRawListRecord;
+		return {
+			...listRecord,
+			record: transformListRecord(listRecord.record),
+		} as UfosListRecord;
+	}
+	return null;
+}
+
 /**
  * Query options for recent activity (decks + lists)
  */
 export const recentActivityQueryOptions = (limit = 10) =>
 	queryOptions({
 		queryKey: ["ufos", "recentActivity", limit] as const,
-		queryFn: async () => {
+		queryFn: async (): Promise<ActivityRecord[]> => {
 			const result = await fetchRecentRecords<
 				ComDeckbelcherDeckList.Main | ComDeckbelcherCollectionList.Main
 			>(
@@ -78,7 +102,10 @@ export const recentActivityQueryOptions = (limit = 10) =>
 			if (!result.success) {
 				throw result.error;
 			}
-			return result.data as ActivityRecord[];
+
+			return result.data
+				.map(transformActivityRecord)
+				.filter((r): r is ActivityRecord => r !== null);
 		},
 		staleTime: 60 * 1000,
 		refetchOnWindowFocus: true,
