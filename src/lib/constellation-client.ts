@@ -18,11 +18,9 @@ export const COLLECTION_LIST_DECK_PATH =
 // Future: cards in decks (also uses oracleUri for aggregation)
 export const DECK_LIST_CARD_PATH = ".cards[].ref.oracleUri";
 
-// Like paths (subject is a union, so includes $type in path)
-export const LIKE_CARD_PATH =
-	".subject[com.deckbelcher.social.like#cardSubject].ref.oracleUri";
-export const LIKE_RECORD_PATH =
-	".subject[com.deckbelcher.social.like#recordSubject].ref.uri";
+// Like paths (subject is a union but NOT an array, so no [$type] notation)
+export const LIKE_CARD_PATH = ".subject.ref.oracleUri";
+export const LIKE_RECORD_PATH = ".subject.ref.uri";
 
 export const COLLECTION_LIST_NSID = "com.deckbelcher.collection.list";
 export const DECK_LIST_NSID = "com.deckbelcher.deck.list";

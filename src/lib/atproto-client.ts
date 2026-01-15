@@ -433,9 +433,10 @@ type LikeSubject = ComDeckbelcherSocialLike.Main["subject"];
  * Hash an object to a deterministic rkey using SHA-256 + base64url.
  * Full hash (43 chars) for maximum collision resistance.
  * Valid rkey chars: A-Za-z0-9.-_:~ (base64url uses A-Za-z0-9-_)
+ * Sorts keys to ensure hash is independent of object key insertion order.
  */
 export async function hashToRkey(obj: unknown): Promise<Rkey> {
-	const json = JSON.stringify(obj);
+	const json = JSON.stringify(obj, Object.keys(obj as object).sort());
 	const encoder = new TextEncoder();
 	const data = encoder.encode(json);
 	const hashBuffer = await crypto.subtle.digest("SHA-256", data);

@@ -100,7 +100,7 @@ Example for the same query:
 
 ### Union Array Elements ($type)
 
-**IMPORTANT**: When an array element is a union type (has `$type` field), constellation includes the type in the path:
+**IMPORTANT**: When an **array element** is a union type (has `$type` field), constellation includes the type in the path:
 
 ```
 .items[com.deckbelcher.collection.list#cardItem].ref.scryfallUri
@@ -108,10 +108,10 @@ Example for the same query:
 
 NOT:
 ```
-.items[].ref.scryfallUri  # WRONG for union types
+.items[].ref.scryfallUri  # WRONG for union types in arrays
 ```
 
-This is because constellation's link extractor (`links/src/record.rs`) uses the `$type` value when present:
+This is because constellation's link extractor (`links/src/record.rs`) uses the `$type` value when present in array elements:
 
 ```rust
 if let Some(JsonValue::String(t)) = o.get("$type") {
@@ -119,6 +119,19 @@ if let Some(JsonValue::String(t)) = o.get("$type") {
 } else {
     format!("{path}[]")     // Plain array notation
 }
+```
+
+### Standalone Union Fields (NOT arrays)
+
+For union fields that are NOT in arrays, just use the normal path without `[$type]`:
+
+```
+.subject.ref.oracleUri  # Correct for non-array union field
+```
+
+NOT:
+```
+.subject[some.type#variant].ref.oracleUri  # WRONG - [$type] is for arrays only
 ```
 
 ## DeckBelcher-Specific Paths
