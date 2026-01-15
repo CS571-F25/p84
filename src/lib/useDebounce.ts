@@ -6,8 +6,30 @@ export interface UseDebounceResult<T> {
 	isPending: boolean;
 }
 
-export function useDebounce<T>(value: T, delay: number): UseDebounceResult<T> {
-	const [debouncedValue, setDebouncedValue] = useState<T>(value);
+/**
+ * When skipInitial is true, the debounced value starts as undefined and only
+ * gets set after the debounce timer fires. Useful when you want to skip work
+ * on initial render entirely.
+ */
+export function useDebounce<T>(
+	value: T,
+	delay: number,
+	options: { skipInitial: true },
+): UseDebounceResult<T | undefined>;
+export function useDebounce<T>(
+	value: T,
+	delay: number,
+	options?: { skipInitial?: false },
+): UseDebounceResult<T>;
+export function useDebounce<T>(
+	value: T,
+	delay: number,
+	options?: { skipInitial?: boolean },
+): UseDebounceResult<T | undefined> {
+	const skipInitial = options?.skipInitial ?? false;
+	const [debouncedValue, setDebouncedValue] = useState<T | undefined>(
+		skipInitial ? undefined : value,
+	);
 	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const latestValueRef = useRef(value);
 

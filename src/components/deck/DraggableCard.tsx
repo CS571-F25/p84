@@ -1,9 +1,11 @@
 import { useDraggable } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { ManaCost } from "@/components/ManaCost";
 import { getPrimaryFace } from "@/lib/card-faces";
 import type { DeckCard } from "@/lib/deck-types";
+import type { Violation } from "@/lib/deck-validation";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import type { ScryfallId } from "@/lib/scryfall-types";
 
@@ -15,6 +17,7 @@ interface DraggableCardProps {
 	disabled?: boolean;
 	isDraggingGlobal?: boolean;
 	isHighlighted?: boolean;
+	violations?: Violation[];
 }
 
 export interface DragData {
@@ -31,6 +34,7 @@ export function DraggableCard({
 	disabled = false,
 	isDraggingGlobal = false,
 	isHighlighted = false,
+	violations,
 }: DraggableCardProps) {
 	const { data: cardData, isLoading } = useQuery(
 		getCardByIdQueryOptions(card.scryfallId),
@@ -99,6 +103,17 @@ export function DraggableCard({
 				<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0">
 					{primaryFace ? primaryFace.name : isLoading ? "" : "Unknown Card"}
 				</span>
+				{violations && violations.length > 0 && (
+					<span title={violations.map((v) => v.message).join("\n")}>
+						<AlertTriangle
+							className={`w-4 h-4 flex-shrink-0 ${
+								violations.some((v) => v.severity === "error")
+									? "text-red-500 dark:text-red-400"
+									: "text-amber-500 dark:text-amber-400"
+							}`}
+						/>
+					</span>
+				)}
 				<div className="flex-shrink-0 flex items-center ml-auto">
 					{primaryFace?.mana_cost ? (
 						<ManaCost cost={primaryFace.mana_cost} size="small" />

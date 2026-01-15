@@ -19,9 +19,11 @@ import type { DragData } from "@/components/deck/DraggableCard";
 import { GoldfishView } from "@/components/deck/GoldfishView";
 import { StatsCardList } from "@/components/deck/stats/StatsCardList";
 import { TrashDropZone } from "@/components/deck/TrashDropZone";
+import { ValidationBadge } from "@/components/deck/ValidationBadge";
 import { ViewControls } from "@/components/deck/ViewControls";
 import { RichtextSection } from "@/components/richtext/RichtextSection";
 import { SocialStats } from "@/components/social/SocialStats";
+import { useDeckValidation } from "@/hooks/useDeckValidation";
 import { asRkey } from "@/lib/atproto-client";
 import { prefetchCards } from "@/lib/card-prefetch";
 import { getDeckQueryOptions, useUpdateDeckMutation } from "@/lib/deck-queries";
@@ -151,6 +153,9 @@ function DeckEditorPage() {
 		() => getSelectedCards(statsSelection, stats),
 		[statsSelection, stats],
 	);
+
+	// Validation
+	const validation = useDeckValidation(deck);
 
 	// All unique tags in the deck (for autocomplete)
 	const allTags = useMemo(
@@ -428,6 +433,7 @@ function DeckEditorPage() {
 				stats={stats}
 				statsSelection={statsSelection}
 				selectedCards={selectedCards}
+				validation={validation}
 				setStatsSelection={setStatsSelection}
 				setIsDragging={setIsDragging}
 				setDraggedCardId={setDraggedCardId}
@@ -470,6 +476,7 @@ interface DeckEditorInnerProps {
 	stats: ReturnType<typeof useDeckStats>;
 	statsSelection: StatsSelection;
 	selectedCards: ReturnType<typeof getSelectedCards>;
+	validation: ReturnType<typeof useDeckValidation>;
 	setStatsSelection: (selection: StatsSelection) => void;
 	setIsDragging: (dragging: boolean) => void;
 	setDraggedCardId: (id: ScryfallId | null) => void;
@@ -509,6 +516,7 @@ function DeckEditorInner({
 	stats,
 	statsSelection,
 	selectedCards,
+	validation,
 	setStatsSelection,
 	setIsDragging,
 	setDraggedCardId,
@@ -594,6 +602,7 @@ function DeckEditorInner({
 							}}
 							itemName={deck.name}
 						/>
+						<ValidationBadge result={validation} />
 						{isOwner && (
 							<Link
 								to="/profile/$did/deck/$rkey/bulk-edit"
@@ -669,6 +678,7 @@ function DeckEditorInner({
 								isDragging={isDragging}
 								readOnly={!isOwner}
 								highlightedCards={highlightedCards}
+								violationsByCard={validation?.byCard}
 							/>
 						)}
 						<DeckSection
@@ -681,6 +691,7 @@ function DeckEditorInner({
 							isDragging={isDragging}
 							readOnly={!isOwner}
 							highlightedCards={highlightedCards}
+							violationsByCard={validation?.byCard}
 						/>
 						<DeckSection
 							section="sideboard"
@@ -692,6 +703,7 @@ function DeckEditorInner({
 							isDragging={isDragging}
 							readOnly={!isOwner}
 							highlightedCards={highlightedCards}
+							violationsByCard={validation?.byCard}
 						/>
 						<DeckSection
 							section="maybeboard"
@@ -703,6 +715,7 @@ function DeckEditorInner({
 							isDragging={isDragging}
 							readOnly={!isOwner}
 							highlightedCards={highlightedCards}
+							violationsByCard={validation?.byCard}
 						/>
 
 						<DeckStats

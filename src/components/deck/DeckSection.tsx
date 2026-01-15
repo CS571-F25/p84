@@ -2,8 +2,9 @@ import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { groupCards, sortCards, sortGroupNames } from "@/lib/deck-grouping";
 import type { DeckCard, GroupBy, Section, SortBy } from "@/lib/deck-types";
+import type { Violation } from "@/lib/deck-validation";
 import { combineCardQueries, getCardByIdQueryOptions } from "@/lib/queries";
-import type { ScryfallId } from "@/lib/scryfall-types";
+import type { OracleId, ScryfallId } from "@/lib/scryfall-types";
 import { DraggableCard } from "./DraggableCard";
 import { DroppableSection } from "./DroppableSection";
 import { DroppableSectionHeader } from "./DroppableSectionHeader";
@@ -19,6 +20,7 @@ interface DeckSectionProps {
 	isDragging: boolean;
 	readOnly?: boolean;
 	highlightedCards?: Set<ScryfallId>;
+	violationsByCard?: Map<OracleId, Violation[]>;
 }
 
 export function DeckSection({
@@ -31,6 +33,7 @@ export function DeckSection({
 	isDragging,
 	readOnly = false,
 	highlightedCards,
+	violationsByCard,
 }: DeckSectionProps) {
 	const sectionNames: Record<Section, string> = {
 		commander: "Commander",
@@ -119,6 +122,7 @@ export function DeckSection({
 												disabled={readOnly}
 												isDraggingGlobal={isDragging}
 												isHighlighted={highlightedCards?.has(card.scryfallId)}
+												violations={violationsByCard?.get(card.oracleId)}
 											/>
 										</div>
 									);
@@ -135,6 +139,7 @@ export function DeckSection({
 												disabled={readOnly}
 												isDraggingGlobal={isDragging}
 												isHighlighted={highlightedCards?.has(card.scryfallId)}
+												violations={violationsByCard?.get(card.oracleId)}
 											/>
 										</div>
 									);
@@ -179,6 +184,7 @@ export function DeckSection({
 													disabled={readOnly}
 													isDraggingGlobal={isDragging}
 													isHighlighted={highlightedCards?.has(card.scryfallId)}
+													violations={violationsByCard?.get(card.oracleId)}
 												/>
 											);
 										})}
