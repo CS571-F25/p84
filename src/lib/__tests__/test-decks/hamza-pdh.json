@@ -1,0 +1,952 @@
+{
+	"$type": "com.deckbelcher.deck.list",
+	"cards": [
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:0cde6a29-d597-4feb-8b2b-528d2d57a1f3",
+				"scryfallUri": "scry:adc7f8f3-140d-4dd0-aacc-b81b2b93eb67"
+			},
+			"section": "commander",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:d1d719e9-9c02-40cf-8849-91a5c120a516",
+				"scryfallUri": "scry:165357cc-ec74-490f-aec3-7048bb43c8f9"
+			},
+			"section": "mainboard",
+			"tags": ["removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:934094d6-c897-4ae2-89cd-08d106600d3c",
+				"scryfallUri": "scry:5e56a516-d71a-49c4-a929-9a8973125d3c"
+			},
+			"section": "mainboard",
+			"tags": ["payoffs / big creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:a8135179-51ef-454e-98ff-69137440339f",
+				"scryfallUri": "scry:4aa9354d-3496-47f4-81c9-aead15efb8bb"
+			},
+			"section": "mainboard",
+			"tags": ["payoffs / big creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:cea79fa0-2a76-41f3-846f-4d1a6ff5f629",
+				"scryfallUri": "scry:af9dd8d6-013a-4018-9186-988f5e8d0ab9"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:4567a528-75f0-4ea6-b927-3a500caf76ac",
+				"scryfallUri": "scry:4b81165e-f091-4211-8b47-5ea6868b0d4c"
+			},
+			"section": "mainboard",
+			"tags": ["dorks"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:0bc7f093-bef0-4f1a-852c-4b75ebf54838",
+				"scryfallUri": "scry:3d994115-378d-4685-a5dc-e448831da434"
+			},
+			"section": "mainboard",
+			"tags": ["ramp"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:5e59199c-facc-46b4-9681-988de0cfaba2",
+				"scryfallUri": "scry:9d66e724-49ee-4f08-a160-584350de1d95"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:32fb0096-546c-4633-b6e3-ba3f2d9fa49c",
+				"scryfallUri": "scry:b20e3117-f1e4-4449-ae9d-0b66abfc717d"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:58257464-278e-45fa-8e0b-bcd9a7500bc1",
+				"scryfallUri": "scry:f05aa4e3-2919-46cb-9eeb-926ddf18d6f4"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:069f6530-e65c-4d52-85f3-e0a2acd148c5",
+				"scryfallUri": "scry:418bf817-433a-4d9a-bea7-827014184269"
+			},
+			"section": "mainboard",
+			"tags": ["dorks"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:a7c69802-99c4-4778-934e-cc09ba58c267",
+				"scryfallUri": "scry:5feba5d6-99a6-4e9b-8a7d-90d955868fc3"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:c99896a8-8b58-4946-8f2d-b4e2562f278a",
+				"scryfallUri": "scry:fd1c9129-254d-4d1d-9d95-112292bd6bcc"
+			},
+			"section": "mainboard",
+			"tags": ["counters"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:45429b2c-be3b-4b2e-9bab-a059ccbda8cd",
+				"scryfallUri": "scry:69949863-2510-4fe2-a815-0682beeb08a3"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:9353f6dd-9a08-4e55-9b07-3e68d7d97ef4",
+				"scryfallUri": "scry:f341ed2c-353b-49a3-b200-94ae43cb8e24"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:19e6ebaf-7148-428f-8c79-1e9e57a4e659",
+				"scryfallUri": "scry:9f8a6f93-1fc8-4690-add4-538763277f8e"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:4c77767a-8133-43bc-b7a5-09a73259d354",
+				"scryfallUri": "scry:1d1a645e-85c7-4044-b817-6e24744d245e"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:75540897-53f6-433b-bd70-9851551df6ef",
+				"scryfallUri": "scry:4c468c5f-f2c6-473a-8353-a762ec3ab467"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:a4555bd2-be42-442a-8ead-3398318e91c5",
+				"scryfallUri": "scry:b0cd9af6-3729-4c9c-9669-a2800a693b39"
+			},
+			"section": "mainboard",
+			"tags": ["card advantage and friends"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:96aab05a-49bc-418a-9980-f3322955de1e",
+				"scryfallUri": "scry:4fe31ab9-d217-464e-96b1-d8a1ca6ad005"
+			},
+			"section": "mainboard",
+			"tags": ["counters", "payoffs / big creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:0895c9b7-ae7d-4bb3-af17-3b75deb50a25",
+				"scryfallUri": "scry:85eb4b03-305b-45a4-82e5-5fcd586cc744"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:1b6da140-0d91-4fae-a3ee-33e6808acf34",
+				"scryfallUri": "scry:18af2c85-e58f-4043-99d3-e90121348aca"
+			},
+			"section": "mainboard",
+			"tags": ["counters"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:2987c385-011a-4032-a516-a46d1e9dc9e8",
+				"scryfallUri": "scry:31704e73-5168-4880-be9b-ae32b2197d35"
+			},
+			"section": "mainboard",
+			"tags": ["removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:514c6831-63ac-4fc0-8950-526813591710",
+				"scryfallUri": "scry:17c87c15-742b-47fb-9d4c-0a985cc1e15a"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:4a6887e3-7a65-4f24-be71-183b00a0ad56",
+				"scryfallUri": "scry:c7160307-309e-406b-8a86-259322475d1c"
+			},
+			"section": "mainboard",
+			"tags": ["card advantage and friends"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:cb814e16-acf7-41d5-a357-1323dcc369f3",
+				"scryfallUri": "scry:1ab94f16-778d-4437-a1b9-2f67cd214cc0"
+			},
+			"section": "mainboard",
+			"tags": ["dorks"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:1bf04a2a-7f96-412c-9d91-034bef26e1b6",
+				"scryfallUri": "scry:174ee9e7-8040-4b53-8d0d-177ce924521c"
+			},
+			"section": "mainboard",
+			"tags": ["counters", "payoffs / big creatures", "protection"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:583102f8-7232-4fbb-a715-087448536bb2",
+				"scryfallUri": "scry:1beb7566-305e-4091-bdc4-cf4c789ac05a"
+			},
+			"section": "mainboard",
+			"tags": ["counter effects", "counters"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:79edf527-2de1-433a-9cac-c91f461b1ebf",
+				"scryfallUri": "scry:54935597-b5d0-476d-82f3-42a9201e4556"
+			},
+			"section": "mainboard",
+			"tags": ["card advantage and friends"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:3f3b2c10-21f8-4e13-be83-4ef3fa36e123",
+				"scryfallUri": "scry:75918859-c93f-41b4-9ad0-a4a96c389f0d"
+			},
+			"section": "mainboard",
+			"tags": ["dorks"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:6ccca5c2-66c3-495a-8d9e-1a9805569e52",
+				"scryfallUri": "scry:f8900b89-0e10-4602-bba2-da8d60ea5885"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:0e07f1af-5ff6-4da5-8683-aea4cc390975",
+				"scryfallUri": "scry:4d89283e-9783-4006-9294-4ae0473d2ce6"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:8520ee67-439b-4f15-838b-420bacbb8b13",
+				"scryfallUri": "scry:3b551403-47dd-4c2b-95c8-0e2e674d6fcf"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:21f1c6d7-8289-44b2-b88f-c09e202be200",
+				"scryfallUri": "scry:2d73ea23-52ab-4b92-b263-dc8b9e5a1010"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures", "ramp"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:5104053a-d394-4b00-82a4-60fd9f051a6e",
+				"scryfallUri": "scry:28a1dd7f-2e42-4062-a941-b489b98a49fc"
+			},
+			"section": "mainboard",
+			"tags": ["card advantage and friends"]
+		},
+		{
+			"quantity": 11,
+			"ref": {
+				"oracleUri": "oracle:b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6",
+				"scryfallUri": "scry:b43297de-7378-474f-a85f-910fa7cbb4f4"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:77807103-bcd5-479f-bedd-f5d97aa6d3d2",
+				"scryfallUri": "scry:5f11f053-5150-4a76-b2ca-9df3a0629911"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:df317532-7d36-40fd-938f-e972749c8792",
+				"scryfallUri": "scry:450744cf-7eba-491b-97b0-ca80c6368bbb"
+			},
+			"section": "mainboard",
+			"tags": ["dorks"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:fae37e28-e137-4177-b973-fa8b4dd8f409",
+				"scryfallUri": "scry:ee0e17cb-a729-4be9-9fe3-e71ba45f0a6e"
+			},
+			"section": "mainboard",
+			"tags": ["removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:e5481431-c952-4ad9-94fe-355076ef632b",
+				"scryfallUri": "scry:47565d10-96bf-4fb0-820f-f20a44a76b6f"
+			},
+			"section": "mainboard",
+			"tags": ["counter effects"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:d14c633d-977a-4f78-85c2-88582b3c3670",
+				"scryfallUri": "scry:06e0c180-2275-461a-86e7-8ccdc5f47938"
+			},
+			"section": "mainboard",
+			"tags": ["card advantage and friends"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:67dec976-bcf5-4995-8da1-cd570862d3cf",
+				"scryfallUri": "scry:18da890e-0f8d-41e9-a29f-24cb5393c464"
+			},
+			"section": "mainboard",
+			"tags": ["payoffs / big creatures", "removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:09955b4b-6052-4c27-8b63-9548482b3c5c",
+				"scryfallUri": "scry:4f8fee37-a050-4329-8b10-46d150e7a95e"
+			},
+			"section": "mainboard",
+			"tags": ["card advantage and friends", "removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:23d349a0-e441-40b8-b634-13e61440a7c8",
+				"scryfallUri": "scry:ca2c611c-3a6f-44b0-9daa-837a465845e0"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:5f2be3c2-060a-43e1-b63b-9cd3c78ffcb0",
+				"scryfallUri": "scry:3db65137-c9d6-4352-b7a0-f3968b167233"
+			},
+			"section": "mainboard",
+			"tags": ["dorks"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:cd0c8db0-67ee-483b-8298-455cce35fef7",
+				"scryfallUri": "scry:13d6d9fc-509b-42db-8ac1-85066eb6e9c4"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:38517711-e570-4337-b269-addcf8bfdd74",
+				"scryfallUri": "scry:8e8aea71-02aa-4799-86fb-efd2a36efc22"
+			},
+			"section": "mainboard",
+			"tags": ["payoffs / big creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:2bfec482-be0d-4768-84e7-1c2c74ea1373",
+				"scryfallUri": "scry:4686b51c-e02b-48c1-bafe-e8d08a5407b9"
+			},
+			"section": "mainboard",
+			"tags": ["removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:b2d5ba45-8674-4428-89db-c2bbbf0bf5c5",
+				"scryfallUri": "scry:3e0f6ae6-b303-405a-8efa-91de9692768e"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:8141fb64-7b55-40fb-8fe4-5efd805d8fef",
+				"scryfallUri": "scry:c2e2c80d-7581-46ba-8237-7886b91c19b3"
+			},
+			"section": "mainboard",
+			"tags": ["counters"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:4d1b655f-05b8-4b82-9cb9-67660f570a9b",
+				"scryfallUri": "scry:902a969e-9f22-4e92-93eb-9d4536ca82e5"
+			},
+			"section": "mainboard",
+			"tags": ["payoffs / big creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:bd9b9772-f5f9-4c6b-913e-7193bea5d0a7",
+				"scryfallUri": "scry:bff31eba-8ab3-403e-8d82-37a18b279bec"
+			},
+			"section": "mainboard",
+			"tags": ["removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:aa6723a2-75da-49f5-a1ba-cbfa82c55301",
+				"scryfallUri": "scry:76219ec4-65dc-4137-9b3b-070e02524397"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:0fab815f-bccf-40ef-95e9-ba64b137fb8c",
+				"scryfallUri": "scry:30e8a00f-8131-470d-8072-4c23b812281a"
+			},
+			"section": "mainboard",
+			"tags": ["card advantage and friends"]
+		},
+		{
+			"quantity": 6,
+			"ref": {
+				"oracleUri": "oracle:bc71ebf6-2056-41f7-be35-b2e5c34afa99",
+				"scryfallUri": "scry:3a438199-54f8-4702-81cf-a9d42e7cd9f1"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:828fe0c0-e280-4a8b-9e49-68cb34c2da97",
+				"scryfallUri": "scry:e8215686-bf19-4090-87c1-dd4f691f2ae7"
+			},
+			"section": "mainboard",
+			"tags": ["counters", "counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:eed2606b-9a27-4af3-8120-c45a1d6b5c00",
+				"scryfallUri": "scry:db6d9d28-3a05-4dfa-a322-36b4cc2697d4"
+			},
+			"section": "mainboard",
+			"tags": ["counters"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:f9672b63-415a-448b-a3da-140df63a0f0c",
+				"scryfallUri": "scry:91a3ef02-a5d6-4282-ae00-2f58d956c94f"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures", "counter effects"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:32c91719-f3dd-4cc7-9e32-7d5ccf18f07c",
+				"scryfallUri": "scry:e0f9dca6-e5ae-4714-8a59-2ef1d8f1e82d"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:4b1befff-48fa-47a3-832e-bdaf43495c02",
+				"scryfallUri": "scry:44063a90-e4cf-4bcd-a128-792de15371a7"
+			},
+			"section": "mainboard",
+			"tags": ["removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:61df991d-32e7-4b6b-b8e6-700ba915c3f2",
+				"scryfallUri": "scry:8348f73d-4226-4296-9d51-a2c497ee8270"
+			},
+			"section": "mainboard",
+			"tags": ["payoffs / big creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:50261b9d-48f2-4bad-a35b-14f13b3cdd32",
+				"scryfallUri": "scry:98d548c9-42bc-4155-8211-0aea801c3724"
+			},
+			"section": "mainboard",
+			"tags": ["card advantage and friends"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:8e1eff5a-77e8-4ea2-96b8-547504f83b45",
+				"scryfallUri": "scry:95f050b4-ae64-47ae-8e55-047e7a588d9c"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:8dec6fcf-1254-4b1b-ba23-7a3e492a7241",
+				"scryfallUri": "scry:aaa5bee9-3f6a-45b0-a282-6b23222e948f"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:00ef1c55-dea1-4564-bd57-66de86cba4df",
+				"scryfallUri": "scry:fdc53c6a-8e28-4314-9bcf-b31b6c6f56d7"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:1436dd81-496e-42a5-b210-fb5b9cdf073f",
+				"scryfallUri": "scry:dc137850-df52-400c-95e2-45bf25a3e62c"
+			},
+			"section": "mainboard",
+			"tags": ["ramp"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:7d404420-e3de-47a8-a159-2f634a73f2c9",
+				"scryfallUri": "scry:aad7baab-9fea-4a1f-b095-446e52be95dc"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:c7c37369-47f8-4027-a016-a2055307dd24",
+				"scryfallUri": "scry:68896747-bab9-4c29-9fd0-764bebde96c4"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:c9739382-9fe0-4d24-b58e-1e45a88491b6",
+				"scryfallUri": "scry:956a2a42-6a91-45b5-99f1-87c2cf1dd608"
+			},
+			"section": "mainboard",
+			"tags": ["removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:1e6a24be-8281-41c1-a5ba-b68f0ef1d7b8",
+				"scryfallUri": "scry:211f84bc-a344-4f37-a15d-b47994ce0485"
+			},
+			"section": "mainboard",
+			"tags": ["counters", "protection"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:15948fdf-3f9e-4eed-b85b-c5a554ff0571",
+				"scryfallUri": "scry:836b4246-f1f2-4495-8664-650dda70ed4f"
+			},
+			"section": "mainboard",
+			"tags": ["counters", "protection", "removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:dd6d15c0-c294-42c9-a6cf-57b0b5d40823",
+				"scryfallUri": "scry:5d45a3d3-a114-496e-b575-504179a297cc"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:37fd3a9d-74fe-4180-805a-b865e7228a77",
+				"scryfallUri": "scry:24b80b6f-be27-4b52-bea6-ec68960db822"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:6ef30340-a26d-49aa-bc86-0b8aa5252f87",
+				"scryfallUri": "scry:467df77a-a99c-4cfd-9af4-502eaa2eb2e3"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:7a70faf5-cc04-402b-92e3-67746788f510",
+				"scryfallUri": "scry:7740abc5-54e1-478d-966e-0fa64e727995"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:99720c65-be96-4220-8ed4-720660bf6928",
+				"scryfallUri": "scry:9d483643-6a11-47f7-a0aa-190e0179525f"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:7eccd10d-f224-4467-af25-f2b768993f9f",
+				"scryfallUri": "scry:dd28a646-f38f-4cdf-948c-969cd979e5e6"
+			},
+			"section": "mainboard",
+			"tags": ["removal"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:a5478263-47c9-447f-9c7a-c77ce0752947",
+				"scryfallUri": "scry:7fcf94e9-d370-458f-8bc4-66609f8b6b91"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:9f8fe514-77ed-41b4-a6f3-c6f095bb97be",
+				"scryfallUri": "scry:7aed7d9d-d796-493e-98fd-c5b1a26621ed"
+			},
+			"section": "mainboard",
+			"tags": []
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:8432729e-5fd4-4661-8b79-e41b1d03eb7b",
+				"scryfallUri": "scry:41190fb8-f5d5-4a8b-bdc8-a4516e7075b5"
+			},
+			"section": "mainboard",
+			"tags": ["counters"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:09193c40-538c-4154-a671-076eece35e54",
+				"scryfallUri": "scry:8bc518fc-904e-4e39-aeda-ffb222bfcc82"
+			},
+			"section": "mainboard",
+			"tags": ["counters", "payoffs / big creatures"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:aa149597-087a-4e1f-953c-2cd04e90a93b",
+				"scryfallUri": "scry:be1165a2-e697-4ceb-91ba-693a3a006f27"
+			},
+			"section": "mainboard",
+			"tags": ["counter effects"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:4d8ee903-17b3-43c9-9637-ee596955a9f4",
+				"scryfallUri": "scry:8d72b00c-5043-4630-949a-fc17eeb962bc"
+			},
+			"section": "mainboard",
+			"tags": ["counters"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:c735077a-fae8-4c5f-a5bf-35969696460c",
+				"scryfallUri": "scry:9fddbd7a-799c-4432-810c-d839c5c354b9"
+			},
+			"section": "mainboard",
+			"tags": ["card advantage and friends"]
+		},
+		{
+			"quantity": 1,
+			"ref": {
+				"oracleUri": "oracle:e54ad5a1-e79d-42db-a3e9-5caecae62c9f",
+				"scryfallUri": "scry:66a3918e-978e-4bfb-ba83-6519704dee92"
+			},
+			"section": "mainboard",
+			"tags": ["counter creatures", "counter effects"]
+		}
+	],
+	"createdAt": "2025-12-09T23:34:54.215Z",
+	"format": "paupercommander",
+	"name": "hamza levered etf",
+	"primer": {
+		"content": [
+			{
+				"$type": "com.deckbelcher.richtext#paragraphBlock",
+				"facets": [
+					{
+						"features": [
+							{
+								"$type": "com.deckbelcher.richtext.facet#tag",
+								"tag": "counter creatures"
+							}
+						],
+						"index": {
+							"byteEnd": 61,
+							"byteStart": 44
+						}
+					},
+					{
+						"features": [
+							{
+								"$type": "com.deckbelcher.richtext.facet#tag",
+								"tag": "payoffs / big creatures"
+							}
+						],
+						"index": {
+							"byteEnd": 193,
+							"byteStart": 170
+						}
+					}
+				],
+				"text": "Counters and cost reducing! This deck plays counter creatures to reduce the cost of playing Hamza (and other cards once Hamza is out), and then dumps hand on a big turn. payoffs / big creatures is what you hope to play at a discount to win the game (by turning the big scary creature sideways), but sometimes they work out at full price. I find this deck gets punished especially hard for greedy dropping commander without more stuff to do, since Hamza on the board threatens a really explosive next turn with any cards in hand."
+			},
+			{
+				"$type": "com.deckbelcher.richtext#paragraphBlock"
+			},
+			{
+				"$type": "com.deckbelcher.richtext#paragraphBlock",
+				"facets": [
+					{
+						"features": [
+							{
+								"$type": "com.deckbelcher.richtext.facet#cardRef",
+								"ref": {
+									"oracleUri": "oracle:4d8ee903-17b3-43c9-9637-ee596955a9f4",
+									"scryfallUri": "scry:8d72b00c-5043-4630-949a-fc17eeb962bc"
+								}
+							}
+						],
+						"index": {
+							"byteEnd": 107,
+							"byteStart": 89
+						}
+					}
+				],
+				"text": "Warp is excellent in this deck, since warp is affected by the cost reducing. A card like Weftblade Enhancer can be cast for as little as {W} with just two countered creatures, and then recast from exile at a steeper discount, getting the ETB twice and helping to discount itself. Warp is strong broadly, and it's even stronger here."
+			},
+			{
+				"$type": "com.deckbelcher.richtext#paragraphBlock"
+			},
+			{
+				"$type": "com.deckbelcher.richtext#paragraphBlock",
+				"facets": [
+					{
+						"features": [
+							{
+								"$type": "com.deckbelcher.richtext.facet#cardRef",
+								"ref": {
+									"oracleUri": "oracle:4a6887e3-7a65-4f24-be71-183b00a0ad56",
+									"scryfallUri": "scry:c7160307-309e-406b-8a86-259322475d1c"
+								}
+							}
+						],
+						"index": {
+							"byteEnd": 47,
+							"byteStart": 31
+						}
+					},
+					{
+						"features": [
+							{
+								"$type": "com.deckbelcher.richtext.facet#cardRef",
+								"ref": {
+									"oracleUri": "oracle:cb814e16-acf7-41d5-a357-1323dcc369f3",
+									"scryfallUri": "scry:22589a81-3ea8-4e78-98c9-c015e7539cf9"
+								}
+							}
+						],
+						"index": {
+							"byteEnd": 62,
+							"byteStart": 49
+						}
+					},
+					{
+						"features": [
+							{
+								"$type": "com.deckbelcher.richtext.facet#cardRef",
+								"ref": {
+									"oracleUri": "oracle:21f1c6d7-8289-44b2-b88f-c09e202be200",
+									"scryfallUri": "scry:2d73ea23-52ab-4b92-b263-dc8b9e5a1010"
+								}
+							}
+						],
+						"index": {
+							"byteEnd": 72,
+							"byteStart": 64
+						}
+					},
+					{
+						"features": [
+							{
+								"$type": "com.deckbelcher.richtext.facet#cardRef",
+								"ref": {
+									"oracleUri": "oracle:a7c69802-99c4-4778-934e-cc09ba58c267",
+									"scryfallUri": "scry:5feba5d6-99a6-4e9b-8a7d-90d955868fc3"
+								}
+							}
+						],
+						"index": {
+							"byteEnd": 92,
+							"byteStart": 74
+						}
+					},
+					{
+						"features": [
+							{
+								"$type": "com.deckbelcher.richtext.facet#cardRef",
+								"ref": {
+									"oracleUri": "oracle:0e07f1af-5ff6-4da5-8683-aea4cc390975",
+									"scryfallUri": "scry:4d89283e-9783-4006-9294-4ae0473d2ce6"
+								}
+							}
+						],
+						"index": {
+							"byteEnd": 114,
+							"byteStart": 97
+						}
+					}
+				],
+				"text": "Standout value engines include Deepwood Denizen, Devoted Druid, Fertilid, Basking Broodscale and Evolution Witness. With the density of spells to give counters, ETBs to give counters, and cards that can move counters, they can dominate a board until removed."
+			},
+			{
+				"$type": "com.deckbelcher.richtext#paragraphBlock"
+			},
+			{
+				"$type": "com.deckbelcher.richtext#paragraphBlock",
+				"facets": [
+					{
+						"features": [
+							{
+								"$type": "com.deckbelcher.richtext.facet#tag",
+								"tag": "counter creatures"
+							}
+						],
+						"index": {
+							"byteEnd": 98,
+							"byteStart": 81
+						}
+					},
+					{
+						"features": [
+							{
+								"$type": "com.deckbelcher.richtext.facet#cardRef",
+								"ref": {
+									"oracleUri": "oracle:0cde6a29-d597-4feb-8b2b-528d2d57a1f3",
+									"scryfallUri": "scry:adc7f8f3-140d-4dd0-aacc-b81b2b93eb67"
+								}
+							}
+						],
+						"index": {
+							"byteEnd": 313,
+							"byteStart": 287
+						}
+					}
+				],
+				"text": "On the big turn, I occasionally mess up the sequencing, you usually want to play counter creatures before expensive stuff since with just a counter or two they are totally free and will discount the big thing further. Counting the colored pips for what you want to do is important since Hamza, Guardian of Arashin can't discount the colored pips, and I often find I don't have as much of the specific color as I might like to play everything."
+			}
+		]
+	},
+	"updatedAt": "2026-01-14T10:42:35.932Z"
+}

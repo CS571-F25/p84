@@ -1,0 +1,4 @@
+{
+	"$comment": "Maps deck names to AT URIs for test fixtures. Add decks with add-test-deck.sh",
+	"hamza-pdh": "at://did:plc:jx4g6baqkwdlonylsetvpu7c/com.deckbelcher.deck.list/3m7lphyavvp2u"
+}
