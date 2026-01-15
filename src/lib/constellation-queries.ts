@@ -136,3 +136,14 @@ export function getConstellationQueryKeys(
 		saveCount: ["constellation", "saveCount", itemUri] as const,
 	};
 }
+
+/**
+ * Preload social stats for SSR
+ * Only prefetches count (no auth needed), user saved query runs client-side
+ */
+export function socialStatsPreload<T extends SocialItemType>(
+	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
+	itemType: T,
+) {
+	return [itemSaveCountQueryOptions(itemUri, itemType)];
+}

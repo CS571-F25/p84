@@ -6,6 +6,7 @@ import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
 import { SocialStats } from "@/components/social/SocialStats";
 import { getAllFaces } from "@/lib/card-faces";
+import { socialStatsPreload } from "@/lib/constellation-queries";
 import { FORMAT_GROUPS } from "@/lib/format-utils";
 import {
 	getCardByIdQueryOptions,
@@ -18,7 +19,7 @@ import type {
 	OracleId,
 	ScryfallId,
 } from "@/lib/scryfall-types";
-import { asOracleId, isScryfallId } from "@/lib/scryfall-types";
+import { asOracleId, isScryfallId, toOracleUri } from "@/lib/scryfall-types";
 import { getImageUri } from "@/lib/scryfall-utils";
 
 const NOT_FOUND_META = {
@@ -39,11 +40,28 @@ export const Route = createFileRoute("/card/$id")({
 		// Prefetch card and volatile data in parallel
 		// Printing IDs and printing cards are loaded client-side to avoid memory bloat
 		// (some cards like Lightning Bolt have 100+ printings)
+		const cardPromise = context.queryClient.ensureQueryData(
+			getCardByIdQueryOptions(params.id),
+		);
+		const volatilePromise = context.queryClient.ensureQueryData(
+			getVolatileDataQueryOptions(params.id),
+		);
+
+		// Chain social stats off card (needs oracle_id), runs parallel with volatile
+		const socialPromise = cardPromise.then((card) => {
+			if (!card?.oracle_id) return;
+			const oracleUri = toOracleUri(asOracleId(card.oracle_id));
+			return Promise.all(
+				socialStatsPreload(oracleUri, "card").map((opts) =>
+					context.queryClient.ensureQueryData(opts),
+				),
+			);
+		});
+
 		const [card] = await Promise.all([
-			context.queryClient.ensureQueryData(getCardByIdQueryOptions(params.id)),
-			context.queryClient.ensureQueryData(
-				getVolatileDataQueryOptions(params.id),
-			),
+			cardPromise,
+			volatilePromise,
+			socialPromise,
 		]);
 		return card ?? null;
 	},
