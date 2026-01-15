@@ -5,7 +5,7 @@ import {
 } from "@/lib/__tests__/test-card-lookup";
 import type { Deck, DeckCard, Section } from "@/lib/deck-types";
 import type { Card, OracleId, ScryfallId } from "@/lib/scryfall-types";
-import { companionRule } from "../rules/base";
+import { companionRule } from "../rules/companion";
 import type { ValidationContext } from "../types";
 
 describe("companion rules", () => {
@@ -78,6 +78,60 @@ describe("companion rules", () => {
 				makeCard(solRing, "mainboard"),
 			]);
 			const ctx = makeContext(deck, [lurrus, solRing]);
+			const violations = companionRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+	});
+
+	describe("Keruga, the Macrosage", () => {
+		it("rejects deck with low MV creatures", async () => {
+			const keruga = await cards.get("Keruga, the Macrosage");
+			const solRing = await cards.get("Sol Ring");
+			const deck = makeDeck([
+				makeCard(keruga, "sideboard"),
+				makeCard(solRing, "mainboard"),
+			]);
+			const ctx = makeContext(deck, [keruga, solRing]);
+			const violations = companionRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+
+		it("rejects MDFC creature with MV < 3 front face", async () => {
+			const keruga = await cards.get("Keruga, the Macrosage");
+			const valki = await cards.get("Valki, God of Lies");
+			const deck = makeDeck([
+				makeCard(keruga, "sideboard"),
+				makeCard(valki, "mainboard"),
+			]);
+			const ctx = makeContext(deck, [keruga, valki]);
+			const violations = companionRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("Keruga");
+			expect(violations[0].message).toContain("mana value");
+		});
+
+		it("allows deck with only MV 3+ creatures", async () => {
+			const keruga = await cards.get("Keruga, the Macrosage");
+			const selvala = await cards.get("Selvala, Heart of the Wilds");
+			const deck = makeDeck([
+				makeCard(keruga, "sideboard"),
+				makeCard(selvala, "mainboard"),
+			]);
+			const ctx = makeContext(deck, [keruga, selvala]);
+			const violations = companionRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+	});
+
+	describe("no companion in sideboard", () => {
+		it("passes when no companion is present", async () => {
+			const solRing = await cards.get("Sol Ring");
+			const selvala = await cards.get("Selvala, Heart of the Wilds");
+			const deck = makeDeck([
+				makeCard(solRing, "sideboard"),
+				makeCard(selvala, "mainboard"),
+			]);
+			const ctx = makeContext(deck, [solRing, selvala]);
 			const violations = companionRule.validate(ctx);
 			expect(violations).toHaveLength(0);
 		});

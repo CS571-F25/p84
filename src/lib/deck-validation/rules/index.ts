@@ -21,7 +21,7 @@ export {
 	isValidCommanderType,
 	signatureSpellRule,
 } from "./commander";
-
+export { companionRule } from "./companion";
 export { commanderUncommonRule } from "./rarity";
 
 import {
@@ -47,6 +47,7 @@ import {
 	signatureSpellRule,
 } from "./commander";
 
+import { companionRule } from "./companion";
 import { commanderUncommonRule } from "./rarity";
 
 /**
@@ -81,6 +82,9 @@ export const RULES = {
 	commanderUncommon: commanderUncommonRule,
 	commanderPlaneswalker: commanderPlaneswalkerRule,
 	signatureSpell: signatureSpellRule,
+
+	// Companion rule (sideboard)
+	companion: companionRule,
 } as const;
 
 export type RuleId = keyof typeof RULES;
