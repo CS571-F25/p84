@@ -19,7 +19,9 @@ import {
  */
 export const companionRule: Rule<"companion"> = {
 	id: "companion",
-	rule: asRuleNumber("702.139"),
+	rule: asRuleNumber("702.139a"),
+	ruleText:
+		"Companion is a keyword ability that functions outside the game. It's written as \"Companion—[Condition].\" Before the game begins, you may reveal one card you own from outside the game with a companion ability whose condition is fulfilled by your starting deck. (See rule 103.2b.) Once during the game, any time you have priority and the stack is empty, but only during a main phase of your turn, you may pay {3} and put that card into your hand. This is a special action that doesn't use the stack (see rule 116.2g). This is a change from previous rules.",
 	category: "structure",
 	description: "Deck must meet companion's deck-building restriction",
 	validate(ctx: ValidationContext): Violation[] {

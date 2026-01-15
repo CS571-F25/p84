@@ -20,7 +20,9 @@ import {
  */
 export const commanderUncommonRule: Rule<"commanderUncommon"> = {
 	id: "commanderUncommon",
-	rule: asRuleNumber("903.3"),
+	rule: asRuleNumber("PDH"),
+	ruleText:
+		"The commander must be an uncommon creature, vehicle, or spacecraft and does not need to be legendary. (pdhhomebase.com/rules)",
 	category: "structure",
 	description:
 		"Commander must be an uncommon creature with printing in paper/MTGO (PDH)",

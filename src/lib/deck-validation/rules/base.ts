@@ -15,6 +15,8 @@ import {
 export const cardLegalityRule: Rule<"cardLegality"> = {
 	id: "cardLegality",
 	rule: asRuleNumber("100.2a"),
+	ruleText:
+		"In constructed play (a way of playing in which each player creates their own deck ahead of time), each deck has a minimum deck size of 60 cards. A constructed deck may contain any number of basic land cards and no more than four of any card with a particular English name other than basic land cards. For the purposes of deck construction, cards with interchangeable names have the same English name (see rule 201.3).",
 	category: "legality",
 	description: "Card must be legal in format",
 	validate(ctx: ValidationContext): Violation[] {
@@ -49,7 +51,9 @@ export const cardLegalityRule: Rule<"cardLegality"> = {
  */
 export const bannedRule: Rule<"banned"> = {
 	id: "banned",
-	rule: asRuleNumber("100.6a"),
+	rule: asRuleNumber("MTR"),
+	ruleText:
+		"The current Magic: The Gathering Tournament Rules can be found at WPN.Wizards.com/en/rules-documents.",
 	category: "legality",
 	description: "Card is banned in format",
 	validate(ctx: ValidationContext): Violation[] {
@@ -84,7 +88,9 @@ export const bannedRule: Rule<"banned"> = {
  */
 export const restrictedRule: Rule<"restricted"> = {
 	id: "restricted",
-	rule: asRuleNumber("100.6b"),
+	rule: asRuleNumber("MTR"),
+	ruleText:
+		"The current Magic: The Gathering Tournament Rules can be found at WPN.Wizards.com/en/rules-documents.",
 	category: "quantity",
 	description: "Restricted cards limited to 1 copy",
 	validate(ctx: ValidationContext): Violation[] {
@@ -134,6 +140,8 @@ export const restrictedRule: Rule<"restricted"> = {
 export const singletonRule: Rule<"singleton"> = {
 	id: "singleton",
 	rule: asRuleNumber("903.5b"),
+	ruleText:
+		"Other than basic lands, each card in a Commander deck must have a different English name. For the purposes of deck construction, cards with interchangeable names have the same English name (see rule 201.3).",
 	category: "quantity",
 	description: "Maximum 1 copy of each card (except basics and exceptions)",
 	validate(ctx: ValidationContext): Violation[] {
@@ -180,6 +188,8 @@ export const singletonRule: Rule<"singleton"> = {
 export const playsetRule: Rule<"playset"> = {
 	id: "playset",
 	rule: asRuleNumber("100.2a"),
+	ruleText:
+		"In constructed play (a way of playing in which each player creates their own deck ahead of time), each deck has a minimum deck size of 60 cards. A constructed deck may contain any number of basic land cards and no more than four of any card with a particular English name other than basic land cards. For the purposes of deck construction, cards with interchangeable names have the same English name (see rule 201.3).",
 	category: "quantity",
 	description: "Maximum 4 copies of each card (except basics and exceptions)",
 	validate(ctx: ValidationContext): Violation[] {
@@ -226,6 +236,8 @@ export const playsetRule: Rule<"playset"> = {
 export const deckSizeMinRule: Rule<"deckSizeMin"> = {
 	id: "deckSizeMin",
 	rule: asRuleNumber("100.2a"),
+	ruleText:
+		"In constructed play (a way of playing in which each player creates their own deck ahead of time), each deck has a minimum deck size of 60 cards. A constructed deck may contain any number of basic land cards and no more than four of any card with a particular English name other than basic land cards. For the purposes of deck construction, cards with interchangeable names have the same English name (see rule 201.3).",
 	category: "structure",
 	description: "Deck must meet minimum size",
 	validate(ctx: ValidationContext): Violation[] {
@@ -257,6 +269,8 @@ export const deckSizeMinRule: Rule<"deckSizeMin"> = {
 export const deckSizeExactRule: Rule<"deckSizeExact"> = {
 	id: "deckSizeExact",
 	rule: asRuleNumber("903.5a"),
+	ruleText:
+		"Each deck must contain exactly 100 cards, including its commander. In other words, the minimum deck size and the maximum deck size are both 100.",
 	category: "structure",
 	description: "Deck must be exactly the specified size",
 	validate(ctx: ValidationContext): Violation[] {
@@ -292,6 +306,8 @@ export const deckSizeExactRule: Rule<"deckSizeExact"> = {
 export const sideboardSizeRule: Rule<"sideboardSize"> = {
 	id: "sideboardSize",
 	rule: asRuleNumber("100.4a"),
+	ruleText:
+		"In constructed play, a sideboard may contain no more than fifteen cards. The four-card limit (see rule 100.2a) applies to the combined deck and sideboard.",
 	category: "structure",
 	description: "Sideboard cannot exceed maximum size",
 	validate(ctx: ValidationContext): Violation[] {
@@ -322,7 +338,9 @@ export const sideboardSizeRule: Rule<"sideboardSize"> = {
  */
 export const conspiracyCardRule: Rule<"conspiracyCard"> = {
 	id: "conspiracyCard",
-	rule: asRuleNumber("905.2"),
+	rule: asRuleNumber("315.1"),
+	ruleText:
+		"Conspiracy cards are used only in limited play, particularly in the Conspiracy Draft variant (see rule 905). Conspiracy cards aren't used in constructed play.",
 	category: "legality",
 	description: "Conspiracy cards are not legal in constructed formats",
 	validate(ctx: ValidationContext): Violation[] {
@@ -361,7 +379,9 @@ export const conspiracyCardRule: Rule<"conspiracyCard"> = {
  */
 export const illegalCardTypeRule: Rule<"illegalCardType"> = {
 	id: "illegalCardType",
-	rule: asRuleNumber("100.2a"),
+	rule: asRuleNumber("100.7"),
+	ruleText:
+		'Certain cards are intended for casual play and may have features and text that aren\'t covered by these rules. These include Mystery Booster playtest cards, promotional cards and cards in "Un-sets" that were printed with a silver border, and cards in the Unfinity expansion that have an acorn symbol at the bottom of the card.',
 	category: "legality",
 	description: "Silver-bordered and acorn cards are not tournament legal",
 	validate(ctx: ValidationContext): Violation[] {
@@ -416,7 +436,9 @@ export const illegalCardTypeRule: Rule<"illegalCardType"> = {
  */
 export const anteCardRule: Rule<"anteCard"> = {
 	id: "anteCard",
-	rule: asRuleNumber("100.6a"),
+	rule: asRuleNumber("407.1"),
+	ruleText:
+		"Earlier versions of the Magic rules included an ante rule as a way of playing \"for keeps.\" Playing Magic games for ante is now considered an optional variation on the game, and it's allowed only where it's not forbidden by law or by other rules. Playing for ante is strictly forbidden under the Magic: The Gathering Tournament Rules (WPN.Wizards.com/en/rules-documents).",
 	category: "legality",
 	description: "Ante cards are banned in all sanctioned formats",
 	validate(ctx: ValidationContext): Violation[] {

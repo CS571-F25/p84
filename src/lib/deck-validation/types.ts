@@ -80,6 +80,7 @@ export interface FormatConfig {
 export interface Rule<Id extends string = string> {
 	id: Id;
 	rule: RuleNumber;
+	ruleText?: string;
 	category: RuleCategory;
 	description: string;
 	validate: (ctx: ValidationContext) => Violation[];

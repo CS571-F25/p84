@@ -14,6 +14,8 @@ import {
 export const commanderRequiredRule: Rule<"commanderRequired"> = {
 	id: "commanderRequired",
 	rule: asRuleNumber("903.3"),
+	ruleText:
+		"Each deck has a legendary card designated as its commander. That card must be either (a) a creature card, (b) a Vehicle card, or (c) a Spacecraft card with one or more power/toughness boxes. This designation is not a characteristic of the object represented by the card; rather, it is an attribute of the card itself. The card retains this designation even when it changes zones.",
 	category: "structure",
 	description: "Deck must have at least one commander",
 	validate(ctx: ValidationContext): Violation[] {
@@ -39,6 +41,8 @@ export const commanderRequiredRule: Rule<"commanderRequired"> = {
 export const commanderLegendaryRule: Rule<"commanderLegendary"> = {
 	id: "commanderLegendary",
 	rule: asRuleNumber("903.3"),
+	ruleText:
+		"Each deck has a legendary card designated as its commander. That card must be either (a) a creature card, (b) a Vehicle card, or (c) a Spacecraft card with one or more power/toughness boxes. This designation is not a characteristic of the object represented by the card; rather, it is an attribute of the card itself. The card retains this designation even when it changes zones.",
 	category: "structure",
 	description: "Commander must be a legendary creature, vehicle, or spacecraft",
 	validate(ctx: ValidationContext): Violation[] {
@@ -99,7 +103,9 @@ export function isValidCommanderType(card: Card): boolean {
  */
 export const commanderPartnerRule: Rule<"commanderPartner"> = {
 	id: "commanderPartner",
-	rule: asRuleNumber("702.124"),
+	rule: asRuleNumber("702.124a"),
+	ruleText:
+		"Partner abilities are keyword abilities that modify the rules for deck construction in the Commander variant (see rule 903), and they function before the game begins. Each partner ability allows you to designate two legendary cards as your commander rather than one. Each partner ability has its own requirements for those two commanders. The partner abilities are: partner, partner—[text], partner with [name], friends forever, choose a Background, and Doctor's companion.",
 	category: "structure",
 	description: "Multiple commanders must have valid partner pairing",
 	validate(ctx: ValidationContext): Violation[] {
@@ -256,6 +262,8 @@ function isDoctor(card: Card): boolean {
 export const colorIdentityRule: Rule<"colorIdentity"> = {
 	id: "colorIdentity",
 	rule: asRuleNumber("903.4"),
+	ruleText:
+		"The Commander variant uses color identity to determine what cards can be in a deck with a certain commander. The color identity of a card is the color or colors of any mana symbols in that card's mana cost or rules text, plus any colors defined by its characteristic-defining abilities (see rule 604.3) or color indicator (see rule 204).",
 	category: "identity",
 	description: "Cards must match commander color identity",
 	validate(ctx: ValidationContext): Violation[] {
@@ -306,7 +314,9 @@ export const colorIdentityRule: Rule<"colorIdentity"> = {
  */
 export const commanderPlaneswalkerRule: Rule<"commanderPlaneswalker"> = {
 	id: "commanderPlaneswalker",
-	rule: asRuleNumber("903.3"),
+	rule: asRuleNumber("906.3"),
+	ruleText:
+		"Each deck has a planeswalker card designated as its Oathbreaker. This designation is an attribute of the card itself. The card retains this designation even when it changes zones. (oathbreakermtg.org/rules)",
 	category: "structure",
 	description: "Commander must be a planeswalker (Oathbreaker)",
 	validate(ctx: ValidationContext): Violation[] {
@@ -347,7 +357,9 @@ export const commanderPlaneswalkerRule: Rule<"commanderPlaneswalker"> = {
  */
 export const signatureSpellRule: Rule<"signatureSpell"> = {
 	id: "signatureSpell",
-	rule: asRuleNumber("903.3"),
+	rule: asRuleNumber("906.4"),
+	ruleText:
+		"Each deck has an instant or sorcery card designated as its Signature Spell. The Signature Spell must fall within the color identity of the Oathbreaker. (oathbreakermtg.org/rules)",
 	category: "structure",
 	description:
 		"Oathbreaker requires exactly one signature spell (instant/sorcery) within color identity",
