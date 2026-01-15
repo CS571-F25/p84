@@ -6,7 +6,18 @@
 import type { ComDeckbelcherDeckList } from "./lexicons/index";
 import type { Card, ManaColor, OracleId, ScryfallId } from "./scryfall-types";
 
-export type Section = "commander" | "mainboard" | "sideboard" | "maybeboard";
+export const SECTIONS = [
+	"commander",
+	"mainboard",
+	"sideboard",
+	"maybeboard",
+] as const;
+
+export type Section = (typeof SECTIONS)[number];
+
+export function isKnownSection(s: string): s is Section {
+	return (SECTIONS as readonly string[]).includes(s);
+}
 
 /**
  * App-side card entry with flat typed IDs.
