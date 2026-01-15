@@ -145,11 +145,17 @@ function validatePairing(
 		return { valid: true };
 	}
 
-	// Partner with: check if they name each other
-	if (info1.partnerWithName && info1.partnerWithName === card2.name) {
+	// Partner with: check if they name each other (case-insensitive)
+	if (
+		info1.partnerWithName &&
+		info1.partnerWithName.toLowerCase() === card2.name.toLowerCase()
+	) {
 		return { valid: true };
 	}
-	if (info2.partnerWithName && info2.partnerWithName === card1.name) {
+	if (
+		info2.partnerWithName &&
+		info2.partnerWithName.toLowerCase() === card1.name.toLowerCase()
+	) {
 		return { valid: true };
 	}
 
