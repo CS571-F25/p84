@@ -1,10 +1,14 @@
 /**
  * Benchmarks for deck validation
  *
- * Run with: npx vitest bench src/lib/deck-validation/__tests__/validate.bench.ts
+ * Run with: npm run bench
+ *
+ * Note: These benchmarks use pre-cached card data, which reflects realistic
+ * interactive usage (after initial page load). Cold start performance is
+ * dominated by network latency loading card data chunks, not CPU time.
  */
 
-import { beforeAll, bench, describe } from "vitest";
+import { bench, describe } from "vitest";
 import {
 	getDeckCardCount,
 	setupTestDecks,
@@ -15,54 +19,48 @@ import type { Deck } from "@/lib/deck-types";
 import type { Card, OracleId, ScryfallId } from "@/lib/scryfall-types";
 import { validateDeck } from "../validate";
 
+// Module-level async setup (runs before benchmarks)
+mockFetchFromPublicDir();
+
+const decks = setupTestDecks();
+const hamzaDeck: Deck = await decks.get("hamza-pdh");
+
+const cardProvider = new ServerCardProvider();
+const cardCache = new Map<ScryfallId, Card>();
+const oracleCache = new Map<OracleId, Card>();
+const printingsCache = new Map<OracleId, Card[]>();
+
+// Pre-warm caches with all cards in deck
+for (const deckCard of hamzaDeck.cards) {
+	const card = await cardProvider.getCardById(deckCard.scryfallId);
+	if (card) {
+		cardCache.set(deckCard.scryfallId, card);
+		oracleCache.set(deckCard.oracleId, card);
+	}
+}
+
+// Pre-load all printings for commanders (needed for rarity checks)
+const commanders = hamzaDeck.cards.filter((c) => c.section === "commander");
+for (const commander of commanders) {
+	const printingIds = await cardProvider.getPrintingsByOracleId(
+		commander.oracleId,
+	);
+	const printings: Card[] = [];
+	for (const id of printingIds) {
+		const card = await cardProvider.getCardById(id);
+		if (card) {
+			printings.push(card);
+		}
+	}
+	printingsCache.set(commander.oracleId, printings);
+}
+
+const cardCount = getDeckCardCount(hamzaDeck);
+console.log(
+	`Loaded ${hamzaDeck.name} (${cardCount} cards, ${cardCache.size} unique)`,
+);
+
 describe("validateDeck", () => {
-	let hamzaDeck: Deck;
-	let cardCache: Map<ScryfallId, Card>;
-	let oracleCache: Map<OracleId, Card>;
-	let printingsCache: Map<OracleId, Card[]>;
-
-	beforeAll(async () => {
-		mockFetchFromPublicDir();
-
-		const decks = setupTestDecks();
-		hamzaDeck = await decks.get("hamza-pdh");
-
-		const cardProvider = new ServerCardProvider();
-		cardCache = new Map();
-		oracleCache = new Map();
-		printingsCache = new Map();
-
-		// Pre-warm caches with all cards in deck
-		for (const deckCard of hamzaDeck.cards) {
-			const card = await cardProvider.getCardById(deckCard.scryfallId);
-			if (card) {
-				cardCache.set(deckCard.scryfallId, card);
-				oracleCache.set(deckCard.oracleId, card);
-			}
-		}
-
-		// Pre-load all printings for commanders (needed for rarity checks)
-		const commanders = hamzaDeck.cards.filter((c) => c.section === "commander");
-		for (const commander of commanders) {
-			const printingIds = await cardProvider.getPrintingsByOracleId(
-				commander.oracleId,
-			);
-			const printings: Card[] = [];
-			for (const id of printingIds) {
-				const card = await cardProvider.getCardById(id);
-				if (card) {
-					printings.push(card);
-				}
-			}
-			printingsCache.set(commander.oracleId, printings);
-		}
-
-		const cardCount = getDeckCardCount(hamzaDeck);
-		console.log(
-			`Loaded ${hamzaDeck.name} (${cardCount} cards, ${cardCache.size} unique)`,
-		);
-	}, 60_000);
-
 	bench(
 		"hamza PDH deck (100 cards, full validation)",
 		() => {
