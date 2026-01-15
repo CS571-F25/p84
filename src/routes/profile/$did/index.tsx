@@ -203,9 +203,20 @@ function ProfilePage() {
 
 				{/* Decks Section */}
 				<section className="mb-12">
-					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-						Decks
-					</h2>
+					<div className="flex items-center justify-between mb-4">
+						<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+							Decks
+						</h2>
+						{isOwner && (
+							<Link
+								to="/deck/new"
+								className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors"
+							>
+								<Plus className="w-4 h-4" />
+								New Deck
+							</Link>
+						)}
+					</div>
 					{decksLoading ? (
 						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
 							<p className="text-gray-600 dark:text-gray-400">

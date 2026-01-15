@@ -1,7 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Box, Layers, ScrollText, Sparkles, Sword, User } from "lucide-react";
 import { useId, useState } from "react";
 import { useCreateDeckMutation } from "@/lib/deck-queries";
-import { FORMAT_GROUPS } from "@/lib/format-utils";
+import {
+	type CommanderType,
+	FORMAT_GROUPS,
+	formatDisplayName,
+	getFormatInfo,
+} from "@/lib/format-utils";
 
 export const Route = createFileRoute("/deck/new")({
 	component: NewDeckPage,
@@ -9,6 +15,131 @@ export const Route = createFileRoute("/deck/new")({
 		meta: [{ title: "New Deck | DeckBelcher" }],
 	}),
 });
+
+function getCommanderLabel(type: CommanderType): string {
+	switch (type) {
+		case "oathbreaker":
+			return "Oathbreaker";
+		case "brawl":
+			return "Brawl Commander";
+		case "pauper":
+			return "PDH Commander";
+		case "commander":
+			return "Commander";
+		default:
+			return "Commander";
+	}
+}
+
+function getCommanderHint(type: CommanderType): string {
+	switch (type) {
+		case "oathbreaker":
+			return "You'll add your planeswalker and signature spell in the deck editor.";
+		case "brawl":
+			return "You'll add your commander in the deck editor.";
+		case "pauper":
+			return "You'll add your uncommon commander in the deck editor.";
+		case "commander":
+			return "You'll add your commander(s) in the deck editor.";
+		default:
+			return "";
+	}
+}
+
+function FormatInfoCard({ format }: { format: string }) {
+	const info = getFormatInfo(format);
+	const displayName = formatDisplayName(format);
+
+	// Cube gets special treatment
+	if (info.isCube) {
+		return (
+			<div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+				<div className="flex items-baseline justify-between gap-4 mb-4">
+					<h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+						{displayName}
+					</h3>
+					{info.tagline && (
+						<span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+							{info.tagline}
+						</span>
+					)}
+				</div>
+
+				<div className="flex flex-wrap gap-3 mb-4">
+					<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium rounded-full">
+						<Box className="w-4 h-4" />
+						Custom size
+					</span>
+					<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium rounded-full">
+						<User className="w-4 h-4" />
+						Singleton
+					</span>
+					<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm font-medium rounded-full">
+						<Sparkles className="w-4 h-4" />
+						Custom rules
+					</span>
+				</div>
+
+				<p className="text-sm text-gray-600 dark:text-gray-400">
+					Set your own rules for deck size, card pool, and restrictions.
+				</p>
+			</div>
+		);
+	}
+
+	return (
+		<div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+			<div className="flex items-baseline justify-between gap-4 mb-4">
+				<h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+					{displayName}
+				</h3>
+				{info.tagline && (
+					<span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+						{info.tagline}
+					</span>
+				)}
+			</div>
+
+			<div className="flex flex-wrap gap-3 mb-4">
+				<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 text-sm font-medium rounded-full">
+					<Layers className="w-4 h-4" />
+					{info.deckSize} cards
+				</span>
+
+				<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium rounded-full">
+					<User className="w-4 h-4" />
+					{info.singleton ? "Singleton" : "Up to 4 copies"}
+				</span>
+
+				{info.commanderType && (
+					<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-medium rounded-full">
+						<Sword className="w-4 h-4" />
+						{getCommanderLabel(info.commanderType)}
+					</span>
+				)}
+
+				{info.hasSignatureSpell && (
+					<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-sm font-medium rounded-full">
+						<ScrollText className="w-4 h-4" />
+						Signature Spell
+					</span>
+				)}
+
+				{info.hasSideboard && (
+					<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 text-sm font-medium rounded-full">
+						15-card sideboard
+					</span>
+				)}
+			</div>
+
+			{info.commanderType && (
+				<p className="text-sm text-gray-600 dark:text-gray-400">
+					{getCommanderHint(info.commanderType)}
+				</p>
+			)}
+		</div>
+	);
+}
 
 function NewDeckPage() {
 	const navigate = useNavigate();
@@ -33,10 +164,15 @@ function NewDeckPage() {
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
-			<div className="max-w-2xl mx-auto px-6 py-16">
-				<h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
-					Create New Deck
-				</h1>
+			<div className="max-w-xl mx-auto px-6 py-16">
+				<div className="text-center mb-10">
+					<h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+						New Deck
+					</h1>
+					<p className="text-gray-600 dark:text-gray-400">
+						Choose a format and give your deck a name
+					</p>
+				</div>
 
 				<form onSubmit={handleSubmit} className="space-y-6">
 					<div>
@@ -51,8 +187,9 @@ function NewDeckPage() {
 							type="text"
 							value={name}
 							onChange={(e) => setName(e.target.value)}
-							placeholder="Enter deck name..."
-							className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors"
+							placeholder="Untitled Deck"
+							autoComplete="off"
+							className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
 						/>
 					</div>
 
@@ -67,7 +204,7 @@ function NewDeckPage() {
 							id={formatId}
 							value={format}
 							onChange={(e) => setFormat(e.target.value)}
-							className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors"
+							className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
 						>
 							{FORMAT_GROUPS.map((group) => (
 								<optgroup key={group.label} label={group.label}>
@@ -81,13 +218,13 @@ function NewDeckPage() {
 						</select>
 					</div>
 
-					{/* TODO: Add commander selection if format is commander/paupercommander */}
+					<FormatInfoCard format={format} />
 
-					<div className="flex gap-4 pt-4">
+					<div className="flex gap-4 pt-2">
 						<button
 							type="submit"
 							disabled={mutation.isPending || !name.trim()}
-							className="flex-1 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+							className="flex-1 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
 						>
 							{mutation.isPending ? "Creating..." : "Create Deck"}
 						</button>
