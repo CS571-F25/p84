@@ -479,7 +479,7 @@ function FaceInfo({ face, primary = false, cardId, oracleId }: FaceInfoProps) {
 			<div>
 				<div className="flex items-center justify-between gap-3 mb-2">
 					{primary ? (
-						<h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+						<h1 className="text-3xl font-bold text-gray-900 dark:text-white">
 							{face.name}
 						</h1>
 					) : (
