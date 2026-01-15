@@ -1,9 +1,5 @@
 import type { Did } from "@atcute/lexicons";
-import {
-	useInfiniteQuery,
-	useQuery,
-	useSuspenseInfiniteQuery,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useMemo } from "react";
@@ -99,10 +95,10 @@ function ProfilePage() {
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const { session } = useAuth();
-	const { data: decksData } = useSuspenseInfiniteQuery(
+	const { data: decksData, isLoading: decksLoading } = useInfiniteQuery(
 		listUserDecksQueryOptions(did as Did),
 	);
-	const { data: listsData } = useInfiniteQuery(
+	const { data: listsData, isLoading: listsLoading } = useInfiniteQuery(
 		listUserCollectionListsQueryOptions(did as Did),
 	);
 	const { data: didDocument } = useQuery(didDocumentQueryOptions(did as Did));
@@ -110,7 +106,7 @@ function ProfilePage() {
 
 	const handle = extractHandle(didDocument ?? null);
 	const isOwner = session?.info.sub === did;
-	const decks = decksData.pages.flatMap((p) => p.records);
+	const decks = decksData?.pages.flatMap((p) => p.records) ?? [];
 	const lists = listsData?.pages.flatMap((p) => p.records) ?? [];
 
 	// Get unique formats for filter dropdown
@@ -210,7 +206,13 @@ function ProfilePage() {
 					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
 						Decks
 					</h2>
-					{decks.length === 0 ? (
+					{decksLoading ? (
+						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
+							<p className="text-gray-600 dark:text-gray-400">
+								Loading decklists...
+							</p>
+						</div>
+					) : decks.length === 0 ? (
 						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
 							<p className="text-gray-600 dark:text-gray-400 mb-4">
 								{isOwner ? "No decklists yet" : "No decklists"}
@@ -278,7 +280,13 @@ function ProfilePage() {
 							</button>
 						)}
 					</div>
-					{lists.length === 0 ? (
+					{listsLoading ? (
+						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
+							<p className="text-gray-600 dark:text-gray-400">
+								Loading lists...
+							</p>
+						</div>
+					) : lists.length === 0 ? (
 						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
 							<p className="text-gray-600 dark:text-gray-400">
 								{isOwner ? "No lists yet" : "No lists"}

@@ -245,10 +245,10 @@ async function listRecords<TSchema extends BaseSchema>(
 		for (const record of json.records) {
 			const result = safeParse(schema, record.value);
 			if (!result.ok) {
-				return {
-					success: false,
-					error: new Error(result.message),
-				};
+				console.warn(
+					`Skipping malformed ${entityName} record ${record.uri}: ${result.message}`,
+				);
+				continue;
 			}
 			validatedRecords.push({
 				uri: record.uri as AtUri,
