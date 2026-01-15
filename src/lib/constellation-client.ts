@@ -14,7 +14,7 @@ export const MICROCOSM_USER_AGENT = "deckbelcher.com by @aviva.gay";
 export const COLLECTION_LIST_CARD_PATH =
 	".items[com.deckbelcher.collection.list#cardItem].ref.oracleUri";
 export const COLLECTION_LIST_DECK_PATH =
-	".items[com.deckbelcher.collection.list#deckItem].deckUri";
+	".items[com.deckbelcher.collection.list#deckItem].ref.uri";
 // Future: cards in decks (also uses oracleUri for aggregation)
 export const DECK_LIST_CARD_PATH = ".cards[].ref.oracleUri";
 

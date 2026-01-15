@@ -127,7 +127,8 @@ function ListDetailPage() {
 	const handleRemoveDeck = (item: ListDeckItem) => {
 		const saveItem: SaveItem = {
 			type: "deck",
-			deckUri: item.deckUri,
+			uri: item.ref.uri,
+			cid: item.ref.cid,
 		};
 		toggleMutation.mutate({ list, item: saveItem });
 	};
@@ -244,7 +245,7 @@ function ListDetailPage() {
 								/>
 							) : isDeckItem(item) ? (
 								<DeckListItem
-									key={item.deckUri}
+									key={item.ref.uri}
 									item={item}
 									onRemove={isOwner ? handleRemoveDeck : undefined}
 								/>
@@ -322,7 +323,7 @@ interface DeckListItemProps {
 }
 
 function DeckListItem({ item, onRemove }: DeckListItemProps) {
-	const parts = item.deckUri.split("/");
+	const parts = item.ref.uri.split("/");
 	const deckDid = parts[2] as Did;
 	const deckRkey = parts[4] as Rkey;
 

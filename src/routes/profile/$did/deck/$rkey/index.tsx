@@ -417,6 +417,7 @@ function DeckEditorPage() {
 				did={did}
 				rkey={rkey}
 				deck={deck}
+				deckCid={deckRecord.cid}
 				groupBy={groupBy}
 				sortBy={sortBy}
 				previewCard={previewCard}
@@ -458,6 +459,7 @@ interface DeckEditorInnerProps {
 	did: string;
 	rkey: string;
 	deck: Deck;
+	deckCid: string;
 	groupBy: GroupBy;
 	sortBy: SortBy;
 	previewCard: ScryfallId;
@@ -496,6 +498,7 @@ function DeckEditorInner({
 	did,
 	rkey,
 	deck,
+	deckCid,
 	groupBy,
 	sortBy,
 	previewCard,
@@ -586,8 +589,8 @@ function DeckEditorInner({
 						<SocialStats
 							item={{
 								type: "deck",
-								deckUri: `at://${did}/com.deckbelcher.deck.list/${rkey}`,
-								cid: deckRecord.cid,
+								uri: `at://${did}/com.deckbelcher.deck.list/${rkey}`,
+								cid: deckCid,
 							}}
 							itemName={deck.name}
 						/>

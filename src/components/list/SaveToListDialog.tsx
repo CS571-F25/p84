@@ -72,7 +72,7 @@ export function SaveToListDialog({
 		const itemUri =
 			item.type === "card"
 				? toOracleUri(item.oracleId)
-				: (item.deckUri as `at://${string}`);
+				: (item.uri as `at://${string}`);
 		const queryKeys = getConstellationQueryKeys(itemUri, userDid);
 
 		const previousSaved = queryClient.getQueryData<boolean>(
@@ -225,7 +225,7 @@ function ListRow({
 	const isSaved =
 		item.type === "card"
 			? hasCard(list, item.scryfallId)
-			: hasDeck(list, item.deckUri);
+			: hasDeck(list, item.uri);
 
 	const handleClick = () => {
 		const isAdding = !isSaved;

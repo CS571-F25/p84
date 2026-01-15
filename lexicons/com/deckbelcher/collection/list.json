@@ -72,10 +72,10 @@
     "deckItem": {
       "type": "object",
       "properties": {
-        "deckUri": {
-          "type": "string",
-          "format": "at-uri",
-          "description": "AT-URI of the deck record."
+        "ref": {
+          "type": "ref",
+          "ref": "com.atproto.repo.strongRef",
+          "description": "Reference to the deck record."
         },
         "addedAt": {
           "type": "string",
@@ -85,7 +85,7 @@
       },
       "description": "A deck saved to the list.",
       "required": [
-        "deckUri",
+        "ref",
         "addedAt"
       ]
     }

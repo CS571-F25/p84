@@ -1,6 +1,7 @@
 import type {} from "@atcute/lexicons";
 import * as v from "@atcute/lexicons/validations";
 import type {} from "@atcute/lexicons/ambient";
+import * as ComAtprotoRepoStrongRef from "../../atproto/repo/strongRef.js";
 import * as ComDeckbelcherDefs from "../defs.js";
 import * as ComDeckbelcherRichtext from "../richtext.js";
 
@@ -28,9 +29,11 @@ const _deckItemSchema = /*#__PURE__*/ v.object({
    */
   addedAt: /*#__PURE__*/ v.datetimeString(),
   /**
-   * AT-URI of the deck record.
+   * Reference to the deck record.
    */
-  deckUri: /*#__PURE__*/ v.resourceUriString(),
+  get ref() {
+    return ComAtprotoRepoStrongRef.mainSchema;
+  },
 });
 const _mainSchema = /*#__PURE__*/ v.record(
   /*#__PURE__*/ v.tidString(),

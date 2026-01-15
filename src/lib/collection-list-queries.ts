@@ -175,7 +175,10 @@ export function useCreateCollectionListMutation() {
 					items.push({
 						$type: "com.deckbelcher.collection.list#deckItem",
 						addedAt,
-						deckUri: initialItem.deckUri as ResourceUri,
+						ref: {
+							uri: initialItem.uri as ResourceUri,
+							cid: initialItem.cid,
+						},
 					});
 				}
 			}
@@ -389,15 +392,15 @@ export function useToggleListItemMutation(did: Did, rkey: Rkey) {
 			const isSaved =
 				item.type === "card"
 					? hasCard(list, item.scryfallId)
-					: hasDeck(list, item.deckUri);
+					: hasDeck(list, item.uri);
 
 			const updatedList = isSaved
 				? item.type === "card"
 					? removeCardFromList(list, item.scryfallId)
-					: removeDeckFromList(list, item.deckUri)
+					: removeDeckFromList(list, item.uri)
 				: item.type === "card"
 					? addCardToList(list, item.scryfallId, item.oracleId)
-					: addDeckToList(list, item.deckUri);
+					: addDeckToList(list, item.uri, item.cid);
 
 			const result = await updateCollectionListRecord(agent, rkey, {
 				$type: "com.deckbelcher.collection.list",
@@ -438,16 +441,16 @@ export function useToggleListItemMutation(did: Did, rkey: Rkey) {
 			const isSaved =
 				item.type === "card"
 					? hasCard(list, item.scryfallId)
-					: hasDeck(list, item.deckUri);
+					: hasDeck(list, item.uri);
 
 			// Compute updated list optimistically
 			const updatedList = isSaved
 				? item.type === "card"
 					? removeCardFromList(list, item.scryfallId)
-					: removeDeckFromList(list, item.deckUri)
+					: removeDeckFromList(list, item.uri)
 				: item.type === "card"
 					? addCardToList(list, item.scryfallId, item.oracleId)
-					: addDeckToList(list, item.deckUri);
+					: addDeckToList(list, item.uri, item.cid);
 
 			// Cancel in-flight queries
 			await queryClient.cancelQueries({
@@ -497,7 +500,7 @@ export function useToggleListItemMutation(did: Did, rkey: Rkey) {
 			const itemUri =
 				item.type === "card"
 					? toOracleUri(item.oracleId)
-					: (item.deckUri as `at://${string}`);
+					: (item.uri as `at://${string}`);
 			const constellationKeys = getConstellationQueryKeys(itemUri, did);
 
 			await queryClient.cancelQueries({

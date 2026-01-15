@@ -11,10 +11,11 @@ import type { OracleId, ScryfallId } from "./scryfall-types";
 /**
  * Item to save to a list (card or deck)
  * Shared by SaveToListDialog and SocialStats
+ * Deck items use strongRef (uri + cid) matching the lexicon
  */
 export type SaveItem =
 	| { type: "card"; scryfallId: ScryfallId; oracleId: OracleId }
-	| { type: "deck"; deckUri: DeckItemUri; cid: string };
+	| { type: "deck"; uri: DeckItemUri; cid: string };
 
 /**
  * App-side card item with flat typed IDs.
@@ -54,10 +55,8 @@ export function hasCard(list: CollectionList, scryfallId: ScryfallId): boolean {
 	);
 }
 
-export function hasDeck(list: CollectionList, deckUri: string): boolean {
-	return list.items.some(
-		(item) => isDeckItem(item) && item.deckUri === deckUri,
-	);
+export function hasDeck(list: CollectionList, uri: string): boolean {
+	return list.items.some((item) => isDeckItem(item) && item.ref.uri === uri);
 }
 
 export function addCardToList(
@@ -85,15 +84,19 @@ export function addCardToList(
 
 export function addDeckToList(
 	list: CollectionList,
-	deckUri: string,
+	uri: string,
+	cid: string,
 ): CollectionList {
-	if (hasDeck(list, deckUri)) {
+	if (hasDeck(list, uri)) {
 		return list;
 	}
 
 	const newItem: ListDeckItem = {
 		$type: "com.deckbelcher.collection.list#deckItem",
-		deckUri: deckUri as ResourceUri,
+		ref: {
+			uri: uri as ResourceUri,
+			cid,
+		},
 		addedAt: new Date().toISOString(),
 	};
 
@@ -119,12 +122,12 @@ export function removeCardFromList(
 
 export function removeDeckFromList(
 	list: CollectionList,
-	deckUri: string,
+	uri: string,
 ): CollectionList {
 	return {
 		...list,
 		items: list.items.filter(
-			(item) => !(isDeckItem(item) && item.deckUri === deckUri),
+			(item) => !(isDeckItem(item) && item.ref.uri === uri),
 		),
 		updatedAt: new Date().toISOString(),
 	};

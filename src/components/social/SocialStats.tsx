@@ -16,7 +16,7 @@ interface SocialStatsProps {
 }
 
 function getItemUri(item: SaveItem): SocialItemUri {
-	return item.type === "card" ? toOracleUri(item.oracleId) : item.deckUri;
+	return item.type === "card" ? toOracleUri(item.oracleId) : item.uri;
 }
 
 export function SocialStats({

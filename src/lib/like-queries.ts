@@ -68,7 +68,7 @@ export function useLikeMutation() {
 
 			let subject: LikeSubject;
 			if (params.item.type === "deck") {
-				subject = buildRecordSubject(params.item.deckUri, params.item.cid);
+				subject = buildRecordSubject(params.item.uri, params.item.cid);
 			} else {
 				subject = buildCardSubject(
 					params.item.scryfallId,
@@ -94,7 +94,7 @@ export function useLikeMutation() {
 			const userDid = session?.info.sub;
 			const itemUri =
 				params.item.type === "deck"
-					? (params.item.deckUri as `at://${string}`)
+					? (params.item.uri as `at://${string}`)
 					: toOracleUri(params.item.oracleId);
 
 			const keys = getConstellationQueryKeys(itemUri, userDid);

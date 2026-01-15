@@ -41,9 +41,9 @@ namespace com.deckbelcher.collection.list {
 
   /** A deck saved to the list. */
   model DeckItem {
-    /** AT-URI of the deck record. */
+    /** Reference to the deck record. */
     @required
-    deckUri: atUri;
+    ref: com.atproto.repo.strongRef.Main;
 
     /** Timestamp when this item was added to the list. */
     @required
