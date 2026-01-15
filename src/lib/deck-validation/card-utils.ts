@@ -6,23 +6,20 @@
 import type { Card } from "@/lib/scryfall-types";
 import {
 	getPartnerInfo,
+	hasCommanderCreatureType,
 	isDoctor,
 	isValidCommanderType,
 	type PartnerInfo,
 } from "./rules/commander";
-import {
-	canBePauperCommander,
-	isPDHCommanderType,
-	isUncommonInPaperOrMtgo,
-} from "./rules/rarity";
+import { canBePauperCommander, isUncommonInPaperOrMtgo } from "./rules/rarity";
 
 export type { PartnerInfo };
 export {
 	getPartnerInfo,
+	hasCommanderCreatureType,
 	isDoctor,
 	isValidCommanderType,
 	isUncommonInPaperOrMtgo,
-	isPDHCommanderType,
 	canBePauperCommander,
 };
 

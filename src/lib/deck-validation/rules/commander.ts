@@ -70,34 +70,38 @@ export const commanderLegendaryRule: Rule<"commanderLegendary"> = {
 	},
 };
 
+/**
+ * Check if card has a creature type valid for commander (creature, vehicle, spacecraft with P/T).
+ * Shared between regular Commander and PDH validation.
+ */
+export function hasCommanderCreatureType(card: Card): boolean {
+	const typeLine = getTypeLine(card).toLowerCase();
+
+	if (typeLine.includes("creature")) return true;
+	if (typeLine.includes("vehicle")) return true;
+
+	// Spacecraft need P/T box to be valid (903.3c)
+	if (typeLine.includes("spacecraft")) {
+		return card.power != null && card.toughness != null;
+	}
+
+	return false;
+}
+
 export function isValidCommanderType(card: Card): boolean {
 	const typeLine = getTypeLine(card).toLowerCase();
 	const oracleText = getOracleText(card).toLowerCase();
 
 	const isLegendary = typeLine.includes("legendary");
-	const isCreature = typeLine.includes("creature");
-	const isVehicle = typeLine.includes("vehicle");
-	const isSpacecraft = typeLine.includes("spacecraft");
 	const canBeCommander = oracleText.includes("can be your commander");
-	const hasPowerToughness = card.power != null && card.toughness != null;
 
 	// Grist-style cards: creatures in all zones except battlefield
 	// e.g., "As long as Grist isn't on the battlefield, it's a 1/1 Insect creature"
 	const isCreatureOutsideBattlefield =
 		/isn't on the battlefield.*it's a.*creature/i.test(oracleText);
 
-	// Legendary creatures are valid
-	if (isLegendary && isCreature) {
-		return true;
-	}
-
-	// Legendary vehicles are valid (always have P/T)
-	if (isLegendary && isVehicle) {
-		return true;
-	}
-
-	// Legendary spacecraft with P/T box are valid (903.3c)
-	if (isLegendary && isSpacecraft && hasPowerToughness) {
+	// Legendary creature/vehicle/spacecraft (with P/T for spacecraft)
+	if (isLegendary && hasCommanderCreatureType(card)) {
 		return true;
 	}
 

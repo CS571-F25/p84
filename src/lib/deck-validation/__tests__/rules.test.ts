@@ -419,7 +419,7 @@ describe("commander rules", () => {
 		});
 
 		it("allows legendary spacecraft with P/T box (903.3c)", async () => {
-			const spacecraft = await cards.get("Atmospheric Greenhouse");
+			const spacecraft = await cards.get("Candela, Aegis of Adagia");
 			const deck = makeDeck([makeCard(spacecraft, "commander")]);
 			const ctx = await makeContextWithCards(deck, [spacecraft]);
 			const violations = commanderLegendaryRule.validate(ctx);
