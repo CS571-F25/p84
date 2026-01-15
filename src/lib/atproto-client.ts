@@ -20,10 +20,20 @@ import {
 type AtUri = `at://${string}`;
 
 const SLINGSHOT_BASE = "https://slingshot.microcosm.blue";
-const DECK_COLLECTION = "com.deckbelcher.deck.list" as const;
-const LIST_COLLECTION = "com.deckbelcher.collection.list" as const;
 
-type Collection = typeof DECK_COLLECTION | typeof LIST_COLLECTION;
+type Collection = `${string}.${string}.${string}`;
+
+function getCollectionFromSchema(schema: BaseSchema): Collection {
+	// Schema structure: { object: { shape: { $type: { expected: "com.foo.bar" } } } }
+	const schemaAny = schema as {
+		object?: { shape?: { $type?: { expected?: string } } };
+	};
+	const collection = schemaAny.object?.shape?.$type?.expected;
+	if (!collection) {
+		throw new Error("Schema does not have $type.expected");
+	}
+	return collection as Collection;
+}
 
 // Branded types for type safety
 declare const PdsUrlBrand: unique symbol;
@@ -62,10 +72,9 @@ export interface ListRecordsResponse<T> {
 async function getRecord<TSchema extends BaseSchema>(
 	did: Did,
 	rkey: Rkey,
-	collection: Collection,
-	entityName: string,
 	schema: TSchema,
 ): Promise<Result<RecordResponse<InferOutput<TSchema>>>> {
+	const collection = getCollectionFromSchema(schema);
 	try {
 		const url = new URL(`${SLINGSHOT_BASE}/xrpc/com.atproto.repo.getRecord`);
 		url.searchParams.set("repo", did);
@@ -82,7 +91,7 @@ async function getRecord<TSchema extends BaseSchema>(
 				success: false,
 				error: new Error(
 					error.message ||
-						`Failed to fetch ${entityName}: ${response.statusText}`,
+						`Failed to fetch ${collection}: ${response.statusText}`,
 				),
 			};
 		}
@@ -118,17 +127,16 @@ async function getRecord<TSchema extends BaseSchema>(
 
 async function createRecord<TSchema extends BaseSchema>(
 	agent: OAuthUserAgent,
-	record: InferOutput<TSchema> & { $type: Collection },
+	record: InferOutput<TSchema>,
 	schema: TSchema,
 ): Promise<Result<{ uri: AtUri; cid: string; rkey: Rkey }>> {
+	const collection = getCollectionFromSchema(schema);
 	try {
 		const validation = safeParse(schema, record);
 		if (!validation.ok) {
 			return {
 				success: false,
-				error: new Error(
-					`Invalid ${record.$type} record: ${validation.message}`,
-				),
+				error: new Error(`Invalid ${collection} record: ${validation.message}`),
 			};
 		}
 
@@ -136,8 +144,8 @@ async function createRecord<TSchema extends BaseSchema>(
 		const response = await client.post("com.atproto.repo.createRecord", {
 			input: {
 				repo: agent.sub,
-				collection: record.$type,
-				record,
+				collection,
+				record: record as Record<string, unknown>,
 			},
 		});
 
@@ -145,7 +153,7 @@ async function createRecord<TSchema extends BaseSchema>(
 			return {
 				success: false,
 				error: new Error(
-					response.data.message || `Failed to create ${record.$type} record`,
+					response.data.message || `Failed to create ${collection} record`,
 				),
 			};
 		}
@@ -175,17 +183,16 @@ async function createRecord<TSchema extends BaseSchema>(
 async function updateRecord<TSchema extends BaseSchema>(
 	agent: OAuthUserAgent,
 	rkey: Rkey,
-	record: InferOutput<TSchema> & { $type: Collection },
+	record: InferOutput<TSchema>,
 	schema: TSchema,
 ): Promise<Result<{ uri: AtUri; cid: string }>> {
+	const collection = getCollectionFromSchema(schema);
 	try {
 		const validation = safeParse(schema, record);
 		if (!validation.ok) {
 			return {
 				success: false,
-				error: new Error(
-					`Invalid ${record.$type} record: ${validation.message}`,
-				),
+				error: new Error(`Invalid ${collection} record: ${validation.message}`),
 			};
 		}
 
@@ -193,9 +200,9 @@ async function updateRecord<TSchema extends BaseSchema>(
 		const response = await client.post("com.atproto.repo.putRecord", {
 			input: {
 				repo: agent.sub,
-				collection: record.$type,
+				collection,
 				rkey,
-				record,
+				record: record as Record<string, unknown>,
 			},
 		});
 
@@ -203,7 +210,7 @@ async function updateRecord<TSchema extends BaseSchema>(
 			return {
 				success: false,
 				error: new Error(
-					response.data.message || `Failed to update ${record.$type} record`,
+					response.data.message || `Failed to update ${collection} record`,
 				),
 			};
 		}
@@ -226,11 +233,10 @@ async function updateRecord<TSchema extends BaseSchema>(
 async function listRecords<TSchema extends BaseSchema>(
 	pdsUrl: PdsUrl,
 	did: Did,
-	collection: Collection,
-	entityName: string,
 	schema: TSchema,
 	cursor?: string,
 ): Promise<Result<ListRecordsResponse<InferOutput<TSchema>>>> {
+	const collection = getCollectionFromSchema(schema);
 	try {
 		const url = new URL(`${pdsUrl}/xrpc/com.atproto.repo.listRecords`);
 		url.searchParams.set("repo", did);
@@ -249,7 +255,7 @@ async function listRecords<TSchema extends BaseSchema>(
 				success: false,
 				error: new Error(
 					error.message ||
-						`Failed to list ${entityName}s: ${response.statusText}`,
+						`Failed to list ${collection}: ${response.statusText}`,
 				),
 			};
 		}
@@ -264,7 +270,7 @@ async function listRecords<TSchema extends BaseSchema>(
 			const result = safeParse(schema, record.value);
 			if (!result.ok) {
 				console.warn(
-					`Skipping malformed ${entityName} record ${record.uri}: ${result.message}`,
+					`Skipping malformed ${collection} record ${record.uri}: ${result.message}`,
 				);
 				continue;
 			}
@@ -287,12 +293,12 @@ async function listRecords<TSchema extends BaseSchema>(
 	}
 }
 
-async function deleteRecord(
+async function deleteRecord<TSchema extends BaseSchema>(
 	agent: OAuthUserAgent,
 	rkey: Rkey,
-	collection: Collection,
-	entityName: string,
+	schema: TSchema,
 ): Promise<Result<void>> {
+	const collection = getCollectionFromSchema(schema);
 	try {
 		const client = new Client({ handler: agent });
 		const response = await client.post("com.atproto.repo.deleteRecord", {
@@ -307,7 +313,7 @@ async function deleteRecord(
 			return {
 				success: false,
 				error: new Error(
-					response.data.message || `Failed to delete ${entityName} record`,
+					response.data.message || `Failed to delete ${collection} record`,
 				),
 			};
 		}
@@ -328,13 +334,7 @@ async function deleteRecord(
 export type DeckRecordResponse = RecordResponse<ComDeckbelcherDeckList.Main>;
 
 export function getDeckRecord(did: Did, rkey: Rkey) {
-	return getRecord(
-		did,
-		rkey,
-		DECK_COLLECTION,
-		"deck",
-		ComDeckbelcherDeckList.mainSchema,
-	);
+	return getRecord(did, rkey, ComDeckbelcherDeckList.mainSchema);
 }
 
 export function createDeckRecord(
@@ -353,18 +353,11 @@ export function updateDeckRecord(
 }
 
 export function listUserDecks(pdsUrl: PdsUrl, did: Did, cursor?: string) {
-	return listRecords(
-		pdsUrl,
-		did,
-		DECK_COLLECTION,
-		"deck",
-		ComDeckbelcherDeckList.mainSchema,
-		cursor,
-	);
+	return listRecords(pdsUrl, did, ComDeckbelcherDeckList.mainSchema, cursor);
 }
 
 export function deleteDeckRecord(agent: OAuthUserAgent, rkey: Rkey) {
-	return deleteRecord(agent, rkey, DECK_COLLECTION, "deck");
+	return deleteRecord(agent, rkey, ComDeckbelcherDeckList.mainSchema);
 }
 
 // ============================================================================
@@ -375,13 +368,7 @@ export type CollectionListRecordResponse =
 	RecordResponse<ComDeckbelcherCollectionList.Main>;
 
 export function getCollectionListRecord(did: Did, rkey: Rkey) {
-	return getRecord(
-		did,
-		rkey,
-		LIST_COLLECTION,
-		"list",
-		ComDeckbelcherCollectionList.mainSchema,
-	);
+	return getRecord(did, rkey, ComDeckbelcherCollectionList.mainSchema);
 }
 
 export function createCollectionListRecord(
@@ -412,13 +399,11 @@ export function listUserCollectionLists(
 	return listRecords(
 		pdsUrl,
 		did,
-		LIST_COLLECTION,
-		"list",
 		ComDeckbelcherCollectionList.mainSchema,
 		cursor,
 	);
 }
 
 export function deleteCollectionListRecord(agent: OAuthUserAgent, rkey: Rkey) {
-	return deleteRecord(agent, rkey, LIST_COLLECTION, "list");
+	return deleteRecord(agent, rkey, ComDeckbelcherCollectionList.mainSchema);
 }
