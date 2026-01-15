@@ -15,14 +15,10 @@ import {
 	type CollectionList,
 	hasCard,
 	hasDeck,
+	type SaveItem,
 } from "@/lib/collection-list-types";
 import { getConstellationQueryKeys } from "@/lib/constellation-queries";
-import type { OracleId, ScryfallId } from "@/lib/scryfall-types";
 import { toOracleUri } from "@/lib/scryfall-types";
-
-export type SaveItem =
-	| { type: "card"; scryfallId: ScryfallId; oracleId: OracleId }
-	| { type: "deck"; deckUri: string };
 
 interface SaveToListDialogProps {
 	item: SaveItem;
@@ -49,6 +45,7 @@ export function SaveToListDialog({
 	});
 
 	const createMutation = useCreateCollectionListMutation();
+	const queryClient = useQueryClient();
 
 	useEffect(() => {
 		if (!isOpen) {
@@ -75,11 +72,33 @@ export function SaveToListDialog({
 		e.preventDefault();
 		if (!newListName.trim()) return;
 
+		const itemUri =
+			item.type === "card"
+				? toOracleUri(item.oracleId)
+				: (item.deckUri as `at://${string}`);
+		const queryKeys = getConstellationQueryKeys(itemUri, userDid);
+
+		const previousSaved = queryClient.getQueryData<boolean>(
+			queryKeys.userSaved,
+		);
+		const previousCount = queryClient.getQueryData<number>(queryKeys.saveCount);
+
+		queryClient.setQueryData<boolean>(queryKeys.userSaved, true);
+		queryClient.setQueryData<number>(
+			queryKeys.saveCount,
+			(old) => (old ?? 0) + 1,
+		);
+
 		createMutation.mutate(
-			{ name: newListName.trim() },
+			{ name: newListName.trim(), initialItem: item },
 			{
+				onError: () => {
+					queryClient.setQueryData<boolean>(queryKeys.userSaved, previousSaved);
+					queryClient.setQueryData<number>(queryKeys.saveCount, previousCount);
+				},
 				onSuccess: () => {
 					setNewListName("");
+					onClose();
 				},
 			},
 		);

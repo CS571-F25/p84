@@ -3,7 +3,7 @@
  * Provides query options and mutations for saving cards/decks to lists
  */
 
-import type { Did } from "@atcute/lexicons";
+import type { Did, ResourceUri } from "@atcute/lexicons";
 import {
 	type InfiniteData,
 	infiniteQueryOptions,
@@ -26,6 +26,7 @@ import {
 	isCardItem,
 	isDeckItem,
 	type ListItem,
+	type SaveItem,
 } from "./collection-list-types";
 import { getPdsForDid } from "./identity";
 import type { ComDeckbelcherCollectionList } from "./lexicons/index";
@@ -132,23 +133,50 @@ export const listUserCollectionListsQueryOptions = (did: Did) =>
 		staleTime: 60 * 1000,
 	});
 
+interface CreateListParams {
+	name: string;
+	initialItem?: SaveItem;
+}
+
 /**
  * Mutation for creating a new collection list
+ * Optionally adds an initial item to the list
  */
 export function useCreateCollectionListMutation() {
 	const { agent, session } = useAuth();
 	const queryClient = useQueryClient();
 
 	return useMutationWithToast({
-		mutationFn: async (list: { name: string }) => {
+		mutationFn: async ({ name, initialItem }: CreateListParams) => {
 			if (!agent || !session) {
 				throw new Error("Must be authenticated to create a list");
 			}
 
+			const items: ComDeckbelcherCollectionList.Main["items"] = [];
+			if (initialItem) {
+				const addedAt = new Date().toISOString();
+				if (initialItem.type === "card") {
+					items.push({
+						$type: "com.deckbelcher.collection.list#cardItem",
+						addedAt,
+						ref: {
+							scryfallUri: toScryfallUri(initialItem.scryfallId),
+							oracleUri: toOracleUri(initialItem.oracleId),
+						},
+					});
+				} else {
+					items.push({
+						$type: "com.deckbelcher.collection.list#deckItem",
+						addedAt,
+						deckUri: initialItem.deckUri as ResourceUri,
+					});
+				}
+			}
+
 			const result = await createCollectionListRecord(agent, {
 				$type: "com.deckbelcher.collection.list",
-				name: list.name,
-				items: [],
+				name,
+				items,
 				createdAt: new Date().toISOString(),
 			});
 
@@ -158,8 +186,10 @@ export function useCreateCollectionListMutation() {
 
 			return result.data;
 		},
-		onSuccess: () => {
-			toast.success("List created");
+		onSuccess: (_data, { initialItem }) => {
+			toast.success(
+				initialItem ? "List created and item saved" : "List created",
+			);
 
 			if (!session) return;
 

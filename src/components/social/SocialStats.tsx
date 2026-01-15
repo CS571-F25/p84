@@ -1,24 +1,20 @@
 import { Bookmark } from "lucide-react";
 import { useState } from "react";
-import type { DeckItemUri } from "@/lib/constellation-queries";
+import type { SaveItem } from "@/lib/collection-list-types";
+import type { SocialItemUri } from "@/lib/constellation-queries";
 import { useItemSocialStats } from "@/lib/constellation-queries";
-import type { OracleId, OracleUri, ScryfallId } from "@/lib/scryfall-types";
 import { toOracleUri } from "@/lib/scryfall-types";
 import { useAuth } from "@/lib/useAuth";
 import { SaveToListDialog } from "../list/SaveToListDialog";
 
-export type SocialItem =
-	| { type: "card"; scryfallId: ScryfallId; oracleId: OracleId }
-	| { type: "deck"; deckUri: DeckItemUri };
-
 interface SocialStatsProps {
-	item: SocialItem;
+	item: SaveItem;
 	itemName?: string;
 	showCount?: boolean;
 	className?: string;
 }
 
-function getItemUri(item: SocialItem): OracleUri | DeckItemUri {
+function getItemUri(item: SaveItem): SocialItemUri {
 	return item.type === "card" ? toOracleUri(item.oracleId) : item.deckUri;
 }
 
