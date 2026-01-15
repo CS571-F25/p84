@@ -114,6 +114,10 @@ const IS_DESCRIPTIONS: Record<string, string> = {
 	party: "party creatures (cleric, rogue, warrior, wizard)",
 	outlaw: "outlaws (assassin, mercenary, pirate, rogue, warlock)",
 	commander: "cards that can be commanders",
+	partner:
+		"cards with multi-commander mechanics (Partner, Friends Forever, Background, etc.)",
+	paupercommander: "valid Pauper/PDH commanders",
+	pdhcommander: "valid Pauper/PDH commanders",
 
 	// Layouts
 	split: "split cards",

@@ -2,6 +2,11 @@
  * Field-specific matching logic for Scryfall search
  */
 
+import {
+	canBeCommander,
+	canBePauperCommander,
+	hasPartnerMechanic,
+} from "@/lib/deck-validation/card-utils";
 import type { Card } from "../scryfall-types";
 import { compareColors } from "./colors";
 import type { ComparisonOp, FieldName, FieldValue } from "./types";
@@ -630,52 +635,6 @@ function compileDate(operator: ComparisonOp, value: FieldValue): CardPredicate {
 }
 
 /**
- * Check if a card can be used as a commander
- */
-function canBeCommander(card: Card): boolean {
-	const typeLine = card.type_line?.toLowerCase() ?? "";
-
-	// Legendary creatures, vehicles, and spacecraft can be commanders
-	if (typeLine.includes("legendary")) {
-		if (
-			typeLine.includes("creature") ||
-			typeLine.includes("vehicle") ||
-			typeLine.includes("spacecraft")
-		) {
-			return true;
-		}
-	}
-
-	// Cards with "can be your commander" text
-	const oracleText = card.oracle_text?.toLowerCase() ?? "";
-	if (oracleText.includes("can be your commander")) {
-		return true;
-	}
-
-	// Check card faces for MDFCs
-	if (card.card_faces) {
-		for (const face of card.card_faces) {
-			const faceType = face.type_line?.toLowerCase() ?? "";
-			if (faceType.includes("legendary")) {
-				if (
-					faceType.includes("creature") ||
-					faceType.includes("vehicle") ||
-					faceType.includes("spacecraft")
-				) {
-					return true;
-				}
-			}
-			const faceText = face.oracle_text?.toLowerCase() ?? "";
-			if (faceText.includes("can be your commander")) {
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-/**
  * Boolean is: predicates
  */
 const IS_PREDICATES: Record<string, CardPredicate> = {
@@ -710,6 +669,11 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 
 	// Commander - can this card BE a commander
 	commander: canBeCommander,
+	// Has any multi-commander mechanic (Partner, Friends Forever, Background, etc.)
+	partner: hasPartnerMechanic,
+	// Can be a Pauper Commander (PDH) - uncommon creature/vehicle/spacecraft in paper/MTGO
+	paupercommander: canBePauperCommander,
+	pdhcommander: canBePauperCommander,
 
 	// Type-based predicates
 	permanent: (card) => {

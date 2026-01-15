@@ -171,6 +171,12 @@ describe("describeQuery", () => {
 			["is:bear", "bears (2/2 creatures for 2 mana)"],
 			["is:modal", "modal spells (choose one or more)"],
 			["is:commander", "cards that can be commanders"],
+			[
+				"is:partner",
+				"cards with multi-commander mechanics (Partner, Friends Forever, Background, etc.)",
+			],
+			["is:paupercommander", "valid Pauper/PDH commanders"],
+			["is:pdhcommander", "valid Pauper/PDH commanders"],
 
 			// Card types
 			["is:creature", "creatures"],

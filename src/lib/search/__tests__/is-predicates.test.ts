@@ -728,4 +728,107 @@ describe("is: predicate tests", () => {
 			}
 		});
 	});
+
+	describe("partner predicates", () => {
+		it("is:partner matches generic Partner keyword", async () => {
+			const card = await cards.get("Thrasios, Triton Hero");
+			const result = search("is:partner");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(true);
+			}
+		});
+
+		it("is:partner matches Partner With", async () => {
+			const card = await cards.get("Khorvath Brightflame");
+			const result = search("is:partner");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(true);
+			}
+		});
+
+		it("is:partner matches Friends Forever", async () => {
+			const card = await cards.get("Cecily, Haunted Mage");
+			const result = search("is:partner");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(true);
+			}
+		});
+
+		it("is:partner matches Choose a Background", async () => {
+			const card = await cards.get("Abdel Adrian, Gorion's Ward");
+			const result = search("is:partner");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(true);
+			}
+		});
+
+		it("is:partner matches Background enchantments", async () => {
+			const card = await cards.get("Raised by Giants");
+			const result = search("is:partner");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(true);
+			}
+		});
+
+		it("is:partner matches Doctor's Companion", async () => {
+			const card = await cards.get("Clara Oswald");
+			const result = search("is:partner");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(true);
+			}
+		});
+
+		it("is:partner does NOT match regular legendary creatures", async () => {
+			const card = await cards.get("Atraxa, Praetors' Voice");
+			const result = search("is:partner");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(false);
+			}
+		});
+	});
+
+	describe("paupercommander predicates", () => {
+		it("is:paupercommander matches uncommon creatures with paper printing", async () => {
+			const card = await cards.get("Crackling Drake");
+			const result = search("is:paupercommander");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(true);
+			}
+		});
+
+		it("is:pdhcommander is alias for paupercommander", async () => {
+			const card = await cards.get("Crackling Drake");
+			const result = search("is:pdhcommander");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(true);
+			}
+		});
+
+		it("is:paupercommander does NOT match rare creatures", async () => {
+			const card = await cards.get("Atraxa, Praetors' Voice");
+			const result = search("is:paupercommander");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(false);
+			}
+		});
+
+		it("is:paupercommander does NOT match uncommon non-creatures", async () => {
+			const card = await cards.get("Go for the Throat");
+			const result = search("is:paupercommander");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(false);
+			}
+		});
+	});
 });

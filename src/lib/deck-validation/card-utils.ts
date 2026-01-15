@@ -10,9 +10,21 @@ import {
 	isValidCommanderType,
 	type PartnerInfo,
 } from "./rules/commander";
+import {
+	canBePauperCommander,
+	isPDHCommanderType,
+	isUncommonInPaperOrMtgo,
+} from "./rules/rarity";
 
 export type { PartnerInfo };
-export { getPartnerInfo, isDoctor, isValidCommanderType };
+export {
+	getPartnerInfo,
+	isDoctor,
+	isValidCommanderType,
+	isUncommonInPaperOrMtgo,
+	isPDHCommanderType,
+	canBePauperCommander,
+};
 
 /**
  * Alias for isValidCommanderType - checks if a card can be used as a commander.

@@ -36,13 +36,7 @@ export const commanderUncommonRule: Rule<"commanderUncommon"> = {
 			const card = cardLookup(entry.scryfallId);
 			if (!card) continue;
 
-			const typeLine = getTypeLine(card).toLowerCase();
-			const isCreatureOrVehicleOrSpacecraft =
-				typeLine.includes("creature") ||
-				typeLine.includes("vehicle") ||
-				typeLine.includes("spacecraft");
-
-			if (!isCreatureOrVehicleOrSpacecraft) {
+			if (!isPDHCommanderType(card)) {
 				violations.push(
 					violation(
 						this,
@@ -83,9 +77,32 @@ export const commanderUncommonRule: Rule<"commanderUncommon"> = {
 	},
 };
 
-function isUncommonInPaperOrMtgo(card: Card): boolean {
+export function isUncommonInPaperOrMtgo(card: Card): boolean {
 	if (card.rarity !== "uncommon") return false;
 
 	const games = card.games ?? [];
 	return games.includes("paper") || games.includes("mtgo");
+}
+
+/**
+ * Check if card type is valid for PDH commander (creature, vehicle, or spacecraft).
+ */
+export function isPDHCommanderType(card: Card): boolean {
+	const typeLine = getTypeLine(card).toLowerCase();
+	return (
+		typeLine.includes("creature") ||
+		typeLine.includes("vehicle") ||
+		typeLine.includes("spacecraft")
+	);
+}
+
+/**
+ * Check if this printing can be a Pauper Commander (PDH).
+ * Must be creature/vehicle/spacecraft and uncommon in paper/MTGO.
+ *
+ * Note: Full validation checks ALL printings of a card. This predicate
+ * only checks the current printing, suitable for search filtering.
+ */
+export function canBePauperCommander(card: Card): boolean {
+	return isPDHCommanderType(card) && isUncommonInPaperOrMtgo(card);
 }

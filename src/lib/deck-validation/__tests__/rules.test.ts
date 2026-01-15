@@ -417,6 +417,23 @@ describe("commander rules", () => {
 			const violations = commanderLegendaryRule.validate(ctx);
 			expect(violations).toHaveLength(0);
 		});
+
+		it("allows legendary spacecraft with P/T box (903.3c)", async () => {
+			const spacecraft = await cards.get("Atmospheric Greenhouse");
+			const deck = makeDeck([makeCard(spacecraft, "commander")]);
+			const ctx = await makeContextWithCards(deck, [spacecraft]);
+			const violations = commanderLegendaryRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+
+		it("rejects legendary spacecraft without P/T box (903.3c)", async () => {
+			const elevator = await cards.get("The Eternity Elevator");
+			const deck = makeDeck([makeCard(elevator, "commander")]);
+			const ctx = await makeContextWithCards(deck, [elevator]);
+			const violations = commanderLegendaryRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("not a legendary creature");
+		});
 	});
 
 	describe("commanderPartnerRule edge cases", () => {
@@ -682,6 +699,65 @@ describe("commander rules", () => {
 			const ctx = await makeContextWithCards(deck, [bonecrusher], ["R"]);
 			const violations = colorIdentityRule.validate(ctx);
 			expect(violations).toHaveLength(0);
+		});
+	});
+
+	describe("interchangeable names / same oracle_id (201.3)", () => {
+		it("counts different printings together for singleton", async () => {
+			// Bjorna has two printings with same oracle_id but different printed names:
+			// - SLX: "Bjorna, Nightfall Alchemist" (Universes Within)
+			// - SLD: "Lucas, the Sharpshooter" (Stranger Things) - printed_name differs!
+			// Both share oracle_id c880fbdc-bdd9-4f80-81d4-e3e1124f76ca
+			const bjornaSlx = await cards.get("Bjorna, Nightfall Alchemist");
+			const lucasSld = {
+				scryfallId: "3b09edfe-5bef-430e-853d-a6b4b612805a" as ScryfallId,
+				oracleId: bjornaSlx.oracle_id, // Same oracle_id = interchangeable
+				section: "mainboard" as Section,
+				quantity: 1,
+				tags: [],
+			};
+
+			const deck = makeDeck(
+				[makeCard(bjornaSlx, "mainboard", 1), lucasSld],
+				"commander",
+			);
+			const ctx = await makeContextWithCards(deck, [bjornaSlx]);
+			const { singletonRule } = await import("../rules/base");
+			const violations = singletonRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("exceeds singleton limit");
+			expect(violations[0].message).toContain("2/1");
+		});
+
+		it("counts different printings together for playset", async () => {
+			const bolt = await cards.get("Lightning Bolt");
+			const altPrintingBolt = {
+				scryfallId: "00000000-0000-0000-0000-000000000000" as ScryfallId,
+				oracleId: bolt.oracle_id, // Same oracle_id
+				section: "mainboard" as Section,
+				quantity: 2,
+				tags: [],
+			};
+
+			// 3 + 2 = 5 total (exceeds 4-of limit)
+			const deck = makeDeck(
+				[makeCard(bolt, "mainboard", 3), altPrintingBolt],
+				"modern",
+			);
+			const ctx: ValidationContext = {
+				deck,
+				cardLookup: (id) => (id === bolt.id ? bolt : undefined),
+				oracleLookup: (id) => (id === bolt.oracle_id ? bolt : undefined),
+				getPrintings: () => [],
+				format: "modern",
+				commanderColors: undefined,
+				config: { legalityField: "modern", minDeckSize: 60, sideboardSize: 15 },
+			};
+			const { playsetRule } = await import("../rules/base");
+			const violations = playsetRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("exceeds playset limit");
+			expect(violations[0].message).toContain("5/4");
 		});
 	});
 });
