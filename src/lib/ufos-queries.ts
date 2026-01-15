@@ -69,21 +69,29 @@ export function isListRecord(record: ActivityRecord): record is UfosListRecord {
 function transformActivityRecord(
 	rawRecord: UfosRecord<unknown>,
 ): ActivityRecord | null {
-	if (rawRecord.collection === "com.deckbelcher.deck.list") {
-		const deckRecord = rawRecord as UfosRawDeckRecord;
-		return {
-			...deckRecord,
-			record: transformDeckRecord(deckRecord.record),
-		} as UfosDeckRecord;
+	try {
+		if (rawRecord.collection === "com.deckbelcher.deck.list") {
+			const deckRecord = rawRecord as UfosRawDeckRecord;
+			return {
+				...deckRecord,
+				record: transformDeckRecord(deckRecord.record),
+			} as UfosDeckRecord;
+		}
+		if (rawRecord.collection === "com.deckbelcher.collection.list") {
+			const listRecord = rawRecord as UfosRawListRecord;
+			return {
+				...listRecord,
+				record: transformListRecord(listRecord.record),
+			} as UfosListRecord;
+		}
+		return null;
+	} catch (error) {
+		console.warn(
+			`Skipping malformed UFOs record ${rawRecord.did}/${rawRecord.rkey}:`,
+			error instanceof Error ? error.message : error,
+		);
+		return null;
 	}
-	if (rawRecord.collection === "com.deckbelcher.collection.list") {
-		const listRecord = rawRecord as UfosRawListRecord;
-		return {
-			...listRecord,
-			record: transformListRecord(listRecord.record),
-		} as UfosListRecord;
-	}
-	return null;
 }
 
 /**
