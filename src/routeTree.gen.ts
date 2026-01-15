@@ -10,11 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SigninRouteImport } from './routes/signin'
-import { Route as PmDemoRouteImport } from './routes/pm-demo'
+import { Route as DevRouteRouteImport } from './routes/dev/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CardsIndexRouteImport } from './routes/cards/index'
 import { Route as UHandleRouteImport } from './routes/u/$handle'
 import { Route as OauthCallbackRouteImport } from './routes/oauth/callback'
+import { Route as DevPmDemoRouteImport } from './routes/dev/pm-demo'
+import { Route as DevMigrateRouteImport } from './routes/dev/migrate'
 import { Route as DeckNewRouteImport } from './routes/deck/new'
 import { Route as CardIdRouteImport } from './routes/card/$id'
 import { Route as ProfileDidIndexRouteImport } from './routes/profile/$did/index'
@@ -30,9 +32,9 @@ const SigninRoute = SigninRouteImport.update({
   path: '/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PmDemoRoute = PmDemoRouteImport.update({
-  id: '/pm-demo',
-  path: '/pm-demo',
+const DevRouteRoute = DevRouteRouteImport.update({
+  id: '/dev',
+  path: '/dev',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -54,6 +56,16 @@ const OauthCallbackRoute = OauthCallbackRouteImport.update({
   id: '/oauth/callback',
   path: '/oauth/callback',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DevPmDemoRoute = DevPmDemoRouteImport.update({
+  id: '/pm-demo',
+  path: '/pm-demo',
+  getParentRoute: () => DevRouteRoute,
+} as any)
+const DevMigrateRoute = DevMigrateRouteImport.update({
+  id: '/migrate',
+  path: '/migrate',
+  getParentRoute: () => DevRouteRoute,
 } as any)
 const DeckNewRoute = DeckNewRouteImport.update({
   id: '/deck/new',
@@ -104,10 +116,12 @@ const ProfileDidDeckRkeyBulkEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/pm-demo': typeof PmDemoRoute
+  '/dev': typeof DevRouteRouteWithChildren
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
   '/deck/new': typeof DeckNewRoute
+  '/dev/migrate': typeof DevMigrateRoute
+  '/dev/pm-demo': typeof DevPmDemoRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/u/$handle': typeof UHandleRoute
   '/cards': typeof CardsIndexRoute
@@ -121,10 +135,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/pm-demo': typeof PmDemoRoute
+  '/dev': typeof DevRouteRouteWithChildren
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
   '/deck/new': typeof DeckNewRoute
+  '/dev/migrate': typeof DevMigrateRoute
+  '/dev/pm-demo': typeof DevPmDemoRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/u/$handle': typeof UHandleRoute
   '/cards': typeof CardsIndexRoute
@@ -137,10 +153,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/pm-demo': typeof PmDemoRoute
+  '/dev': typeof DevRouteRouteWithChildren
   '/signin': typeof SigninRoute
   '/card/$id': typeof CardIdRoute
   '/deck/new': typeof DeckNewRoute
+  '/dev/migrate': typeof DevMigrateRoute
+  '/dev/pm-demo': typeof DevPmDemoRoute
   '/oauth/callback': typeof OauthCallbackRoute
   '/u/$handle': typeof UHandleRoute
   '/cards/': typeof CardsIndexRoute
@@ -156,10 +174,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/pm-demo'
+    | '/dev'
     | '/signin'
     | '/card/$id'
     | '/deck/new'
+    | '/dev/migrate'
+    | '/dev/pm-demo'
     | '/oauth/callback'
     | '/u/$handle'
     | '/cards'
@@ -173,10 +193,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/pm-demo'
+    | '/dev'
     | '/signin'
     | '/card/$id'
     | '/deck/new'
+    | '/dev/migrate'
+    | '/dev/pm-demo'
     | '/oauth/callback'
     | '/u/$handle'
     | '/cards'
@@ -188,10 +210,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/pm-demo'
+    | '/dev'
     | '/signin'
     | '/card/$id'
     | '/deck/new'
+    | '/dev/migrate'
+    | '/dev/pm-demo'
     | '/oauth/callback'
     | '/u/$handle'
     | '/cards/'
@@ -206,7 +230,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PmDemoRoute: typeof PmDemoRoute
+  DevRouteRoute: typeof DevRouteRouteWithChildren
   SigninRoute: typeof SigninRoute
   CardIdRoute: typeof CardIdRoute
   DeckNewRoute: typeof DeckNewRoute
@@ -227,11 +251,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pm-demo': {
-      id: '/pm-demo'
-      path: '/pm-demo'
-      fullPath: '/pm-demo'
-      preLoaderRoute: typeof PmDemoRouteImport
+    '/dev': {
+      id: '/dev'
+      path: '/dev'
+      fullPath: '/dev'
+      preLoaderRoute: typeof DevRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -261,6 +285,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/oauth/callback'
       preLoaderRoute: typeof OauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dev/pm-demo': {
+      id: '/dev/pm-demo'
+      path: '/pm-demo'
+      fullPath: '/dev/pm-demo'
+      preLoaderRoute: typeof DevPmDemoRouteImport
+      parentRoute: typeof DevRouteRoute
+    }
+    '/dev/migrate': {
+      id: '/dev/migrate'
+      path: '/migrate'
+      fullPath: '/dev/migrate'
+      preLoaderRoute: typeof DevMigrateRouteImport
+      parentRoute: typeof DevRouteRoute
     }
     '/deck/new': {
       id: '/deck/new'
@@ -328,6 +366,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DevRouteRouteChildren {
+  DevMigrateRoute: typeof DevMigrateRoute
+  DevPmDemoRoute: typeof DevPmDemoRoute
+}
+
+const DevRouteRouteChildren: DevRouteRouteChildren = {
+  DevMigrateRoute: DevMigrateRoute,
+  DevPmDemoRoute: DevPmDemoRoute,
+}
+
+const DevRouteRouteWithChildren = DevRouteRoute._addFileChildren(
+  DevRouteRouteChildren,
+)
+
 interface ProfileDidDeckRkeyRouteChildren {
   ProfileDidDeckRkeyBulkEditRoute: typeof ProfileDidDeckRkeyBulkEditRoute
   ProfileDidDeckRkeyPlayRoute: typeof ProfileDidDeckRkeyPlayRoute
@@ -356,7 +408,7 @@ const ProfileDidListRkeyRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PmDemoRoute: PmDemoRoute,
+  DevRouteRoute: DevRouteRouteWithChildren,
   SigninRoute: SigninRoute,
   CardIdRoute: CardIdRoute,
   DeckNewRoute: DeckNewRoute,

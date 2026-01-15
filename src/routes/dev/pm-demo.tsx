@@ -5,7 +5,7 @@ import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { lexiconToTree, treeToLexicon } from "@/lib/richtext-convert";
 import type { PMDocJSON } from "@/lib/useProseMirror";
 
-export const Route = createFileRoute("/pm-demo")({
+export const Route = createFileRoute("/dev/pm-demo")({
 	component: ProseMirrorDemo,
 	head: () => ({
 		meta: [{ title: "Editor Demo | DeckBelcher" }],
