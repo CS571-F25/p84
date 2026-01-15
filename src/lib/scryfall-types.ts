@@ -248,6 +248,7 @@ export interface Card {
 	// Printing selection (image_uris omitted - can reconstruct from ID)
 	card_faces?: CardFace[];
 	border_color?: BorderColor;
+	security_stamp?: "oval" | "triangle" | "acorn" | "circle" | "arena" | "heart";
 	frame?: Frame;
 	frame_effects?: FrameEffect[];
 	finishes?: Finish[];

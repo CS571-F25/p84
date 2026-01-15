@@ -343,18 +343,21 @@ export const commanderPlaneswalkerRule: Rule<"commanderPlaneswalker"> = {
 /**
  * Signature spell requirement (Oathbreaker)
  * Commander section must have exactly one instant or sorcery
+ * Signature spell must match oathbreaker's color identity
  */
 export const signatureSpellRule: Rule<"signatureSpell"> = {
 	id: "signatureSpell",
 	rule: asRuleNumber("903.3"),
 	category: "structure",
 	description:
-		"Oathbreaker requires exactly one signature spell (instant/sorcery)",
+		"Oathbreaker requires exactly one signature spell (instant/sorcery) within color identity",
 	validate(ctx: ValidationContext): Violation[] {
-		const { deck, cardLookup } = ctx;
+		const { deck, cardLookup, commanderColors } = ctx;
 		const commanders = getCardsInSection(deck, "commander");
+		const violations: Violation[] = [];
 
 		let signatureSpellCount = 0;
+		const allowedColors = new Set<string>(commanderColors ?? []);
 
 		for (const entry of commanders) {
 			const card = cardLookup(entry.scryfallId);
@@ -363,30 +366,56 @@ export const signatureSpellRule: Rule<"signatureSpell"> = {
 			const typeLine = getTypeLine(card).toLowerCase();
 			if (typeLine.includes("instant") || typeLine.includes("sorcery")) {
 				signatureSpellCount += entry.quantity;
+
+				if (commanderColors) {
+					const spellIdentity = card.color_identity ?? [];
+					const invalidColors = spellIdentity.filter(
+						(c) => !allowedColors.has(c),
+					);
+					if (invalidColors.length > 0) {
+						const commanderStr =
+							commanderColors.length > 0
+								? commanderColors.join("")
+								: "colorless";
+						violations.push(
+							violation(
+								this,
+								`Signature spell ${card.name} has colors outside oathbreaker color identity (${invalidColors.join("")} not in ${commanderStr})`,
+								"error",
+								{
+									cardName: card.name,
+									oracleId: entry.oracleId,
+									section: "commander",
+								},
+							),
+						);
+					}
+				}
 			}
 		}
 
 		if (signatureSpellCount === 0) {
-			return [
+			violations.push(
 				violation(
 					this,
 					"Oathbreaker deck must have a signature spell (instant/sorcery in commander zone)",
 					"error",
 				),
-			];
+			);
+			return violations;
 		}
 
 		if (signatureSpellCount > 1) {
-			return [
+			violations.push(
 				violation(
 					this,
 					`Oathbreaker deck can only have 1 signature spell, found ${signatureSpellCount}`,
 					"error",
 				),
-			];
+			);
 		}
 
-		return [];
+		return violations;
 	},
 };
 

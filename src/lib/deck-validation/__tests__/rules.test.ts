@@ -546,5 +546,83 @@ describe("commander rules", () => {
 			expect(violations).toHaveLength(1);
 			expect(violations[0].message).toContain("no uncommon printing");
 		});
+
+		it("allows uncommon spacecraft as PDH commander", async () => {
+			const spacecraft = await cards.get("Atmospheric Greenhouse");
+			const deck = makeDeck(
+				[makeCard(spacecraft, "commander")],
+				"paupercommander",
+			);
+			const printingsMap = new Map<OracleId, Card[]>();
+			printingsMap.set(spacecraft.oracle_id, [
+				mockPrinting(spacecraft, "uncommon", ["paper"]),
+			]);
+			const ctx = await makeContextWithCards(
+				deck,
+				[spacecraft],
+				undefined,
+				printingsMap,
+			);
+			const violations = commanderUncommonRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+	});
+
+	describe("signatureSpellRule color identity", () => {
+		it("rejects signature spell outside oathbreaker color identity", async () => {
+			const aminatou = await cards.get("Aminatou, the Fateshifter");
+			const lightningBolt = await cards.get("Lightning Bolt");
+			const deck = makeDeck(
+				[makeCard(aminatou, "commander"), makeCard(lightningBolt, "commander")],
+				"oathbreaker",
+			);
+			const ctx = await makeContextWithCards(
+				deck,
+				[aminatou, lightningBolt],
+				["W", "U", "B"],
+			);
+			const violations = signatureSpellRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("color identity");
+		});
+
+		it("allows signature spell within oathbreaker color identity", async () => {
+			const bolas = await cards.get("Nicol Bolas, Planeswalker");
+			const lightningBolt = await cards.get("Lightning Bolt");
+			const deck = makeDeck(
+				[makeCard(bolas, "commander"), makeCard(lightningBolt, "commander")],
+				"oathbreaker",
+			);
+			const ctx = await makeContextWithCards(
+				deck,
+				[bolas, lightningBolt],
+				["U", "B", "R"],
+			);
+			const violations = signatureSpellRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+	});
+
+	describe("colorIdentityRule basic land types (903.5d)", () => {
+		it("rejects dual land with basic types outside commander identity", async () => {
+			const stompingGround = await cards.get("Stomping Ground");
+			const deck = makeDeck([makeCard(stompingGround, "mainboard")]);
+			const ctx = await makeContextWithCards(deck, [stompingGround], ["U"]);
+			const violations = colorIdentityRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("outside commander identity");
+		});
+
+		it("allows dual land with basic types in matching identity", async () => {
+			const stompingGround = await cards.get("Stomping Ground");
+			const deck = makeDeck([makeCard(stompingGround, "mainboard")]);
+			const ctx = await makeContextWithCards(
+				deck,
+				[stompingGround],
+				["R", "G"],
+			);
+			const violations = colorIdentityRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
 	});
 });

@@ -316,3 +316,136 @@ export const sideboardSizeRule: Rule<"sideboardSize"> = {
 		return [];
 	},
 };
+
+/**
+ * Conspiracy cards are only legal in Conspiracy Draft
+ */
+export const conspiracyCardRule: Rule<"conspiracyCard"> = {
+	id: "conspiracyCard",
+	rule: asRuleNumber("905.2"),
+	category: "legality",
+	description: "Conspiracy cards are not legal in constructed formats",
+	validate(ctx: ValidationContext): Violation[] {
+		const { deck, cardLookup } = ctx;
+		const violations: Violation[] = [];
+
+		for (const entry of deck.cards) {
+			const card = cardLookup(entry.scryfallId);
+			if (!card) continue;
+
+			const typeLine = card.type_line?.toLowerCase() ?? "";
+			if (typeLine.includes("conspiracy")) {
+				violations.push(
+					violation(
+						this,
+						`${card.name} is a Conspiracy card and not legal in constructed formats`,
+						"error",
+						{
+							cardName: card.name,
+							oracleId: entry.oracleId,
+							section: isKnownSection(entry.section)
+								? entry.section
+								: undefined,
+						},
+					),
+				);
+			}
+		}
+
+		return violations;
+	},
+};
+
+/**
+ * Silver-bordered and acorn-stamped cards are not tournament legal
+ */
+export const illegalCardTypeRule: Rule<"illegalCardType"> = {
+	id: "illegalCardType",
+	rule: asRuleNumber("100.2a"),
+	category: "legality",
+	description: "Silver-bordered and acorn cards are not tournament legal",
+	validate(ctx: ValidationContext): Violation[] {
+		const { deck, cardLookup } = ctx;
+		const violations: Violation[] = [];
+
+		for (const entry of deck.cards) {
+			const card = cardLookup(entry.scryfallId);
+			if (!card) continue;
+
+			if (card.border_color === "silver") {
+				violations.push(
+					violation(
+						this,
+						`${card.name} is a silver-bordered card and not tournament legal`,
+						"error",
+						{
+							cardName: card.name,
+							oracleId: entry.oracleId,
+							section: isKnownSection(entry.section)
+								? entry.section
+								: undefined,
+						},
+					),
+				);
+			}
+
+			if (card.security_stamp === "acorn") {
+				violations.push(
+					violation(
+						this,
+						`${card.name} is an acorn card and not tournament legal`,
+						"error",
+						{
+							cardName: card.name,
+							oracleId: entry.oracleId,
+							section: isKnownSection(entry.section)
+								? entry.section
+								: undefined,
+						},
+					),
+				);
+			}
+		}
+
+		return violations;
+	},
+};
+
+/**
+ * Ante cards are banned in all sanctioned formats
+ */
+export const anteCardRule: Rule<"anteCard"> = {
+	id: "anteCard",
+	rule: asRuleNumber("100.6a"),
+	category: "legality",
+	description: "Ante cards are banned in all sanctioned formats",
+	validate(ctx: ValidationContext): Violation[] {
+		const { deck, cardLookup } = ctx;
+		const violations: Violation[] = [];
+
+		for (const entry of deck.cards) {
+			const card = cardLookup(entry.scryfallId);
+			if (!card) continue;
+
+			const oracleText = card.oracle_text?.toLowerCase() ?? "";
+			if (oracleText.includes("playing for ante")) {
+				violations.push(
+					violation(
+						this,
+						`${card.name} is an ante card and banned in all sanctioned formats`,
+						"error",
+						{
+							cardName: card.name,
+							oracleId: entry.oracleId,
+							section: isKnownSection(entry.section)
+								? entry.section
+								: undefined,
+						},
+					),
+				);
+			}
+		}
+
+		return violations;
+	},
+};

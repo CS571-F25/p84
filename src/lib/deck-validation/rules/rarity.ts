@@ -34,14 +34,16 @@ export const commanderUncommonRule: Rule<"commanderUncommon"> = {
 			if (!card) continue;
 
 			const typeLine = getTypeLine(card).toLowerCase();
-			const isCreatureOrVehicle =
-				typeLine.includes("creature") || typeLine.includes("vehicle");
+			const isCreatureOrVehicleOrSpacecraft =
+				typeLine.includes("creature") ||
+				typeLine.includes("vehicle") ||
+				typeLine.includes("spacecraft");
 
-			if (!isCreatureOrVehicle) {
+			if (!isCreatureOrVehicleOrSpacecraft) {
 				violations.push(
 					violation(
 						this,
-						`${card.name} is not a creature (PDH commanders must be uncommon creatures)`,
+						`${card.name} is not a creature, vehicle, or spacecraft (PDH commanders must be uncommon)`,
 						"error",
 						{
 							cardName: card.name,

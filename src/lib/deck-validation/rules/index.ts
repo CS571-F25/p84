@@ -1,8 +1,11 @@
 export {
+	anteCardRule,
 	bannedRule,
 	cardLegalityRule,
+	conspiracyCardRule,
 	deckSizeExactRule,
 	deckSizeMinRule,
+	illegalCardTypeRule,
 	playsetRule,
 	restrictedRule,
 	sideboardSizeRule,
@@ -22,10 +25,13 @@ export {
 export { commanderUncommonRule } from "./rarity";
 
 import {
+	anteCardRule,
 	bannedRule,
 	cardLegalityRule,
+	conspiracyCardRule,
 	deckSizeExactRule,
 	deckSizeMinRule,
+	illegalCardTypeRule,
 	playsetRule,
 	restrictedRule,
 	sideboardSizeRule,
@@ -52,6 +58,11 @@ export const RULES = {
 	cardLegality: cardLegalityRule,
 	banned: bannedRule,
 	restricted: restrictedRule,
+
+	// Illegal card types
+	conspiracyCard: conspiracyCardRule,
+	illegalCardType: illegalCardTypeRule,
+	anteCard: anteCardRule,
 
 	// Copy limit rules
 	singleton: singletonRule,

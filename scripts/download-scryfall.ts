@@ -84,6 +84,9 @@ const KEPT_FIELDS = [
 	"image_status",
 	"layout",
 
+	// Un-set detection
+	"security_stamp",
+
 	// Nice-to-have (flavor_text omitted - visible on card image)
 	// edhrec_rank omitted - goes in volatile.bin
 	"reprint",
