@@ -5,6 +5,7 @@
 
 import type { Did } from "@atcute/lexicons";
 import {
+	type InfiniteData,
 	infiniteQueryOptions,
 	queryOptions,
 	useQueryClient,
@@ -234,9 +235,11 @@ export function useUpdateCollectionListMutation(did: Did, rkey: Rkey) {
 				rkey,
 			]);
 
-			const previousLists = queryClient.getQueryData<{
-				records: CollectionListRecord[];
-			}>(["collection-lists", did]);
+			type ListPage = { records: CollectionListRecord[]; cursor?: string };
+			const previousLists = queryClient.getQueryData<InfiniteData<ListPage>>([
+				"collection-lists",
+				did,
+			]);
 
 			queryClient.setQueryData<CollectionList>(
 				["collection-list", did, rkey],
@@ -244,15 +247,18 @@ export function useUpdateCollectionListMutation(did: Did, rkey: Rkey) {
 			);
 
 			if (previousLists) {
-				queryClient.setQueryData<{ records: CollectionListRecord[] }>(
+				queryClient.setQueryData<InfiniteData<ListPage>>(
 					["collection-lists", did],
 					{
 						...previousLists,
-						records: previousLists.records.map((record) =>
-							record.uri.endsWith(`/${rkey}`)
-								? { ...record, value: newList }
-								: record,
-						),
+						pages: previousLists.pages.map((page) => ({
+							...page,
+							records: page.records.map((record) =>
+								record.uri.endsWith(`/${rkey}`)
+									? { ...record, value: newList }
+									: record,
+							),
+						})),
 					},
 				);
 			}
@@ -267,7 +273,8 @@ export function useUpdateCollectionListMutation(did: Did, rkey: Rkey) {
 				);
 			}
 			if (context?.previousLists) {
-				queryClient.setQueryData<{ records: CollectionListRecord[] }>(
+				type ListPage = { records: CollectionListRecord[]; cursor?: string };
+				queryClient.setQueryData<InfiniteData<ListPage>>(
 					["collection-lists", did],
 					context.previousLists,
 				);
