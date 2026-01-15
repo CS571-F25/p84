@@ -11,6 +11,10 @@ import {
 
 /**
  * Check card legality via Scryfall's legalities field
+ *
+ * Note: For pauper commander, commanders are validated separately by the
+ * commanderUncommon rule. Scryfall marks uncommon cards as "not_legal" in PDH
+ * because they can't go in the 99, but they're valid commanders.
  */
 export const cardLegalityRule: Rule<"cardLegality"> = {
 	id: "cardLegality",
@@ -24,8 +28,12 @@ export const cardLegalityRule: Rule<"cardLegality"> = {
 		const violations: Violation[] = [];
 		const field = config.legalityField;
 
+		// For PDH, commanders are validated by commanderUncommon rule instead
+		const skipCommanderLegality = field === "paupercommander";
+
 		for (const entry of deck.cards) {
 			if (entry.section === "maybeboard") continue;
+			if (skipCommanderLegality && entry.section === "commander") continue;
 
 			const card = cardLookup(entry.scryfallId);
 			if (!card) continue;
