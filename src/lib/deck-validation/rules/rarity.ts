@@ -23,10 +23,10 @@ export const commanderUncommonRule: Rule<"commanderUncommon"> = {
 	id: "commanderUncommon",
 	rule: asRuleNumber("PDH"),
 	ruleText:
-		"The commander must be an uncommon creature, vehicle, or spacecraft and does not need to be legendary. (pdhhomebase.com/rules)",
+		"The commander must be an uncommon creature, vehicle, or spacecraft (with P/T) and does not need to be legendary. (pdhhomebase.com/rules)",
 	category: "structure",
 	description:
-		"Commander must be an uncommon creature with printing in paper/MTGO (PDH)",
+		"Commander must be uncommon creature/vehicle/spacecraft in paper/MTGO (PDH)",
 	validate(ctx: ValidationContext): Violation[] {
 		const { deck, cardLookup, getPrintings } = ctx;
 		const violations: Violation[] = [];

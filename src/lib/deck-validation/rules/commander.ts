@@ -45,7 +45,8 @@ export const commanderLegendaryRule: Rule<"commanderLegendary"> = {
 	ruleText:
 		"Each deck has a legendary card designated as its commander. That card must be either (a) a creature card, (b) a Vehicle card, or (c) a Spacecraft card with one or more power/toughness boxes. This designation is not a characteristic of the object represented by the card; rather, it is an attribute of the card itself. The card retains this designation even when it changes zones.",
 	category: "structure",
-	description: "Commander must be a legendary creature, vehicle, or spacecraft",
+	description:
+		"Commander must be a legendary creature, vehicle, or spacecraft with P/T",
 	validate(ctx: ValidationContext): Violation[] {
 		const { deck, cardLookup } = ctx;
 		const violations: Violation[] = [];
