@@ -116,18 +116,27 @@ async function getRecord<TSchema extends BaseSchema>(
 	}
 }
 
-async function createRecord<T extends Record<string, unknown>>(
+async function createRecord<TSchema extends BaseSchema>(
 	agent: OAuthUserAgent,
-	record: T,
-	collection: Collection,
-	entityName: string,
+	record: InferOutput<TSchema> & { $type: Collection },
+	schema: TSchema,
 ): Promise<Result<{ uri: AtUri; cid: string; rkey: Rkey }>> {
 	try {
+		const validation = safeParse(schema, record);
+		if (!validation.ok) {
+			return {
+				success: false,
+				error: new Error(
+					`Invalid ${record.$type} record: ${validation.message}`,
+				),
+			};
+		}
+
 		const client = new Client({ handler: agent });
 		const response = await client.post("com.atproto.repo.createRecord", {
 			input: {
 				repo: agent.sub,
-				collection,
+				collection: record.$type,
 				record,
 			},
 		});
@@ -136,7 +145,7 @@ async function createRecord<T extends Record<string, unknown>>(
 			return {
 				success: false,
 				error: new Error(
-					response.data.message || `Failed to create ${entityName} record`,
+					response.data.message || `Failed to create ${record.$type} record`,
 				),
 			};
 		}
@@ -163,19 +172,28 @@ async function createRecord<T extends Record<string, unknown>>(
 	}
 }
 
-async function updateRecord<T extends Record<string, unknown>>(
+async function updateRecord<TSchema extends BaseSchema>(
 	agent: OAuthUserAgent,
 	rkey: Rkey,
-	record: T,
-	collection: Collection,
-	entityName: string,
+	record: InferOutput<TSchema> & { $type: Collection },
+	schema: TSchema,
 ): Promise<Result<{ uri: AtUri; cid: string }>> {
 	try {
+		const validation = safeParse(schema, record);
+		if (!validation.ok) {
+			return {
+				success: false,
+				error: new Error(
+					`Invalid ${record.$type} record: ${validation.message}`,
+				),
+			};
+		}
+
 		const client = new Client({ handler: agent });
 		const response = await client.post("com.atproto.repo.putRecord", {
 			input: {
 				repo: agent.sub,
-				collection,
+				collection: record.$type,
 				rkey,
 				record,
 			},
@@ -185,7 +203,7 @@ async function updateRecord<T extends Record<string, unknown>>(
 			return {
 				success: false,
 				error: new Error(
-					response.data.message || `Failed to update ${entityName} record`,
+					response.data.message || `Failed to update ${record.$type} record`,
 				),
 			};
 		}
@@ -323,7 +341,7 @@ export function createDeckRecord(
 	agent: OAuthUserAgent,
 	record: ComDeckbelcherDeckList.Main,
 ) {
-	return createRecord(agent, record, DECK_COLLECTION, "deck");
+	return createRecord(agent, record, ComDeckbelcherDeckList.mainSchema);
 }
 
 export function updateDeckRecord(
@@ -331,7 +349,7 @@ export function updateDeckRecord(
 	rkey: Rkey,
 	record: ComDeckbelcherDeckList.Main,
 ) {
-	return updateRecord(agent, rkey, record, DECK_COLLECTION, "deck");
+	return updateRecord(agent, rkey, record, ComDeckbelcherDeckList.mainSchema);
 }
 
 export function listUserDecks(pdsUrl: PdsUrl, did: Did, cursor?: string) {
@@ -370,7 +388,7 @@ export function createCollectionListRecord(
 	agent: OAuthUserAgent,
 	record: ComDeckbelcherCollectionList.Main,
 ) {
-	return createRecord(agent, record, LIST_COLLECTION, "list");
+	return createRecord(agent, record, ComDeckbelcherCollectionList.mainSchema);
 }
 
 export function updateCollectionListRecord(
@@ -378,7 +396,12 @@ export function updateCollectionListRecord(
 	rkey: Rkey,
 	record: ComDeckbelcherCollectionList.Main,
 ) {
-	return updateRecord(agent, rkey, record, LIST_COLLECTION, "list");
+	return updateRecord(
+		agent,
+		rkey,
+		record,
+		ComDeckbelcherCollectionList.mainSchema,
+	);
 }
 
 export function listUserCollectionLists(
