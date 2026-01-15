@@ -11,6 +11,9 @@ import {
 	COLLECTION_LIST_NSID,
 	getBacklinks,
 	getLinksCount,
+	LIKE_CARD_PATH,
+	LIKE_NSID,
+	LIKE_RECORD_PATH,
 } from "./constellation-client";
 import type { OracleUri } from "./scryfall-types";
 import { useAuth } from "./useAuth";
@@ -95,13 +98,14 @@ export function itemSaveCountQueryOptions<T extends SocialItemType>(
 export interface ItemSocialStats {
 	isSavedByUser: boolean;
 	saveCount: number;
-	isLoading: boolean;
-	isSavedLoading: boolean;
-	isCountLoading: boolean;
+	isSaveLoading: boolean;
+	isLikedByUser: boolean;
+	likeCount: number;
+	isLikeLoading: boolean;
 }
 
 /**
- * Combined hook for item social stats (save state + count)
+ * Combined hook for item social stats (saves + likes)
  */
 export function useItemSocialStats<T extends SocialItemType>(
 	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
@@ -112,15 +116,20 @@ export function useItemSocialStats<T extends SocialItemType>(
 	const savedQuery = useQuery(
 		userSavedItemQueryOptions(itemUri, session?.info.sub, itemType),
 	);
+	const saveCountQuery = useQuery(itemSaveCountQueryOptions(itemUri, itemType));
 
-	const countQuery = useQuery(itemSaveCountQueryOptions(itemUri, itemType));
+	const likedQuery = useQuery(
+		userLikedItemQueryOptions(itemUri, session?.info.sub, itemType),
+	);
+	const likeCountQuery = useQuery(itemLikeCountQueryOptions(itemUri, itemType));
 
 	return {
 		isSavedByUser: savedQuery.data ?? false,
-		saveCount: countQuery.data ?? 0,
-		isLoading: savedQuery.isLoading || countQuery.isLoading,
-		isSavedLoading: savedQuery.isLoading,
-		isCountLoading: countQuery.isLoading,
+		saveCount: saveCountQuery.data ?? 0,
+		isSaveLoading: savedQuery.isLoading || saveCountQuery.isLoading,
+		isLikedByUser: likedQuery.data ?? false,
+		likeCount: likeCountQuery.data ?? 0,
+		isLikeLoading: likedQuery.isLoading || likeCountQuery.isLoading,
 	};
 }
 
@@ -134,16 +143,72 @@ export function getConstellationQueryKeys(
 	return {
 		userSaved: ["constellation", "userSaved", itemUri, userDid] as const,
 		saveCount: ["constellation", "saveCount", itemUri] as const,
+		userLiked: ["constellation", "userLiked", itemUri, userDid] as const,
+		likeCount: ["constellation", "likeCount", itemUri] as const,
 	};
 }
 
+// ============================================================================
+// Like Queries
+// ============================================================================
+
+function getLikePathForItemType(itemType: SocialItemType): string {
+	return itemType === "card" ? LIKE_CARD_PATH : LIKE_RECORD_PATH;
+}
+
 /**
- * Preload social stats for SSR
- * Only prefetches count (no auth needed), user saved query runs client-side
+ * Query options for checking if current user has liked an item
  */
-export function socialStatsPreload<T extends SocialItemType>(
+export function userLikedItemQueryOptions<T extends SocialItemType>(
+	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
+	userDid: Did | undefined,
+	itemType: T,
+) {
+	return queryOptions({
+		queryKey: ["constellation", "userLiked", itemUri, userDid] as const,
+		queryFn: async (): Promise<boolean> => {
+			if (!userDid) return false;
+
+			const result = await getBacklinks({
+				subject: itemUri,
+				source: buildSource(LIKE_NSID, getLikePathForItemType(itemType)),
+				did: userDid,
+				limit: 1,
+			});
+
+			if (!result.success) {
+				throw result.error;
+			}
+
+			return result.data.records.length > 0;
+		},
+		enabled: !!userDid,
+		staleTime: 30 * 1000,
+	});
+}
+
+/**
+ * Query options for getting total like count for an item
+ */
+export function itemLikeCountQueryOptions<T extends SocialItemType>(
 	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
 	itemType: T,
 ) {
-	return [itemSaveCountQueryOptions(itemUri, itemType)];
+	return queryOptions({
+		queryKey: ["constellation", "likeCount", itemUri] as const,
+		queryFn: async (): Promise<number> => {
+			const result = await getLinksCount({
+				target: itemUri,
+				collection: LIKE_NSID,
+				path: getLikePathForItemType(itemType),
+			});
+
+			if (!result.success) {
+				throw result.error;
+			}
+
+			return result.data.total;
+		},
+		staleTime: 60 * 1000,
+	});
 }

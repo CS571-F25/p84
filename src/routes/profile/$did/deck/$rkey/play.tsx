@@ -14,7 +14,7 @@ import type { ScryfallId } from "@/lib/scryfall-types";
 export const Route = createFileRoute("/profile/$did/deck/$rkey/play")({
 	component: PlaytestPage,
 	loader: async ({ context, params }) => {
-		const deck = await context.queryClient.ensureQueryData(
+		const { deck } = await context.queryClient.ensureQueryData(
 			getDeckQueryOptions(params.did as Did, asRkey(params.rkey)),
 		);
 
@@ -36,9 +36,9 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/play")({
 
 function PlaytestPage() {
 	const { did, rkey } = Route.useParams();
-	const { data: deck } = useSuspenseQuery(
-		getDeckQueryOptions(did as Did, asRkey(rkey)),
-	);
+	const {
+		data: { deck },
+	} = useSuspenseQuery(getDeckQueryOptions(did as Did, asRkey(rkey)));
 
 	const playtestCards = [
 		...getCardsInSection(deck, "commander"),

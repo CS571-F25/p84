@@ -9,8 +9,11 @@
         "type": "object",
         "properties": {
           "subject": {
-            "type": "ref",
-            "ref": "com.atproto.repo.strongRef",
+            "type": "union",
+            "refs": [
+              "#cardSubject",
+              "#recordSubject"
+            ],
             "description": "Reference to the content being liked."
           },
           "createdAt": {
@@ -24,7 +27,35 @@
           "createdAt"
         ]
       },
-      "description": "Record declaring a 'like' of a piece of content (decklist, reply, etc)."
+      "description": "Record declaring a 'like' of a piece of content (card, deck, reply, etc)."
+    },
+    "cardSubject": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "ref",
+          "ref": "com.deckbelcher.defs#cardRef",
+          "description": "Reference to the card."
+        }
+      },
+      "description": "Subject for liking a card.",
+      "required": [
+        "ref"
+      ]
+    },
+    "recordSubject": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "ref",
+          "ref": "com.atproto.repo.strongRef",
+          "description": "Reference to the record."
+        }
+      },
+      "description": "Subject for liking an ATProto record (deck, reply, etc).",
+      "required": [
+        "ref"
+      ]
     }
   }
 }

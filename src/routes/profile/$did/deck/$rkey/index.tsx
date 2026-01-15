@@ -50,7 +50,7 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 	component: DeckEditorPage,
 	loader: async ({ context, params }) => {
 		// Prefetch deck data during SSR
-		const deck = await context.queryClient.ensureQueryData(
+		const { deck } = await context.queryClient.ensureQueryData(
 			getDeckQueryOptions(params.did as Did, asRkey(params.rkey)),
 		);
 
@@ -114,9 +114,10 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 function DeckEditorPage() {
 	const { did, rkey } = Route.useParams();
 	const { session } = useAuth();
-	const { data: deck } = useSuspenseQuery(
+	const { data: deckRecord } = useSuspenseQuery(
 		getDeckQueryOptions(did as Did, asRkey(rkey)),
 	);
+	const deck = deckRecord.deck;
 
 	const [groupBy, setGroupBy] = usePersistedState<GroupBy>(
 		"deckbelcher:viewConfig:groupBy",
@@ -586,6 +587,7 @@ function DeckEditorInner({
 							item={{
 								type: "deck",
 								deckUri: `at://${did}/com.deckbelcher.deck.list/${rkey}`,
+								cid: deckRecord.cid,
 							}}
 							itemName={deck.name}
 						/>

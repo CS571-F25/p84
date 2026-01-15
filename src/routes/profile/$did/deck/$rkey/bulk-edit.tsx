@@ -21,7 +21,7 @@ import { useAuth } from "@/lib/useAuth";
 export const Route = createFileRoute("/profile/$did/deck/$rkey/bulk-edit")({
 	component: BulkEditPage,
 	loader: async ({ context, params }) => {
-		const deck = await context.queryClient.ensureQueryData(
+		const { deck } = await context.queryClient.ensureQueryData(
 			getDeckQueryOptions(params.did as Did, asRkey(params.rkey)),
 		);
 		await Promise.all(
@@ -46,9 +46,9 @@ function BulkEditPage() {
 	const { session } = useAuth();
 	const queryClient = Route.useRouteContext().queryClient;
 
-	const { data: deck } = useSuspenseQuery(
-		getDeckQueryOptions(did as Did, asRkey(rkey)),
-	);
+	const {
+		data: { deck },
+	} = useSuspenseQuery(getDeckQueryOptions(did as Did, asRkey(rkey)));
 
 	const mutation = useUpdateDeckMutation(did as Did, asRkey(rkey));
 

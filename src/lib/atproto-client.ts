@@ -15,6 +15,7 @@ import type { OAuthUserAgent } from "@atcute/oauth-browser-client";
 import {
 	ComDeckbelcherCollectionList,
 	ComDeckbelcherDeckList,
+	ComDeckbelcherSocialLike,
 } from "./lexicons/index";
 
 type AtUri = `at://${string}`;
@@ -129,6 +130,7 @@ async function createRecord<TSchema extends BaseSchema>(
 	agent: OAuthUserAgent,
 	record: InferOutput<TSchema>,
 	schema: TSchema,
+	rkey?: Rkey,
 ): Promise<Result<{ uri: AtUri; cid: string; rkey: Rkey }>> {
 	const collection = getCollectionFromSchema(schema);
 	try {
@@ -141,13 +143,24 @@ async function createRecord<TSchema extends BaseSchema>(
 		}
 
 		const client = new Client({ handler: agent });
-		const response = await client.post("com.atproto.repo.createRecord", {
-			input: {
-				repo: agent.sub,
-				collection,
-				record: record as Record<string, unknown>,
-			},
-		});
+
+		// Use putRecord if rkey provided (deterministic), createRecord otherwise (auto-generate)
+		const response = rkey
+			? await client.post("com.atproto.repo.putRecord", {
+					input: {
+						repo: agent.sub,
+						collection,
+						rkey,
+						record: record as Record<string, unknown>,
+					},
+				})
+			: await client.post("com.atproto.repo.createRecord", {
+					input: {
+						repo: agent.sub,
+						collection,
+						record: record as Record<string, unknown>,
+					},
+				});
 
 		if (!response.ok) {
 			return {
@@ -160,8 +173,8 @@ async function createRecord<TSchema extends BaseSchema>(
 
 		const uri = response.data.uri as string;
 		const cid = response.data.cid as string;
-		const rkey = uri.split("/").pop();
-		if (!rkey) {
+		const extractedRkey = uri.split("/").pop();
+		if (!extractedRkey) {
 			return {
 				success: false,
 				error: new Error("Invalid URI returned from createRecord"),
@@ -170,7 +183,7 @@ async function createRecord<TSchema extends BaseSchema>(
 
 		return {
 			success: true,
-			data: { uri: uri as AtUri, cid, rkey: asRkey(rkey) },
+			data: { uri: uri as AtUri, cid, rkey: asRkey(extractedRkey) },
 		};
 	} catch (error) {
 		return {
@@ -406,4 +419,54 @@ export function listUserCollectionLists(
 
 export function deleteCollectionListRecord(agent: OAuthUserAgent, rkey: Rkey) {
 	return deleteRecord(agent, rkey, ComDeckbelcherCollectionList.mainSchema);
+}
+
+// ============================================================================
+// Like Records
+// ============================================================================
+
+export type LikeRecordResponse = RecordResponse<ComDeckbelcherSocialLike.Main>;
+
+type LikeSubject = ComDeckbelcherSocialLike.Main["subject"];
+
+/**
+ * Hash an object to a deterministic rkey using SHA-256 + base64url.
+ * Full hash (43 chars) for maximum collision resistance.
+ * Valid rkey chars: A-Za-z0-9.-_:~ (base64url uses A-Za-z0-9-_)
+ */
+export async function hashToRkey(obj: unknown): Promise<Rkey> {
+	const json = JSON.stringify(obj);
+	const encoder = new TextEncoder();
+	const data = encoder.encode(json);
+	const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+
+	const hashArray = new Uint8Array(hashBuffer);
+	const base64 = btoa(String.fromCharCode(...hashArray));
+	const base64url = base64
+		.replace(/\+/g, "-")
+		.replace(/\//g, "_")
+		.replace(/=/g, "");
+
+	return asRkey(base64url);
+}
+
+export async function createLikeRecord(
+	agent: OAuthUserAgent,
+	subject: LikeSubject,
+) {
+	const rkey = await hashToRkey(subject);
+	const record: ComDeckbelcherSocialLike.Main = {
+		$type: "com.deckbelcher.social.like",
+		subject,
+		createdAt: new Date().toISOString(),
+	};
+	return createRecord(agent, record, ComDeckbelcherSocialLike.mainSchema, rkey);
+}
+
+export async function deleteLikeRecord(
+	agent: OAuthUserAgent,
+	subject: LikeSubject,
+) {
+	const rkey = await hashToRkey(subject);
+	return deleteRecord(agent, rkey, ComDeckbelcherSocialLike.mainSchema);
 }

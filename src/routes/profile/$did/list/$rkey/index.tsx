@@ -326,12 +326,12 @@ function DeckListItem({ item, onRemove }: DeckListItemProps) {
 	const deckDid = parts[2] as Did;
 	const deckRkey = parts[4] as Rkey;
 
-	const { data: deck, isError } = useQuery({
+	const { data, isError } = useQuery({
 		...getDeckQueryOptions(deckDid, deckRkey),
 		retry: false,
 	});
 
-	if (isError || !deck) {
+	if (isError || !data) {
 		return (
 			<div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg opacity-50">
 				<div className="flex-1">
@@ -356,7 +356,7 @@ function DeckListItem({ item, onRemove }: DeckListItemProps) {
 	return (
 		<div className="flex items-center gap-4">
 			<div className="flex-1">
-				<DeckPreview did={deckDid} rkey={deckRkey} deck={deck} />
+				<DeckPreview did={deckDid} rkey={deckRkey} deck={data.deck} />
 			</div>
 			{onRemove && (
 				<button

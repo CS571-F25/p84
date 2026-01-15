@@ -55,6 +55,11 @@ export function transformDeckRecord(record: ComDeckbelcherDeckList.Main): Deck {
 	};
 }
 
+export interface DeckRecord {
+	deck: Deck;
+	cid: string;
+}
+
 /**
  * Query options for fetching a single deck
  * Uses Slingshot for cached reads
@@ -62,12 +67,15 @@ export function transformDeckRecord(record: ComDeckbelcherDeckList.Main): Deck {
 export const getDeckQueryOptions = (did: Did, rkey: Rkey) =>
 	queryOptions({
 		queryKey: ["deck", did, rkey] as const,
-		queryFn: async (): Promise<Deck> => {
+		queryFn: async (): Promise<DeckRecord> => {
 			const result = await getDeckRecord(did, rkey);
 			if (!result.success) {
 				throw result.error;
 			}
-			return transformDeckRecord(result.data.value);
+			return {
+				deck: transformDeckRecord(result.data.value),
+				cid: result.data.cid,
+			};
 		},
 		staleTime: 30 * 1000, // 30 seconds - balance between freshness and cache hits
 	});
@@ -211,23 +219,43 @@ export function useUpdateDeckMutation(did: Did, rkey: Rkey) {
 			await queryClient.cancelQueries({ queryKey: ["deck", did, rkey] });
 
 			// Snapshot previous value
-			const previous = queryClient.getQueryData<Deck>(["deck", did, rkey]);
+			const previous = queryClient.getQueryData<DeckRecord>([
+				"deck",
+				did,
+				rkey,
+			]);
 
-			// Optimistically update cache
-			queryClient.setQueryData<Deck>(["deck", did, rkey], newDeck);
+			// WARN: We preserve the old cid during optimistic updates. This means the
+			// cid will be stale until onSuccess updates it. If someone likes the deck
+			// during this window, the like will reference the old cid. This is unlikely
+			// but could cause issues if the deck is being rapidly edited while liked.
+			if (previous) {
+				queryClient.setQueryData<DeckRecord>(["deck", did, rkey], {
+					deck: newDeck,
+					cid: previous.cid,
+				});
+			}
 
 			// Return context for rollback
 			return { previous };
 		},
+		onSuccess: (data, newDeck) => {
+			// Update cache with the new cid from the server response
+			queryClient.setQueryData<DeckRecord>(["deck", did, rkey], {
+				deck: newDeck,
+				cid: data.cid,
+			});
+		},
 		onError: (_err, _newDeck, context) => {
 			// Rollback on error and refetch
 			if (context?.previous) {
-				queryClient.setQueryData<Deck>(["deck", did, rkey], context.previous);
+				queryClient.setQueryData<DeckRecord>(
+					["deck", did, rkey],
+					context.previous,
+				);
 			}
 			queryClient.invalidateQueries({ queryKey: ["deck", did, rkey] });
 		},
-		// Don't refetch on success - optimistic update is correct
-		// Slingshot (cache) might be stale anyway
 	});
 }
 

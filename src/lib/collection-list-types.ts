@@ -14,7 +14,7 @@ import type { OracleId, ScryfallId } from "./scryfall-types";
  */
 export type SaveItem =
 	| { type: "card"; scryfallId: ScryfallId; oracleId: OracleId }
-	| { type: "deck"; deckUri: DeckItemUri };
+	| { type: "deck"; deckUri: DeckItemUri; cid: string };
 
 /**
  * App-side card item with flat typed IDs.
