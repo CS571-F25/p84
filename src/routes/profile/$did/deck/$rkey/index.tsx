@@ -20,8 +20,8 @@ import { GoldfishView } from "@/components/deck/GoldfishView";
 import { StatsCardList } from "@/components/deck/stats/StatsCardList";
 import { TrashDropZone } from "@/components/deck/TrashDropZone";
 import { ViewControls } from "@/components/deck/ViewControls";
-import { SaveToListButton } from "@/components/list/SaveToListButton";
 import { RichtextSection } from "@/components/richtext/RichtextSection";
+import { SocialStats } from "@/components/social/SocialStats";
 import { asRkey } from "@/lib/atproto-client";
 import { prefetchCards } from "@/lib/card-prefetch";
 import { getDeckQueryOptions, useUpdateDeckMutation } from "@/lib/deck-queries";
@@ -582,7 +582,7 @@ function DeckEditorInner({
 							onCardsChanged={handleCardsChanged}
 							readOnly={!isOwner}
 						/>
-						<SaveToListButton
+						<SocialStats
 							item={{
 								type: "deck",
 								deckUri: `at://${did}/com.deckbelcher.deck.list/${rkey}`,

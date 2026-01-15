@@ -1,5 +1,5 @@
 import type { Did } from "@atcute/lexicons";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Bookmark, Loader2, Plus } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
@@ -16,7 +16,9 @@ import {
 	hasCard,
 	hasDeck,
 } from "@/lib/collection-list-types";
+import { getConstellationQueryKeys } from "@/lib/constellation-queries";
 import type { OracleId, ScryfallId } from "@/lib/scryfall-types";
+import { toOracleUri } from "@/lib/scryfall-types";
 
 export type SaveItem =
 	| { type: "card"; scryfallId: ScryfallId; oracleId: OracleId }
@@ -202,6 +204,7 @@ function ListRow({
 	userDid,
 	onClose,
 }: ListRowProps) {
+	const queryClient = useQueryClient();
 	const updateMutation = useUpdateCollectionListMutation(userDid, rkey as Rkey);
 
 	const alreadySaved =
@@ -217,7 +220,28 @@ function ListRow({
 				? addCardToList(list, item.scryfallId, item.oracleId)
 				: addDeckToList(list, item.deckUri);
 
+		const itemUri =
+			item.type === "card"
+				? toOracleUri(item.oracleId)
+				: (item.deckUri as `at://${string}`);
+		const queryKeys = getConstellationQueryKeys(itemUri, userDid);
+
+		const previousSaved = queryClient.getQueryData<boolean>(
+			queryKeys.userSaved,
+		);
+		const previousCount = queryClient.getQueryData<number>(queryKeys.saveCount);
+
+		queryClient.setQueryData<boolean>(queryKeys.userSaved, true);
+		queryClient.setQueryData<number>(
+			queryKeys.saveCount,
+			(old) => (old ?? 0) + 1,
+		);
+
 		updateMutation.mutate(updatedList, {
+			onError: () => {
+				queryClient.setQueryData<boolean>(queryKeys.userSaved, previousSaved);
+				queryClient.setQueryData<number>(queryKeys.saveCount, previousCount);
+			},
 			onSuccess: () => {
 				const what = itemName ?? (item.type === "card" ? "Card" : "Deck");
 				toast.success(`Saved ${what} to ${list.name}`);

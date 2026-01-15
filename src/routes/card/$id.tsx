@@ -2,9 +2,9 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { CardImage } from "@/components/CardImage";
-import { SaveToListButton } from "@/components/list/SaveToListButton";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
+import { SocialStats } from "@/components/social/SocialStats";
 import { getAllFaces } from "@/lib/card-faces";
 import { FORMAT_GROUPS } from "@/lib/format-utils";
 import {
@@ -472,7 +472,7 @@ function FaceInfo({ face, primary = false, cardId, oracleId }: FaceInfoProps) {
 						)}
 					</div>
 					{cardId && oracleId && (
-						<SaveToListButton
+						<SocialStats
 							item={{ type: "card", scryfallId: cardId, oracleId }}
 							itemName={face.name}
 						/>

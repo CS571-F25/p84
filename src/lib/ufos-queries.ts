@@ -6,6 +6,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import type { Result } from "./atproto-client";
 import { transformListRecord } from "./collection-list-queries";
+import { MICROCOSM_USER_AGENT } from "./constellation-client";
 import { transformDeckRecord } from "./deck-queries";
 import type {
 	ComDeckbelcherCollectionList,
@@ -37,7 +38,12 @@ async function fetchRecentRecords<T>(
 		url.searchParams.set("collection", collectionParam);
 		url.searchParams.set("limit", String(limit));
 
-		const response = await fetch(url.toString());
+		const response = await fetch(url.toString(), {
+			headers: {
+				Accept: "application/json",
+				"User-Agent": MICROCOSM_USER_AGENT,
+			},
+		});
 
 		if (!response.ok) {
 			return {
