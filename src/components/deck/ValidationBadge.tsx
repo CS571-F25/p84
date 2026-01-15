@@ -1,4 +1,4 @@
-import { AlertTriangle, XCircle } from "lucide-react";
+import { AlertTriangle, ChevronDown, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { ValidationResult, Violation } from "@/lib/deck-validation";
 
@@ -48,6 +48,9 @@ export function ValidationBadge({ result }: ValidationBadgeProps) {
 				)}
 				{result.violations.length} issue
 				{result.violations.length !== 1 && "s"}
+				<ChevronDown
+					className={`w-3.5 h-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`}
+				/>
 			</button>
 
 			{isOpen && (
