@@ -478,23 +478,30 @@ function FaceInfo({ face, primary = false, cardId, oracleId }: FaceInfoProps) {
 		<div className="space-y-3">
 			<div>
 				<div className="flex items-center justify-between gap-3 mb-2">
-					<div className="flex items-center gap-3 flex-wrap">
-						{primary ? (
-							<h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-								{face.name}
-							</h1>
-						) : (
-							<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-								{face.name}
-							</h2>
-						)}
-						{face.mana_cost && (
-							<ManaCost
-								cost={face.mana_cost}
-								size={primary ? "large" : "medium"}
-							/>
-						)}
-					</div>
+					{primary ? (
+						<h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+							{face.name}
+						</h1>
+					) : (
+						<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+							{face.name}
+						</h2>
+					)}
+					{face.mana_cost && (
+						<ManaCost
+							cost={face.mana_cost}
+							size={primary ? "large" : "medium"}
+						/>
+					)}
+				</div>
+				<div className="flex items-center justify-between gap-3">
+					{face.type_line && (
+						<p
+							className={`text-gray-600 dark:text-gray-400 ${primary ? "text-lg" : ""}`}
+						>
+							{face.type_line}
+						</p>
+					)}
 					{cardId && oracleId && (
 						<SocialStats
 							item={{ type: "card", scryfallId: cardId, oracleId }}
@@ -502,13 +509,6 @@ function FaceInfo({ face, primary = false, cardId, oracleId }: FaceInfoProps) {
 						/>
 					)}
 				</div>
-				{face.type_line && (
-					<p
-						className={`text-gray-600 dark:text-gray-400 ${primary ? "text-lg" : ""}`}
-					>
-						{face.type_line}
-					</p>
-				)}
 			</div>
 
 			{face.oracle_text && (

@@ -9,6 +9,8 @@ import {
 	COLLECTION_LIST_CARD_PATH,
 	COLLECTION_LIST_DECK_PATH,
 	COLLECTION_LIST_NSID,
+	DECK_LIST_CARD_PATH,
+	DECK_LIST_NSID,
 	getBacklinks,
 	getLinksCount,
 	LIKE_CARD_PATH,
@@ -95,6 +97,29 @@ export function itemSaveCountQueryOptions<T extends SocialItemType>(
 	});
 }
 
+/**
+ * Query options for getting count of decks containing a card (cards only)
+ */
+export function cardDeckCountQueryOptions(itemUri: CardItemUri) {
+	return queryOptions({
+		queryKey: ["constellation", "deckCount", itemUri] as const,
+		queryFn: async (): Promise<number> => {
+			const result = await getLinksCount({
+				target: itemUri,
+				collection: DECK_LIST_NSID,
+				path: DECK_LIST_CARD_PATH,
+			});
+
+			if (!result.success) {
+				throw result.error;
+			}
+
+			return result.data.total;
+		},
+		staleTime: 60 * 1000,
+	});
+}
+
 export interface ItemSocialStats {
 	isSavedByUser: boolean;
 	saveCount: number;
@@ -102,10 +127,12 @@ export interface ItemSocialStats {
 	isLikedByUser: boolean;
 	likeCount: number;
 	isLikeLoading: boolean;
+	deckCount: number;
+	isDeckCountLoading: boolean;
 }
 
 /**
- * Combined hook for item social stats (saves + likes)
+ * Combined hook for item social stats (saves + likes + deck count for cards)
  */
 export function useItemSocialStats<T extends SocialItemType>(
 	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
@@ -123,6 +150,12 @@ export function useItemSocialStats<T extends SocialItemType>(
 	);
 	const likeCountQuery = useQuery(itemLikeCountQueryOptions(itemUri, itemType));
 
+	// Deck count only applies to cards
+	const deckCountQuery = useQuery({
+		...cardDeckCountQueryOptions(itemUri as CardItemUri),
+		enabled: itemType === "card",
+	});
+
 	return {
 		isSavedByUser: savedQuery.data ?? false,
 		saveCount: saveCountQuery.data ?? 0,
@@ -130,6 +163,8 @@ export function useItemSocialStats<T extends SocialItemType>(
 		isLikedByUser: likedQuery.data ?? false,
 		likeCount: likeCountQuery.data ?? 0,
 		isLikeLoading: likedQuery.isLoading || likeCountQuery.isLoading,
+		deckCount: deckCountQuery.data ?? 0,
+		isDeckCountLoading: itemType === "card" && deckCountQuery.isLoading,
 	};
 }
 

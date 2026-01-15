@@ -1,4 +1,4 @@
-import { Bookmark, Heart } from "lucide-react";
+import { Bookmark, Heart, Layers } from "lucide-react";
 import { useState } from "react";
 import type { SaveItem } from "@/lib/collection-list-types";
 import type { SocialItemUri } from "@/lib/constellation-queries";
@@ -37,6 +37,8 @@ export function SocialStats({
 		isLikedByUser,
 		likeCount,
 		isLikeLoading,
+		deckCount,
+		isDeckCountLoading,
 	} = useItemSocialStats(itemUri, item.type);
 
 	const handleSaveClick = () => {
@@ -54,7 +56,8 @@ export function SocialStats({
 		});
 	};
 
-	const buttonBase = `flex items-center gap-1 p-2 rounded-lg transition-colors ${
+	const statBase = "flex items-center gap-1 p-2 rounded-lg";
+	const buttonBase = `${statBase} transition-colors ${
 		session
 			? "hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
 			: "cursor-default opacity-75"
@@ -129,6 +132,21 @@ export function SocialStats({
 					</span>
 				)}
 			</button>
+
+			{/* Deck count (cards only, display-only) */}
+			{item.type === "card" && showCount && (
+				<div
+					className={`${statBase} text-gray-600 dark:text-gray-400`}
+					title="Decks containing this card"
+				>
+					<Layers className="w-5 h-5" />
+					<span
+						className={`text-sm tabular-nums ${isDeckCountLoading ? "opacity-50" : ""}`}
+					>
+						{deckCount}
+					</span>
+				</div>
+			)}
 
 			{session && (
 				<SaveToListDialog
