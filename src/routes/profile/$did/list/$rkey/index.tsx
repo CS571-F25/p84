@@ -12,6 +12,7 @@ import { RichtextSection } from "@/components/richtext/RichtextSection";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
 import {
 	getCollectionListQueryOptions,
+	useToggleListItemMutation,
 	useUpdateCollectionListMutation,
 } from "@/lib/collection-list-queries";
 import {
@@ -19,8 +20,7 @@ import {
 	isDeckItem,
 	type ListCardItem,
 	type ListDeckItem,
-	removeCardFromList,
-	removeDeckFromList,
+	type SaveItem,
 } from "@/lib/collection-list-types";
 import { getDeckQueryOptions } from "@/lib/deck-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
@@ -101,6 +101,7 @@ function ListDetailPage() {
 	const handle = extractHandle(didDocument ?? null);
 
 	const mutation = useUpdateCollectionListMutation(did as Did, asRkey(rkey));
+	const toggleMutation = useToggleListItemMutation(did as Did, asRkey(rkey));
 	const isOwner = session?.info.sub === did;
 
 	const [isEditingName, setIsEditingName] = useState(false);
@@ -115,13 +116,20 @@ function ListDetailPage() {
 	}
 
 	const handleRemoveCard = (item: ListCardItem) => {
-		const updated = removeCardFromList(list, item.scryfallId);
-		mutation.mutate(updated);
+		const saveItem: SaveItem = {
+			type: "card",
+			scryfallId: item.scryfallId,
+			oracleId: item.oracleId,
+		};
+		toggleMutation.mutate({ list, item: saveItem });
 	};
 
 	const handleRemoveDeck = (item: ListDeckItem) => {
-		const updated = removeDeckFromList(list, item.deckUri);
-		mutation.mutate(updated);
+		const saveItem: SaveItem = {
+			type: "deck",
+			deckUri: item.deckUri,
+		};
+		toggleMutation.mutate({ list, item: saveItem });
 	};
 
 	const handleNameClick = () => {

@@ -2,16 +2,13 @@ import type { Did } from "@atcute/lexicons";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Bookmark, Loader2, Plus } from "lucide-react";
 import { useEffect, useId, useState } from "react";
-import { toast } from "sonner";
 import type { Rkey } from "@/lib/atproto-client";
 import {
 	listUserCollectionListsQueryOptions,
 	useCreateCollectionListMutation,
-	useUpdateCollectionListMutation,
+	useToggleListItemMutation,
 } from "@/lib/collection-list-queries";
 import {
-	addCardToList,
-	addDeckToList,
 	type CollectionList,
 	hasCard,
 	hasDeck,
@@ -223,67 +220,44 @@ function ListRow({
 	userDid,
 	onClose,
 }: ListRowProps) {
-	const queryClient = useQueryClient();
-	const updateMutation = useUpdateCollectionListMutation(userDid, rkey as Rkey);
+	const toggleMutation = useToggleListItemMutation(userDid, rkey as Rkey);
 
-	const alreadySaved =
+	const isSaved =
 		item.type === "card"
 			? hasCard(list, item.scryfallId)
 			: hasDeck(list, item.deckUri);
 
 	const handleClick = () => {
-		if (alreadySaved) return;
-
-		const updatedList =
-			item.type === "card"
-				? addCardToList(list, item.scryfallId, item.oracleId)
-				: addDeckToList(list, item.deckUri);
-
-		const itemUri =
-			item.type === "card"
-				? toOracleUri(item.oracleId)
-				: (item.deckUri as `at://${string}`);
-		const queryKeys = getConstellationQueryKeys(itemUri, userDid);
-
-		const previousSaved = queryClient.getQueryData<boolean>(
-			queryKeys.userSaved,
-		);
-		const previousCount = queryClient.getQueryData<number>(queryKeys.saveCount);
-
-		queryClient.setQueryData<boolean>(queryKeys.userSaved, true);
-		queryClient.setQueryData<number>(
-			queryKeys.saveCount,
-			(old) => (old ?? 0) + 1,
-		);
-
-		updateMutation.mutate(updatedList, {
-			onError: () => {
-				queryClient.setQueryData<boolean>(queryKeys.userSaved, previousSaved);
-				queryClient.setQueryData<number>(queryKeys.saveCount, previousCount);
-			},
-			onSuccess: () => {
-				const what = itemName ?? (item.type === "card" ? "Card" : "Deck");
-				toast.success(`Saved ${what} to ${list.name}`);
-				onClose();
-			},
-		});
+		const isAdding = !isSaved;
+		toggleMutation.mutate({ list, item, itemName });
+		if (isAdding) {
+			onClose();
+		}
 	};
 
 	return (
 		<button
 			type="button"
 			onClick={handleClick}
-			disabled={alreadySaved || updateMutation.isPending}
-			className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:hover:bg-gray-50 dark:disabled:hover:bg-slate-800 rounded-lg transition-colors disabled:cursor-not-allowed"
+			disabled={toggleMutation.isPending}
+			className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+				isSaved
+					? "bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+					: "bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700"
+			}`}
 		>
-			<span className="font-medium text-gray-900 dark:text-white">
+			<span
+				className={`font-medium ${isSaved ? "text-blue-700 dark:text-blue-300" : "text-gray-900 dark:text-white"}`}
+			>
 				{list.name}
 			</span>
-			<span className="text-sm text-gray-500 dark:text-gray-400">
-				{alreadySaved ? (
-					"Already saved"
-				) : updateMutation.isPending ? (
+			<span
+				className={`text-sm ${isSaved ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}
+			>
+				{toggleMutation.isPending ? (
 					<Loader2 className="w-4 h-4 animate-spin" />
+				) : isSaved ? (
+					"Saved"
 				) : (
 					`${list.items.length} items`
 				)}

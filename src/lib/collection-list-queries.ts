@@ -22,12 +22,19 @@ import {
 	updateCollectionListRecord,
 } from "./atproto-client";
 import {
+	addCardToList,
+	addDeckToList,
 	type CollectionList,
+	hasCard,
+	hasDeck,
 	isCardItem,
 	isDeckItem,
 	type ListItem,
+	removeCardFromList,
+	removeDeckFromList,
 	type SaveItem,
 } from "./collection-list-types";
+import { getConstellationQueryKeys } from "./constellation-queries";
 import { getPdsForDid } from "./identity";
 import type { ComDeckbelcherCollectionList } from "./lexicons/index";
 import {
@@ -356,5 +363,206 @@ export function useDeleteCollectionListMutation(rkey: Rkey) {
 			});
 		},
 		errorMessage: "Failed to delete list",
+	});
+}
+
+interface ToggleListItemParams {
+	list: CollectionList;
+	item: SaveItem;
+	itemName?: string;
+}
+
+/**
+ * Mutation for toggling an item in a collection list (add/remove)
+ * Handles optimistic updates for constellation queries
+ */
+export function useToggleListItemMutation(did: Did, rkey: Rkey) {
+	const { agent } = useAuth();
+	const queryClient = useQueryClient();
+
+	return useMutationWithToast({
+		mutationFn: async ({ list, item }: ToggleListItemParams) => {
+			if (!agent) {
+				throw new Error("Must be authenticated to update a list");
+			}
+
+			const isSaved =
+				item.type === "card"
+					? hasCard(list, item.scryfallId)
+					: hasDeck(list, item.deckUri);
+
+			const updatedList = isSaved
+				? item.type === "card"
+					? removeCardFromList(list, item.scryfallId)
+					: removeDeckFromList(list, item.deckUri)
+				: item.type === "card"
+					? addCardToList(list, item.scryfallId, item.oracleId)
+					: addDeckToList(list, item.deckUri);
+
+			const result = await updateCollectionListRecord(agent, rkey, {
+				$type: "com.deckbelcher.collection.list",
+				name: updatedList.name,
+				description: updatedList.description,
+				items: updatedList.items.map((listItem) => {
+					if (isCardItem(listItem)) {
+						const { scryfallId, oracleId, ...rest } = listItem;
+						const mapped = {
+							...rest,
+							ref: {
+								scryfallUri: toScryfallUri(scryfallId),
+								oracleUri: toOracleUri(oracleId),
+							},
+						};
+						assertHasType(mapped);
+						return mapped;
+					}
+					if (isDeckItem(listItem)) {
+						assertHasType(listItem);
+						return listItem;
+					}
+					throw new Error(
+						`Unknown list item type: ${(listItem as { $type?: string }).$type}`,
+					);
+				}),
+				createdAt: updatedList.createdAt,
+				updatedAt: new Date().toISOString(),
+			});
+
+			if (!result.success) {
+				throw result.error;
+			}
+
+			return { ...result.data, wasSaved: isSaved };
+		},
+		onMutate: async ({ list, item }: ToggleListItemParams) => {
+			const isSaved =
+				item.type === "card"
+					? hasCard(list, item.scryfallId)
+					: hasDeck(list, item.deckUri);
+
+			// Compute updated list optimistically
+			const updatedList = isSaved
+				? item.type === "card"
+					? removeCardFromList(list, item.scryfallId)
+					: removeDeckFromList(list, item.deckUri)
+				: item.type === "card"
+					? addCardToList(list, item.scryfallId, item.oracleId)
+					: addDeckToList(list, item.deckUri);
+
+			// Cancel in-flight queries
+			await queryClient.cancelQueries({
+				queryKey: ["collection-list", did, rkey],
+			});
+			await queryClient.cancelQueries({
+				queryKey: ["collection-lists", did],
+			});
+
+			// Snapshot previous list state
+			const previousList = queryClient.getQueryData<CollectionList>([
+				"collection-list",
+				did,
+				rkey,
+			]);
+
+			type ListPage = { records: CollectionListRecord[]; cursor?: string };
+			const previousLists = queryClient.getQueryData<InfiniteData<ListPage>>([
+				"collection-lists",
+				did,
+			]);
+
+			// Optimistically update list queries
+			queryClient.setQueryData<CollectionList>(
+				["collection-list", did, rkey],
+				updatedList,
+			);
+
+			if (previousLists) {
+				queryClient.setQueryData<InfiniteData<ListPage>>(
+					["collection-lists", did],
+					{
+						...previousLists,
+						pages: previousLists.pages.map((page) => ({
+							...page,
+							records: page.records.map((record) =>
+								record.uri.endsWith(`/${rkey}`)
+									? { ...record, value: updatedList }
+									: record,
+							),
+						})),
+					},
+				);
+			}
+
+			// Optimistically update constellation queries
+			const itemUri =
+				item.type === "card"
+					? toOracleUri(item.oracleId)
+					: (item.deckUri as `at://${string}`);
+			const constellationKeys = getConstellationQueryKeys(itemUri, did);
+
+			await queryClient.cancelQueries({
+				queryKey: constellationKeys.userSaved,
+			});
+			await queryClient.cancelQueries({
+				queryKey: constellationKeys.saveCount,
+			});
+
+			const previousSaved = queryClient.getQueryData<boolean>(
+				constellationKeys.userSaved,
+			);
+			const previousCount = queryClient.getQueryData<number>(
+				constellationKeys.saveCount,
+			);
+
+			queryClient.setQueryData<boolean>(constellationKeys.userSaved, !isSaved);
+			queryClient.setQueryData<number>(constellationKeys.saveCount, (old) =>
+				isSaved ? Math.max(0, (old ?? 1) - 1) : (old ?? 0) + 1,
+			);
+
+			return {
+				previousList,
+				previousLists,
+				previousSaved,
+				previousCount,
+				constellationKeys,
+				isSaved,
+			};
+		},
+		onError: (_err, _params, context) => {
+			if (!context) return;
+
+			// Rollback list queries
+			if (context.previousList) {
+				queryClient.setQueryData<CollectionList>(
+					["collection-list", did, rkey],
+					context.previousList,
+				);
+			}
+			if (context.previousLists) {
+				type ListPage = { records: CollectionListRecord[]; cursor?: string };
+				queryClient.setQueryData<InfiniteData<ListPage>>(
+					["collection-lists", did],
+					context.previousLists,
+				);
+			}
+
+			// Rollback constellation queries
+			queryClient.setQueryData<boolean>(
+				context.constellationKeys.userSaved,
+				context.previousSaved,
+			);
+			queryClient.setQueryData<number>(
+				context.constellationKeys.saveCount,
+				context.previousCount,
+			);
+		},
+		onSuccess: (data, { list, itemName, item }) => {
+			const what = itemName ?? (item.type === "card" ? "Card" : "Deck");
+			if (data.wasSaved) {
+				toast.success(`Removed ${what} from ${list.name}`);
+			} else {
+				toast.success(`Saved ${what} to ${list.name}`);
+			}
+		},
 	});
 }
