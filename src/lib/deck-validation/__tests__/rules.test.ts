@@ -409,6 +409,14 @@ describe("commander rules", () => {
 			const violations = commanderLegendaryRule.validate(ctx);
 			expect(violations).toHaveLength(0);
 		});
+
+		it("allows Grist (planeswalker that's a creature everywhere else)", async () => {
+			const grist = await cards.get("Grist, the Hunger Tide");
+			const deck = makeDeck([makeCard(grist, "commander")]);
+			const ctx = await makeContextWithCards(deck, [grist]);
+			const violations = commanderLegendaryRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
 	});
 
 	describe("commanderPartnerRule edge cases", () => {
@@ -447,6 +455,19 @@ describe("commander rules", () => {
 				makeCard(selvala, "commander"),
 			]);
 			const ctx = await makeContextWithCards(deck, [barbara, selvala]);
+			const violations = commanderPartnerRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("cannot be paired");
+		});
+
+		it("rejects generic partner with friends forever (702.124f)", async () => {
+			const thrasios = await cards.get("Thrasios, Triton Hero");
+			const bjorna = await cards.get("Bjorna, Nightfall Alchemist");
+			const deck = makeDeck([
+				makeCard(thrasios, "commander"),
+				makeCard(bjorna, "commander"),
+			]);
+			const ctx = await makeContextWithCards(deck, [thrasios, bjorna]);
 			const violations = commanderPartnerRule.validate(ctx);
 			expect(violations).toHaveLength(1);
 			expect(violations[0].message).toContain("cannot be paired");
@@ -621,6 +642,44 @@ describe("commander rules", () => {
 				[stompingGround],
 				["R", "G"],
 			);
+			const violations = colorIdentityRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+	});
+
+	describe("colorIdentityRule DFC back face (903.4d)", () => {
+		it("rejects DFC when back face adds colors outside identity", async () => {
+			const valki = await cards.get("Valki, God of Lies");
+			const deck = makeDeck([makeCard(valki, "mainboard")]);
+			const ctx = await makeContextWithCards(deck, [valki], ["B"]);
+			const violations = colorIdentityRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("R not in B");
+		});
+
+		it("allows DFC when identity includes both faces", async () => {
+			const valki = await cards.get("Valki, God of Lies");
+			const deck = makeDeck([makeCard(valki, "mainboard")]);
+			const ctx = await makeContextWithCards(deck, [valki], ["B", "R"]);
+			const violations = colorIdentityRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+	});
+
+	describe("colorIdentityRule adventure cards (903.4e)", () => {
+		it("rejects adventure card outside color identity", async () => {
+			const bonecrusher = await cards.get("Bonecrusher Giant");
+			const deck = makeDeck([makeCard(bonecrusher, "mainboard")]);
+			const ctx = await makeContextWithCards(deck, [bonecrusher], ["U"]);
+			const violations = colorIdentityRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("R not in U");
+		});
+
+		it("allows adventure card within color identity", async () => {
+			const bonecrusher = await cards.get("Bonecrusher Giant");
+			const deck = makeDeck([makeCard(bonecrusher, "mainboard")]);
+			const ctx = await makeContextWithCards(deck, [bonecrusher], ["R"]);
 			const violations = colorIdentityRule.validate(ctx);
 			expect(violations).toHaveLength(0);
 		});

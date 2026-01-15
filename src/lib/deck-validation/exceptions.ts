@@ -1,4 +1,5 @@
 import type { Card } from "@/lib/scryfall-types";
+import { getOracleText, getTypeLine } from "./utils";
 
 /**
  * Copy exception types for cards that bypass normal deck construction limits
@@ -84,34 +85,4 @@ export function getCopyLimit(card: Card, defaultLimit: number): number {
 	}
 
 	return defaultLimit;
-}
-
-/**
- * Get combined oracle text from card, including all faces for DFCs
- */
-function getOracleText(card: Card): string {
-	if (card.oracle_text) {
-		return card.oracle_text;
-	}
-
-	if (card.card_faces) {
-		return card.card_faces.map((face) => face.oracle_text ?? "").join("\n");
-	}
-
-	return "";
-}
-
-/**
- * Get type line from card, including all faces for DFCs
- */
-function getTypeLine(card: Card): string {
-	if (card.type_line) {
-		return card.type_line;
-	}
-
-	if (card.card_faces) {
-		return card.card_faces.map((face) => face.type_line ?? "").join(" // ");
-	}
-
-	return "";
 }

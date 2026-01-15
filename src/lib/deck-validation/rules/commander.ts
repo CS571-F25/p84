@@ -7,6 +7,7 @@ import {
 	type Violation,
 	violation,
 } from "../types";
+import { getOracleText, getTypeLine } from "../utils";
 
 /**
  * Commander required - at least one commander
@@ -79,6 +80,11 @@ export function isValidCommanderType(card: Card): boolean {
 	const isSpacecraft = typeLine.includes("spacecraft");
 	const canBeCommander = oracleText.includes("can be your commander");
 
+	// Grist-style cards: creatures in all zones except battlefield
+	// e.g., "As long as Grist isn't on the battlefield, it's a 1/1 Insect creature"
+	const isCreatureOutsideBattlefield =
+		/isn't on the battlefield.*it's a.*creature/i.test(oracleText);
+
 	// Legendary creatures, vehicles, or spacecraft are valid
 	if (isLegendary && (isCreature || isVehicle || isSpacecraft)) {
 		return true;
@@ -86,6 +92,11 @@ export function isValidCommanderType(card: Card): boolean {
 
 	// Cards with explicit "can be your commander" text
 	if (canBeCommander) {
+		return true;
+	}
+
+	// Legendary cards that are creatures outside the battlefield (Grist)
+	if (isLegendary && isCreatureOutsideBattlefield) {
 		return true;
 	}
 
@@ -218,7 +229,7 @@ function validatePairing(
 	};
 }
 
-interface PartnerInfo {
+export interface PartnerInfo {
 	hasGenericPartner: boolean;
 	hasFriendsForever: boolean;
 	partnerWithName: string | null;
@@ -227,7 +238,7 @@ interface PartnerInfo {
 	hasDoctorsCompanion: boolean;
 }
 
-function getPartnerInfo(card: Card): PartnerInfo {
+export function getPartnerInfo(card: Card): PartnerInfo {
 	const oracleText = getOracleText(card).toLowerCase();
 	const typeLine = getTypeLine(card).toLowerCase();
 	const keywords = card.keywords?.map((k) => k.toLowerCase()) ?? [];
@@ -236,13 +247,18 @@ function getPartnerInfo(card: Card): PartnerInfo {
 	const partnerWithMatch = oracleText.match(/partner with ([^(]+)\s*\(/i);
 	const partnerWithName = partnerWithMatch ? partnerWithMatch[1].trim() : null;
 
-	// Generic partner has "Partner" keyword but NOT "Partner with X" in oracle text
+	// Friends forever uses "Partner—Friends forever" syntax
+	// Scryfall keyword array just shows "Partner", so we check oracle text
+	const hasFriendsForever = /partner[—-]+friends forever/i.test(oracleText);
+
+	// Generic partner has "Partner" keyword but NOT "Partner with X" or "Friends forever"
 	const hasPartnerKeyword = keywords.includes("partner");
-	const hasGenericPartner = hasPartnerKeyword && !partnerWithName;
+	const hasGenericPartner =
+		hasPartnerKeyword && !partnerWithName && !hasFriendsForever;
 
 	return {
 		hasGenericPartner,
-		hasFriendsForever: keywords.includes("friends forever"),
+		hasFriendsForever,
 		partnerWithName,
 		choosesBackground: oracleText.includes("choose a background"),
 		isBackground: typeLine.includes("background"),
@@ -250,7 +266,7 @@ function getPartnerInfo(card: Card): PartnerInfo {
 	};
 }
 
-function isDoctor(card: Card): boolean {
+export function isDoctor(card: Card): boolean {
 	const typeLine = getTypeLine(card).toLowerCase();
 	return typeLine.includes("time lord") && typeLine.includes("doctor");
 }
@@ -430,33 +446,3 @@ export const signatureSpellRule: Rule<"signatureSpell"> = {
 		return violations;
 	},
 };
-
-/**
- * Get combined oracle text from card, including all faces for DFCs
- */
-function getOracleText(card: Card): string {
-	if (card.oracle_text) {
-		return card.oracle_text;
-	}
-
-	if (card.card_faces) {
-		return card.card_faces.map((face) => face.oracle_text ?? "").join("\n");
-	}
-
-	return "";
-}
-
-/**
- * Get type line from card, including all faces for DFCs
- */
-function getTypeLine(card: Card): string {
-	if (card.type_line) {
-		return card.type_line;
-	}
-
-	if (card.card_faces) {
-		return card.card_faces.map((face) => face.type_line ?? "").join(" // ");
-	}
-
-	return "";
-}

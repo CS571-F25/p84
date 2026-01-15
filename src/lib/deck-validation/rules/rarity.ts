@@ -7,6 +7,7 @@ import {
 	type Violation,
 	violation,
 } from "../types";
+import { getTypeLine } from "../utils";
 
 /**
  * Commander must be uncommon creature (Pauper Commander / PDH)
@@ -87,16 +88,4 @@ function isUncommonInPaperOrMtgo(card: Card): boolean {
 
 	const games = card.games ?? [];
 	return games.includes("paper") || games.includes("mtgo");
-}
-
-function getTypeLine(card: Card): string {
-	if (card.type_line) {
-		return card.type_line;
-	}
-
-	if (card.card_faces) {
-		return card.card_faces.map((face) => face.type_line ?? "").join(" // ");
-	}
-
-	return "";
 }

@@ -1,4 +1,4 @@
-import { getCardsInSection } from "@/lib/deck-types";
+import { type DeckCard, getCardsInSection } from "@/lib/deck-types";
 import type { Card } from "@/lib/scryfall-types";
 import {
 	asRuleNumber,
@@ -7,6 +7,17 @@ import {
 	type Violation,
 	violation,
 } from "../types";
+import { getOracleText, getTypeLine } from "../utils";
+
+/**
+ * Get cards in "starting deck" for companion purposes.
+ * Per 702.139b, in Commander this includes the commander zone.
+ */
+function getStartingDeckCards(ctx: ValidationContext): DeckCard[] {
+	const mainboard = getCardsInSection(ctx.deck, "mainboard");
+	const commander = getCardsInSection(ctx.deck, "commander");
+	return [...mainboard, ...commander];
+}
 
 /**
  * Companion rule - validates deck meets companion's deck-building restriction
@@ -86,11 +97,11 @@ function validateCompanionRestriction(
 }
 
 function validateLurrus(_companion: Card, ctx: ValidationContext): Violation[] {
-	const { deck, cardLookup } = ctx;
+	const { cardLookup } = ctx;
 	const violations: Violation[] = [];
-	const mainboard = getCardsInSection(deck, "mainboard");
+	const startingDeck = getStartingDeckCards(ctx);
 
-	for (const entry of mainboard) {
+	for (const entry of startingDeck) {
 		const card = cardLookup(entry.scryfallId);
 		if (!card) continue;
 
@@ -106,7 +117,7 @@ function validateLurrus(_companion: Card, ctx: ValidationContext): Violation[] {
 					{
 						cardName: card.name,
 						oracleId: entry.oracleId,
-						section: "mainboard",
+						section: entry.section === "commander" ? "commander" : "mainboard",
 					},
 				),
 			);
@@ -117,11 +128,11 @@ function validateLurrus(_companion: Card, ctx: ValidationContext): Violation[] {
 }
 
 function validateGyruda(_companion: Card, ctx: ValidationContext): Violation[] {
-	const { deck, cardLookup } = ctx;
+	const { cardLookup } = ctx;
 	const violations: Violation[] = [];
-	const mainboard = getCardsInSection(deck, "mainboard");
+	const startingDeck = getStartingDeckCards(ctx);
 
-	for (const entry of mainboard) {
+	for (const entry of startingDeck) {
 		const card = cardLookup(entry.scryfallId);
 		if (!card) continue;
 
@@ -137,7 +148,7 @@ function validateGyruda(_companion: Card, ctx: ValidationContext): Violation[] {
 					{
 						cardName: card.name,
 						oracleId: entry.oracleId,
-						section: "mainboard",
+						section: entry.section === "commander" ? "commander" : "mainboard",
 					},
 				),
 			);
@@ -148,11 +159,11 @@ function validateGyruda(_companion: Card, ctx: ValidationContext): Violation[] {
 }
 
 function validateObosh(_companion: Card, ctx: ValidationContext): Violation[] {
-	const { deck, cardLookup } = ctx;
+	const { cardLookup } = ctx;
 	const violations: Violation[] = [];
-	const mainboard = getCardsInSection(deck, "mainboard");
+	const startingDeck = getStartingDeckCards(ctx);
 
-	for (const entry of mainboard) {
+	for (const entry of startingDeck) {
 		const card = cardLookup(entry.scryfallId);
 		if (!card) continue;
 
@@ -168,7 +179,7 @@ function validateObosh(_companion: Card, ctx: ValidationContext): Violation[] {
 					{
 						cardName: card.name,
 						oracleId: entry.oracleId,
-						section: "mainboard",
+						section: entry.section === "commander" ? "commander" : "mainboard",
 					},
 				),
 			);
@@ -205,7 +216,7 @@ function validateKaheera(
 					{
 						cardName: card.name,
 						oracleId: entry.oracleId,
-						section: "mainboard",
+						section: entry.section === "commander" ? "commander" : "mainboard",
 					},
 				),
 			);
@@ -260,11 +271,11 @@ function validateJegantha(
 	_companion: Card,
 	ctx: ValidationContext,
 ): Violation[] {
-	const { deck, cardLookup } = ctx;
+	const { cardLookup } = ctx;
 	const violations: Violation[] = [];
-	const mainboard = getCardsInSection(deck, "mainboard");
+	const startingDeck = getStartingDeckCards(ctx);
 
-	for (const entry of mainboard) {
+	for (const entry of startingDeck) {
 		const card = cardLookup(entry.scryfallId);
 		if (!card) continue;
 
@@ -278,7 +289,7 @@ function validateJegantha(
 					{
 						cardName: card.name,
 						oracleId: entry.oracleId,
-						section: "mainboard",
+						section: entry.section === "commander" ? "commander" : "mainboard",
 					},
 				),
 			);
@@ -307,11 +318,11 @@ function hasRepeatedManaSymbol(manaCost: string): boolean {
 }
 
 function validateKeruga(_companion: Card, ctx: ValidationContext): Violation[] {
-	const { deck, cardLookup } = ctx;
+	const { cardLookup } = ctx;
 	const violations: Violation[] = [];
-	const mainboard = getCardsInSection(deck, "mainboard");
+	const startingDeck = getStartingDeckCards(ctx);
 
-	for (const entry of mainboard) {
+	for (const entry of startingDeck) {
 		const card = cardLookup(entry.scryfallId);
 		if (!card) continue;
 
@@ -331,7 +342,7 @@ function validateKeruga(_companion: Card, ctx: ValidationContext): Violation[] {
 					{
 						cardName: card.name,
 						oracleId: entry.oracleId,
-						section: "mainboard",
+						section: entry.section === "commander" ? "commander" : "mainboard",
 					},
 				),
 			);
@@ -342,18 +353,21 @@ function validateKeruga(_companion: Card, ctx: ValidationContext): Violation[] {
 }
 
 function validateYorion(_companion: Card, ctx: ValidationContext): Violation[] {
-	const { deck, config } = ctx;
-	const mainboard = getCardsInSection(deck, "mainboard");
-	const mainboardCount = mainboard.reduce((sum, c) => sum + c.quantity, 0);
+	const { config } = ctx;
+	const startingDeck = getStartingDeckCards(ctx);
+	const startingDeckCount = startingDeck.reduce(
+		(sum, c) => sum + c.quantity,
+		0,
+	);
 
 	const minDeckSize = config.minDeckSize ?? config.deckSize ?? 60;
 	const requiredSize = minDeckSize + 20;
 
-	if (mainboardCount < requiredSize) {
+	if (startingDeckCount < requiredSize) {
 		return [
 			violation(
 				companionRule,
-				`Yorion companion requires at least ${requiredSize} cards (20 more than minimum), but deck has ${mainboardCount}`,
+				`Yorion companion requires at least ${requiredSize} cards (20 more than minimum), but deck has ${startingDeckCount}`,
 				"error",
 			),
 		];
@@ -363,11 +377,11 @@ function validateYorion(_companion: Card, ctx: ValidationContext): Violation[] {
 }
 
 function validateZirda(_companion: Card, ctx: ValidationContext): Violation[] {
-	const { deck, cardLookup } = ctx;
+	const { cardLookup } = ctx;
 	const violations: Violation[] = [];
-	const mainboard = getCardsInSection(deck, "mainboard");
+	const startingDeck = getStartingDeckCards(ctx);
 
-	for (const entry of mainboard) {
+	for (const entry of startingDeck) {
 		const card = cardLookup(entry.scryfallId);
 		if (!card) continue;
 
@@ -385,7 +399,7 @@ function validateZirda(_companion: Card, ctx: ValidationContext): Violation[] {
 					{
 						cardName: card.name,
 						oracleId: entry.oracleId,
-						section: "mainboard",
+						section: entry.section === "commander" ? "commander" : "mainboard",
 					},
 				),
 			);
@@ -447,24 +461,4 @@ function isPermanent(card: Card): boolean {
 function isLand(card: Card): boolean {
 	const typeLine = getTypeLine(card).toLowerCase();
 	return typeLine.includes("land");
-}
-
-function getTypeLine(card: Card): string {
-	if (card.type_line) {
-		return card.type_line;
-	}
-	if (card.card_faces) {
-		return card.card_faces.map((face) => face.type_line ?? "").join(" // ");
-	}
-	return "";
-}
-
-function getOracleText(card: Card): string {
-	if (card.oracle_text) {
-		return card.oracle_text;
-	}
-	if (card.card_faces) {
-		return card.card_faces.map((face) => face.oracle_text ?? "").join("\n");
-	}
-	return "";
 }
