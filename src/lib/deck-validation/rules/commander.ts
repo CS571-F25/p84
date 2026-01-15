@@ -30,13 +30,17 @@ export const commanderRequiredRule: Rule<"commanderRequired"> = {
 };
 
 /**
- * Commander must be legendary creature (or planeswalker with "can be your commander")
+ * Commander must be legendary creature, vehicle, or spacecraft
+ * (or any card with "can be your commander" text)
+ *
+ * As of 2024, vehicles and spacecraft can be commanders without
+ * special text - they're allowed by the base Commander rules.
  */
 export const commanderLegendaryRule: Rule<"commanderLegendary"> = {
 	id: "commanderLegendary",
 	rule: asRuleNumber("903.3"),
 	category: "structure",
-	description: "Commander must be a legendary creature",
+	description: "Commander must be a legendary creature, vehicle, or spacecraft",
 	validate(ctx: ValidationContext): Violation[] {
 		const { deck, cardLookup } = ctx;
 		const violations: Violation[] = [];
@@ -46,14 +50,7 @@ export const commanderLegendaryRule: Rule<"commanderLegendary"> = {
 			const card = cardLookup(entry.scryfallId);
 			if (!card) continue;
 
-			const typeLine = getTypeLine(card).toLowerCase();
-			const oracleText = getOracleText(card).toLowerCase();
-
-			const isLegendaryCreature =
-				typeLine.includes("legendary") && typeLine.includes("creature");
-			const canBeCommander = oracleText.includes("can be your commander");
-
-			if (!isLegendaryCreature && !canBeCommander) {
+			if (!isValidCommanderType(card)) {
 				violations.push(
 					violation(this, `${card.name} is not a legendary creature`, "error", {
 						cardName: card.name,
@@ -67,6 +64,29 @@ export const commanderLegendaryRule: Rule<"commanderLegendary"> = {
 		return violations;
 	},
 };
+
+export function isValidCommanderType(card: Card): boolean {
+	const typeLine = getTypeLine(card).toLowerCase();
+	const oracleText = getOracleText(card).toLowerCase();
+
+	const isLegendary = typeLine.includes("legendary");
+	const isCreature = typeLine.includes("creature");
+	const isVehicle = typeLine.includes("vehicle");
+	const isSpacecraft = typeLine.includes("spacecraft");
+	const canBeCommander = oracleText.includes("can be your commander");
+
+	// Legendary creatures, vehicles, or spacecraft are valid
+	if (isLegendary && (isCreature || isVehicle || isSpacecraft)) {
+		return true;
+	}
+
+	// Cards with explicit "can be your commander" text
+	if (canBeCommander) {
+		return true;
+	}
+
+	return false;
+}
 
 /**
  * Partner rule - validates commander pairing is legal

@@ -15,6 +15,7 @@ export {
 	commanderPartnerRule,
 	commanderPlaneswalkerRule,
 	commanderRequiredRule,
+	isValidCommanderType,
 	signatureSpellRule,
 } from "./commander";
 

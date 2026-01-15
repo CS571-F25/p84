@@ -71,6 +71,9 @@ export class TestCardLookup {
 			);
 		}
 
+		// log the card, so that the details of the card are shown in the error
+		console.log(card);
+
 		return card;
 	}
 

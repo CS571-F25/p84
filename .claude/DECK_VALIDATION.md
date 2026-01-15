@@ -97,8 +97,8 @@ interface ValidationResult {
 | `colorIdentity` | 903.4 | Cards must match commander colors |
 | `commanderRequired` | 903.3 | At least 1 commander |
 | `commanderPartner` | 702.124 | Valid partner pairing if 2 commanders |
-| `commanderLegendary` | 903.3 | Commander must be legendary creature |
-| `commanderUncommon` | 903.3 | Commander must be uncommon (PDH) |
+| `commanderLegendary` | 903.3 | Commander must be legendary creature/vehicle/spacecraft |
+| `commanderUncommon` | 903.3 | Commander must be uncommon creature (PDH) |
 | `commanderPlaneswalker` | 903.3 | Commander must be planeswalker (Oathbreaker) |
 | `signatureSpell` | 903.3 | Oathbreaker signature spell requirement |
 
@@ -210,8 +210,15 @@ The `commanderPartnerRule` validates all partner pairings:
 
 ## PDH (Pauper Commander) Notes
 
-- Commander must have an uncommon printing in paper or MTGO
+- Commander must be a creature (or vehicle) with an uncommon printing in paper/MTGO
+- Non-creature artifacts (Sol Ring, etc.) cannot be PDH commanders even if uncommon
 - Arena-only uncommon downshifts don't count
 - Any printing can be used if a valid uncommon exists
 - Uses `legalities.paupercommander` for the 99, not `pauper`
 - Commander doesn't need to be legendary (just uncommon creature)
+
+## Commander Eligibility (2024 Rule Update)
+
+As of 2024, legendary vehicles and spacecraft are valid commanders without needing
+"can be your commander" text. The `isValidCommanderType` function is exported for
+use in `is:commander` search filtering.

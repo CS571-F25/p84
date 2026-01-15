@@ -14,7 +14,7 @@ export { getFormatConfig, getPreset, PRESETS } from "./presets";
 export type { RuleId } from "./rules";
 
 // Rules
-export { RULES } from "./rules";
+export { isValidCommanderType, RULES } from "./rules";
 // Types
 export type {
 	FormatConfig,

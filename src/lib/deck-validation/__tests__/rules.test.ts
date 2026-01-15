@@ -18,6 +18,7 @@ import {
 	commanderRequiredRule,
 	signatureSpellRule,
 } from "../rules/commander";
+import { commanderUncommonRule } from "../rules/rarity";
 import type { ValidationContext } from "../types";
 
 describe("commander rules", () => {
@@ -69,6 +70,7 @@ describe("commander rules", () => {
 		deck: Deck,
 		cardList: Card[],
 		commanderColors?: string[],
+		printingsMap?: Map<OracleId, Card[]>,
 	): Promise<ValidationContext> {
 		const cardMap = new Map<ScryfallId, Card>();
 		const oracleMap = new Map<OracleId, Card>();
@@ -82,7 +84,7 @@ describe("commander rules", () => {
 			deck,
 			cardLookup: (id) => cardMap.get(id),
 			oracleLookup: (id) => oracleMap.get(id),
-			getPrintings: () => [],
+			getPrintings: (id) => printingsMap?.get(id) ?? [],
 			format: deck.format,
 			commanderColors: commanderColors as ManaColor[] | undefined,
 			config: { legalityField: "commander" },
@@ -346,6 +348,203 @@ describe("commander rules", () => {
 			const violations = signatureSpellRule.validate(ctx);
 			expect(violations).toHaveLength(1);
 			expect(violations[0].message).toContain("only have 1 signature spell");
+		});
+	});
+
+	describe("commanderLegendaryRule edge cases", () => {
+		it("allows vehicle with 'can be your commander' text", async () => {
+			const shorikai = await cards.get("Shorikai, Genesis Engine");
+			const deck = makeDeck([makeCard(shorikai, "commander")]);
+			const ctx = await makeContextWithCards(deck, [shorikai]);
+			const violations = commanderLegendaryRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+
+		it("allows legendary vehicle (rule change 2024)", async () => {
+			const parhelion = await cards.get("Parhelion II");
+			const deck = makeDeck([makeCard(parhelion, "commander")]);
+			const ctx = await makeContextWithCards(deck, [parhelion]);
+			const violations = commanderLegendaryRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+
+		it("rejects non-legendary artifact as commander", async () => {
+			const solRing = await cards.get("Sol Ring");
+			const deck = makeDeck([makeCard(solRing, "commander")]);
+			const ctx = await makeContextWithCards(deck, [solRing]);
+			const violations = commanderLegendaryRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("not a legendary creature");
+		});
+
+		it("allows planeswalker with 'can be your commander' text", async () => {
+			const aminatou = await cards.get("Aminatou, the Fateshifter");
+			const deck = makeDeck([makeCard(aminatou, "commander")]);
+			const ctx = await makeContextWithCards(deck, [aminatou]);
+			const violations = commanderLegendaryRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+
+		it("rejects planeswalker without 'can be your commander' in Commander", async () => {
+			const bolas = await cards.get("Nicol Bolas, Planeswalker");
+			const deck = makeDeck([makeCard(bolas, "commander")], "commander");
+			const ctx = await makeContextWithCards(deck, [bolas]);
+			const violations = commanderLegendaryRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("not a legendary creature");
+		});
+
+		it("allows DFC with legendary creature on front face", async () => {
+			const esika = await cards.get("Esika, God of the Tree");
+			const deck = makeDeck([makeCard(esika, "commander")]);
+			const ctx = await makeContextWithCards(deck, [esika]);
+			const violations = commanderLegendaryRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+
+		it("allows creature that transforms into planeswalker", async () => {
+			const jace = await cards.get("Jace, Vryn's Prodigy");
+			const deck = makeDeck([makeCard(jace, "commander")]);
+			const ctx = await makeContextWithCards(deck, [jace]);
+			const violations = commanderLegendaryRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+	});
+
+	describe("commanderPartnerRule edge cases", () => {
+		it("rejects background paired with non-background-choosing creature", async () => {
+			const selvala = await cards.get("Selvala, Heart of the Wilds");
+			const raisedByGiants = await cards.get("Raised by Giants");
+			const deck = makeDeck([
+				makeCard(selvala, "commander"),
+				makeCard(raisedByGiants, "commander"),
+			]);
+			const ctx = await makeContextWithCards(deck, [selvala, raisedByGiants]);
+			const violations = commanderPartnerRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("cannot be paired");
+		});
+
+		it("rejects two backgrounds together", async () => {
+			const raisedByGiants = await cards.get("Raised by Giants");
+			const deck = makeDeck([
+				makeCard(raisedByGiants, "commander"),
+				makeCard(raisedByGiants, "commander"),
+			]);
+			const ctx = await makeContextWithCards(deck, [
+				raisedByGiants,
+				raisedByGiants,
+			]);
+			const violations = commanderPartnerRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+		});
+
+		it("rejects doctor's companion without a doctor", async () => {
+			const barbara = await cards.get("Barbara Wright");
+			const selvala = await cards.get("Selvala, Heart of the Wilds");
+			const deck = makeDeck([
+				makeCard(barbara, "commander"),
+				makeCard(selvala, "commander"),
+			]);
+			const ctx = await makeContextWithCards(deck, [barbara, selvala]);
+			const violations = commanderPartnerRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("cannot be paired");
+		});
+	});
+
+	describe("commanderUncommonRule (PDH)", () => {
+		function mockPrinting(
+			card: Card,
+			rarity: "common" | "uncommon" | "rare" | "mythic",
+			games: string[] = ["paper"],
+		): Card {
+			return { ...card, rarity, games };
+		}
+
+		it("passes for uncommon creature", async () => {
+			const mulldrifter = await cards.get("Mulldrifter");
+			const deck = makeDeck(
+				[makeCard(mulldrifter, "commander")],
+				"paupercommander",
+			);
+			const printingsMap = new Map<OracleId, Card[]>();
+			printingsMap.set(mulldrifter.oracle_id, [
+				mockPrinting(mulldrifter, "uncommon", ["paper"]),
+			]);
+			const ctx = await makeContextWithCards(
+				deck,
+				[mulldrifter],
+				undefined,
+				printingsMap,
+			);
+			const violations = commanderUncommonRule.validate(ctx);
+			expect(violations).toHaveLength(0);
+		});
+
+		it("rejects rare-only creature", async () => {
+			const selvala = await cards.get("Selvala, Heart of the Wilds");
+			const deck = makeDeck(
+				[makeCard(selvala, "commander")],
+				"paupercommander",
+			);
+			const printingsMap = new Map<OracleId, Card[]>();
+			printingsMap.set(selvala.oracle_id, [
+				mockPrinting(selvala, "rare", ["paper"]),
+				mockPrinting(selvala, "mythic", ["paper"]),
+			]);
+			const ctx = await makeContextWithCards(
+				deck,
+				[selvala],
+				undefined,
+				printingsMap,
+			);
+			const violations = commanderUncommonRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("no uncommon printing");
+		});
+
+		it("rejects uncommon artifact (not creature)", async () => {
+			const solRing = await cards.get("Sol Ring");
+			const deck = makeDeck(
+				[makeCard(solRing, "commander")],
+				"paupercommander",
+			);
+			const printingsMap = new Map<OracleId, Card[]>();
+			printingsMap.set(solRing.oracle_id, [
+				mockPrinting(solRing, "uncommon", ["paper"]),
+			]);
+			const ctx = await makeContextWithCards(
+				deck,
+				[solRing],
+				undefined,
+				printingsMap,
+			);
+			const violations = commanderUncommonRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("not a creature");
+		});
+
+		it("rejects arena-only uncommon", async () => {
+			const mulldrifter = await cards.get("Mulldrifter");
+			const deck = makeDeck(
+				[makeCard(mulldrifter, "commander")],
+				"paupercommander",
+			);
+			const printingsMap = new Map<OracleId, Card[]>();
+			printingsMap.set(mulldrifter.oracle_id, [
+				mockPrinting(mulldrifter, "uncommon", ["arena"]),
+				mockPrinting(mulldrifter, "rare", ["paper"]),
+			]);
+			const ctx = await makeContextWithCards(
+				deck,
+				[mulldrifter],
+				undefined,
+				printingsMap,
+			);
+			const violations = commanderUncommonRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("no uncommon printing");
 		});
 	});
 });
