@@ -24,7 +24,7 @@ const SLINGSHOT_BASE = "https://slingshot.microcosm.blue";
 
 type Collection = `${string}.${string}.${string}`;
 
-function getCollectionFromSchema(schema: BaseSchema): Collection {
+export function getCollectionFromSchema(schema: BaseSchema): Collection {
 	// Schema structure: { object: { shape: { $type: { expected: "com.foo.bar" } } } }
 	const schemaAny = schema as {
 		object?: { shape?: { $type?: { expected?: string } } };

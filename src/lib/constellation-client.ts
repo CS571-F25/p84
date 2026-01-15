@@ -3,28 +3,38 @@
  * See .claude/CONSTELLATION.md for full API documentation
  */
 
-import type { Result } from "./atproto-client";
+import { getCollectionFromSchema, type Result } from "./atproto-client";
+import {
+	ComDeckbelcherCollectionList,
+	ComDeckbelcherDeckList,
+	ComDeckbelcherSocialLike,
+} from "./lexicons/index";
 
 const CONSTELLATION_BASE = "https://constellation.microcosm.blue";
 export const MICROCOSM_USER_AGENT = "deckbelcher.com by @aviva.gay";
 
+// NSIDs derived from schemas (single source of truth)
+export const COLLECTION_LIST_NSID = getCollectionFromSchema(
+	ComDeckbelcherCollectionList.mainSchema,
+);
+export const DECK_LIST_NSID = getCollectionFromSchema(
+	ComDeckbelcherDeckList.mainSchema,
+);
+export const LIKE_NSID = getCollectionFromSchema(
+	ComDeckbelcherSocialLike.mainSchema,
+);
+
 // Path constants for DeckBelcher collections
 // Constellation includes $type in paths for union array elements
 // Use oracleUri for card aggregation (counts across printings)
-export const COLLECTION_LIST_CARD_PATH =
-	".items[com.deckbelcher.collection.list#cardItem].ref.oracleUri";
-export const COLLECTION_LIST_DECK_PATH =
-	".items[com.deckbelcher.collection.list#deckItem].ref.uri";
+export const COLLECTION_LIST_CARD_PATH = `.items[${COLLECTION_LIST_NSID}#cardItem].ref.oracleUri`;
+export const COLLECTION_LIST_DECK_PATH = `.items[${COLLECTION_LIST_NSID}#deckItem].ref.uri`;
 // Future: cards in decks (also uses oracleUri for aggregation)
 export const DECK_LIST_CARD_PATH = ".cards[].ref.oracleUri";
 
 // Like paths (subject is a union but NOT an array, so no [$type] notation)
 export const LIKE_CARD_PATH = ".subject.ref.oracleUri";
 export const LIKE_RECORD_PATH = ".subject.ref.uri";
-
-export const COLLECTION_LIST_NSID = "com.deckbelcher.collection.list";
-export const DECK_LIST_NSID = "com.deckbelcher.deck.list";
-export const LIKE_NSID = "com.deckbelcher.social.like";
 
 export interface BacklinkRecord {
 	uri: string;
