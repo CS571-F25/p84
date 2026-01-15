@@ -76,7 +76,7 @@ export function SocialStats({
 				<Heart
 					className={`w-5 h-5 ${
 						isLikedByUser
-							? "text-red-500 dark:text-red-400"
+							? "text-rose-400 dark:text-red-400"
 							: "text-gray-600 dark:text-gray-400"
 					}`}
 					fill={isLikedByUser ? "currentColor" : "none"}
@@ -85,7 +85,7 @@ export function SocialStats({
 					<span
 						className={`text-sm tabular-nums ${isLikeLoading ? "opacity-50" : ""} ${
 							isLikedByUser
-								? "text-red-500 dark:text-red-400"
+								? "text-rose-400 dark:text-red-400"
 								: "text-gray-600 dark:text-gray-400"
 						}`}
 					>
