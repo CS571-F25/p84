@@ -5,11 +5,7 @@ import { useMemo } from "react";
 import { CardSpread } from "@/components/CardSpread";
 import { ClientDate } from "@/components/ClientDate";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
-import {
-	getDeckNameWords,
-	isNonCreatureLand,
-	textMatchesDeckTitle,
-} from "@/lib/deck-preview-utils";
+import { getPreviewCardIds } from "@/lib/deck-preview-utils";
 import type { Deck } from "@/lib/deck-types";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { formatDisplayName } from "@/lib/format-utils";
@@ -79,15 +75,11 @@ export function DeckPreview({
 		: "";
 	const dateString = deck.updatedAt ?? deck.createdAt;
 
-	const commanders = useMemo(
-		() => deck.cards.filter((c) => c.section === "commander"),
-		[deck.cards],
-	);
+	const hasCommanders = deck.cards.some((c) => c.section === "commander");
 	const mainboardCards = useMemo(
 		() => deck.cards.filter((c) => c.section === "mainboard"),
 		[deck.cards],
 	);
-	const hasCommanders = commanders.length > 0;
 
 	// Load card data for mainboard to filter lands (skip for commander decks)
 	const cardQueries = useQueries({
@@ -97,61 +89,40 @@ export function DeckPreview({
 		})),
 	});
 
-	const deckWords = useMemo(() => getDeckNameWords(deck.name), [deck.name]);
-
 	const isLoadingCards = cardQueries.some((q) => q.isLoading);
 
-	const previewCardIds = useMemo(() => {
-		if (hasCommanders) {
-			return commanders.slice(0, 3).map((c) => c.scryfallId);
-		}
+	// Build a lookup map from card queries
+	const cardDataMap = useMemo(() => {
+		const map = new Map<
+			string,
+			{ name?: string; type_line?: string; oracle_text?: string }
+		>();
+		mainboardCards.forEach((c, i) => {
+			const data = cardQueries[i]?.data;
+			if (data) map.set(c.scryfallId, data);
+		});
+		return map;
+	}, [mainboardCards, cardQueries]);
 
+	const previewCardIds = useMemo(() => {
 		// While loading, show top 3 by quantity as placeholders
-		if (isLoadingCards) {
-			return mainboardCards
+		if (isLoadingCards && !hasCommanders) {
+			return [...mainboardCards]
 				.sort((a, b) => b.quantity - a.quantity)
 				.slice(0, 3)
 				.map((c) => c.scryfallId);
 		}
 
-		// Filter lands, sort by quantity (tiebreak by name matching deck title), take top 3
-		const withData = mainboardCards
-			.map((deckCard, i) => ({
-				deckCard,
-				card: cardQueries[i]?.data,
-			}))
-			.filter(({ card }) => card && !isNonCreatureLand(card.type_line));
-
-		return withData
-			.sort((a, b) => {
-				const qtyDiff = b.deckCard.quantity - a.deckCard.quantity;
-				if (qtyDiff !== 0) return qtyDiff;
-				// Tiebreak 1: prefer cards whose name matches deck title
-				const aNameMatch = textMatchesDeckTitle(a.card?.name, deckWords);
-				const bNameMatch = textMatchesDeckTitle(b.card?.name, deckWords);
-				if (aNameMatch && !bNameMatch) return -1;
-				if (bNameMatch && !aNameMatch) return 1;
-				// Tiebreak 2: prefer cards whose type line matches deck title
-				const aTypeMatch = textMatchesDeckTitle(a.card?.type_line, deckWords);
-				const bTypeMatch = textMatchesDeckTitle(b.card?.type_line, deckWords);
-				if (aTypeMatch && !bTypeMatch) return -1;
-				if (bTypeMatch && !aTypeMatch) return 1;
-				// Tiebreak 3: prefer cards whose oracle text matches deck title
-				const aTextMatch = textMatchesDeckTitle(a.card?.oracle_text, deckWords);
-				const bTextMatch = textMatchesDeckTitle(b.card?.oracle_text, deckWords);
-				if (aTextMatch && !bTextMatch) return -1;
-				if (bTextMatch && !aTextMatch) return 1;
-				return 0;
-			})
-			.slice(0, 3)
-			.map(({ deckCard }) => deckCard.scryfallId);
+		return getPreviewCardIds(deck.name, deck.cards, (id) =>
+			cardDataMap.get(id),
+		);
 	}, [
-		hasCommanders,
-		commanders,
-		mainboardCards,
-		cardQueries,
-		deckWords,
+		deck.name,
+		deck.cards,
+		cardDataMap,
 		isLoadingCards,
+		hasCommanders,
+		mainboardCards,
 	]);
 
 	return (

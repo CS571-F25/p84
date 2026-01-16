@@ -28,6 +28,7 @@ import { asRkey } from "@/lib/atproto-client";
 import { prefetchCards } from "@/lib/card-prefetch";
 import { DECK_LIST_NSID } from "@/lib/constellation-client";
 import { prefetchSocialStats } from "@/lib/constellation-queries";
+import { getPreviewCardIds } from "@/lib/deck-preview-utils";
 import { getDeckQueryOptions, useUpdateDeckMutation } from "@/lib/deck-queries";
 import type { Deck, GroupBy, Section, SortBy } from "@/lib/deck-types";
 import {
@@ -74,12 +75,23 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 			socialPromise,
 		]);
 
-		return deck;
+		// Compute featured card for OG image using same logic as deck preview
+		const previewCardIds = getPreviewCardIds(deck.name, deck.cards, (id) => {
+			const queryKey = ["cards", "byId", id];
+			return context.queryClient.getQueryData(queryKey) as
+				| { name?: string; type_line?: string; oracle_text?: string }
+				| undefined;
+		});
+		const featuredCardId = previewCardIds[0] ?? deck.cards[0]?.scryfallId;
+
+		return { deck, featuredCardId };
 	},
-	head: ({ loaderData: deck }) => {
-		if (!deck) {
+	head: ({ loaderData }) => {
+		if (!loaderData) {
 			return { meta: [{ title: "Deck Not Found | DeckBelcher" }] };
 		}
+
+		const { deck, featuredCardId } = loaderData;
 
 		const format = formatDisplayName(deck.format);
 		const title = format
@@ -96,11 +108,8 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 			? `${primerText.slice(0, 150)}${primerText.length > 150 ? "..." : ""}`
 			: `${cardCount} card${cardCount === 1 ? "" : "s"}`;
 
-		// Use first commander's image, or first card if no commanders
-		const commanders = deck.cards.filter((c) => c.section === "commander");
-		const featuredCard = commanders[0] ?? deck.cards[0];
-		const cardImageUrl = featuredCard
-			? getImageUri(featuredCard.scryfallId, "large")
+		const cardImageUrl = featuredCardId
+			? getImageUri(featuredCardId as ScryfallId, "large")
 			: undefined;
 
 		return {
