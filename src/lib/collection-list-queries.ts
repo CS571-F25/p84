@@ -34,6 +34,10 @@ import {
 	removeDeckFromList,
 	type SaveItem,
 } from "./collection-list-types";
+import {
+	type BacklinksResponse,
+	COLLECTION_LIST_NSID,
+} from "./constellation-client";
 import { getConstellationQueryKeys } from "./constellation-queries";
 import { getPdsForDid } from "./identity";
 import type { ComDeckbelcherCollectionList } from "./lexicons/index";
@@ -509,6 +513,9 @@ export function useToggleListItemMutation(did: Did, rkey: Rkey) {
 			await queryClient.cancelQueries({
 				queryKey: constellationKeys.saveCount,
 			});
+			await queryClient.cancelQueries({
+				queryKey: constellationKeys.savers,
+			});
 
 			const previousSaved = queryClient.getQueryData<boolean>(
 				constellationKeys.userSaved,
@@ -516,10 +523,58 @@ export function useToggleListItemMutation(did: Did, rkey: Rkey) {
 			const previousCount = queryClient.getQueryData<number>(
 				constellationKeys.saveCount,
 			);
+			const previousSavers = queryClient.getQueryData<
+				InfiniteData<BacklinksResponse>
+			>(constellationKeys.savers);
 
 			queryClient.setQueryData<boolean>(constellationKeys.userSaved, !isSaved);
 			queryClient.setQueryData<number>(constellationKeys.saveCount, (old) =>
 				isSaved ? Math.max(0, (old ?? 1) - 1) : (old ?? 0) + 1,
+			);
+
+			// Optimistically update savers list
+			queryClient.setQueryData<InfiniteData<BacklinksResponse>>(
+				constellationKeys.savers,
+				(old) => {
+					if (isSaved) {
+						// Remove list from savers
+						if (!old) return old;
+						return {
+							...old,
+							pages: old.pages.map((page, i) =>
+								i === 0
+									? {
+											...page,
+											total: Math.max(0, page.total - 1),
+											records: page.records.filter(
+												(r) => !(r.did === did && r.rkey === rkey),
+											),
+										}
+									: page,
+							),
+						};
+					}
+					// Add list to savers - seed cache if empty
+					const newRecord = { did, collection: COLLECTION_LIST_NSID, rkey };
+					if (!old) {
+						return {
+							pages: [{ records: [newRecord], total: 1 }],
+							pageParams: [undefined],
+						};
+					}
+					return {
+						...old,
+						pages: old.pages.map((page, i) =>
+							i === 0
+								? {
+										...page,
+										total: page.total + 1,
+										records: [newRecord, ...page.records],
+									}
+								: page,
+						),
+					};
+				},
 			);
 
 			return {
@@ -527,6 +582,7 @@ export function useToggleListItemMutation(did: Did, rkey: Rkey) {
 				previousLists,
 				previousSaved,
 				previousCount,
+				previousSavers,
 				constellationKeys,
 				isSaved,
 			};
@@ -558,6 +614,12 @@ export function useToggleListItemMutation(did: Did, rkey: Rkey) {
 				context.constellationKeys.saveCount,
 				context.previousCount,
 			);
+			if (context.previousSavers) {
+				queryClient.setQueryData<InfiniteData<BacklinksResponse>>(
+					context.constellationKeys.savers,
+					context.previousSavers,
+				);
+			}
 		},
 		onSuccess: (data, { list, itemName, item }) => {
 			const what = itemName ?? (item.type === "card" ? "Card" : "Deck");

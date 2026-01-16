@@ -224,6 +224,9 @@ export function getConstellationQueryKeys(
 		saveCount: ["constellation", "saveCount", itemUri] as const,
 		userLiked: ["constellation", "userLiked", itemUri, userDid] as const,
 		likeCount: ["constellation", "likeCount", itemUri] as const,
+		likers: ["constellation", "likers", itemUri] as const,
+		savers: ["constellation", "savers", itemUri] as const,
+		deckBacklinks: ["constellation", "deckBacklinks", itemUri] as const,
 	};
 }
 
