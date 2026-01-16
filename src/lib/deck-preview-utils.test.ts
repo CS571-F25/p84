@@ -60,6 +60,10 @@ describe("getSingularForms", () => {
 			// Words that don't need singularization
 			["merfolk", ["merfolk"]],
 			["equipment", ["equipment"]],
+			// Words ending in -ss (not plurals)
+			["prowess", ["prowess"]],
+			["boss", ["boss"]],
+			["moss", ["moss"]],
 		])("%s -> %j", (input, expected) => {
 			expect(getSingularForms(input)).toEqual(expected);
 		});

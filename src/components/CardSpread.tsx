@@ -9,7 +9,7 @@ export interface CardSpreadProps {
 }
 
 export function CardSpread({ cardIds, emptyIcon }: CardSpreadProps) {
-	const cards = cardIds.slice(-3);
+	const cards = cardIds.slice(0, 3).reverse();
 
 	if (cards.length === 0) {
 		return (

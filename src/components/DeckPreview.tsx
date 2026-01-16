@@ -129,18 +129,18 @@ export function DeckPreview({
 				// Tiebreak 1: prefer cards whose name matches deck title
 				const aNameMatch = textMatchesDeckTitle(a.card?.name, deckWords);
 				const bNameMatch = textMatchesDeckTitle(b.card?.name, deckWords);
-				if (aNameMatch && !bNameMatch) return 1;
-				if (bNameMatch && !aNameMatch) return -1;
+				if (aNameMatch && !bNameMatch) return -1;
+				if (bNameMatch && !aNameMatch) return 1;
 				// Tiebreak 2: prefer cards whose type line matches deck title
 				const aTypeMatch = textMatchesDeckTitle(a.card?.type_line, deckWords);
 				const bTypeMatch = textMatchesDeckTitle(b.card?.type_line, deckWords);
-				if (aTypeMatch && !bTypeMatch) return 1;
-				if (bTypeMatch && !aTypeMatch) return -1;
+				if (aTypeMatch && !bTypeMatch) return -1;
+				if (bTypeMatch && !aTypeMatch) return 1;
 				// Tiebreak 3: prefer cards whose oracle text matches deck title
 				const aTextMatch = textMatchesDeckTitle(a.card?.oracle_text, deckWords);
 				const bTextMatch = textMatchesDeckTitle(b.card?.oracle_text, deckWords);
-				if (aTextMatch && !bTextMatch) return 1;
-				if (bTextMatch && !aTextMatch) return -1;
+				if (aTextMatch && !bTextMatch) return -1;
+				if (bTextMatch && !aTextMatch) return 1;
 				return 0;
 			})
 			.slice(0, 3)

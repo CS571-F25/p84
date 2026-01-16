@@ -42,7 +42,8 @@ export function getSingularForms(word: string): string[] {
 			word.endsWith("zzes"))
 	) {
 		forms.push(word.slice(0, -2)); // boxes -> box, passes -> pass
-	} else if (word.endsWith("s") && word.length > 1) {
+	} else if (word.endsWith("s") && !word.endsWith("ss") && word.length > 1) {
+		// Skip words ending in -ss (prowess, boss, moss) - not plurals
 		forms.push(word.slice(0, -1)); // bogles -> bogle, goblins -> goblin
 	}
 	return forms;

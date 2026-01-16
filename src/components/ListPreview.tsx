@@ -34,7 +34,11 @@ function getItemSummary(list: CollectionList): string {
 }
 
 function getCardIds(list: CollectionList): string[] {
-	return list.items.filter(isCardItem).map((item) => item.scryfallId);
+	// Reverse so newest cards appear first (on top of spread)
+	return list.items
+		.filter(isCardItem)
+		.map((item) => item.scryfallId)
+		.reverse();
 }
 
 export function ListPreview({
