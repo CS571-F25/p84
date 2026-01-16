@@ -1,3 +1,4 @@
+import path from "node:path";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -10,6 +11,12 @@ const SERVER_HOST = "127.0.0.1";
 const SERVER_PORT = 3000;
 
 const config = defineConfig({
+	resolve: {
+		// Explicit alias for workers (vite-tsconfig-paths doesn't apply to worker bundles)
+		alias: {
+			"@": path.resolve(__dirname, "./src"),
+		},
+	},
 	optimizeDeps: {
 		exclude: ["wrangler"],
 	},
