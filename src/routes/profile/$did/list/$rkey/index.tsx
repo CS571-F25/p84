@@ -8,8 +8,12 @@ import { CardImage } from "@/components/CardImage";
 import { ClientDate } from "@/components/ClientDate";
 import { DeckPreview } from "@/components/DeckPreview";
 import { ListActionsMenu } from "@/components/list/ListActionsMenu";
+import { ManaCost } from "@/components/ManaCost";
+import { OracleText } from "@/components/OracleText";
 import { RichtextSection } from "@/components/richtext/RichtextSection";
+import { SetSymbol } from "@/components/SetSymbol";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
+import { getPrimaryFace } from "@/lib/card-faces";
 import {
 	getCollectionListQueryOptions,
 	useToggleListItemMutation,
@@ -281,28 +285,46 @@ function CardListItem({ item, onRemove }: CardListItemProps) {
 	}
 
 	return (
-		<div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg">
-			<Link to="/card/$id" params={{ id: item.scryfallId }}>
+		<div className="flex items-center gap-4">
+			<Link
+				to="/card/$id"
+				params={{ id: item.scryfallId }}
+				className="group flex-1 flex items-start gap-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 motion-safe:hover:shadow-lg transition-colors motion-safe:transition-shadow"
+			>
 				<CardImage
 					card={{ id: item.scryfallId, name: card.name }}
 					size="small"
 					className="w-16 h-auto rounded"
 				/>
+
+				<div className="flex-1 min-w-0">
+					<div className="flex items-center justify-between gap-3">
+						<span className="font-bold text-gray-900 dark:text-white truncate">
+							{card.name}
+						</span>
+						{getPrimaryFace(card).mana_cost && (
+							<ManaCost
+								cost={getPrimaryFace(card).mana_cost ?? ""}
+								size="small"
+							/>
+						)}
+					</div>
+					<div className="flex items-center justify-between gap-3 text-xs text-gray-600 dark:text-gray-300">
+						<span className="truncate">{card.type_line}</span>
+						{card.set && (
+							<SetSymbol setCode={card.set} rarity={card.rarity} size="small" />
+						)}
+					</div>
+					{getPrimaryFace(card).oracle_text && (
+						<p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-3 leading-tight">
+							<OracleText
+								text={getPrimaryFace(card).oracle_text ?? ""}
+								symbolSize="text"
+							/>
+						</p>
+					)}
+				</div>
 			</Link>
-
-			<div className="flex-1 min-w-0">
-				<Link
-					to="/card/$id"
-					params={{ id: item.scryfallId }}
-					className="font-bold text-gray-900 dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400 truncate block"
-				>
-					{card.name}
-				</Link>
-				<p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-					{card.type_line}
-				</p>
-			</div>
-
 			{onRemove && (
 				<button
 					type="button"

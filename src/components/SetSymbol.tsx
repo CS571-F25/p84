@@ -8,7 +8,7 @@ import { getSetSymbol } from "@/lib/set-symbols";
 
 interface SetSymbolProps {
 	setCode: string;
-	rarity?: "common" | "uncommon" | "rare" | "mythic" | "timeshifted";
+	rarity?: string;
 	size?: "small" | "medium" | "large";
 	className?: string;
 }
@@ -19,7 +19,7 @@ const SIZE_CLASSES = {
 	large: "text-2xl",
 };
 
-const RARITY_CLASSES = {
+const RARITY_CLASSES: Record<string, string> = {
 	common: "text-rarity-common dark:text-gray-400",
 	uncommon: "text-rarity-uncommon",
 	rare: "text-rarity-rare",
@@ -29,7 +29,7 @@ const RARITY_CLASSES = {
 
 export function SetSymbol({
 	setCode,
-	rarity = "common",
+	rarity,
 	size = "medium",
 	className,
 }: SetSymbolProps) {
@@ -39,12 +39,15 @@ export function SetSymbol({
 		return null;
 	}
 
+	const rarityClass =
+		RARITY_CLASSES[rarity ?? "common"] ?? RARITY_CLASSES.common;
+
 	return (
 		<span
 			role="img"
-			className={`font-['Keyrune'] ${SIZE_CLASSES[size]} ${RARITY_CLASSES[rarity]} ${className ?? ""}`}
-			title={`${setCode.toUpperCase()} (${rarity})`}
-			aria-label={`Set: ${setCode.toUpperCase()}, Rarity: ${rarity}`}
+			className={`font-['Keyrune'] ${SIZE_CLASSES[size]} ${rarityClass} ${className ?? ""}`}
+			title={`${setCode.toUpperCase()}${rarity ? ` (${rarity})` : ""}`}
+			aria-label={`Set: ${setCode.toUpperCase()}${rarity ? `, Rarity: ${rarity}` : ""}`}
 		>
 			{symbol}
 		</span>
