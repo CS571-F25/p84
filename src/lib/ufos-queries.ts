@@ -3,12 +3,17 @@
  * Fetches recent records from the ATProto firehose
  */
 
+import { safeParse } from "@atcute/lexicons/validations";
 import { queryOptions } from "@tanstack/react-query";
 import type { Result } from "./atproto-client";
 import { transformListRecord } from "./collection-list-queries";
-import { MICROCOSM_USER_AGENT } from "./constellation-client";
+import {
+	COLLECTION_LIST_NSID,
+	DECK_LIST_NSID,
+	MICROCOSM_USER_AGENT,
+} from "./constellation-client";
 import { transformDeckRecord } from "./deck-queries";
-import type {
+import {
 	ComDeckbelcherCollectionList,
 	ComDeckbelcherDeckList,
 } from "./lexicons/index";
@@ -16,8 +21,6 @@ import type {
 	ActivityCollection,
 	UfosDeckRecord,
 	UfosListRecord,
-	UfosRawDeckRecord,
-	UfosRawListRecord,
 	UfosRecord,
 } from "./ufos-types";
 
@@ -26,10 +29,10 @@ const UFOS_BASE = "https://ufos-api.microcosm.blue";
 /**
  * Fetch recent records from UFOs API
  */
-async function fetchRecentRecords<T>(
+async function fetchRecentRecords(
 	collections: ActivityCollection | ActivityCollection[],
 	limit: number,
-): Promise<Result<UfosRecord<T>[]>> {
+): Promise<Result<UfosRecord[]>> {
 	try {
 		const url = new URL(`${UFOS_BASE}/records`);
 		const collectionParam = Array.isArray(collections)
@@ -52,7 +55,7 @@ async function fetchRecentRecords<T>(
 			};
 		}
 
-		const data = (await response.json()) as UfosRecord<T>[];
+		const data = (await response.json()) as UfosRecord[];
 		return { success: true, data };
 	} catch (error) {
 		return {
@@ -65,39 +68,51 @@ async function fetchRecentRecords<T>(
 export type ActivityRecord = UfosDeckRecord | UfosListRecord;
 
 export function isDeckRecord(record: ActivityRecord): record is UfosDeckRecord {
-	return record.collection === "com.deckbelcher.deck.list";
+	return record.collection === DECK_LIST_NSID;
 }
 
 export function isListRecord(record: ActivityRecord): record is UfosListRecord {
-	return record.collection === "com.deckbelcher.collection.list";
+	return record.collection === COLLECTION_LIST_NSID;
 }
 
-function transformActivityRecord(
-	rawRecord: UfosRecord<unknown>,
-): ActivityRecord | null {
-	try {
-		if (rawRecord.collection === "com.deckbelcher.deck.list") {
-			const deckRecord = rawRecord as UfosRawDeckRecord;
-			return {
-				...deckRecord,
-				record: transformDeckRecord(deckRecord.record),
-			} as UfosDeckRecord;
-		}
-		if (rawRecord.collection === "com.deckbelcher.collection.list") {
-			const listRecord = rawRecord as UfosRawListRecord;
-			return {
-				...listRecord,
-				record: transformListRecord(listRecord.record),
-			} as UfosListRecord;
-		}
-		return null;
-	} catch (error) {
-		console.warn(
-			`Skipping malformed UFOs record ${rawRecord.did}/${rawRecord.rkey}:`,
-			error instanceof Error ? error.message : error,
+function transformActivityRecord(rawRecord: UfosRecord): ActivityRecord | null {
+	if (rawRecord.collection === DECK_LIST_NSID) {
+		const validation = safeParse(
+			ComDeckbelcherDeckList.mainSchema,
+			rawRecord.record,
 		);
-		return null;
+		if (!validation.ok) {
+			console.warn(
+				`Skipping invalid deck record ${rawRecord.did}/${rawRecord.rkey}: ${validation.message}`,
+			);
+			return null;
+		}
+		return {
+			...rawRecord,
+			collection: DECK_LIST_NSID,
+			record: transformDeckRecord(validation.value),
+		};
 	}
+
+	if (rawRecord.collection === COLLECTION_LIST_NSID) {
+		const validation = safeParse(
+			ComDeckbelcherCollectionList.mainSchema,
+			rawRecord.record,
+		);
+		if (!validation.ok) {
+			console.warn(
+				`Skipping invalid list record ${rawRecord.did}/${rawRecord.rkey}: ${validation.message}`,
+			);
+			return null;
+		}
+		return {
+			...rawRecord,
+			collection: COLLECTION_LIST_NSID,
+			record: transformListRecord(validation.value),
+		};
+	}
+
+	return null;
 }
 
 /**
@@ -107,10 +122,8 @@ export const recentActivityQueryOptions = (limit = 10) =>
 	queryOptions({
 		queryKey: ["ufos", "recentActivity", limit] as const,
 		queryFn: async (): Promise<ActivityRecord[]> => {
-			const result = await fetchRecentRecords<
-				ComDeckbelcherDeckList.Main | ComDeckbelcherCollectionList.Main
-			>(
-				["com.deckbelcher.deck.list", "com.deckbelcher.collection.list"],
+			const result = await fetchRecentRecords(
+				[DECK_LIST_NSID, COLLECTION_LIST_NSID],
 				limit,
 			);
 			if (!result.success) {

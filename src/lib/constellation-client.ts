@@ -37,10 +37,9 @@ export const LIKE_CARD_PATH = ".subject.ref.oracleUri";
 export const LIKE_RECORD_PATH = ".subject.ref.uri";
 
 export interface BacklinkRecord {
-	uri: string;
-	cid: string;
 	did: string;
-	indexedAt: string;
+	collection: string;
+	rkey: string;
 }
 
 export interface BacklinksResponse {
@@ -58,6 +57,7 @@ export interface GetBacklinksParams {
 	source: string;
 	did?: string;
 	limit?: number;
+	cursor?: string;
 }
 
 export interface GetLinksCountParams {
@@ -83,6 +83,9 @@ export async function getBacklinks(
 		}
 		if (params.limit !== undefined) {
 			url.searchParams.set("limit", String(params.limit));
+		}
+		if (params.cursor) {
+			url.searchParams.set("cursor", params.cursor);
 		}
 
 		const response = await fetch(url.toString(), {

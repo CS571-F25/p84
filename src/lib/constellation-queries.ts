@@ -3,7 +3,11 @@
  */
 
 import type { Did } from "@atcute/lexicons";
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import {
+	infiniteQueryOptions,
+	queryOptions,
+	useQuery,
+} from "@tanstack/react-query";
 import {
 	buildSource,
 	COLLECTION_LIST_CARD_PATH,
@@ -244,6 +248,82 @@ export function itemLikeCountQueryOptions<T extends SocialItemType>(
 
 			return result.data.total;
 		},
+		staleTime: 60 * 1000,
+	});
+}
+
+// ============================================================================
+// Backlink List Queries (for modals showing who/what)
+// ============================================================================
+
+/**
+ * Infinite query for users who liked an item
+ */
+export function itemLikersQueryOptions<T extends SocialItemType>(
+	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
+	itemType: T,
+) {
+	return infiniteQueryOptions({
+		queryKey: ["constellation", "likers", itemUri] as const,
+		queryFn: async ({ pageParam }) => {
+			const result = await getBacklinks({
+				subject: itemUri,
+				source: buildSource(LIKE_NSID, getLikePathForItemType(itemType)),
+				limit: 25,
+				cursor: pageParam,
+			});
+			if (!result.success) throw result.error;
+			return result.data;
+		},
+		initialPageParam: undefined as string | undefined,
+		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+		staleTime: 60 * 1000,
+	});
+}
+
+/**
+ * Infinite query for lists that saved an item
+ */
+export function itemSaversQueryOptions<T extends SocialItemType>(
+	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
+	itemType: T,
+) {
+	return infiniteQueryOptions({
+		queryKey: ["constellation", "savers", itemUri] as const,
+		queryFn: async ({ pageParam }) => {
+			const result = await getBacklinks({
+				subject: itemUri,
+				source: buildSource(COLLECTION_LIST_NSID, getPathForItemType(itemType)),
+				limit: 25,
+				cursor: pageParam,
+			});
+			if (!result.success) throw result.error;
+			return result.data;
+		},
+		initialPageParam: undefined as string | undefined,
+		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+		staleTime: 60 * 1000,
+	});
+}
+
+/**
+ * Infinite query for decks containing a card
+ */
+export function cardDeckBacklinksQueryOptions(itemUri: CardItemUri) {
+	return infiniteQueryOptions({
+		queryKey: ["constellation", "deckBacklinks", itemUri] as const,
+		queryFn: async ({ pageParam }) => {
+			const result = await getBacklinks({
+				subject: itemUri,
+				source: buildSource(DECK_LIST_NSID, DECK_LIST_CARD_PATH),
+				limit: 25,
+				cursor: pageParam,
+			});
+			if (!result.success) throw result.error;
+			return result.data;
+		},
+		initialPageParam: undefined as string | undefined,
+		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
 		staleTime: 60 * 1000,
 	});
 }

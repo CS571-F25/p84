@@ -51,6 +51,33 @@ export function asRkey(rkey: string): Rkey {
 	return rkey as Rkey;
 }
 
+/**
+ * Parse an AT URI into its components
+ * Format: at://AUTHORITY/COLLECTION/RKEY
+ * - Authority: DID (did:method:identifier)
+ * - Collection: NSID (com.example.foo)
+ * - Rkey: Record key (alphanumeric + ._:~-)
+ * @see https://atproto.com/specs/at-uri-scheme
+ */
+export function parseAtUri(
+	uri: string,
+): { did: Did; collection: string; rkey: Rkey } | null {
+	// DID: did:method:method-specific-id (method lowercase, id has various chars)
+	// Collection: NSID format (lowercase segments separated by dots)
+	// Rkey: alphanumeric plus ._:~- (1-512 chars, not . or ..)
+	const match = uri.match(
+		/^at:\/\/(did:[a-z]+:[a-zA-Z0-9._:%-]+)\/([a-z][a-z0-9.-]*(?:\.[a-z][a-z0-9-]*)*)\/([a-zA-Z0-9._:~-]+)$/,
+	);
+	if (!match) return null;
+	const rkey = match[3];
+	if (rkey === "." || rkey === "..") return null;
+	return {
+		did: match[1] as Did,
+		collection: match[2],
+		rkey: asRkey(rkey),
+	};
+}
+
 export type Result<T, E = Error> =
 	| { success: true; data: T }
 	| { success: false; error: E };
