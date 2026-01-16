@@ -6,10 +6,7 @@ import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
 import { SocialStats } from "@/components/social/SocialStats";
 import { getAllFaces } from "@/lib/card-faces";
-import {
-	itemLikeCountQueryOptions,
-	itemSaveCountQueryOptions,
-} from "@/lib/constellation-queries";
+import { prefetchSocialStats } from "@/lib/constellation-queries";
 import { FORMAT_GROUPS } from "@/lib/format-utils";
 import {
 	getCardByIdQueryOptions,
@@ -54,14 +51,7 @@ export const Route = createFileRoute("/card/$id")({
 		const socialPromise = cardPromise.then((card) => {
 			if (!card?.oracle_id) return;
 			const oracleUri = toOracleUri(asOracleId(card.oracle_id));
-			return Promise.all([
-				context.queryClient.ensureQueryData(
-					itemSaveCountQueryOptions(oracleUri, "card"),
-				),
-				context.queryClient.ensureQueryData(
-					itemLikeCountQueryOptions(oracleUri, "card"),
-				),
-			]);
+			return prefetchSocialStats(context.queryClient, oracleUri, "card");
 		});
 
 		const [card] = await Promise.all([

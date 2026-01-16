@@ -5,6 +5,7 @@
 import type { Did } from "@atcute/lexicons";
 import {
 	infiniteQueryOptions,
+	type QueryClient,
 	queryOptions,
 	useQuery,
 } from "@tanstack/react-query";
@@ -365,4 +366,28 @@ export function cardDeckBacklinksQueryOptions(itemUri: CardItemUri) {
 		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
 		staleTime: 60 * 1000,
 	});
+}
+
+// ============================================================================
+// Prefetch Helpers
+// ============================================================================
+
+/**
+ * Prefetch social stats for an item (card or deck).
+ * Use in route loaders to warm the cache before render.
+ */
+export function prefetchSocialStats<T extends SocialItemType>(
+	queryClient: QueryClient,
+	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
+	itemType: T,
+) {
+	return Promise.all([
+		queryClient.prefetchQuery(itemSaveCountQueryOptions(itemUri, itemType)),
+		queryClient.prefetchQuery(itemLikeCountQueryOptions(itemUri, itemType)),
+		itemType === "card"
+			? queryClient.prefetchQuery(
+					cardDeckCountQueryOptions(itemUri as CardItemUri),
+				)
+			: null,
+	] as const);
 }
