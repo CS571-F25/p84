@@ -1,9 +1,45 @@
 @import "tailwindcss";
 
 /**
+ * Recursive - Body/UI/Mono font
+ * https://www.recursive.design/
+ * Licensed under SIL OFL 1.1
+ * Variable axes: MONO (0-1), CASL (0-1), wght (300-1000), slnt (-15-0), CRSV (0-1)
+ */
+@font-face {
+	font-family: "Recursive";
+	src: url("/fonts/recursive/Recursive-VF.woff2") format("woff2");
+	font-weight: 300 1000;
+	font-style: oblique -15deg 0deg;
+	font-display: swap;
+}
+
+/**
+ * Fraunces - Display/heading font
+ * https://github.com/undercasetype/Fraunces
+ * Licensed under SIL OFL 1.1
+ * Variable axes: SOFT (0-100), WONK (0-1), opsz (9-144), wght (100-900)
+ */
+@font-face {
+	font-family: "Fraunces";
+	src: url("/fonts/fraunces/Fraunces-VF.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Fraunces";
+	src: url("/fonts/fraunces/Fraunces-Italic-VF.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: italic;
+	font-display: swap;
+}
+
+/**
  * Keyrune set symbol font
  * https://github.com/andrewgioia/keyrune
- * Font licensed under SIL OFL 1.1
+ * Licensed under SIL OFL 1.1
  */
 @font-face {
 	font-family: "Keyrune";
@@ -14,6 +50,10 @@
 }
 
 @theme {
+	--font-sans: "Recursive", ui-sans-serif, system-ui, sans-serif;
+	--font-display: "Fraunces", ui-serif, Georgia, serif;
+	--font-mono: "Recursive", ui-monospace, monospace;
+
 	/* MTG rarity colors (from Keyrune) */
 	--color-rarity-common: #1a1718;
 	--color-rarity-uncommon: #707883;
@@ -25,21 +65,19 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 html {
-  @apply bg-white dark:bg-slate-900;
+	@apply bg-white dark:bg-slate-900;
 }
 
 body {
-  @apply m-0 bg-white dark:bg-slate-900;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+	@apply m-0 bg-white dark:bg-slate-900 font-sans;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+code,
+.font-mono {
+	font-family: var(--font-mono);
+	font-variation-settings: "MONO" 1, "CASL" 0;
 }
 
 /* Dark mode scrollbar styling */

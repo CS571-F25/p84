@@ -106,7 +106,7 @@ export function DeckPreview({
 					<div className="h-5 w-24 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
 				))}
 
-			<h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+			<h2 className="text-lg font-bold text-gray-900 dark:text-white truncate font-display">
 				{deck.name}
 			</h2>
 			{deck.format && (

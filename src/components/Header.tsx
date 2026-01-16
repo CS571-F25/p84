@@ -29,8 +29,13 @@ export default function Header() {
 					>
 						<Menu size={24} />
 					</button>
-					<h1 className="ml-2 sm:ml-4 text-lg sm:text-xl font-semibold hidden sm:block">
-						<Link to="/">DeckBelcher</Link>
+					<h1
+						className="ml-2 sm:ml-4 text-lg sm:text-xl font-medium hidden sm:block font-display"
+						style={{
+							fontVariationSettings: '"WONK" 1, "SOFT" 70, "opsz" 20',
+						}}
+					>
+						<Link to="/">deck belcher</Link>
 					</h1>
 				</div>
 

@@ -71,7 +71,7 @@ export function DraggableCard({
 			{...attributes}
 			{...(disabled ? {} : listeners)}
 			type="button"
-			className="relative rounded px-2 py-1 w-full text-left md:touch-none bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700"
+			className="group relative rounded px-2 py-1 w-full text-left md:touch-none bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700"
 			style={{
 				opacity: isDragging ? 0.5 : 1,
 				cursor: disabled ? "pointer" : isDragging ? "grabbing" : "grab",
@@ -96,11 +96,11 @@ export function DraggableCard({
 				ref={highlightRef}
 				className="absolute inset-0 rounded bg-amber-100 dark:bg-slate-700 opacity-0 pointer-events-none"
 			/>
-			<div className="flex items-center gap-2">
+			<div className="flex items-baseline gap-2">
 				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-4 text-right flex-shrink-0">
 					{card.quantity}
 				</span>
-				<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0">
+				<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0 transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'wght'_400] group-hover:[font-variation-settings:'wght'_500]">
 					{primaryFace ? primaryFace.name : isLoading ? "" : "Unknown Card"}
 				</span>
 				{violations && violations.length > 0 && (
@@ -114,7 +114,7 @@ export function DraggableCard({
 						/>
 					</span>
 				)}
-				<div className="flex-shrink-0 flex items-center ml-auto">
+				<div className="flex-shrink-0 flex items-center ml-auto self-center">
 					{primaryFace?.mana_cost ? (
 						<ManaCost cost={primaryFace.mana_cost} size="small" />
 					) : isLoading ? (

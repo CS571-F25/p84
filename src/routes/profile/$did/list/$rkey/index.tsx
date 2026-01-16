@@ -175,11 +175,11 @@ function ListDetailPage() {
 								onChange={(e) => setEditedName(e.target.value)}
 								onBlur={handleNameSubmit}
 								onKeyDown={handleNameKeyDown}
-								className="text-3xl font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-cyan-500 focus:outline-none w-full"
+								className="text-3xl font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-cyan-500 focus:outline-none w-full font-display"
 							/>
 						) : (
 							<h1
-								className={`text-3xl font-bold text-gray-900 dark:text-white truncate ${isOwner ? "cursor-pointer hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors" : ""}`}
+								className={`text-3xl font-bold text-gray-900 dark:text-white truncate font-display ${isOwner ? "cursor-pointer hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors" : ""}`}
 								onClick={handleNameClick}
 								onKeyDown={(e) => {
 									if (e.key === "Enter" || e.key === " ") {

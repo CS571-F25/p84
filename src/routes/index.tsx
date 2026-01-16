@@ -12,11 +12,16 @@ function App() {
 		<div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
 			<div className="max-w-5xl mx-auto px-6 py-16 md:py-24">
 				<div className="text-center mb-16">
-					<h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
-						DeckBelcher
+					<h1
+						className="text-5xl md:text-6xl font-medium text-gray-900 dark:text-white mb-4 tracking-tight font-display"
+						style={{
+							fontVariationSettings: '"WONK" 1, "SOFT" 70, "opsz" 72',
+						}}
+					>
+						deck belcher dot com
 					</h1>
 					<p className="text-xl text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-						MTG deck building and sharing powered by AT Protocol
+						organize, build, and share decks on the atmosphere
 					</p>
 				</div>
 
@@ -29,10 +34,10 @@ function App() {
 							<div className="w-12 h-12 bg-cyan-100 dark:bg-cyan-900/30 rounded-full flex items-center justify-center mb-4 group-hover:bg-cyan-200 dark:group-hover:bg-cyan-800/40 transition-colors">
 								<Plus size={24} className="text-cyan-600 dark:text-cyan-400" />
 							</div>
-							<span className="font-semibold text-gray-900 dark:text-white">
+							<span className="font-semibold text-gray-900 dark:text-white transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'wght'_600] group-hover:[font-variation-settings:'wght'_700]">
 								Create Deck
 							</span>
-							<span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+							<span className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'CASL'_0] group-hover:[font-variation-settings:'CASL'_1]">
 								Start building
 							</span>
 						</Link>
@@ -44,10 +49,10 @@ function App() {
 							<div className="w-12 h-12 bg-cyan-100 dark:bg-cyan-900/30 rounded-full flex items-center justify-center mb-4 group-hover:bg-cyan-200 dark:group-hover:bg-cyan-800/40 transition-colors">
 								<User size={24} className="text-cyan-600 dark:text-cyan-400" />
 							</div>
-							<span className="font-semibold text-gray-900 dark:text-white">
+							<span className="font-semibold text-gray-900 dark:text-white transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'wght'_600] group-hover:[font-variation-settings:'wght'_700]">
 								Sign In
 							</span>
-							<span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+							<span className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'CASL'_0] group-hover:[font-variation-settings:'CASL'_1]">
 								Get started
 							</span>
 						</Link>
@@ -62,10 +67,10 @@ function App() {
 							<div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 group-hover:bg-gray-200 dark:group-hover:bg-slate-600 transition-colors">
 								<User size={24} className="text-gray-600 dark:text-gray-300" />
 							</div>
-							<span className="font-semibold text-gray-900 dark:text-white">
+							<span className="font-semibold text-gray-900 dark:text-white transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'wght'_600] group-hover:[font-variation-settings:'wght'_700]">
 								My Decks
 							</span>
-							<span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+							<span className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'CASL'_0] group-hover:[font-variation-settings:'CASL'_1]">
 								View your collection
 							</span>
 						</Link>
@@ -91,10 +96,10 @@ function App() {
 						<div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 group-hover:bg-gray-200 dark:group-hover:bg-slate-600 transition-colors">
 							<Search size={24} className="text-gray-600 dark:text-gray-300" />
 						</div>
-						<span className="font-semibold text-gray-900 dark:text-white">
+						<span className="font-semibold text-gray-900 dark:text-white transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'wght'_600] group-hover:[font-variation-settings:'wght'_700]">
 							Browse Cards
 						</span>
-						<span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+						<span className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'CASL'_0] group-hover:[font-variation-settings:'CASL'_1]">
 							Search the database
 						</span>
 					</Link>

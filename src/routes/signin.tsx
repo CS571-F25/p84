@@ -141,7 +141,7 @@ function SignIn() {
 						<LogIn size={32} className="text-white" />
 					</div>
 				</div>
-				<h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-2">
+				<h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-2 font-display">
 					Sign In
 				</h1>
 				<p className="text-gray-600 dark:text-gray-400 text-center mb-8">

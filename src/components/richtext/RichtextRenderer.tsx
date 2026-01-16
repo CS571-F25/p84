@@ -221,7 +221,7 @@ function CardRefLink({
 		<Link
 			to="/card/$id"
 			params={{ id: scryfallId }}
-			className="inline-flex items-center px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-sm font-medium hover:bg-sky-100 dark:hover:bg-sky-900/50"
+			className="inline-flex items-center px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-sm font-medium hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'CASL'_0,'wght'_500] hover:[font-variation-settings:'CASL'_0.5,'wght'_600]"
 			{...hoverProps}
 		>
 			{children}
