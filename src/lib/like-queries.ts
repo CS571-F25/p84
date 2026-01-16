@@ -3,14 +3,19 @@
  */
 
 import type { ResourceUri } from "@atcute/lexicons";
-import type { InfiniteData } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createLikeRecord, deleteLikeRecord } from "./atproto-client";
 import type { SaveItem } from "./collection-list-types";
-import { type BacklinksResponse, LIKE_NSID } from "./constellation-client";
+import { LIKE_NSID } from "./constellation-client";
 import { getConstellationQueryKeys } from "./constellation-queries";
 import type { ComDeckbelcherSocialLike } from "./lexicons/index";
+import {
+	optimisticBacklinks,
+	optimisticToggle,
+	runOptimistic,
+	when,
+} from "./optimistic-utils";
 import type { OracleId, ScryfallId } from "./scryfall-types";
 import { toOracleUri, toScryfallUri } from "./scryfall-types";
 import { useAuth } from "./useAuth";
@@ -100,87 +105,35 @@ export function useLikeMutation() {
 					: toOracleUri(params.item.oracleId);
 
 			const keys = getConstellationQueryKeys(itemUri, userDid);
+			const newLikedState = !params.isLiked;
 
-			await queryClient.cancelQueries({ queryKey: keys.userLiked });
-			await queryClient.cancelQueries({ queryKey: keys.likeCount });
-			await queryClient.cancelQueries({ queryKey: keys.likers });
+			const rollback = await runOptimistic([
+				optimisticToggle(
+					queryClient,
+					keys.userLiked,
+					keys.likeCount,
+					newLikedState,
+				),
+				// rkey is deterministic (hash of subject) but empty is fine here
+				// since backlinks filtering is by did, not rkey
+				when(userDid, (did) =>
+					optimisticBacklinks(
+						queryClient,
+						keys.likers,
+						newLikedState ? "add" : "remove",
+						{
+							did,
+							collection: LIKE_NSID,
+							rkey: "",
+						},
+					),
+				),
+			]);
 
-			const previousLiked = queryClient.getQueryData<boolean>(keys.userLiked);
-			const previousCount = queryClient.getQueryData<number>(keys.likeCount);
-			const previousLikers = queryClient.getQueryData<
-				InfiniteData<BacklinksResponse>
-			>(keys.likers);
-
-			queryClient.setQueryData<boolean>(keys.userLiked, !params.isLiked);
-			queryClient.setQueryData<number>(keys.likeCount, (old) =>
-				params.isLiked ? Math.max(0, (old ?? 1) - 1) : (old ?? 0) + 1,
-			);
-
-			// Optimistically update likers list
-			if (userDid) {
-				queryClient.setQueryData<InfiniteData<BacklinksResponse>>(
-					keys.likers,
-					(old) => {
-						if (params.isLiked) {
-							// Remove user from likers
-							if (!old) return old;
-							return {
-								...old,
-								pages: old.pages.map((page, i) =>
-									i === 0
-										? {
-												...page,
-												total: Math.max(0, page.total - 1),
-												records: page.records.filter((r) => r.did !== userDid),
-											}
-										: page,
-								),
-							};
-						}
-						// Add user to likers - seed cache if empty
-						// WARN: rkey unknown until mutation completes
-						const newRecord = { did: userDid, collection: LIKE_NSID, rkey: "" };
-						if (!old) {
-							return {
-								pages: [{ records: [newRecord], total: 1 }],
-								pageParams: [undefined],
-							};
-						}
-						return {
-							...old,
-							pages: old.pages.map((page, i) =>
-								i === 0
-									? {
-											...page,
-											total: page.total + 1,
-											records: [newRecord, ...page.records],
-										}
-									: page,
-							),
-						};
-					},
-				);
-			}
-
-			return { previousLiked, previousCount, previousLikers, keys };
+			return { rollback };
 		},
 		onError: (_err, _params, context) => {
-			if (!context) return;
-
-			queryClient.setQueryData<boolean>(
-				context.keys.userLiked,
-				context.previousLiked,
-			);
-			queryClient.setQueryData<number>(
-				context.keys.likeCount,
-				context.previousCount,
-			);
-			if (context.previousLikers) {
-				queryClient.setQueryData<InfiniteData<BacklinksResponse>>(
-					context.keys.likers,
-					context.previousLikers,
-				);
-			}
+			context?.rollback();
 		},
 		onSuccess: (data, params) => {
 			const what =

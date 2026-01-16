@@ -23,6 +23,7 @@ import {
 import type { Deck } from "./deck-types";
 import { getPdsForDid } from "./identity";
 import type { ComDeckbelcherDeckList } from "./lexicons/index";
+import { optimisticRecord, runOptimistic } from "./optimistic-utils";
 import {
 	parseOracleUri,
 	parseScryfallUri,
@@ -215,29 +216,16 @@ export function useUpdateDeckMutation(did: Did, rkey: Rkey) {
 			return result.data;
 		},
 		onMutate: async (newDeck) => {
-			// Cancel outgoing refetches
-			await queryClient.cancelQueries({ queryKey: ["deck", did, rkey] });
-
-			// Snapshot previous value
-			const previous = queryClient.getQueryData<DeckRecord>([
-				"deck",
-				did,
-				rkey,
-			]);
-
 			// WARN: We preserve the old cid during optimistic updates. This means the
 			// cid will be stale until onSuccess updates it. If someone likes the deck
 			// during this window, the like will reference the old cid. This is unlikely
 			// but could cause issues if the deck is being rapidly edited while liked.
-			if (previous) {
-				queryClient.setQueryData<DeckRecord>(["deck", did, rkey], {
-					deck: newDeck,
-					cid: previous.cid,
-				});
-			}
-
-			// Return context for rollback
-			return { previous };
+			const rollback = await runOptimistic([
+				optimisticRecord<DeckRecord>(queryClient, ["deck", did, rkey], (old) =>
+					old ? { deck: newDeck, cid: old.cid } : undefined,
+				),
+			]);
+			return { rollback };
 		},
 		onSuccess: (data, newDeck) => {
 			// Update cache with the new cid from the server response
@@ -247,13 +235,7 @@ export function useUpdateDeckMutation(did: Did, rkey: Rkey) {
 			});
 		},
 		onError: (_err, _newDeck, context) => {
-			// Rollback on error and refetch
-			if (context?.previous) {
-				queryClient.setQueryData<DeckRecord>(
-					["deck", did, rkey],
-					context.previous,
-				);
-			}
+			context?.rollback();
 			queryClient.invalidateQueries({ queryKey: ["deck", did, rkey] });
 		},
 	});

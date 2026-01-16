@@ -170,3 +170,8 @@ Vite is configured to ignore large generated files in watch mode:
 - Router uses "intent" preloading by default
 - SSR is configured via TanStack Start plugin
 - **ALWAYS use `<Link to="...">` from `@tanstack/react-router` instead of `<a href="...">`** - Using `<a>` tags causes full page reloads, which recreates the router and QueryClient instances on every navigation. This breaks TanStack Query's cache and causes expensive data (like the 163MB cards.json) to be refetched unnecessarily
+
+### Testing Practices
+- **Write tests to reproduce bugs before fixing them** - When debugging, write a failing test that demonstrates the issue first. This confirms you understand the problem and prevents regressions.
+- **Write tests to check hunches** - If you suspect something might be broken, write a test to verify. Tests are cheaper than debugging production issues.
+- **Ensure tests fail before making them pass** - A test that never failed might not be testing what you think it's testing.

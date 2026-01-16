@@ -42,6 +42,13 @@ import { getConstellationQueryKeys } from "./constellation-queries";
 import { getPdsForDid } from "./identity";
 import type { ComDeckbelcherCollectionList } from "./lexicons/index";
 import {
+	optimisticBacklinks,
+	optimisticBoolean,
+	optimisticCount,
+	optimisticRecordWithIndex,
+	runOptimistic,
+} from "./optimistic-utils";
+import {
 	parseOracleUri,
 	parseScryfallUri,
 	toOracleUri,
@@ -266,63 +273,19 @@ export function useUpdateCollectionListMutation(did: Did, rkey: Rkey) {
 			return result.data;
 		},
 		onMutate: async (newList) => {
-			await queryClient.cancelQueries({
-				queryKey: ["collection-list", did, rkey],
-			});
-			await queryClient.cancelQueries({
-				queryKey: ["collection-lists", did],
-			});
-
-			const previousList = queryClient.getQueryData<CollectionList>([
-				"collection-list",
-				did,
-				rkey,
-			]);
-
-			type ListPage = { records: CollectionListRecord[]; cursor?: string };
-			const previousLists = queryClient.getQueryData<InfiniteData<ListPage>>([
-				"collection-lists",
-				did,
-			]);
-
-			queryClient.setQueryData<CollectionList>(
-				["collection-list", did, rkey],
-				newList,
-			);
-
-			if (previousLists) {
-				queryClient.setQueryData<InfiniteData<ListPage>>(
+			const rollback = await runOptimistic([
+				optimisticRecordWithIndex<CollectionList>(
+					queryClient,
+					["collection-list", did, rkey],
 					["collection-lists", did],
-					{
-						...previousLists,
-						pages: previousLists.pages.map((page) => ({
-							...page,
-							records: page.records.map((record) =>
-								record.uri.endsWith(`/${rkey}`)
-									? { ...record, value: newList }
-									: record,
-							),
-						})),
-					},
-				);
-			}
-
-			return { previousList, previousLists };
+					rkey,
+					newList,
+				),
+			]);
+			return { rollback };
 		},
 		onError: (_err, _newList, context) => {
-			if (context?.previousList) {
-				queryClient.setQueryData<CollectionList>(
-					["collection-list", did, rkey],
-					context.previousList,
-				);
-			}
-			if (context?.previousLists) {
-				type ListPage = { records: CollectionListRecord[]; cursor?: string };
-				queryClient.setQueryData<InfiniteData<ListPage>>(
-					["collection-lists", did],
-					context.previousLists,
-				);
-			}
+			context?.rollback();
 			queryClient.invalidateQueries({
 				queryKey: ["collection-list", did, rkey],
 			});
@@ -447,7 +410,6 @@ export function useToggleListItemMutation(did: Did, rkey: Rkey) {
 					? hasCard(list, item.scryfallId)
 					: hasDeck(list, item.uri);
 
-			// Compute updated list optimistically
 			const updatedList = isSaved
 				? item.type === "card"
 					? removeCardFromList(list, item.scryfallId)
@@ -456,170 +418,46 @@ export function useToggleListItemMutation(did: Did, rkey: Rkey) {
 					? addCardToList(list, item.scryfallId, item.oracleId)
 					: addDeckToList(list, item.uri, item.cid);
 
-			// Cancel in-flight queries
-			await queryClient.cancelQueries({
-				queryKey: ["collection-list", did, rkey],
-			});
-			await queryClient.cancelQueries({
-				queryKey: ["collection-lists", did],
-			});
-
-			// Snapshot previous list state
-			const previousList = queryClient.getQueryData<CollectionList>([
-				"collection-list",
-				did,
-				rkey,
-			]);
-
-			type ListPage = { records: CollectionListRecord[]; cursor?: string };
-			const previousLists = queryClient.getQueryData<InfiniteData<ListPage>>([
-				"collection-lists",
-				did,
-			]);
-
-			// Optimistically update list queries
-			queryClient.setQueryData<CollectionList>(
-				["collection-list", did, rkey],
-				updatedList,
-			);
-
-			if (previousLists) {
-				queryClient.setQueryData<InfiniteData<ListPage>>(
-					["collection-lists", did],
-					{
-						...previousLists,
-						pages: previousLists.pages.map((page) => ({
-							...page,
-							records: page.records.map((record) =>
-								record.uri.endsWith(`/${rkey}`)
-									? { ...record, value: updatedList }
-									: record,
-							),
-						})),
-					},
-				);
-			}
-
-			// Optimistically update constellation queries
 			const itemUri =
 				item.type === "card"
 					? toOracleUri(item.oracleId)
 					: (item.uri as `at://${string}`);
-			const constellationKeys = getConstellationQueryKeys(itemUri, did);
+			const keys = getConstellationQueryKeys(itemUri, did);
+			const newSavedState = !isSaved;
 
-			await queryClient.cancelQueries({
-				queryKey: constellationKeys.userSaved,
-			});
-			await queryClient.cancelQueries({
-				queryKey: constellationKeys.saveCount,
-			});
-			await queryClient.cancelQueries({
-				queryKey: constellationKeys.savers,
-			});
+			const rollback = await runOptimistic([
+				optimisticRecordWithIndex<CollectionList>(
+					queryClient,
+					["collection-list", did, rkey],
+					["collection-lists", did],
+					rkey,
+					updatedList,
+				),
+				optimisticBoolean(queryClient, keys.userSaved, (qc) => {
+					if (newSavedState) return true;
+					// Removing - only set false if no other lists from this user have item
+					const data = qc.getQueryData<InfiniteData<BacklinksResponse>>(
+						keys.savers,
+					);
+					if (!data) return undefined; // cache miss - skip
+					const hasOtherLists = data.pages.some((page) =>
+						page.records.some((r) => r.did === did && r.rkey !== rkey),
+					);
+					return hasOtherLists ? undefined : false;
+				}),
+				optimisticCount(queryClient, keys.saveCount, newSavedState ? 1 : -1),
+				optimisticBacklinks(
+					queryClient,
+					keys.savers,
+					newSavedState ? "add" : "remove",
+					{ did, collection: COLLECTION_LIST_NSID, rkey },
+				),
+			]);
 
-			const previousSaved = queryClient.getQueryData<boolean>(
-				constellationKeys.userSaved,
-			);
-			const previousCount = queryClient.getQueryData<number>(
-				constellationKeys.saveCount,
-			);
-			const previousSavers = queryClient.getQueryData<
-				InfiniteData<BacklinksResponse>
-			>(constellationKeys.savers);
-
-			queryClient.setQueryData<boolean>(constellationKeys.userSaved, !isSaved);
-			queryClient.setQueryData<number>(constellationKeys.saveCount, (old) =>
-				isSaved ? Math.max(0, (old ?? 1) - 1) : (old ?? 0) + 1,
-			);
-
-			// Optimistically update savers list
-			queryClient.setQueryData<InfiniteData<BacklinksResponse>>(
-				constellationKeys.savers,
-				(old) => {
-					if (isSaved) {
-						// Remove list from savers
-						if (!old) return old;
-						return {
-							...old,
-							pages: old.pages.map((page, i) =>
-								i === 0
-									? {
-											...page,
-											total: Math.max(0, page.total - 1),
-											records: page.records.filter(
-												(r) => !(r.did === did && r.rkey === rkey),
-											),
-										}
-									: page,
-							),
-						};
-					}
-					// Add list to savers - seed cache if empty
-					const newRecord = { did, collection: COLLECTION_LIST_NSID, rkey };
-					if (!old) {
-						return {
-							pages: [{ records: [newRecord], total: 1 }],
-							pageParams: [undefined],
-						};
-					}
-					return {
-						...old,
-						pages: old.pages.map((page, i) =>
-							i === 0
-								? {
-										...page,
-										total: page.total + 1,
-										records: [newRecord, ...page.records],
-									}
-								: page,
-						),
-					};
-				},
-			);
-
-			return {
-				previousList,
-				previousLists,
-				previousSaved,
-				previousCount,
-				previousSavers,
-				constellationKeys,
-				isSaved,
-			};
+			return { rollback, isSaved };
 		},
 		onError: (_err, _params, context) => {
-			if (!context) return;
-
-			// Rollback list queries
-			if (context.previousList) {
-				queryClient.setQueryData<CollectionList>(
-					["collection-list", did, rkey],
-					context.previousList,
-				);
-			}
-			if (context.previousLists) {
-				type ListPage = { records: CollectionListRecord[]; cursor?: string };
-				queryClient.setQueryData<InfiniteData<ListPage>>(
-					["collection-lists", did],
-					context.previousLists,
-				);
-			}
-
-			// Rollback constellation queries
-			queryClient.setQueryData<boolean>(
-				context.constellationKeys.userSaved,
-				context.previousSaved,
-			);
-			queryClient.setQueryData<number>(
-				context.constellationKeys.saveCount,
-				context.previousCount,
-			);
-			if (context.previousSavers) {
-				queryClient.setQueryData<InfiniteData<BacklinksResponse>>(
-					context.constellationKeys.savers,
-					context.previousSavers,
-				);
-			}
+			context?.rollback();
 		},
 		onSuccess: (data, { list, itemName, item }) => {
 			const what = itemName ?? (item.type === "card" ? "Card" : "Deck");
