@@ -1,4 +1,5 @@
 import { getCardsInSection, isKnownSection } from "@/lib/deck-types";
+import { formatDisplayName } from "@/lib/format-utils";
 import type { OracleId } from "@/lib/scryfall-types";
 import { getCopyLimit } from "../exceptions";
 import {
@@ -41,11 +42,18 @@ export const cardLegalityRule: Rule<"cardLegality"> = {
 			const legality = card.legalities?.[field];
 			if (legality === "not_legal") {
 				violations.push(
-					violation(this, `${card.name} is not legal in ${field}`, "error", {
-						cardName: card.name,
-						oracleId: entry.oracleId,
-						section: isKnownSection(entry.section) ? entry.section : undefined,
-					}),
+					violation(
+						this,
+						`${card.name} is not legal in ${formatDisplayName(field) || field}`,
+						"error",
+						{
+							cardName: card.name,
+							oracleId: entry.oracleId,
+							section: isKnownSection(entry.section)
+								? entry.section
+								: undefined,
+						},
+					),
 				);
 			}
 		}
@@ -78,11 +86,18 @@ export const bannedRule: Rule<"banned"> = {
 			const legality = card.legalities?.[field];
 			if (legality === "banned") {
 				violations.push(
-					violation(this, `${card.name} is banned in ${field}`, "error", {
-						cardName: card.name,
-						oracleId: entry.oracleId,
-						section: isKnownSection(entry.section) ? entry.section : undefined,
-					}),
+					violation(
+						this,
+						`${card.name} is banned in ${formatDisplayName(field) || field}`,
+						"error",
+						{
+							cardName: card.name,
+							oracleId: entry.oracleId,
+							section: isKnownSection(entry.section)
+								? entry.section
+								: undefined,
+						},
+					),
 				);
 			}
 		}
