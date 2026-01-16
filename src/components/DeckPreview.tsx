@@ -117,9 +117,19 @@ export function DeckPreview({
 
 	const deckWords = useMemo(() => getDeckNameWords(deck.name), [deck.name]);
 
+	const isLoadingCards = cardQueries.some((q) => q.isLoading);
+
 	const previewCardIds = useMemo(() => {
 		if (hasCommanders) {
 			return commanders.slice(0, 3).map((c) => c.scryfallId);
+		}
+
+		// While loading, show top 3 by quantity as placeholders
+		if (isLoadingCards) {
+			return mainboardCards
+				.sort((a, b) => b.quantity - a.quantity)
+				.slice(0, 3)
+				.map((c) => c.scryfallId);
 		}
 
 		// Filter lands, sort by quantity (tiebreak by name matching deck title), take top 3
@@ -143,7 +153,14 @@ export function DeckPreview({
 			})
 			.slice(0, 3)
 			.map(({ deckCard }) => deckCard.scryfallId);
-	}, [hasCommanders, commanders, mainboardCards, cardQueries, deckWords]);
+	}, [
+		hasCommanders,
+		commanders,
+		mainboardCards,
+		cardQueries,
+		deckWords,
+		isLoadingCards,
+	]);
 
 	return (
 		<Link
