@@ -87,7 +87,7 @@ export function DeckPreview({
 		<Link
 			to="/profile/$did/deck/$rkey"
 			params={{ did, rkey: asRkey(rkey) }}
-			className="grid grid-cols-[auto_1fr] grid-rows-[auto_auto_auto_auto_auto] gap-x-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 transition-colors"
+			className="grid grid-cols-[auto_1fr] grid-rows-[auto_auto_auto_auto_auto] gap-x-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 motion-safe:hover:shadow-lg transition-colors motion-safe:transition-shadow"
 		>
 			{thumbnailId && (
 				<CardImage
