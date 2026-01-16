@@ -5,6 +5,11 @@ import { useMemo } from "react";
 import { CardSpread } from "@/components/CardSpread";
 import { ClientDate } from "@/components/ClientDate";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
+import {
+	getDeckNameWords,
+	isNonCreatureLand,
+	textMatchesDeckTitle,
+} from "@/lib/deck-preview-utils";
 import type { Deck } from "@/lib/deck-types";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { formatDisplayName } from "@/lib/format-utils";
@@ -54,29 +59,6 @@ function formatSectionCounts(counts: Record<string, number>): string {
 	}
 
 	return parts.join(" · ");
-}
-
-function isNonCreatureLand(typeLine: string | undefined): boolean {
-	if (!typeLine) return false;
-	const lower = typeLine.toLowerCase();
-	return lower.includes("land") && !lower.includes("creature");
-}
-
-function getDeckNameWords(name: string): string[] {
-	// Extract meaningful words (3+ chars, lowercased)
-	return name
-		.toLowerCase()
-		.split(/\s+/)
-		.filter((w) => w.length >= 3);
-}
-
-function cardNameMatchesDeckTitle(
-	cardName: string | undefined,
-	deckWords: string[],
-): boolean {
-	if (!cardName || deckWords.length === 0) return false;
-	const lower = cardName.toLowerCase();
-	return deckWords.some((word) => lower.includes(word));
 }
 
 export function DeckPreview({
@@ -144,11 +126,21 @@ export function DeckPreview({
 			.sort((a, b) => {
 				const qtyDiff = b.deckCard.quantity - a.deckCard.quantity;
 				if (qtyDiff !== 0) return qtyDiff;
-				// Tiebreak: prefer cards whose name matches deck title (sort to end = on top)
-				const aMatches = cardNameMatchesDeckTitle(a.card?.name, deckWords);
-				const bMatches = cardNameMatchesDeckTitle(b.card?.name, deckWords);
-				if (aMatches && !bMatches) return 1;
-				if (bMatches && !aMatches) return -1;
+				// Tiebreak 1: prefer cards whose name matches deck title
+				const aNameMatch = textMatchesDeckTitle(a.card?.name, deckWords);
+				const bNameMatch = textMatchesDeckTitle(b.card?.name, deckWords);
+				if (aNameMatch && !bNameMatch) return 1;
+				if (bNameMatch && !aNameMatch) return -1;
+				// Tiebreak 2: prefer cards whose type line matches deck title
+				const aTypeMatch = textMatchesDeckTitle(a.card?.type_line, deckWords);
+				const bTypeMatch = textMatchesDeckTitle(b.card?.type_line, deckWords);
+				if (aTypeMatch && !bTypeMatch) return 1;
+				if (bTypeMatch && !aTypeMatch) return -1;
+				// Tiebreak 3: prefer cards whose oracle text matches deck title
+				const aTextMatch = textMatchesDeckTitle(a.card?.oracle_text, deckWords);
+				const bTextMatch = textMatchesDeckTitle(b.card?.oracle_text, deckWords);
+				if (aTextMatch && !bTextMatch) return 1;
+				if (bTextMatch && !aTextMatch) return -1;
 				return 0;
 			})
 			.slice(0, 3)
