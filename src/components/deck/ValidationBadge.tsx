@@ -98,6 +98,9 @@ function ViolationGroup({
 						key={`${v.rule}-${v.oracleId ?? ""}-${i}`}
 						className="text-sm text-gray-600 dark:text-gray-400 pl-5"
 					>
+						<span className="font-mono text-xs text-gray-400 dark:text-gray-500 mr-1.5">
+							[{v.rule}]
+						</span>
 						{v.message}
 					</li>
 				))}
