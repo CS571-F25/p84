@@ -154,6 +154,16 @@ const SORT_OPTIONS: { value: string; label: string; sort: SortOption }[] = [
 		label: "Rarity (Common to Mythic)",
 		sort: { field: "rarity", direction: "asc" },
 	},
+	{
+		value: "color-asc",
+		label: "Color (WUBRG)",
+		sort: { field: "color", direction: "asc" },
+	},
+	{
+		value: "color-desc",
+		label: "Color (GRBUW)",
+		sort: { field: "color", direction: "desc" },
+	},
 ];
 
 const DEFAULT_SORT = SORT_OPTIONS[0];
