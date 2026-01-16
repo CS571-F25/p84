@@ -157,7 +157,6 @@ async function createRecord<TSchema extends BaseSchema>(
 	agent: OAuthUserAgent,
 	record: InferOutput<TSchema>,
 	schema: TSchema,
-	rkey?: Rkey,
 ): Promise<Result<{ uri: AtUri; cid: string; rkey: Rkey }>> {
 	const collection = getCollectionFromSchema(schema);
 	try {
@@ -170,24 +169,13 @@ async function createRecord<TSchema extends BaseSchema>(
 		}
 
 		const client = new Client({ handler: agent });
-
-		// Use putRecord if rkey provided (deterministic), createRecord otherwise (auto-generate)
-		const response = rkey
-			? await client.post("com.atproto.repo.putRecord", {
-					input: {
-						repo: agent.sub,
-						collection,
-						rkey,
-						record: record as Record<string, unknown>,
-					},
-				})
-			: await client.post("com.atproto.repo.createRecord", {
-					input: {
-						repo: agent.sub,
-						collection,
-						record: record as Record<string, unknown>,
-					},
-				});
+		const response = await client.post("com.atproto.repo.createRecord", {
+			input: {
+				repo: agent.sub,
+				collection,
+				record: record as Record<string, unknown>,
+			},
+		});
 
 		if (!response.ok) {
 			return {
@@ -211,6 +199,57 @@ async function createRecord<TSchema extends BaseSchema>(
 		return {
 			success: true,
 			data: { uri: uri as AtUri, cid, rkey: asRkey(extractedRkey) },
+		};
+	} catch (error) {
+		return {
+			success: false,
+			error: error instanceof Error ? error : new Error(String(error)),
+		};
+	}
+}
+
+async function upsertRecord<TSchema extends BaseSchema>(
+	agent: OAuthUserAgent,
+	rkey: Rkey,
+	record: InferOutput<TSchema>,
+	schema: TSchema,
+): Promise<Result<{ uri: AtUri; cid: string; rkey: Rkey }>> {
+	const collection = getCollectionFromSchema(schema);
+	try {
+		const validation = safeParse(schema, record);
+		if (!validation.ok) {
+			return {
+				success: false,
+				error: new Error(`Invalid ${collection} record: ${validation.message}`),
+			};
+		}
+
+		const client = new Client({ handler: agent });
+		const response = await client.post("com.atproto.repo.putRecord", {
+			input: {
+				repo: agent.sub,
+				collection,
+				rkey,
+				record: record as Record<string, unknown>,
+			},
+		});
+
+		if (!response.ok) {
+			return {
+				success: false,
+				error: new Error(
+					response.data.message || `Failed to upsert ${collection} record`,
+				),
+			};
+		}
+
+		return {
+			success: true,
+			data: {
+				uri: response.data.uri as AtUri,
+				cid: response.data.cid as string,
+				rkey,
+			},
 		};
 	} catch (error) {
 		return {
@@ -457,13 +496,19 @@ export type LikeRecordResponse = RecordResponse<ComDeckbelcherSocialLike.Main>;
 type LikeSubject = ComDeckbelcherSocialLike.Main["subject"];
 
 /**
- * Hash an object to a deterministic rkey using SHA-256 + base64url.
+ * Hash a flat object to a deterministic rkey using SHA-256 + base64url.
  * Full hash (43 chars) for maximum collision resistance.
  * Valid rkey chars: A-Za-z0-9.-_:~ (base64url uses A-Za-z0-9-_)
  * Sorts keys to ensure hash is independent of object key insertion order.
+ *
+ * IMPORTANT: Only pass flat objects with primitive values. Nested objects
+ * will be stripped due to JSON.stringify's array replacer behavior.
+ * For like subjects, pass `subject.ref` not the whole subject.
  */
-export async function hashToRkey(obj: unknown): Promise<Rkey> {
-	const json = JSON.stringify(obj, Object.keys(obj as object).sort());
+export async function hashToRkey(
+	obj: Record<string, string | number | boolean>,
+): Promise<Rkey> {
+	const json = JSON.stringify(obj, Object.keys(obj).sort());
 	const encoder = new TextEncoder();
 	const data = encoder.encode(json);
 	const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -482,19 +527,19 @@ export async function createLikeRecord(
 	agent: OAuthUserAgent,
 	subject: LikeSubject,
 ) {
-	const rkey = await hashToRkey(subject);
+	const rkey = await hashToRkey(subject.ref);
 	const record: ComDeckbelcherSocialLike.Main = {
 		$type: "com.deckbelcher.social.like",
 		subject,
 		createdAt: new Date().toISOString(),
 	};
-	return createRecord(agent, record, ComDeckbelcherSocialLike.mainSchema, rkey);
+	return upsertRecord(agent, rkey, record, ComDeckbelcherSocialLike.mainSchema);
 }
 
 export async function deleteLikeRecord(
 	agent: OAuthUserAgent,
 	subject: LikeSubject,
 ) {
-	const rkey = await hashToRkey(subject);
+	const rkey = await hashToRkey(subject.ref);
 	return deleteRecord(agent, rkey, ComDeckbelcherSocialLike.mainSchema);
 }

@@ -4,8 +4,9 @@
  * Tests the deterministic rkey generation used for like records.
  * Uses fast-check for generative testing across the input space.
  *
- * Note: Key order independence only applies to top-level keys.
- * Nested objects are not recursively sorted.
+ * IMPORTANT: hashToRkey only works correctly with flat objects (no nesting).
+ * Nested objects are stripped due to JSON.stringify's array replacer behavior.
+ * Always pass flat objects like `subject.ref`, not the whole subject.
  */
 
 import fc from "fast-check";
@@ -31,17 +32,6 @@ describe("hashToRkey", () => {
 						expect(result).toMatch(BASE64URL_PATTERN);
 					},
 				),
-				{ numRuns: 200 },
-			);
-		});
-
-		it("always produces 43-character base64url string for strings", async () => {
-			await fc.assert(
-				fc.asyncProperty(fc.string(), async (str) => {
-					const result = await hashToRkey(str);
-					expect(result).toHaveLength(RKEY_LENGTH);
-					expect(result).toMatch(BASE64URL_PATTERN);
-				}),
 				{ numRuns: 200 },
 			);
 		});
@@ -136,7 +126,7 @@ describe("hashToRkey", () => {
 		});
 	});
 
-	describe("key order independence (top-level only)", () => {
+	describe("key order independence", () => {
 		it("same hash regardless of key insertion order", async () => {
 			const obj1 = { a: 1, b: 2, c: 3 };
 			const obj2 = { c: 3, b: 2, a: 1 };
@@ -173,50 +163,36 @@ describe("hashToRkey", () => {
 			);
 		});
 
-		it("like subjects hash identically regardless of construction", async () => {
+		it("like subject refs hash identically regardless of key order", async () => {
 			await fc.assert(
 				fc.asyncProperty(fc.string(), fc.string(), async (uri, cid) => {
-					const subject1 = {
-						$type: "com.deckbelcher.social.like#recordSubject",
-						ref: { uri, cid },
-					};
-					const subject2 = {
-						ref: { uri, cid },
-						$type: "com.deckbelcher.social.like#recordSubject",
-					};
+					// Pass the flat ref object, not the nested subject
+					const ref1 = { uri, cid };
+					const ref2 = { cid, uri };
 
-					const result1 = await hashToRkey(subject1);
-					const result2 = await hashToRkey(subject2);
+					const result1 = await hashToRkey(ref1);
+					const result2 = await hashToRkey(ref2);
 
 					expect(result1).toBe(result2);
 				}),
 				{ numRuns: 100 },
 			);
 		});
+
+		it("different refs produce different hashes", async () => {
+			const ref1 = { uri: "at://did:plc:abc/com.foo/123", cid: "bafycid1" };
+			const ref2 = { uri: "at://did:plc:xyz/com.foo/456", cid: "bafycid2" };
+
+			const result1 = await hashToRkey(ref1);
+			const result2 = await hashToRkey(ref2);
+
+			expect(result1).not.toBe(result2);
+		});
 	});
 
 	describe("edge cases", () => {
 		it("handles empty object", async () => {
 			const result = await hashToRkey({});
-			expect(result).toHaveLength(RKEY_LENGTH);
-			expect(result).toMatch(BASE64URL_PATTERN);
-		});
-
-		it("handles empty string", async () => {
-			const result = await hashToRkey("");
-			expect(result).toHaveLength(RKEY_LENGTH);
-			expect(result).toMatch(BASE64URL_PATTERN);
-		});
-
-		it("handles empty array", async () => {
-			const result = await hashToRkey([]);
-			expect(result).toHaveLength(RKEY_LENGTH);
-			expect(result).toMatch(BASE64URL_PATTERN);
-		});
-
-		it("handles deeply nested objects", async () => {
-			const deep = { a: { b: { c: { d: { e: { f: "value" } } } } } };
-			const result = await hashToRkey(deep);
 			expect(result).toHaveLength(RKEY_LENGTH);
 			expect(result).toMatch(BASE64URL_PATTERN);
 		});
