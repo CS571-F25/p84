@@ -26,6 +26,8 @@ import { SocialStats } from "@/components/social/SocialStats";
 import { useDeckValidation } from "@/hooks/useDeckValidation";
 import { asRkey } from "@/lib/atproto-client";
 import { prefetchCards } from "@/lib/card-prefetch";
+import { DECK_LIST_NSID } from "@/lib/constellation-client";
+import { prefetchSocialStats } from "@/lib/constellation-queries";
 import { getDeckQueryOptions, useUpdateDeckMutation } from "@/lib/deck-queries";
 import type { Deck, GroupBy, Section, SortBy } from "@/lib/deck-types";
 import {
@@ -56,8 +58,14 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 			getDeckQueryOptions(params.did as Did, asRkey(params.rkey)),
 		);
 
+		const deckUri =
+			`at://${params.did}/${DECK_LIST_NSID}/${params.rkey}` as const;
 		const cardIds = deck.cards.map((card) => card.scryfallId);
-		await prefetchCards(context.queryClient, cardIds);
+
+		await Promise.all([
+			prefetchCards(context.queryClient, cardIds),
+			prefetchSocialStats(context.queryClient, deckUri, "deck"),
+		]);
 
 		return deck;
 	},
