@@ -1,4 +1,4 @@
-import { Bookmark, Heart, Layers } from "lucide-react";
+import { Bookmark, Heart, Rows3 } from "lucide-react";
 import { useState } from "react";
 import type { SaveItem } from "@/lib/collection-list-types";
 import type { SocialItemUri } from "@/lib/constellation-queries";
@@ -40,6 +40,7 @@ export function SocialStats({
 		isLikedByUser,
 		likeCount,
 		isLikeLoading,
+		isInUserDeck,
 		deckCount,
 		isDeckCountLoading,
 	} = useItemSocialStats(itemUri, item.type);
@@ -152,16 +153,27 @@ export function SocialStats({
 			{item.type === "card" && showCount && (
 				<div className="flex items-center">
 					<div
-						className={`${statBase} text-gray-600 dark:text-gray-400`}
-						title="Decks containing this card"
+						className={`${statBase} ${
+							isInUserDeck
+								? "text-purple-500 dark:text-purple-400"
+								: "text-gray-600 dark:text-gray-400"
+						}`}
+						title={isInUserDeck ? "In your deck" : "Decks containing this card"}
 					>
-						<Layers className="w-5 h-5" />
+						<Rows3
+							className="w-5 h-5"
+							fill={isInUserDeck ? "currentColor" : "none"}
+						/>
 					</div>
 					<button
 						type="button"
 						onClick={() => deckCount > 0 && setOpenModal("decks")}
 						disabled={deckCount === 0}
-						className={`text-sm tabular-nums px-1 py-2 rounded text-gray-600 dark:text-gray-400 ${isDeckCountLoading ? "opacity-50" : ""} ${deckCount > 0 ? "hover:underline cursor-pointer" : "cursor-default"}`}
+						className={`text-sm tabular-nums px-1 py-2 rounded ${isDeckCountLoading ? "opacity-50" : ""} ${
+							isInUserDeck
+								? "text-purple-500 dark:text-purple-400"
+								: "text-gray-600 dark:text-gray-400"
+						} ${deckCount > 0 ? "hover:underline cursor-pointer" : "cursor-default"}`}
 						title={deckCount > 0 ? "See decks with this card" : undefined}
 					>
 						{deckCount}

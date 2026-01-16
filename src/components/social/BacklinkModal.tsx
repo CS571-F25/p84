@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Bookmark, Heart, Layers, Loader2, X } from "lucide-react";
+import { Bookmark, Heart, Loader2, Rows3, X } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 import {
 	type CardItemUri,
@@ -37,7 +37,7 @@ const MODAL_CONFIG = {
 	},
 	decks: {
 		title: "In decks",
-		icon: Layers,
+		icon: Rows3,
 		iconBg: "bg-purple-100 dark:bg-purple-900/30",
 		iconColor: "text-purple-600 dark:text-purple-400",
 	},
