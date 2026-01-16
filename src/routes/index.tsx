@@ -119,17 +119,34 @@ function App() {
 				</div>
 
 				<div className="mt-16 text-center">
-					<p className="text-sm text-gray-500 dark:text-gray-500">
-						built on the{" "}
+					<p className="text-sm text-gray-500 dark:text-gray-500 [font-variation-settings:'CASL'_0.5]">
+						built on{" "}
 						<a
 							href="https://atproto.com"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="text-cyan-600 dark:text-cyan-400 hover:underline"
 						>
-							AT Protocol
+							atproto
 						</a>{" "}
-						— your decks, your data
+						w/ &lt;3 by{" "}
+						<a
+							href="https://deer.social/profile/did:plc:jx4g6baqkwdlonylsetvpu7c"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-cyan-600 dark:text-cyan-400 hover:underline"
+						>
+							@aviva.gay
+						</a>{" "}
+						·{" "}
+						<a
+							href="https://forsythpeak.com/"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-cyan-600 dark:text-cyan-400 hover:underline"
+						>
+							forsyth peak llc
+						</a>
 					</p>
 				</div>
 			</div>
