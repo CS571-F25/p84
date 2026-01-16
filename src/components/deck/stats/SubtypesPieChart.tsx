@@ -9,22 +9,22 @@ interface SubtypesPieChartProps {
 }
 
 const COLORS = [
-	"#22C55E",
-	"#3B82F6",
-	"#EF4444",
-	"#A855F7",
-	"#F59E0B",
-	"#EC4899",
-	"#14B8A6",
-	"#6366F1",
-	"#F97316",
-	"#8B5CF6",
-	"#06B6D4",
-	"#84CC16",
+	"var(--color-cyan-500)",
+	"var(--color-violet-500)",
+	"var(--color-amber-500)",
+	"var(--color-emerald-500)",
+	"var(--color-rose-500)",
+	"var(--color-sky-500)",
+	"var(--color-orange-500)",
+	"var(--color-purple-500)",
+	"var(--color-teal-500)",
+	"var(--color-pink-500)",
+	"var(--color-indigo-500)",
+	"var(--color-lime-500)",
 ];
 
 function getSubtypeColor(subtype: string, index: number): string {
-	if (subtype === "Other") return "#9CA3AF";
+	if (subtype === "Other") return "var(--color-gray-400)";
 	return COLORS[index % COLORS.length];
 }
 

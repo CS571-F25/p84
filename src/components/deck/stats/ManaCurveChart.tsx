@@ -16,10 +16,10 @@ interface ManaCurveChartProps {
 }
 
 const COLORS = {
-	permanent: "#22C55E",
-	spell: "#3B82F6",
-	permanentHover: "#16A34A",
-	spellHover: "#2563EB",
+	permanent: "var(--color-cyan-500)",
+	spell: "var(--color-violet-500)",
+	permanentHover: "var(--color-cyan-600)",
+	spellHover: "var(--color-violet-600)",
 };
 
 export function ManaCurveChart({

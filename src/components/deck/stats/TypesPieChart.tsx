@@ -9,16 +9,16 @@ interface TypesPieChartProps {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-	Creature: "#22C55E",
-	Instant: "#3B82F6",
-	Sorcery: "#EF4444",
-	Enchantment: "#A855F7",
-	Artifact: "#6B7280",
-	Planeswalker: "#F59E0B",
-	Land: "#84CC16",
-	Battle: "#EC4899",
-	Kindred: "#8B5CF6",
-	Other: "#9CA3AF",
+	Creature: "var(--color-emerald-500)",
+	Instant: "var(--color-cyan-500)",
+	Sorcery: "var(--color-amber-500)",
+	Enchantment: "var(--color-violet-500)",
+	Artifact: "var(--color-slate-500)",
+	Planeswalker: "var(--color-orange-500)",
+	Land: "var(--color-lime-500)",
+	Battle: "var(--color-pink-500)",
+	Kindred: "var(--color-purple-500)",
+	Other: "var(--color-gray-400)",
 };
 
 function getTypeColor(type: string): string {

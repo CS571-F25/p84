@@ -9,8 +9,8 @@ interface SpeedPieChartProps {
 }
 
 const SPEED_COLORS: Record<SpeedCategory, string> = {
-	instant: "#3B82F6",
-	sorcery: "#EF4444",
+	instant: "var(--color-cyan-500)",
+	sorcery: "var(--color-amber-500)",
 };
 
 const SPEED_LABELS: Record<SpeedCategory, string> = {
