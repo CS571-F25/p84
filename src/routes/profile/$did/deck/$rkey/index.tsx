@@ -53,18 +53,25 @@ import { usePersistedState } from "@/lib/usePersistedState";
 export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 	component: DeckEditorPage,
 	loader: async ({ context, params }) => {
-		// Prefetch deck data during SSR
+		const deckUri =
+			`at://${params.did}/${DECK_LIST_NSID}/${params.rkey}` as const;
+
+		// Start social stats prefetch immediately (only needs params)
+		const socialPromise = prefetchSocialStats(
+			context.queryClient,
+			deckUri,
+			"deck",
+		);
+
+		// Prefetch deck data, then cards (needs deck.cards)
 		const { deck } = await context.queryClient.ensureQueryData(
 			getDeckQueryOptions(params.did as Did, asRkey(params.rkey)),
 		);
 
-		const deckUri =
-			`at://${params.did}/${DECK_LIST_NSID}/${params.rkey}` as const;
 		const cardIds = deck.cards.map((card) => card.scryfallId);
-
 		await Promise.all([
 			prefetchCards(context.queryClient, cardIds),
-			prefetchSocialStats(context.queryClient, deckUri, "deck"),
+			socialPromise,
 		]);
 
 		return deck;
