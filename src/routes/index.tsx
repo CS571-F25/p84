@@ -12,12 +12,7 @@ function App() {
 		<div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
 			<div className="max-w-5xl mx-auto px-6 py-16 md:py-24">
 				<div className="text-center mb-16">
-					<h1
-						className="text-5xl md:text-6xl font-medium text-gray-900 dark:text-white mb-4 tracking-tight font-display"
-						style={{
-							fontVariationSettings: '"WONK" 1, "SOFT" 70, "opsz" 72',
-						}}
-					>
+					<h1 className="inline-block text-5xl md:text-6xl font-medium text-gray-900 dark:text-white mb-4 tracking-tight font-display [font-variation-settings:'WONK'_1,'SOFT'_70,'opsz'_72] motion-safe:hover:[font-variation-settings:'WONK'_1,'SOFT'_100,'opsz'_25] motion-safe:transition-[font-variation-settings] motion-safe:duration-500 ease-in-out cursor-default">
 						deck belcher dot com
 					</h1>
 					<p className="text-xl text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
