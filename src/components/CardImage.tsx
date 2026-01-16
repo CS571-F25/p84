@@ -185,7 +185,7 @@ export function CardThumbnail({ card, href, onClick }: CardThumbnailProps) {
 				size="normal"
 				className="w-full h-full object-cover rounded-[4.75%/3.5%]"
 			/>
-			<div className="absolute inset-0 bg-gradient-to-t from-black/80 dark:from-black/90 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity">
+			<div className="absolute inset-0 bg-gradient-to-t from-black/80 dark:from-black/90 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
 				<div className="absolute bottom-0 left-0 right-0 p-3">
 					<p className="text-white font-semibold text-sm line-clamp-2">
 						{card.name}
@@ -201,7 +201,7 @@ export function CardThumbnail({ card, href, onClick }: CardThumbnailProps) {
 	);
 
 	const className =
-		"group relative aspect-[5/7] overflow-hidden hover:ring-2 hover:ring-cyan-500 transition-all block rounded-[4.75%/3.5%]";
+		"group relative aspect-[5/7] overflow-hidden hover:ring-2 hover:ring-cyan-500 motion-safe:transition-shadow block rounded-[4.75%/3.5%]";
 
 	if (href) {
 		return (
@@ -250,7 +250,7 @@ export function CardPreview({
 	);
 
 	const baseClassName =
-		"aspect-[5/7] overflow-hidden hover:ring-2 hover:ring-cyan-500 transition-all block rounded-[4.75%/3.5%]";
+		"aspect-[5/7] overflow-hidden hover:ring-2 hover:ring-cyan-500 motion-safe:transition-shadow block rounded-[4.75%/3.5%]";
 	const finalClassName = `${baseClassName} ${className ?? ""}`;
 
 	if (href) {

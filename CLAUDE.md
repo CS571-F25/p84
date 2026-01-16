@@ -86,6 +86,24 @@ Tailwind CSS v4 is integrated via `@tailwindcss/vite` plugin. Global styles in `
   - Borders: `border-gray-300 dark:border-slate-700`
   - Interactive elements: `hover:bg-gray-100 dark:hover:bg-gray-800`
 
+**Reduced Motion Support:**
+- Respect `prefers-reduced-motion` for decorative and dramatic animations
+- Use `motion-safe:` prefix on transitions, NOT on the hover state itself (preserve functionality, remove animation)
+- Categories of effects:
+  - **Keep without motion-safe:** Subtle state indicators - hover background colors, border color changes. These are quick and communicate interactivity.
+  - **Wrap with motion-safe:** Flourishes and dramatic effects - font-variation-settings animations (weight/CASL), shadows appearing (`hover:shadow-lg`), overlay fades, scale transforms, ring transitions. Anything slow, dramatic, or purely decorative.
+- Pattern for flourish animations:
+  ```
+  [font-variation-settings:'wght'_400]
+  motion-safe:group-hover:[font-variation-settings:'wght'_500]
+  motion-safe:transition-[font-variation-settings] motion-safe:duration-200 motion-safe:ease-out
+  ```
+- Pattern for functional features with animated presentation:
+  ```
+  opacity-0 group-hover:opacity-100 motion-safe:transition-opacity
+  ```
+  (Overlay still appears on hover, just instantly with reduced motion)
+
 ### Development Tooling
 
 - **Nix**: flake.nix provides Node.js 22, TypeSpec, and language servers

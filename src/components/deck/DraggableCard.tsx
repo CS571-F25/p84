@@ -100,7 +100,7 @@ export function DraggableCard({
 				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-4 text-right flex-shrink-0">
 					{card.quantity}
 				</span>
-				<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0 transition-[font-variation-settings] duration-200 ease-out [font-variation-settings:'wght'_400] group-hover:[font-variation-settings:'wght'_500]">
+				<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0 motion-safe:transition-[font-variation-settings] motion-safe:duration-200 motion-safe:ease-out [font-variation-settings:'wght'_400] motion-safe:group-hover:[font-variation-settings:'wght'_500]">
 					{primaryFace ? primaryFace.name : isLoading ? "" : "Unknown Card"}
 				</span>
 				{violations && violations.length > 0 && (
