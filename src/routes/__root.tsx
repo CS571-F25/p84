@@ -65,6 +65,20 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		],
 		links: [
 			{
+				rel: "preload",
+				href: "/fonts/recursive/Recursive-VF.woff2",
+				as: "font",
+				type: "font/woff2",
+				crossOrigin: "anonymous",
+			},
+			{
+				rel: "preload",
+				href: "/fonts/fraunces/Fraunces-VF.woff2",
+				as: "font",
+				type: "font/woff2",
+				crossOrigin: "anonymous",
+			},
+			{
 				rel: "stylesheet",
 				href: appCss,
 			},
