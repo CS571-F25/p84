@@ -98,38 +98,51 @@ function getSortableName(name: string): string {
 	return name.startsWith("A-") ? name.slice(2) : name;
 }
 
-function sortCards(cards: Card[], sort: SortOption): void {
+type CardComparator = (a: Card, b: Card) => number;
+
+function buildComparator(sort: SortOption): CardComparator {
 	const dir = resolveDirection(sort.field, sort.direction);
 	const mult = dir === "desc" ? -1 : 1;
 
-	cards.sort((a, b) => {
-		let cmp = 0;
-		const nameA = getSortableName(a.name);
-		const nameB = getSortableName(b.name);
-		switch (sort.field) {
-			case "name":
-				cmp = nameA.localeCompare(nameB);
-				break;
-			case "mv":
-				cmp = (a.cmc ?? 0) - (b.cmc ?? 0);
-				break;
-			case "released":
-				cmp = (a.released_at ?? "").localeCompare(b.released_at ?? "");
-				break;
-			case "rarity":
-				cmp =
-					(RARITY_ORDER[a.rarity ?? ""] ?? 99) -
-					(RARITY_ORDER[b.rarity ?? ""] ?? 99);
-				break;
-			case "color":
-				cmp =
-					colorIdentityRank(a.color_identity) -
-					colorIdentityRank(b.color_identity);
-				break;
+	switch (sort.field) {
+		case "name":
+			return (a, b) =>
+				mult * getSortableName(a.name).localeCompare(getSortableName(b.name));
+		case "mv":
+			return (a, b) => mult * ((a.cmc ?? 0) - (b.cmc ?? 0));
+		case "released":
+			return (a, b) =>
+				mult * (a.released_at ?? "").localeCompare(b.released_at ?? "");
+		case "rarity":
+			return (a, b) =>
+				mult *
+				((RARITY_ORDER[a.rarity ?? ""] ?? 99) -
+					(RARITY_ORDER[b.rarity ?? ""] ?? 99));
+		case "color":
+			return (a, b) =>
+				mult *
+				(colorIdentityRank(a.color_identity) -
+					colorIdentityRank(b.color_identity));
+	}
+}
+
+function buildChainedComparator(sorts: SortOption[]): CardComparator {
+	const comparators = sorts.map(buildComparator);
+	const nameTiebreaker: CardComparator = (a, b) =>
+		getSortableName(a.name).localeCompare(getSortableName(b.name));
+
+	return (a, b) => {
+		for (const cmp of comparators) {
+			const result = cmp(a, b);
+			if (result !== 0) return result;
 		}
-		cmp *= mult;
-		return cmp !== 0 ? cmp : nameA.localeCompare(nameB);
-	});
+		return nameTiebreaker(a, b);
+	};
+}
+
+function sortCards(cards: Card[], sorts: SortOption[]): void {
+	if (sorts.length === 0) return;
+	cards.sort(buildChainedComparator(sorts));
 }
 
 const VOLATILE_RECORD_SIZE = 44; // 16 (UUID) + 4 (rank) + 6*4 (prices)
@@ -188,7 +201,7 @@ interface CardsWorkerAPI {
 	syntaxSearch(
 		query: string,
 		maxResults?: number,
-		sort?: SortOption,
+		sort?: SortOption[],
 	):
 		| { ok: true; cards: Card[] }
 		| { ok: false; error: { message: string; start: number; end: number } };
@@ -207,7 +220,7 @@ interface CardsWorkerAPI {
 		query: string,
 		restrictions?: SearchRestrictions,
 		maxResults?: number,
-		sort?: SortOption,
+		sort?: SortOption[],
 	): UnifiedSearchResult;
 
 	/**
@@ -217,7 +230,7 @@ interface CardsWorkerAPI {
 	paginatedUnifiedSearch(
 		query: string,
 		restrictions: SearchRestrictions | undefined,
-		sort: SortOption,
+		sort: SortOption[],
 		offset: number,
 		limit: number,
 	): Promise<PaginatedSearchResult>;
@@ -434,7 +447,7 @@ class CardsWorker implements CardsWorkerAPI {
 	syntaxSearch(
 		query: string,
 		maxResults = 100,
-		sort: SortOption = { field: "name", direction: "auto" },
+		sort: SortOption[] = [{ field: "name", direction: "auto" }],
 	):
 		| { ok: true; cards: Card[] }
 		| { ok: false; error: { message: string; start: number; end: number } } {
@@ -476,7 +489,7 @@ class CardsWorker implements CardsWorkerAPI {
 		query: string,
 		restrictions?: SearchRestrictions,
 		maxResults = 50,
-		sort: SortOption = { field: "name", direction: "auto" },
+		sort: SortOption[] = [{ field: "name", direction: "auto" }],
 	): UnifiedSearchResult {
 		if (!this.data || !this.searchIndex) {
 			throw new Error("Worker not initialized - call initialize() first");
@@ -524,7 +537,7 @@ class CardsWorker implements CardsWorkerAPI {
 	async paginatedUnifiedSearch(
 		query: string,
 		restrictions: SearchRestrictions | undefined,
-		sort: SortOption,
+		sort: SortOption[],
 		offset: number,
 		limit: number,
 	): Promise<PaginatedSearchResult> {
@@ -563,7 +576,7 @@ class CardsWorker implements CardsWorkerAPI {
 	private executeFullUnifiedSearch(
 		query: string,
 		restrictions: SearchRestrictions | undefined,
-		sort: SortOption,
+		sort: SortOption[],
 	): CachedSearchResult {
 		if (!this.data || !this.searchIndex) {
 			return { mode: "fuzzy", cards: [], description: null, error: null };
@@ -614,7 +627,7 @@ class CardsWorker implements CardsWorkerAPI {
 	private runFullParsedQuery(
 		ast: SearchNode,
 		match: CardPredicate,
-		sort: SortOption,
+		sort: SortOption[],
 		restrictions?: SearchRestrictions,
 	): Card[] {
 		if (!this.data) return [];
@@ -647,7 +660,7 @@ class CardsWorker implements CardsWorkerAPI {
 		ast: SearchNode,
 		match: CardPredicate,
 		maxResults: number,
-		sort: SortOption,
+		sort: SortOption[],
 		restrictions?: SearchRestrictions,
 	): Card[] {
 		if (!this.data) return [];

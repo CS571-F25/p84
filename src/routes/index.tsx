@@ -85,7 +85,7 @@ function App() {
 
 					<Link
 						to="/cards"
-						search={{ q: "", sort: undefined }}
+						search={{ q: "", sort: undefined, sort2: undefined }}
 						className="group flex flex-col items-center p-6 bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl hover:border-cyan-500 dark:hover:border-cyan-500 motion-safe:hover:shadow-lg transition-colors motion-safe:transition-shadow"
 					>
 						<div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 group-hover:bg-gray-200 dark:group-hover:bg-slate-600 transition-colors">

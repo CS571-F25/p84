@@ -79,7 +79,7 @@ export class ClientCardProvider implements CardDataProvider {
 	async paginatedUnifiedSearch(
 		query: string,
 		restrictions: SearchRestrictions | undefined,
-		sort: SortOption,
+		sort: SortOption[],
 		offset: number,
 		limit: number,
 	): Promise<PaginatedSearchResult> {

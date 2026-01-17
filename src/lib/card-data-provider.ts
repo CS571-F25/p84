@@ -84,7 +84,7 @@ export interface CardDataProvider {
 	paginatedUnifiedSearch?(
 		query: string,
 		restrictions: SearchRestrictions | undefined,
-		sort: SortOption,
+		sort: SortOption[],
 		offset: number,
 		limit: number,
 	): Promise<PaginatedSearchResult>;

@@ -208,7 +208,7 @@ export const searchPageQueryOptions = (
 	query: string,
 	offset: number,
 	restrictions?: SearchRestrictions,
-	sort: SortOption = { field: "name", direction: "auto" },
+	sort: SortOption[] = [{ field: "name", direction: "auto" }],
 ) =>
 	queryOptions({
 		queryKey: [

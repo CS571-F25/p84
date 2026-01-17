@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { mockFetchFromPublicDir } from "../../lib/__tests__/test-helpers";
+import type { SortOption } from "../../lib/search-types";
 import { __CardsWorkerForTestingOnly as CardsWorker } from "../cards.worker";
 
 describe("CardsWorker syntaxSearch", () => {
@@ -246,10 +247,9 @@ describe("CardsWorker syntaxSearch", () => {
 		});
 
 		it("sorts by mana value ascending", () => {
-			const result = worker.syntaxSearch("s:lea t:creature", 20, {
-				field: "mv",
-				direction: "asc",
-			});
+			const result = worker.syntaxSearch("s:lea t:creature", 20, [
+				{ field: "mv", direction: "asc" },
+			]);
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				const cmcs = result.cards.map((c) => c.cmc ?? 0);
@@ -258,10 +258,9 @@ describe("CardsWorker syntaxSearch", () => {
 		});
 
 		it("sorts by mana value descending", () => {
-			const result = worker.syntaxSearch("s:lea t:creature", 20, {
-				field: "mv",
-				direction: "desc",
-			});
+			const result = worker.syntaxSearch("s:lea t:creature", 20, [
+				{ field: "mv", direction: "desc" },
+			]);
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				const cmcs = result.cards.map((c) => c.cmc ?? 0);
@@ -270,10 +269,9 @@ describe("CardsWorker syntaxSearch", () => {
 		});
 
 		it("uses name as tiebreaker when sorting by mv", () => {
-			const result = worker.syntaxSearch("s:lea cmc=1", 100, {
-				field: "mv",
-				direction: "asc",
-			});
+			const result = worker.syntaxSearch("s:lea cmc=1", 100, [
+				{ field: "mv", direction: "asc" },
+			]);
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				// All cards have mv=1, so should be sorted by name
@@ -284,10 +282,9 @@ describe("CardsWorker syntaxSearch", () => {
 		});
 
 		it("sorts by rarity descending (mythic first)", () => {
-			const result = worker.syntaxSearch("s:dom rarity>=rare", 50, {
-				field: "rarity",
-				direction: "desc",
-			});
+			const result = worker.syntaxSearch("s:dom rarity>=rare", 50, [
+				{ field: "rarity", direction: "desc" },
+			]);
 			expect(result.ok).toBe(true);
 			if (result.ok && result.cards.length > 0) {
 				// Mythics should come before rares
@@ -361,7 +358,7 @@ describe("CardsWorker syntaxSearch", () => {
 	});
 
 	describe("paginatedUnifiedSearch", () => {
-		const sort = { field: "name", direction: "auto" } as const;
+		const sort: SortOption[] = [{ field: "name", direction: "auto" }];
 
 		it("returns totalCount and requested page", async () => {
 			const result = await worker.paginatedUnifiedSearch(

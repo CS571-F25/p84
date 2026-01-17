@@ -5,11 +5,13 @@ import {
 	AlertCircle,
 	ArrowUpDown,
 	ChevronDown,
+	ListFilter,
 	Loader2,
 	Search,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CardSkeleton, CardThumbnail } from "@/components/CardImage";
+import { ClientDate } from "@/components/ClientDate";
 import { OracleText } from "@/components/OracleText";
 import {
 	getCardsMetadataQueryOptions,
@@ -26,6 +28,7 @@ export const Route = createFileRoute("/cards/")({
 		return {
 			q: (search.q as string) || "",
 			sort: (search.sort as string) || undefined,
+			sort2: (search.sort2 as string) || undefined,
 		};
 	},
 	head: () => ({
@@ -38,16 +41,19 @@ function MetadataDisplay() {
 
 	if (!metadata) {
 		return (
-			<p className="text-gray-400">
-				<Loader2 className="inline w-4 h-4 animate-spin" />
-			</p>
+			<span className="text-gray-400 text-sm">
+				<Loader2 className="inline w-3 h-3 animate-spin" />
+			</span>
 		);
 	}
 
 	return (
-		<p className="text-gray-400">
-			{metadata.cardCount.toLocaleString()} cards • Version: {metadata.version}{" "}
-			• Data from{" "}
+		<span
+			className="text-gray-400 text-sm"
+			title={`Version: ${metadata.version}`}
+		>
+			{metadata.cardCount.toLocaleString()} cards • updated{" "}
+			<ClientDate dateString={metadata.version} format="relative" /> from{" "}
 			<a
 				href="https://scryfall.com"
 				target="_blank"
@@ -56,7 +62,7 @@ function MetadataDisplay() {
 			>
 				Scryfall
 			</a>
-		</p>
+		</span>
 	);
 }
 
@@ -166,7 +172,15 @@ const SORT_OPTIONS: { value: string; label: string; sort: SortOption }[] = [
 	},
 ];
 
-const DEFAULT_SORT = SORT_OPTIONS[0];
+const DEFAULT_PRIMARY = SORT_OPTIONS[0];
+
+function buildSortArray(
+	primary: (typeof SORT_OPTIONS)[number],
+	secondary: (typeof SORT_OPTIONS)[number] | null,
+): SortOption[] {
+	if (!secondary) return [primary.sort];
+	return [primary.sort, secondary.sort];
+}
 
 function CardsPage() {
 	const navigate = Route.useNavigate();
@@ -191,12 +205,16 @@ function CardsPage() {
 	const listRef = useRef<HTMLDivElement>(null);
 	const columns = useColumns();
 	const hasRestoredScroll = useRef(false);
-	const sortOption =
-		SORT_OPTIONS.find((o) => o.value === search.sort) ?? DEFAULT_SORT;
+	const primarySort =
+		SORT_OPTIONS.find((o) => o.value === search.sort) ?? DEFAULT_PRIMARY;
+	const secondarySort = search.sort2
+		? (SORT_OPTIONS.find((o) => o.value === search.sort2) ?? null)
+		: null;
+	const sortArray = buildSortArray(primarySort, secondarySort);
 
 	// First page query to get totalCount and metadata
 	const firstPageQuery = useQuery(
-		searchPageQueryOptions(debouncedSearchQuery, 0, undefined, sortOption.sort),
+		searchPageQueryOptions(debouncedSearchQuery, 0, undefined, sortArray),
 	);
 	const totalCount = firstPageQuery.data?.totalCount ?? 0;
 	const hasError = firstPageQuery.data?.error != null;
@@ -284,7 +302,7 @@ function CardsPage() {
 				debouncedSearchQuery,
 				offset,
 				undefined,
-				sortOption.sort,
+				sortArray,
 			),
 		),
 	});
@@ -324,56 +342,81 @@ function CardsPage() {
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
 			<div className="max-w-7xl w-full mx-auto px-6 pt-8 pb-4">
-				<div className="mb-8">
-					<h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-						Card Browser
-					</h1>
-					<MetadataDisplay />
-				</div>
+				<div className="mb-4 flex flex-col gap-2">
+					<div className="flex items-center justify-between gap-2">
+						<h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+							Card Browser
+						</h1>
+						<div className="flex gap-2">
+							<div className="relative">
+								<select
+									value={primarySort.value}
+									onChange={(e) =>
+										navigate({
+											search: (prev) => ({ ...prev, sort: e.target.value }),
+											replace: true,
+										})
+									}
+									className="appearance-none h-9 w-9 sm:w-auto pl-2 sm:pl-3 pr-2 sm:pr-8 py-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-transparent sm:text-gray-900 dark:sm:text-white text-sm focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+								>
+									{SORT_OPTIONS.map((opt) => (
+										<option key={opt.value} value={opt.value}>
+											{opt.label}
+										</option>
+									))}
+								</select>
+								<ArrowUpDown className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none sm:hidden" />
+								<ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none hidden sm:block" />
+							</div>
+							<div className="relative">
+								<select
+									value={secondarySort?.value ?? ""}
+									onChange={(e) =>
+										navigate({
+											search: (prev) => ({
+												...prev,
+												sort2: e.target.value || undefined,
+											}),
+											replace: true,
+										})
+									}
+									className="appearance-none h-9 w-9 sm:w-auto pl-2 sm:pl-3 pr-2 sm:pr-8 py-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-transparent sm:text-gray-900 dark:sm:text-white text-sm focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+								>
+									<option value="">then...</option>
+									{SORT_OPTIONS.filter(
+										(opt) => opt.sort.field !== primarySort.sort.field,
+									).map((opt) => (
+										<option key={opt.value} value={opt.value}>
+											{opt.label}
+										</option>
+									))}
+								</select>
+								<ListFilter className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none sm:hidden" />
+								<ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none hidden sm:block" />
+							</div>
+						</div>
+					</div>
 
-				<div className="mb-4">
-					<div className="flex gap-2">
-						<div className="relative flex-1 min-w-0">
-							<Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-							<input
-								ref={searchInputRef}
-								type="text"
-								placeholder="Search by name or try t:creature cmc<=3"
-								defaultValue={search.q}
-								onChange={(e) => {
-									lastSyncedQuery.current = e.target.value;
-									navigate({
-										search: (prev) => ({ ...prev, q: e.target.value }),
-										replace: true,
-									});
-								}}
-								className={`w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-slate-800 border rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-colors ${
-									hasError
-										? "border-red-500 focus:border-red-500"
-										: "border-gray-300 dark:border-slate-700 focus:border-cyan-500"
-								}`}
-							/>
-						</div>
-						<div className="relative flex-shrink-0">
-							<select
-								value={sortOption.value}
-								onChange={(e) =>
-									navigate({
-										search: (prev) => ({ ...prev, sort: e.target.value }),
-										replace: true,
-									})
-								}
-								className="appearance-none h-full w-11 sm:w-auto pl-3 sm:pl-4 pr-3 sm:pr-10 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-transparent sm:text-gray-900 dark:sm:text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
-							>
-								{SORT_OPTIONS.map((opt) => (
-									<option key={opt.value} value={opt.value}>
-										{opt.label}
-									</option>
-								))}
-							</select>
-							<ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none sm:hidden" />
-							<ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none hidden sm:block" />
-						</div>
+					<div className="relative">
+						<Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+						<input
+							ref={searchInputRef}
+							type="text"
+							placeholder="Search by name or try t:creature cmc<=3"
+							defaultValue={search.q}
+							onChange={(e) => {
+								lastSyncedQuery.current = e.target.value;
+								navigate({
+									search: (prev) => ({ ...prev, q: e.target.value }),
+									replace: true,
+								});
+							}}
+							className={`w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-slate-800 border rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-colors ${
+								hasError
+									? "border-red-500 focus:border-red-500"
+									: "border-gray-300 dark:border-slate-700 focus:border-cyan-500"
+							}`}
+						/>
 					</div>
 
 					{hasError && firstPage?.error && (
@@ -407,7 +450,7 @@ function CardsPage() {
 
 					{!search.q && (
 						<p className="text-sm text-gray-400 mt-2">
-							Enter a search query to find cards
+							Enter a search query to find cards • <MetadataDisplay />
 						</p>
 					)}
 				</div>
