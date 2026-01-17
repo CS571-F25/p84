@@ -117,10 +117,12 @@ export default function Header() {
 					<Link
 						to="/"
 						onClick={() => setIsOpen(false)}
-						className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors mb-2"
+						className="flex items-center gap-3 p-3 rounded-lg transition-colors mb-2"
+						inactiveProps={{
+							className: "hover:bg-gray-100 dark:hover:bg-gray-800",
+						}}
 						activeProps={{
-							className:
-								"flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2 text-white",
+							className: "bg-cyan-600 hover:bg-cyan-700 text-white",
 						}}
 					>
 						<Home size={20} />
@@ -131,10 +133,12 @@ export default function Header() {
 						to="/cards"
 						search={{ q: "", sort: undefined, sort2: undefined }}
 						onClick={() => setIsOpen(false)}
-						className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors mb-2"
+						className="flex items-center gap-3 p-3 rounded-lg transition-colors mb-2"
+						inactiveProps={{
+							className: "hover:bg-gray-100 dark:hover:bg-gray-800",
+						}}
 						activeProps={{
-							className:
-								"flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2 text-white",
+							className: "bg-cyan-600 hover:bg-cyan-700 text-white",
 						}}
 					>
 						<Library size={20} />
