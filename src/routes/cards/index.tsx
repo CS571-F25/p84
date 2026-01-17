@@ -5,7 +5,6 @@ import {
 	AlertCircle,
 	ArrowUpDown,
 	ChevronDown,
-	ListFilter,
 	Loader2,
 	Search,
 } from "lucide-react";
@@ -185,7 +184,10 @@ function buildSortArray(
 function CardsPage() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const { value: debouncedSearchQuery } = useDebounce(search.q || "", 400);
+	const { value: debouncedSearchQuery, isPending: isDebouncing } = useDebounce(
+		search.q || "",
+		400,
+	);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const lastSyncedQuery = useRef<string>(search.q || "");
 
@@ -391,7 +393,7 @@ function CardsPage() {
 										</option>
 									))}
 								</select>
-								<ListFilter className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none sm:hidden" />
+								<ArrowUpDown className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none sm:hidden" />
 								<ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none hidden sm:block" />
 							</div>
 						</div>
@@ -426,26 +428,27 @@ function CardsPage() {
 						</div>
 					)}
 
-					{firstPage?.description && !hasError && (
-						<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-							<OracleText text={firstPage.description} />
-						</p>
-					)}
-
 					{search.q && !hasError && (
-						<p className="text-sm text-gray-400 mt-2">
-							{totalCount > 0 && (
-								<>
-									Found {totalCount.toLocaleString()} results
-									{firstPage?.mode === "syntax" && " (syntax)"}
-								</>
+						<div className="text-sm mt-2 space-y-1">
+							{firstPage?.description && (
+								<p
+									className={`text-gray-500 dark:text-gray-400 ${isDebouncing ? "opacity-50" : ""}`}
+								>
+									<OracleText text={firstPage.description} />
+								</p>
 							)}
-							{totalCount === 0 &&
-								firstPage &&
-								!firstPageQuery.isFetching &&
-								"No results found"}
-							{!firstPage && firstPageQuery.isFetching && "Searching..."}
-						</p>
+							<p className="text-gray-400">
+								{isDebouncing
+									? "On your mark..."
+									: totalCount > 0
+										? `Found ${totalCount.toLocaleString()} results${firstPage?.mode === "syntax" ? " (syntax)" : ""}`
+										: firstPage && !firstPageQuery.isFetching
+											? "No results found"
+											: firstPageQuery.isFetching
+												? "Searching..."
+												: null}
+							</p>
+						</div>
 					)}
 
 					{!search.q && (
@@ -458,7 +461,7 @@ function CardsPage() {
 
 			<div ref={listRef} className="px-6 pb-6">
 				<div
-					className="max-w-7xl mx-auto relative"
+					className={`max-w-7xl mx-auto relative transition-opacity ${isDebouncing ? "opacity-50" : ""}`}
 					style={{ height: virtualizer.getTotalSize() }}
 				>
 					{visibleItems.map((virtualRow) => {
