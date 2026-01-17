@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CardSkeleton, CardThumbnail } from "@/components/CardImage";
 import { ClientDate } from "@/components/ClientDate";
 import { OracleText } from "@/components/OracleText";
+import { SearchPrimer } from "@/components/SearchPrimer";
 import {
 	getCardsMetadataQueryOptions,
 	PAGE_SIZE,
@@ -452,9 +453,12 @@ function CardsPage() {
 					)}
 
 					{!search.q && (
-						<p className="text-sm text-gray-400 mt-2">
-							Enter a search query to find cards • <MetadataDisplay />
-						</p>
+						<div className="mt-4">
+							<p className="text-sm text-gray-400 mb-4">
+								<MetadataDisplay />
+							</p>
+							<SearchPrimer />
+						</div>
 					)}
 				</div>
 			</div>
