@@ -129,7 +129,7 @@ function SignIn() {
 	if (session) {
 		const returnTo = sessionStorage.getItem(RETURN_TO_KEY);
 		sessionStorage.removeItem(RETURN_TO_KEY);
-		navigate({ to: returnTo || "/" });
+		navigate({ to: returnTo || "/", replace: true });
 		return null;
 	}
 
