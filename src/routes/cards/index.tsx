@@ -185,10 +185,11 @@ function buildSortArray(
 function CardsPage() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const { value: debouncedSearchQuery, isPending: isDebouncing } = useDebounce(
-		search.q || "",
-		400,
-	);
+	const {
+		value: debouncedSearchQuery,
+		isPending: isDebouncing,
+		flush: flushDebounce,
+	} = useDebounce(search.q || "", 400);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const lastSyncedQuery = useRef<string>(search.q || "");
 
@@ -199,12 +200,13 @@ function CardsPage() {
 		if (lastSyncedQuery.current === urlQuery) {
 			return;
 		}
-		// External change - sync input
+		// External change - sync input and skip debounce
 		if (searchInputRef.current) {
 			searchInputRef.current.value = urlQuery;
 		}
 		lastSyncedQuery.current = urlQuery;
-	}, [search.q]);
+		flushDebounce();
+	}, [search.q, flushDebounce]);
 	const listRef = useRef<HTMLDivElement>(null);
 	const columns = useColumns();
 	const hasRestoredScroll = useRef(false);
