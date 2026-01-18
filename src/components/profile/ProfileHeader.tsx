@@ -51,21 +51,19 @@ export function ProfileHeader({
 		[onUpdate, editedPronouns, profile?.createdAt],
 	);
 
-	const { doc, onChange, isDirty } = useProseMirror({
+	const { doc, onChange, isDirty, trigger, save } = useProseMirror({
 		initialDoc: initialPMDoc,
 		onSave: handleSaveBio,
 		saveDebounceMs: 1500,
 	});
 
+	const handlePronounsChange = (value: string) => {
+		setEditedPronouns(value);
+		trigger(); // Schedule debounced save (callback has current pronouns via closure)
+	};
+
 	const handleDone = () => {
-		// Save pronouns if changed
-		if (editedPronouns.trim() !== (profile?.pronouns ?? "")) {
-			onUpdate({
-				bio: profile?.bio,
-				pronouns: editedPronouns.trim() || undefined,
-				createdAt: profile?.createdAt ?? new Date().toISOString(),
-			});
-		}
+		save(); // Flush any pending save
 		setIsEditing(false);
 	};
 
@@ -119,7 +117,13 @@ export function ProfileHeader({
 						id={pronounsId}
 						type="text"
 						value={editedPronouns}
-						onChange={(e) => setEditedPronouns(e.target.value)}
+						onChange={(e) => handlePronounsChange(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") {
+								e.preventDefault();
+								handleDone();
+							}
+						}}
 						placeholder="e.g. she/her, they/them"
 						maxLength={64}
 						className="px-3 py-2 w-full max-w-xs bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500"

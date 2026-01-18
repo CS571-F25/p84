@@ -18,14 +18,14 @@ const _mainSchema = /*#__PURE__*/ v.record(
      */
     createdAt: /*#__PURE__*/ v.datetimeString(),
     /**
-     * Free-form pronouns text.
-     * @maxLength 200
-     * @maxGraphemes 20
+     * Free-form pronouns text, can include brief explanation.
+     * @maxLength 256
+     * @maxGraphemes 64
      */
     pronouns: /*#__PURE__*/ v.optional(
       /*#__PURE__*/ v.constrain(/*#__PURE__*/ v.string(), [
-        /*#__PURE__*/ v.stringLength(0, 200),
-        /*#__PURE__*/ v.stringGraphemes(0, 20),
+        /*#__PURE__*/ v.stringLength(0, 256),
+        /*#__PURE__*/ v.stringGraphemes(0, 64),
       ]),
     ),
   }),

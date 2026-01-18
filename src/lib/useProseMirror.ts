@@ -35,7 +35,10 @@ export interface UseProseMirrorResult {
 	docJSON: PMDocJSON;
 	onChange: (newDoc: ProseMirrorNode) => void;
 	isDirty: boolean;
+	/** Flush debounce and save immediately */
 	save: () => void;
+	/** Schedule a debounced save (use when external deps change) */
+	trigger: () => void;
 }
 
 function createEmptyDoc(): ProseMirrorNode {
@@ -71,6 +74,9 @@ export function useProseMirror({
 	const onSaveRef = useRef(onSave);
 	onSaveRef.current = onSave;
 
+	// When trigger() is called, we should save even if doc hasn't changed
+	const forceSaveRef = useRef(false);
+
 	const [doc, setDoc] = useState<ProseMirrorNode>(() =>
 		docFromJSON(initialDoc),
 	);
@@ -82,10 +88,13 @@ export function useProseMirror({
 		doc,
 		saveDebounceMs,
 		(value: ProseMirrorNode) => {
-			if (!value.eq(savedNodeRef.current) && onSaveRef.current) {
+			const shouldSave =
+				forceSaveRef.current || !value.eq(savedNodeRef.current);
+			if (shouldSave && onSaveRef.current) {
 				onSaveRef.current(docToJSON(value));
 				savedNodeRef.current = value;
 			}
+			forceSaveRef.current = false;
 			setSaveState("saved");
 		},
 	);
@@ -105,6 +114,14 @@ export function useProseMirror({
 		debounce.flush();
 	}, [debounce]);
 
+	// Schedule a debounced save without changing the doc
+	// Useful when external data (e.g. pronouns) changes but doc hasn't
+	const trigger = useCallback(() => {
+		setSaveState("dirty");
+		forceSaveRef.current = true;
+		debounce.update(doc);
+	}, [debounce, doc]);
+
 	useEffect(() => {
 		const newNode = docFromJSON(initialDoc);
 		setDoc(newNode);
@@ -118,5 +135,6 @@ export function useProseMirror({
 		onChange,
 		isDirty: saveState === "dirty",
 		save,
+		trigger,
 	};
 }
