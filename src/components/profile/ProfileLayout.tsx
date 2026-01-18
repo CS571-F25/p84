@@ -1,5 +1,5 @@
 import type { Did } from "@atcute/lexicons";
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
@@ -8,6 +8,43 @@ import {
 	useUpdateProfileMutation,
 } from "@/lib/profile-queries";
 import { useAuth } from "@/lib/useAuth";
+
+interface DoHResponse {
+	Answer?: { type: number; data: string }[];
+}
+
+async function requireDnsRecord(
+	handle: string,
+	type: "A" | "AAAA" | "CNAME",
+): Promise<true> {
+	const response = await fetch(
+		`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(handle)}&type=${type}`,
+		{ headers: { Accept: "application/dns-json" } },
+	);
+	if (!response.ok) throw new Error("DNS query failed");
+	const data: DoHResponse = await response.json();
+	if ((data.Answer?.length ?? 0) === 0) throw new Error("No records");
+	return true;
+}
+
+export const domainResolvesQueryOptions = (handle: string | null) =>
+	queryOptions({
+		queryKey: ["domain-resolves", handle] as const,
+		queryFn: async (): Promise<boolean> => {
+			if (!handle) return false;
+			try {
+				await Promise.any([
+					requireDnsRecord(handle, "A"),
+					requireDnsRecord(handle, "AAAA"),
+					requireDnsRecord(handle, "CNAME"),
+				]);
+				return true;
+			} catch {
+				return false;
+			}
+		},
+		staleTime: 10 * 60 * 1000, // 10 minutes
+	});
 
 interface ProfileLayoutProps {
 	did: string;
@@ -21,6 +58,7 @@ export function ProfileLayout({ did, children }: ProfileLayoutProps) {
 	const updateProfileMutation = useUpdateProfileMutation();
 
 	const handle = extractHandle(didDocument ?? null);
+	const { data: domainResolves } = useQuery(domainResolvesQueryOptions(handle));
 	const isOwner = session?.info.sub === did;
 
 	return (
@@ -34,6 +72,7 @@ export function ProfileLayout({ did, children }: ProfileLayoutProps) {
 					isOwner={isOwner}
 					onUpdate={(profile) => updateProfileMutation.mutate(profile)}
 					isSaving={updateProfileMutation.isPending}
+					showHandleLink={domainResolves ?? false}
 				/>
 
 				{/* Tab Navigation */}

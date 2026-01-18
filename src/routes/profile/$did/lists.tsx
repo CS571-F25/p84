@@ -3,7 +3,10 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { ListPreview } from "@/components/ListPreview";
-import { ProfileLayout } from "@/components/profile/ProfileLayout";
+import {
+	domainResolvesQueryOptions,
+	ProfileLayout,
+} from "@/components/profile/ProfileLayout";
 import {
 	listUserCollectionListsQueryOptions,
 	useCreateCollectionListMutation,
@@ -26,7 +29,10 @@ export const Route = createFileRoute("/profile/$did/lists")({
 				getProfileQueryOptions(params.did as Did),
 			),
 		]);
-		return { handle: extractHandle(didDocument) };
+		const handle = extractHandle(didDocument);
+		// Prefetch DNS check (don't await - not critical for render)
+		context.queryClient.prefetchQuery(domainResolvesQueryOptions(handle));
+		return { handle };
 	},
 	head: ({ loaderData }) => {
 		const display = loaderData?.handle ? `@${loaderData.handle}` : "Profile";

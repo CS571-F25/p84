@@ -14,6 +14,7 @@ interface ProfileHeaderProps {
 	isOwner: boolean;
 	onUpdate: (profile: Profile) => void;
 	isSaving: boolean;
+	showHandleLink: boolean;
 }
 
 export function ProfileHeader({
@@ -23,6 +24,7 @@ export function ProfileHeader({
 	isOwner,
 	onUpdate,
 	isSaving,
+	showHandleLink,
 }: ProfileHeaderProps) {
 	const pronounsId = useId();
 	const [isEditing, setIsEditing] = useState(false);
@@ -92,7 +94,7 @@ export function ProfileHeader({
 					>
 						{displayHandle}
 					</h1>
-					{handleUrl && (
+					{showHandleLink && handleUrl && (
 						<a
 							href={handleUrl}
 							target="_blank"
@@ -165,7 +167,7 @@ export function ProfileHeader({
 				>
 					{displayHandle}
 				</h1>
-				{handleUrl && (
+				{showHandleLink && handleUrl && (
 					<a
 						href={handleUrl}
 						target="_blank"

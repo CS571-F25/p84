@@ -4,7 +4,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useMemo } from "react";
 import { DeckPreview } from "@/components/DeckPreview";
-import { ProfileLayout } from "@/components/profile/ProfileLayout";
+import {
+	domainResolvesQueryOptions,
+	ProfileLayout,
+} from "@/components/profile/ProfileLayout";
 import {
 	type DeckListRecord,
 	listUserDecksQueryOptions,
@@ -39,7 +42,10 @@ export const Route = createFileRoute("/profile/$did/")({
 				getProfileQueryOptions(params.did as Did),
 			),
 		]);
-		return { handle: extractHandle(didDocument) };
+		const handle = extractHandle(didDocument);
+		// Prefetch DNS check (don't await - not critical for render)
+		context.queryClient.prefetchQuery(domainResolvesQueryOptions(handle));
+		return { handle };
 	},
 	head: ({ loaderData }) => {
 		const display = loaderData?.handle ? `@${loaderData.handle}` : "Profile";
