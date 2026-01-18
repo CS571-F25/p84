@@ -1,16 +1,14 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import {
-	AlertCircle,
-	ArrowUpDown,
-	ChevronDown,
-	Loader2,
-	Search,
-} from "lucide-react";
+import { AlertCircle, ArrowUpDown, ChevronDown, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CardSkeleton, CardThumbnail } from "@/components/CardImage";
 import { ClientDate } from "@/components/ClientDate";
+import {
+	HighlightedSearchInput,
+	type HighlightedSearchInputHandle,
+} from "@/components/HighlightedSearchInput";
 import { OracleText } from "@/components/OracleText";
 import { SearchPrimer } from "@/components/SearchPrimer";
 import {
@@ -190,7 +188,7 @@ function CardsPage() {
 		isPending: isDebouncing,
 		flush: flushDebounce,
 	} = useDebounce(search.q || "", 400);
-	const searchInputRef = useRef<HTMLInputElement>(null);
+	const searchInputRef = useRef<HighlightedSearchInputHandle>(null);
 	const lastSyncedQuery = useRef<string>(search.q || "");
 
 	// Sync URL → input only for external changes (back button, link clicks)
@@ -202,7 +200,7 @@ function CardsPage() {
 		}
 		// External change - sync input and skip debounce
 		if (searchInputRef.current) {
-			searchInputRef.current.value = urlQuery;
+			searchInputRef.current.setValue(urlQuery);
 		}
 		lastSyncedQuery.current = urlQuery;
 		flushDebounce();
@@ -402,27 +400,21 @@ function CardsPage() {
 						</div>
 					</div>
 
-					<div className="relative">
-						<Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-						<input
-							ref={searchInputRef}
-							type="text"
-							placeholder="Search by name or try t:creature cmc<=3"
-							defaultValue={search.q}
-							onChange={(e) => {
-								lastSyncedQuery.current = e.target.value;
-								navigate({
-									search: (prev) => ({ ...prev, q: e.target.value }),
-									replace: true,
-								});
-							}}
-							className={`w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-slate-800 border rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-colors ${
-								hasError
-									? "border-red-500 focus:border-red-500"
-									: "border-gray-300 dark:border-slate-700 focus:border-cyan-500"
-							}`}
-						/>
-					</div>
+					<HighlightedSearchInput
+						ref={searchInputRef}
+						placeholder="Search by name or try t:creature cmc<=3"
+						defaultValue={search.q}
+						errors={
+							isDebouncing ? [] : firstPage?.error ? [firstPage.error] : []
+						}
+						onChange={(value) => {
+							lastSyncedQuery.current = value;
+							navigate({
+								search: (prev) => ({ ...prev, q: value }),
+								replace: true,
+							});
+						}}
+					/>
 
 					{hasError && firstPage?.error && (
 						<div className="mt-2 flex items-start gap-2 text-sm text-red-500 dark:text-red-400">

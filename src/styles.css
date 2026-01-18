@@ -105,6 +105,14 @@ code,
   background: var(--color-gray-500);
 }
 
+/* Hide scrollbar utility */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* Shimmer animation for loading indicator */
 @keyframes shimmer {
   0%, 100% {

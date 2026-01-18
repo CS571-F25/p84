@@ -109,6 +109,7 @@ export type { SearchNode, Result, ParseError, CompileError, CardPredicate };
 export type { CompiledSearch as SearchResult };
 
 export { describeQuery } from "./describe";
+export { IS_PREDICATE_NAMES } from "./fields";
 export { tokenize } from "./lexer";
 export { compile } from "./matcher";
 
