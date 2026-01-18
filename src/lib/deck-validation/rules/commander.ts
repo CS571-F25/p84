@@ -7,7 +7,7 @@ import {
 	type Violation,
 	violation,
 } from "../types";
-import { getOracleText, getTypeLine } from "../utils";
+import { getFrontFaceTypeLine, getOracleText, getTypeLine } from "../utils";
 
 /**
  * Commander required - at least one commander
@@ -74,9 +74,12 @@ export const commanderLegendaryRule: Rule<"commanderLegendary"> = {
 /**
  * Check if card has a creature type valid for commander (creature, vehicle, spacecraft with P/T).
  * Shared between regular Commander and PDH validation.
+ *
+ * For DFCs/MDFCs, checks the FRONT FACE only - a Saga that transforms into
+ * a creature (e.g., Behold the Unspeakable) is NOT a legal commander.
  */
 export function hasCommanderCreatureType(card: Card): boolean {
-	const typeLine = getTypeLine(card).toLowerCase();
+	const typeLine = getFrontFaceTypeLine(card).toLowerCase();
 
 	if (typeLine.includes("creature")) return true;
 	if (typeLine.includes("vehicle")) return true;
@@ -90,10 +93,10 @@ export function hasCommanderCreatureType(card: Card): boolean {
 }
 
 export function isValidCommanderType(card: Card): boolean {
-	const typeLine = getTypeLine(card).toLowerCase();
+	const frontTypeLine = getFrontFaceTypeLine(card).toLowerCase();
 	const oracleText = getOracleText(card).toLowerCase();
 
-	const isLegendary = typeLine.includes("legendary");
+	const isLegendary = frontTypeLine.includes("legendary");
 	const canBeCommander = oracleText.includes("can be your commander");
 
 	// Grist-style cards: creatures in all zones except battlefield

@@ -604,6 +604,26 @@ describe("commander rules", () => {
 			const violations = commanderUncommonRule.validate(ctx);
 			expect(violations).toHaveLength(0);
 		});
+
+		it("rejects DFC saga that transforms into creature (front face check)", async () => {
+			// Behold the Unspeakable has an uncommon printing and transforms into
+			// a legendary creature, but the FRONT face is a Saga - not legal for PDH
+			const behold = await cards.get("Behold the Unspeakable");
+			const deck = makeDeck([makeCard(behold, "commander")], "paupercommander");
+			const printingsMap = new Map<OracleId, Card[]>();
+			printingsMap.set(behold.oracle_id, [
+				mockPrinting(behold, "uncommon", ["paper"]),
+			]);
+			const ctx = await makeContextWithCards(
+				deck,
+				[behold],
+				undefined,
+				printingsMap,
+			);
+			const violations = commanderUncommonRule.validate(ctx);
+			expect(violations).toHaveLength(1);
+			expect(violations[0].message).toContain("not a creature");
+		});
 	});
 
 	describe("signatureSpellRule color identity", () => {

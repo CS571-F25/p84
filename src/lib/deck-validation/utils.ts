@@ -34,3 +34,16 @@ export function getTypeLine(card: Card): string {
 
 	return "";
 }
+
+/**
+ * Get the front face type line only.
+ * For DFCs/MDFCs, commander legality is determined by the front face.
+ * A Saga that transforms into a creature (e.g., Behold the Unspeakable)
+ * is NOT a legal commander because the front face is a Saga.
+ */
+export function getFrontFaceTypeLine(card: Card): string {
+	if (card.card_faces && card.card_faces.length > 0) {
+		return card.card_faces[0].type_line ?? "";
+	}
+	return card.type_line ?? "";
+}
