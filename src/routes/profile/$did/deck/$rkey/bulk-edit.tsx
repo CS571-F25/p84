@@ -3,6 +3,10 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import {
+	BulkEditPreview,
+	type PreviewLine,
+} from "@/components/deck/BulkEditPreview";
 import { asRkey } from "@/lib/atproto-client";
 import { getCardDataProvider } from "@/lib/card-data-provider";
 import {
@@ -15,8 +19,9 @@ import { getDeckQueryOptions, useUpdateDeckMutation } from "@/lib/deck-queries";
 import type { Deck, DeckCard, Section } from "@/lib/deck-types";
 import { getCardsInSection } from "@/lib/deck-types";
 import { getCardByIdQueryOptions } from "@/lib/queries";
-import type { Card, OracleId, ScryfallId } from "@/lib/scryfall-types";
+import type { Card, ScryfallId } from "@/lib/scryfall-types";
 import { useAuth } from "@/lib/useAuth";
+import { useDebounce } from "@/lib/useDebounce";
 
 export const Route = createFileRoute("/profile/$did/deck/$rkey/bulk-edit")({
 	component: BulkEditPage,
@@ -81,6 +86,11 @@ function BulkEditPage() {
 		[deck, getCardData],
 	);
 
+	const savedText = sectionToText(activeSection);
+	const isDirty = text !== savedText;
+
+	const textLines = useMemo(() => text.split("\n"), [text]);
+
 	useEffect(() => {
 		setText(sectionToText(activeSection));
 		setErrors([]);
@@ -93,29 +103,14 @@ function BulkEditPage() {
 		setErrors([]);
 
 		try {
-			const parsed = parseCardList(text);
+			const parsedText = parseCardList(text);
 			const provider = await getCardDataProvider();
-
-			const lookupByName = async (name: string): Promise<Card[]> => {
-				if (!provider.searchCards) return [];
-				return provider.searchCards(name, undefined, 10);
-			};
-
-			const getPrintings = async (
-				oracleId: OracleId,
-			): Promise<ScryfallId[]> => {
-				return provider.getPrintingsByOracleId(oracleId);
-			};
-
-			const getCardById = async (id: ScryfallId): Promise<Card | undefined> => {
-				return provider.getCardById(id);
-			};
-
 			const result = await resolveCards(
-				parsed,
-				lookupByName,
-				getPrintings,
-				getCardById,
+				parsedText,
+				async (name) =>
+					provider.searchCards ? provider.searchCards(name, undefined, 10) : [],
+				(oracleId) => provider.getPrintingsByOracleId(oracleId),
+				(id) => provider.getCardById(id),
 			);
 
 			if (result.errors.length > 0) {
@@ -173,15 +168,127 @@ function BulkEditPage() {
 	};
 
 	const parsed = useMemo(() => parseCardList(text), [text]);
+	const parsedByRaw = useMemo(
+		() => new Map(parsed.map((p) => [p.raw, p])),
+		[parsed],
+	);
 	const cardCount = useMemo(
 		() => parsed.reduce((sum, p) => sum + p.quantity, 0),
 		[parsed],
 	);
 	const lineCount = parsed.length;
 
+	const { value: debouncedParsed } = useDebounce(parsed, 300);
+
+	const [resolvedMap, setResolvedMap] = useState<
+		Map<string, { scryfallId: ScryfallId; cardData: Card }>
+	>(new Map());
+	const [errorMap, setErrorMap] = useState<Map<string, string>>(new Map());
+
+	const savedCardIds = useMemo(
+		() =>
+			new Set(getCardsInSection(deck, activeSection).map((c) => c.scryfallId)),
+		[deck, activeSection],
+	);
+
+	useEffect(() => {
+		if (!debouncedParsed || debouncedParsed.length === 0) {
+			setResolvedMap(new Map());
+			setErrorMap(new Map());
+			return;
+		}
+
+		let cancelled = false;
+
+		(async () => {
+			const provider = await getCardDataProvider();
+			const result = await resolveCards(
+				debouncedParsed,
+				async (name) =>
+					provider.searchCards ? provider.searchCards(name, undefined, 10) : [],
+				(oracleId) => provider.getPrintingsByOracleId(oracleId),
+				(id) => provider.getCardById(id),
+			);
+
+			if (cancelled) return;
+
+			const newErrors = new Map<string, string>();
+			for (const error of result.errors) {
+				newErrors.set(error.raw, error.error);
+			}
+
+			const cardDataList = await Promise.all(
+				result.resolved.map((r) => provider.getCardById(r.scryfallId)),
+			);
+
+			if (cancelled) return;
+
+			const newResolved = new Map<
+				string,
+				{ scryfallId: ScryfallId; cardData: Card }
+			>();
+			for (let i = 0; i < result.resolved.length; i++) {
+				const resolved = result.resolved[i];
+				const cardData = cardDataList[i];
+				if (!cardData) continue;
+				newResolved.set(resolved.raw, {
+					scryfallId: resolved.scryfallId,
+					cardData,
+				});
+			}
+
+			setResolvedMap(newResolved);
+			setErrorMap(newErrors);
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [debouncedParsed]);
+
+	const previewLines = useMemo(() => {
+		const counts = new Map<string, number>();
+		return textLines.map((line): PreviewLine => {
+			const trimmed = line.trim();
+			const occurrence = counts.get(trimmed) ?? 0;
+			counts.set(trimmed, occurrence + 1);
+			const lineKey = `${trimmed}:${occurrence}`;
+
+			if (!trimmed) {
+				return { type: "empty", lineKey };
+			}
+
+			const error = errorMap.get(trimmed);
+			if (error) {
+				return { type: "error", lineKey, message: error };
+			}
+
+			const parsedLine = parsedByRaw.get(trimmed);
+			const resolved = resolvedMap.get(trimmed);
+			if (resolved) {
+				const isImperfect =
+					parsedLine &&
+					parsedLine.name.toLowerCase() !==
+						resolved.cardData.name.toLowerCase();
+				const isNew = !savedCardIds.has(resolved.scryfallId);
+				return {
+					type: "resolved",
+					lineKey,
+					scryfallId: resolved.scryfallId,
+					quantity: parsedLine?.quantity ?? 1,
+					cardData: resolved.cardData,
+					isImperfect,
+					isNew,
+				};
+			}
+
+			return { type: "pending", lineKey, name: parsedLine?.name ?? trimmed };
+		});
+	}, [textLines, resolvedMap, errorMap, parsedByRaw, savedCardIds]);
+
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
-			<div className="max-w-4xl mx-auto px-6 py-8">
+			<div className="max-w-6xl mx-auto px-6 py-8">
 				<div className="mb-6">
 					<Link
 						to="/profile/$did/deck/$rkey"
@@ -200,28 +307,35 @@ function BulkEditPage() {
 
 				{/* Section tabs */}
 				<div className="flex gap-1 mb-4 border-b border-gray-200 dark:border-slate-700">
-					{SECTIONS.map((section) => (
-						<button
-							type="button"
-							key={section.value}
-							onClick={() => setActiveSection(section.value)}
-							className={`px-4 py-2 text-sm font-medium transition-colors ${
-								activeSection === section.value
-									? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-									: "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-							}`}
-						>
-							{section.label}
-							<span className="ml-1 text-xs text-gray-400">
-								(
-								{getCardsInSection(deck, section.value).reduce(
-									(s, c) => s + c.quantity,
-									0,
-								)}
-								)
-							</span>
-						</button>
-					))}
+					{SECTIONS.map((section) => {
+						const isActive = activeSection === section.value;
+						const isDisabled = isDirty && !isActive;
+						return (
+							<button
+								type="button"
+								key={section.value}
+								onClick={() => setActiveSection(section.value)}
+								disabled={isDisabled}
+								className={`px-4 py-2 text-sm font-medium transition-colors ${
+									isActive
+										? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+										: isDisabled
+											? "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+											: "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+								}`}
+							>
+								{section.label}
+								<span className="ml-1 text-xs text-gray-400">
+									(
+									{getCardsInSection(deck, section.value).reduce(
+										(s, c) => s + c.quantity,
+										0,
+									)}
+									)
+								</span>
+							</button>
+						);
+					})}
 				</div>
 
 				{/* Format hint */}
@@ -237,18 +351,30 @@ function BulkEditPage() {
 					</span>
 				</div>
 
-				{/* Textarea */}
-				<textarea
-					value={text}
-					onChange={(e) => setText(e.target.value)}
-					disabled={!isOwner || isSaving}
-					className="w-full h-96 p-4 font-mono text-sm border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-50"
-					placeholder="1 Lightning Bolt (2XM) 141 #removal&#10;4 Llanowar Elves #dorks&#10;1 Sol Ring"
-				/>
+				{/* Editor container */}
+				<div className="overflow-auto max-h-96 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800">
+					<div className="flex">
+						<textarea
+							value={text}
+							onChange={(e) => {
+								setText(e.target.value);
+								setErrors([]);
+							}}
+							disabled={!isOwner || isSaving}
+							wrap="off"
+							className="flex-1 p-4 font-mono text-sm leading-[1.5] resize-none overflow-x-auto overflow-y-hidden bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none disabled:opacity-50 [font-variant-ligatures:none]"
+							style={{
+								height: `calc(${Math.max(textLines.length, 10)} * 1.5em + 2rem)`,
+							}}
+							placeholder="1 Lightning Bolt (2XM) 141 #removal&#10;4 Llanowar Elves #dorks&#10;1 Sol Ring"
+						/>
+						<BulkEditPreview lines={previewLines} />
+					</div>
+				</div>
 
 				{/* Stats */}
 				<div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-					{lineCount} unique cards, {cardCount} total
+					{lineCount} {lineCount === 1 ? "card" : "cards"}, {cardCount} total
 				</div>
 
 				{/* Errors */}
@@ -266,7 +392,7 @@ function BulkEditPage() {
 									<span className="font-mono">Line {err.line}:</span>{" "}
 									{err.error}
 									<br />
-									<span className="text-red-500 dark:text-red-500 font-mono text-xs">
+									<span className="text-red-500 font-mono text-xs">
 										{err.raw}
 									</span>
 								</li>
@@ -281,7 +407,7 @@ function BulkEditPage() {
 						<button
 							type="button"
 							onClick={handleSave}
-							disabled={isSaving}
+							disabled={isSaving || !isDirty}
 							className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors"
 						>
 							{isSaving ? "Saving..." : "Save Changes"}
@@ -289,8 +415,8 @@ function BulkEditPage() {
 						<button
 							type="button"
 							onClick={handleReset}
-							disabled={isSaving}
-							className="px-4 py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
+							disabled={isSaving || !isDirty}
+							className="px-4 py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
 						>
 							Reset
 						</button>

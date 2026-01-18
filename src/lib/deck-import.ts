@@ -26,6 +26,7 @@ export interface ResolvedCard {
 	oracleId: OracleId;
 	quantity: number;
 	tags: string[];
+	raw: string;
 }
 
 export interface ImportError {
@@ -215,6 +216,7 @@ export async function resolveCards(
 				oracleId: baseCard.oracle_id,
 				quantity: line.quantity,
 				tags: line.tags,
+				raw: line.raw,
 			});
 		} catch (err) {
 			errors.push({
