@@ -269,6 +269,15 @@ export interface ParseError {
 }
 
 /**
+ * Compile error (semantic error during AST compilation)
+ * Doesn't include input since the caller has it
+ */
+export interface CompileError {
+	message: string;
+	span: Span;
+}
+
+/**
  * Result type for fallible operations
  */
 export type Result<T, E = ParseError> =

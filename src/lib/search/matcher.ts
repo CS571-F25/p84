@@ -5,7 +5,8 @@
  */
 
 import { type CardPredicate, compileField } from "./fields";
-import type { SearchNode } from "./types";
+import type { CompileError, Result, SearchNode } from "./types";
+import { ok } from "./types";
 
 // Re-export CardPredicate for convenience
 export type { CardPredicate };
@@ -13,7 +14,7 @@ export type { CardPredicate };
 /**
  * Compile an AST node into a card predicate function
  */
-export function compile(node: SearchNode): CardPredicate {
+export function compile(node: SearchNode): Result<CardPredicate, CompileError> {
 	switch (node.type) {
 		case "AND":
 			return compileAnd(node.children);
@@ -25,38 +26,59 @@ export function compile(node: SearchNode): CardPredicate {
 			return compileNot(node.child);
 
 		case "FIELD":
-			return compileField(node.field, node.operator, node.value);
+			return compileField(node.field, node.operator, node.value, node.span);
 
 		case "NAME":
-			return compileName(node.value, node.pattern);
+			return ok(compileName(node.value, node.pattern));
 
 		case "EXACT_NAME":
-			return compileExactName(node.value);
+			return ok(compileExactName(node.value));
 	}
 }
 
 /**
  * Compile AND node - all children must match
  */
-function compileAnd(children: SearchNode[]): CardPredicate {
-	const predicates = children.map(compile);
-	return (card) => predicates.every((p) => p(card));
+function compileAnd(
+	children: SearchNode[],
+): Result<CardPredicate, CompileError> {
+	const predicates: CardPredicate[] = [];
+	for (const child of children) {
+		const result = compile(child);
+		if (!result.ok) {
+			return result;
+		}
+		predicates.push(result.value);
+	}
+	return ok((card) => predicates.every((p) => p(card)));
 }
 
 /**
  * Compile OR node - any child must match
  */
-function compileOr(children: SearchNode[]): CardPredicate {
-	const predicates = children.map(compile);
-	return (card) => predicates.some((p) => p(card));
+function compileOr(
+	children: SearchNode[],
+): Result<CardPredicate, CompileError> {
+	const predicates: CardPredicate[] = [];
+	for (const child of children) {
+		const result = compile(child);
+		if (!result.ok) {
+			return result;
+		}
+		predicates.push(result.value);
+	}
+	return ok((card) => predicates.some((p) => p(card)));
 }
 
 /**
  * Compile NOT node - child must not match
  */
-function compileNot(child: SearchNode): CardPredicate {
-	const predicate = compile(child);
-	return (card) => !predicate(card);
+function compileNot(child: SearchNode): Result<CardPredicate, CompileError> {
+	const result = compile(child);
+	if (!result.ok) {
+		return result;
+	}
+	return ok((card) => !result.value(card));
 }
 
 /**

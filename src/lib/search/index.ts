@@ -13,7 +13,7 @@
 import type { Card } from "../scryfall-types";
 import { type CardPredicate, compile } from "./matcher";
 import { parse } from "./parser";
-import type { ParseError, Result, SearchNode } from "./types";
+import type { CompileError, ParseError, Result, SearchNode } from "./types";
 
 /**
  * Compiled search query
@@ -26,11 +26,16 @@ export interface CompiledSearch {
 }
 
 /**
+ * Search error - either a parse error or a compile error
+ */
+export type SearchError = ParseError | CompileError;
+
+/**
  * Parse and compile a Scryfall search query
  *
- * Returns a Result with either a compiled search or a parse error.
+ * Returns a Result with either a compiled search or a parse/compile error.
  */
-export function search(query: string): Result<CompiledSearch> {
+export function search(query: string): Result<CompiledSearch, SearchError> {
 	const parseResult = parse(query);
 
 	if (!parseResult.ok) {
@@ -38,11 +43,15 @@ export function search(query: string): Result<CompiledSearch> {
 	}
 
 	const ast = parseResult.value;
-	const match = compile(ast);
+	const compileResult = compile(ast);
+
+	if (!compileResult.ok) {
+		return compileResult;
+	}
 
 	return {
 		ok: true,
-		value: { match, ast },
+		value: { match: compileResult.value, ast },
 	};
 }
 
@@ -96,7 +105,7 @@ export function someNode(
 }
 
 // Re-export types
-export type { SearchNode, Result, ParseError, CardPredicate };
+export type { SearchNode, Result, ParseError, CompileError, CardPredicate };
 export type { CompiledSearch as SearchResult };
 
 export { describeQuery } from "./describe";

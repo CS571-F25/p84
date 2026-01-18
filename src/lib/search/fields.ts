@@ -9,7 +9,15 @@ import {
 } from "@/lib/deck-validation/card-utils";
 import type { Card } from "../scryfall-types";
 import { compareColors } from "./colors";
-import type { ComparisonOp, FieldName, FieldValue } from "./types";
+import type {
+	ComparisonOp,
+	CompileError,
+	FieldName,
+	FieldValue,
+	Result,
+	Span,
+} from "./types";
+import { err, ok } from "./types";
 
 /**
  * Card predicate function type
@@ -65,120 +73,123 @@ export function compileField(
 	field: FieldName,
 	operator: ComparisonOp,
 	value: FieldValue,
-): CardPredicate {
+	span: Span,
+): Result<CardPredicate, CompileError> {
 	switch (field) {
 		// Text fields
 		case "name":
-			return compileTextField((c) => c.name, operator, value);
+			return ok(compileTextField((c) => c.name, operator, value));
 
 		case "type":
-			return compileTextField((c) => c.type_line, operator, value);
+			return ok(compileTextField((c) => c.type_line, operator, value));
 
 		case "oracle":
-			return compileOracleText(operator, value);
+			return ok(compileOracleText(operator, value));
 
 		// Color fields
 		case "color":
-			return compileColorField((c) => c.colors, operator, value);
+			return ok(compileColorField((c) => c.colors, operator, value));
 
 		case "identity":
 			// Numeric comparison: id>1 means "more than 1 color in identity"
 			if (value.kind === "number") {
-				return createOrderedMatcher(
-					(card) => card.color_identity?.length ?? 0,
-					value.value,
-					operator,
+				return ok(
+					createOrderedMatcher(
+						(card) => card.color_identity?.length ?? 0,
+						value.value,
+						operator,
+					),
 				);
 			}
-			return compileColorField((c) => c.color_identity, operator, value);
+			return ok(compileColorField((c) => c.color_identity, operator, value));
 
 		// Mana fields
 		case "mana":
-			return compileTextField((c) => c.mana_cost, operator, value);
+			return ok(compileTextField((c) => c.mana_cost, operator, value));
 
 		case "manavalue":
-			return compileNumericField((c) => c.cmc, operator, value);
+			return ok(compileNumericField((c) => c.cmc, operator, value));
 
 		// Stats
 		case "power":
-			return compileStatField((c) => c.power, operator, value);
+			return ok(compileStatField((c) => c.power, operator, value));
 
 		case "toughness":
-			return compileStatField((c) => c.toughness, operator, value);
+			return ok(compileStatField((c) => c.toughness, operator, value));
 
 		case "loyalty":
-			return compileStatField((c) => c.loyalty, operator, value);
+			return ok(compileStatField((c) => c.loyalty, operator, value));
 
 		case "defense":
-			return compileStatField((c) => c.defense, operator, value);
+			return ok(compileStatField((c) => c.defense, operator, value));
 
 		// Keywords
 		case "keyword":
-			return compileKeyword(operator, value);
+			return ok(compileKeyword(operator, value));
 
 		// Set/printing (discrete fields use exact match for ':')
 		case "set":
-			return compileTextField((c) => c.set, operator, value, true);
+			return ok(compileTextField((c) => c.set, operator, value, true));
 
 		case "settype":
-			return compileTextField((c) => c.set_type, operator, value, true);
+			return ok(compileTextField((c) => c.set_type, operator, value, true));
 
 		case "layout":
-			return compileTextField((c) => c.layout, operator, value, true);
+			return ok(compileTextField((c) => c.layout, operator, value, true));
 
 		case "frame":
-			return compileTextField((c) => c.frame, operator, value, true);
+			return ok(compileTextField((c) => c.frame, operator, value, true));
 
 		case "border":
-			return compileTextField((c) => c.border_color, operator, value, true);
+			return ok(compileTextField((c) => c.border_color, operator, value, true));
 
 		case "number":
-			return compileTextField((c) => c.collector_number, operator, value);
+			return ok(compileTextField((c) => c.collector_number, operator, value));
 
 		case "rarity":
-			return compileRarity(operator, value);
+			return ok(compileRarity(operator, value));
 
 		case "artist":
-			return compileTextField((c) => c.artist, operator, value);
+			return ok(compileTextField((c) => c.artist, operator, value));
 
 		// Legality
 		case "format":
-			return compileFormat(operator, value);
+			return ok(compileFormat(operator, value));
 
 		case "banned":
-			return compileLegality("banned", value);
+			return ok(compileLegality("banned", value));
 
 		case "restricted":
-			return compileLegality("restricted", value);
+			return ok(compileLegality("restricted", value));
 
 		// Misc
 		case "game":
-			return compileGame(operator, value);
+			return ok(compileGame(operator, value));
 
 		case "in":
-			return compileIn(operator, value);
+			return ok(compileIn(operator, value));
 
 		case "produces":
-			return compileProduces(operator, value);
+			return ok(compileProduces(operator, value));
 
 		case "year":
-			return compileYear(operator, value);
+			return ok(compileYear(operator, value));
 
 		case "date":
-			return compileDate(operator, value);
+			return ok(compileDate(operator, value));
 
 		case "lang":
-			return compileTextField((c) => c.lang, operator, value, true);
+			return ok(compileTextField((c) => c.lang, operator, value, true));
 
 		// Boolean predicates
 		case "is":
-			return compileIs(value);
+			return compileIs(value, span);
 
 		case "not":
-			return compileNot(value);
+			return compileNot(value, span);
 
 		default:
-			return () => false;
+			return ok(() => false);
 	}
 }
 
@@ -1015,21 +1026,41 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 };
 
 /**
+ * Set of valid is: predicate names (for autocomplete)
+ */
+export const IS_PREDICATE_NAMES = new Set(Object.keys(IS_PREDICATES));
+
+/**
  * Compile is: predicate
  */
-function compileIs(value: FieldValue): CardPredicate {
+function compileIs(
+	value: FieldValue,
+	span: Span,
+): Result<CardPredicate, CompileError> {
 	if (value.kind !== "string") {
-		return () => false;
+		return err({ message: "is: requires a text value", span });
 	}
 
 	const predicate = IS_PREDICATES[value.value.toLowerCase()];
-	return predicate ?? (() => false);
+	if (!predicate) {
+		return err({
+			message: `'${value.value}' is not a valid is: predicate`,
+			span,
+		});
+	}
+	return ok(predicate);
 }
 
 /**
  * Compile not: predicate (negated is:)
  */
-function compileNot(value: FieldValue): CardPredicate {
-	const isPredicate = compileIs(value);
-	return (card) => !isPredicate(card);
+function compileNot(
+	value: FieldValue,
+	span: Span,
+): Result<CardPredicate, CompileError> {
+	const isResult = compileIs(value, span);
+	if (!isResult.ok) {
+		return isResult;
+	}
+	return ok((card) => !isResult.value(card));
 }
