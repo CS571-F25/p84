@@ -16,7 +16,9 @@ import {
 	ComDeckbelcherActorProfile,
 	ComDeckbelcherCollectionList,
 	ComDeckbelcherDeckList,
+	ComDeckbelcherSocialComment,
 	ComDeckbelcherSocialLike,
+	ComDeckbelcherSocialReply,
 } from "./lexicons/index";
 
 type AtUri = `at://${string}`;
@@ -569,4 +571,74 @@ export function upsertProfileRecord(
 		record,
 		ComDeckbelcherActorProfile.mainSchema,
 	);
+}
+
+// ============================================================================
+// Comment Records (top-level comments)
+// ============================================================================
+
+export type CommentRecordResponse =
+	RecordResponse<ComDeckbelcherSocialComment.Main>;
+
+export function getCommentRecord(did: Did, rkey: Rkey) {
+	return getRecord(did, rkey, ComDeckbelcherSocialComment.mainSchema);
+}
+
+export function createCommentRecord(
+	agent: OAuthUserAgent,
+	record: ComDeckbelcherSocialComment.Main,
+) {
+	return createRecord(agent, record, ComDeckbelcherSocialComment.mainSchema);
+}
+
+export function updateCommentRecord(
+	agent: OAuthUserAgent,
+	rkey: Rkey,
+	record: ComDeckbelcherSocialComment.Main,
+) {
+	return updateRecord(
+		agent,
+		rkey,
+		record,
+		ComDeckbelcherSocialComment.mainSchema,
+	);
+}
+
+export function deleteCommentRecord(agent: OAuthUserAgent, rkey: Rkey) {
+	return deleteRecord(agent, rkey, ComDeckbelcherSocialComment.mainSchema);
+}
+
+// ============================================================================
+// Reply Records (threaded replies to comments)
+// ============================================================================
+
+export type ReplyRecordResponse =
+	RecordResponse<ComDeckbelcherSocialReply.Main>;
+
+export function getReplyRecord(did: Did, rkey: Rkey) {
+	return getRecord(did, rkey, ComDeckbelcherSocialReply.mainSchema);
+}
+
+export function createReplyRecord(
+	agent: OAuthUserAgent,
+	record: ComDeckbelcherSocialReply.Main,
+) {
+	return createRecord(agent, record, ComDeckbelcherSocialReply.mainSchema);
+}
+
+export function updateReplyRecord(
+	agent: OAuthUserAgent,
+	rkey: Rkey,
+	record: ComDeckbelcherSocialReply.Main,
+) {
+	return updateRecord(
+		agent,
+		rkey,
+		record,
+		ComDeckbelcherSocialReply.mainSchema,
+	);
+}
+
+export function deleteReplyRecord(agent: OAuthUserAgent, rkey: Rkey) {
+	return deleteRecord(agent, rkey, ComDeckbelcherSocialReply.mainSchema);
 }

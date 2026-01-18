@@ -5,4 +5,6 @@ export * as ComDeckbelcherDeckList from "./types/com/deckbelcher/deck/list.js";
 export * as ComDeckbelcherDefs from "./types/com/deckbelcher/defs.js";
 export * as ComDeckbelcherRichtext from "./types/com/deckbelcher/richtext.js";
 export * as ComDeckbelcherRichtextFacet from "./types/com/deckbelcher/richtext/facet.js";
+export * as ComDeckbelcherSocialComment from "./types/com/deckbelcher/social/comment.js";
 export * as ComDeckbelcherSocialLike from "./types/com/deckbelcher/social/like.js";
+export * as ComDeckbelcherSocialReply from "./types/com/deckbelcher/social/reply.js";

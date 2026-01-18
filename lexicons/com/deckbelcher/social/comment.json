@@ -1,0 +1,132 @@
+{
+  "lexicon": 1,
+  "id": "com.deckbelcher.social.comment",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "union",
+            "refs": [
+              "#cardSubject",
+              "#recordSubject"
+            ],
+            "description": "What this comment is on."
+          },
+          "target": {
+            "type": "union",
+            "refs": [
+              "#cardTarget",
+              "#deckTarget",
+              "#sectionTarget",
+              "#tagTarget"
+            ],
+            "description": "Optional refinement within subject (card/section/tag in a deck)."
+          },
+          "content": {
+            "type": "ref",
+            "ref": "com.deckbelcher.richtext#document",
+            "description": "Rich text content."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        },
+        "required": [
+          "subject",
+          "content",
+          "createdAt"
+        ]
+      },
+      "description": "Top-level comment on a card, deck, or collection."
+    },
+    "cardSubject": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "ref",
+          "ref": "com.deckbelcher.defs#cardRef"
+        }
+      },
+      "description": "Subject: a card (global comment on the card itself).",
+      "required": [
+        "ref"
+      ]
+    },
+    "recordSubject": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "ref",
+          "ref": "com.atproto.repo.strongRef"
+        }
+      },
+      "description": "Subject: an ATProto record (deck, collection).",
+      "required": [
+        "ref"
+      ]
+    },
+    "cardTarget": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "ref",
+          "ref": "com.deckbelcher.defs#cardRef"
+        }
+      },
+      "description": "Target: a card (in a deck or collection).",
+      "required": [
+        "ref"
+      ]
+    },
+    "deckTarget": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "ref",
+          "ref": "com.atproto.repo.strongRef"
+        }
+      },
+      "description": "Target: a deck (in a collection).",
+      "required": [
+        "ref"
+      ]
+    },
+    "sectionTarget": {
+      "type": "object",
+      "properties": {
+        "section": {
+          "type": "string",
+          "maxLength": 640,
+          "maxGraphemes": 64
+        }
+      },
+      "description": "Target: a deck section (mainboard, sideboard, etc).",
+      "required": [
+        "section"
+      ]
+    },
+    "tagTarget": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "maxLength": 640,
+          "maxGraphemes": 64
+        }
+      },
+      "description": "Target: a tag package (ramp, removal, wincons, etc).",
+      "required": [
+        "tag"
+      ]
+    }
+  }
+}

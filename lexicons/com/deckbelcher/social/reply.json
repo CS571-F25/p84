@@ -1,0 +1,45 @@
+{
+  "lexicon": 1,
+  "id": "com.deckbelcher.social.reply",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "properties": {
+          "parent": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "The comment or reply being replied to."
+          },
+          "root": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "The root top-level comment (for efficient thread loading)."
+          },
+          "content": {
+            "type": "ref",
+            "ref": "com.deckbelcher.richtext#document",
+            "description": "Rich text content."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        },
+        "required": [
+          "parent",
+          "root",
+          "content",
+          "createdAt"
+        ]
+      },
+      "description": "Reply to a comment or another reply."
+    }
+  }
+}

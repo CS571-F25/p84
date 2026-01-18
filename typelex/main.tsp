@@ -6,6 +6,8 @@ import "./richtext.tsp";
 import "./deck-list.tsp";
 import "./collection-list.tsp";
 import "./social-like.tsp";
+import "./social-comment.tsp";
+import "./social-reply.tsp";
 
 namespace com.deckbelcher.actor.profile {
   /** A DeckBelcher user profile. */

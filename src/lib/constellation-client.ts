@@ -7,7 +7,9 @@ import { getCollectionFromSchema, type Result } from "./atproto-client";
 import {
 	ComDeckbelcherCollectionList,
 	ComDeckbelcherDeckList,
+	ComDeckbelcherSocialComment,
 	ComDeckbelcherSocialLike,
+	ComDeckbelcherSocialReply,
 } from "./lexicons/index";
 
 const CONSTELLATION_BASE = "https://constellation.microcosm.blue";
@@ -23,6 +25,12 @@ export const DECK_LIST_NSID = getCollectionFromSchema(
 export const LIKE_NSID = getCollectionFromSchema(
 	ComDeckbelcherSocialLike.mainSchema,
 );
+export const COMMENT_NSID = getCollectionFromSchema(
+	ComDeckbelcherSocialComment.mainSchema,
+);
+export const REPLY_NSID = getCollectionFromSchema(
+	ComDeckbelcherSocialReply.mainSchema,
+);
 
 // Path constants for DeckBelcher collections
 // Constellation includes $type in paths for union array elements
@@ -35,6 +43,18 @@ export const DECK_LIST_CARD_PATH = ".cards[].ref.oracleUri";
 // Like paths (subject is a union but NOT an array, so no [$type] notation)
 export const LIKE_CARD_PATH = ".subject.ref.oracleUri";
 export const LIKE_RECORD_PATH = ".subject.ref.uri";
+
+// Comment paths (top-level comments, subject is union)
+// Query comments on a card (global card discussion)
+export const COMMENT_CARD_PATH = ".subject.ref.oracleUri";
+// Query comments on a record (deck, collection, etc)
+export const COMMENT_RECORD_PATH = ".subject.ref.uri";
+
+// Reply paths (threaded replies)
+// Query by root to get all replies in a thread (for thread expansion)
+export const REPLY_ROOT_PATH = ".root.uri";
+// Query by parent to get direct replies to a specific comment/reply
+export const REPLY_PARENT_PATH = ".parent.uri";
 
 export interface BacklinkRecord {
 	did: string;

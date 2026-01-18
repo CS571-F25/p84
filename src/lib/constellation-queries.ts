@@ -14,6 +14,9 @@ import {
 	COLLECTION_LIST_CARD_PATH,
 	COLLECTION_LIST_DECK_PATH,
 	COLLECTION_LIST_NSID,
+	COMMENT_CARD_PATH,
+	COMMENT_NSID,
+	COMMENT_RECORD_PATH,
 	DECK_LIST_CARD_PATH,
 	DECK_LIST_NSID,
 	getBacklinks,
@@ -21,6 +24,9 @@ import {
 	LIKE_CARD_PATH,
 	LIKE_NSID,
 	LIKE_RECORD_PATH,
+	REPLY_NSID,
+	REPLY_PARENT_PATH,
+	REPLY_ROOT_PATH,
 } from "./constellation-client";
 import type { OracleUri } from "./scryfall-types";
 import { useAuth } from "./useAuth";
@@ -393,4 +399,114 @@ export function prefetchSocialStats<T extends SocialItemType>(
 				)
 			: null,
 	] as const);
+}
+
+// ============================================================================
+// Comment Queries
+// ============================================================================
+
+function getCommentPathForItemType(itemType: SocialItemType): string {
+	return itemType === "card" ? COMMENT_CARD_PATH : COMMENT_RECORD_PATH;
+}
+
+/**
+ * Query options for getting top-level comment count for an item
+ */
+export function itemCommentCountQueryOptions<T extends SocialItemType>(
+	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
+	itemType: T,
+) {
+	return queryOptions({
+		queryKey: ["constellation", "commentCount", itemUri] as const,
+		queryFn: async (): Promise<number> => {
+			const result = await getLinksCount({
+				target: itemUri,
+				collection: COMMENT_NSID,
+				path: getCommentPathForItemType(itemType),
+			});
+
+			if (!result.success) {
+				throw result.error;
+			}
+
+			return result.data.total;
+		},
+		staleTime: 60 * 1000,
+	});
+}
+
+/**
+ * Infinite query for top-level comments on an item (card or deck/collection)
+ */
+export function itemCommentsQueryOptions<T extends SocialItemType>(
+	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
+	itemType: T,
+) {
+	return infiniteQueryOptions({
+		queryKey: ["constellation", "comments", itemUri] as const,
+		queryFn: async ({ pageParam }) => {
+			const result = await getBacklinks({
+				subject: itemUri,
+				source: buildSource(COMMENT_NSID, getCommentPathForItemType(itemType)),
+				limit: 25,
+				cursor: pageParam,
+			});
+			if (!result.success) throw result.error;
+			return result.data;
+		},
+		initialPageParam: undefined as string | undefined,
+		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+		staleTime: 60 * 1000,
+	});
+}
+
+// ============================================================================
+// Reply Queries (for threading)
+// ============================================================================
+
+/**
+ * Infinite query for all replies in a thread (by root comment URI).
+ * Use this to expand an entire thread - returns all replies regardless of depth.
+ */
+export function threadRepliesQueryOptions(rootCommentUri: string) {
+	return infiniteQueryOptions({
+		queryKey: ["constellation", "threadReplies", rootCommentUri] as const,
+		queryFn: async ({ pageParam }) => {
+			const result = await getBacklinks({
+				subject: rootCommentUri,
+				source: buildSource(REPLY_NSID, REPLY_ROOT_PATH),
+				limit: 50,
+				cursor: pageParam,
+			});
+			if (!result.success) throw result.error;
+			return result.data;
+		},
+		initialPageParam: undefined as string | undefined,
+		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+		staleTime: 60 * 1000,
+	});
+}
+
+/**
+ * Query options for getting direct reply count for any comment or reply.
+ * Use this to show "X replies" on a specific comment.
+ */
+export function directReplyCountQueryOptions(commentOrReplyUri: string) {
+	return queryOptions({
+		queryKey: ["constellation", "directReplyCount", commentOrReplyUri] as const,
+		queryFn: async (): Promise<number> => {
+			const result = await getLinksCount({
+				target: commentOrReplyUri,
+				collection: REPLY_NSID,
+				path: REPLY_PARENT_PATH,
+			});
+
+			if (!result.success) {
+				throw result.error;
+			}
+
+			return result.data.total;
+		},
+		staleTime: 60 * 1000,
+	});
 }
