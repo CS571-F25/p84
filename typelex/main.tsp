@@ -14,9 +14,9 @@ namespace com.deckbelcher.actor.profile {
     /** Profile bio/description as a rich text document. */
     bio?: com.deckbelcher.richtext.Document;
 
-    /** Free-form pronouns text. */
-    @maxGraphemes(20)
-    @maxLength(200)
+    /** Free-form pronouns text, can include brief explanation. */
+    @maxGraphemes(64)
+    @maxLength(256)
     pronouns?: string;
 
     /** Timestamp when the profile was created. */

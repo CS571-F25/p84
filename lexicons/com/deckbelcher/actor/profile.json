@@ -15,9 +15,9 @@
           },
           "pronouns": {
             "type": "string",
-            "maxLength": 200,
-            "maxGraphemes": 20,
-            "description": "Free-form pronouns text."
+            "maxLength": 256,
+            "maxGraphemes": 64,
+            "description": "Free-form pronouns text, can include brief explanation."
           },
           "createdAt": {
             "type": "string",

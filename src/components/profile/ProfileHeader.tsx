@@ -121,7 +121,7 @@ export function ProfileHeader({
 						value={editedPronouns}
 						onChange={(e) => setEditedPronouns(e.target.value)}
 						placeholder="e.g. she/her, they/them"
-						maxLength={20}
+						maxLength={64}
 						className="px-3 py-2 w-full max-w-xs bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500"
 					/>
 				</div>
