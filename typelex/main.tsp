@@ -11,18 +11,8 @@ namespace com.deckbelcher.actor.profile {
   /** A DeckBelcher user profile. */
   @rec("literal:self")
   model Main {
-    /** User's display name. */
-    @maxGraphemes(64)
-    @maxLength(640)
-    displayName?: string;
-
-    /** Free-form profile description. */
-    @maxGraphemes(256)
-    @maxLength(2560)
-    description?: string;
-
-    /** Annotations of text in the profile description (mentions, URLs, hashtags, etc). */
-    descriptionFacets?: com.deckbelcher.richtext.facet.Main[];
+    /** Profile bio/description as a rich text document. */
+    bio?: com.deckbelcher.richtext.Document;
 
     /** Free-form pronouns text. */
     @maxGraphemes(20)

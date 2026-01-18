@@ -62,7 +62,8 @@
       "Bash(wc:*)",
       "Bash(ls:*)",
       "Bash(npm run screenshot:wireframe:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run build:lexicons:*)"
     ],
     "deny": [],
     "ask": []

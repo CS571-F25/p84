@@ -35,7 +35,8 @@ npm run check          # Check both linting and formatting
 npm run typecheck      # Check TypeScript types
 
 # Typelex (schema generation)
-npm run build:typelex  # Compile lexicons from typelex/*.tsp to lexicons/
+npm run build:typelex   # Compile lexicons from typelex/*.tsp to lexicons/
+npm run build:lexicons  # Generate TS types from lexicons/ to src/lib/lexicons/
 ```
 
 ## Architecture
@@ -66,8 +67,11 @@ TypeScript paths are configured with `@/*` alias pointing to `src/*` (tsconfig.j
 ### Typelex/Lexicons
 
 - **Source**: `typelex/*.tsp` - TypeSpec definitions for AT Protocol lexicons
-- **Generated**: `lexicons/com/deckbelcher/**/*.json` - Compiled lexicon schemas
-- Run `npm run build:typelex` after modifying `.tsp` files
+- **Generated JSON**: `lexicons/com/deckbelcher/**/*.json` - Compiled lexicon schemas
+- **Generated TS**: `src/lib/lexicons/` - TypeScript types from lexicons
+- After modifying `.tsp` files, run both:
+  1. `npm run build:typelex` - compiles TypeSpec → JSON lexicons
+  2. `npm run build:lexicons` - generates TypeScript types from JSON lexicons
 - Lexicons follow AT Protocol conventions (used for ATProto/Bluesky integrations)
 
 ### Styling

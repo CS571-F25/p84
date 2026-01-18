@@ -8,25 +8,10 @@
       "record": {
         "type": "object",
         "properties": {
-          "displayName": {
-            "type": "string",
-            "maxLength": 640,
-            "maxGraphemes": 64,
-            "description": "User's display name."
-          },
-          "description": {
-            "type": "string",
-            "maxLength": 2560,
-            "maxGraphemes": 256,
-            "description": "Free-form profile description."
-          },
-          "descriptionFacets": {
-            "type": "array",
-            "items": {
-              "type": "ref",
-              "ref": "com.deckbelcher.richtext.facet"
-            },
-            "description": "Annotations of text in the profile description (mentions, URLs, hashtags, etc)."
+          "bio": {
+            "type": "ref",
+            "ref": "com.deckbelcher.richtext#document",
+            "description": "Profile bio/description as a rich text document."
           },
           "pronouns": {
             "type": "string",

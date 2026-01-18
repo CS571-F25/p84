@@ -13,6 +13,7 @@ import {
 } from "@atcute/lexicons/validations";
 import type { OAuthUserAgent } from "@atcute/oauth-browser-client";
 import {
+	ComDeckbelcherActorProfile,
 	ComDeckbelcherCollectionList,
 	ComDeckbelcherDeckList,
 	ComDeckbelcherSocialLike,
@@ -80,7 +81,7 @@ export function parseAtUri(
 
 export type Result<T, E = Error> =
 	| { success: true; data: T }
-	| { success: false; error: E };
+	| { success: false; error: E; status?: number };
 
 export interface RecordResponse<T> {
 	uri: AtUri;
@@ -121,6 +122,7 @@ async function getRecord<TSchema extends BaseSchema>(
 					error.message ||
 						`Failed to fetch ${collection}: ${response.statusText}`,
 				),
+				status: response.status,
 			};
 		}
 
@@ -542,4 +544,29 @@ export async function deleteLikeRecord(
 ) {
 	const rkey = await hashToRkey(subject.ref);
 	return deleteRecord(agent, rkey, ComDeckbelcherSocialLike.mainSchema);
+}
+
+// ============================================================================
+// Profile Records
+// ============================================================================
+
+export type ProfileRecordResponse =
+	RecordResponse<ComDeckbelcherActorProfile.Main>;
+
+const PROFILE_RKEY = asRkey("self");
+
+export function getProfileRecord(did: Did) {
+	return getRecord(did, PROFILE_RKEY, ComDeckbelcherActorProfile.mainSchema);
+}
+
+export function upsertProfileRecord(
+	agent: OAuthUserAgent,
+	record: ComDeckbelcherActorProfile.Main,
+) {
+	return upsertRecord(
+		agent,
+		PROFILE_RKEY,
+		record,
+		ComDeckbelcherActorProfile.mainSchema,
+	);
 }

@@ -20,6 +20,7 @@ import { Route as DevMigrateRouteImport } from './routes/dev/migrate'
 import { Route as DeckNewRouteImport } from './routes/deck/new'
 import { Route as CardIdRouteImport } from './routes/card/$id'
 import { Route as ProfileDidIndexRouteImport } from './routes/profile/$did/index'
+import { Route as ProfileDidListsRouteImport } from './routes/profile/$did/lists'
 import { Route as ProfileDidListRkeyRouteImport } from './routes/profile/$did/list/$rkey'
 import { Route as ProfileDidDeckRkeyRouteImport } from './routes/profile/$did/deck/$rkey'
 import { Route as ProfileDidListRkeyIndexRouteImport } from './routes/profile/$did/list/$rkey/index'
@@ -82,6 +83,11 @@ const ProfileDidIndexRoute = ProfileDidIndexRouteImport.update({
   path: '/profile/$did/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileDidListsRoute = ProfileDidListsRouteImport.update({
+  id: '/profile/$did/lists',
+  path: '/profile/$did/lists',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileDidListRkeyRoute = ProfileDidListRkeyRouteImport.update({
   id: '/profile/$did/list/$rkey',
   path: '/profile/$did/list/$rkey',
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/oauth/callback': typeof OauthCallbackRoute
   '/u/$handle': typeof UHandleRoute
   '/cards': typeof CardsIndexRoute
+  '/profile/$did/lists': typeof ProfileDidListsRoute
   '/profile/$did': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRouteWithChildren
   '/profile/$did/list/$rkey': typeof ProfileDidListRkeyRouteWithChildren
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/oauth/callback': typeof OauthCallbackRoute
   '/u/$handle': typeof UHandleRoute
   '/cards': typeof CardsIndexRoute
+  '/profile/$did/lists': typeof ProfileDidListsRoute
   '/profile/$did': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey/bulk-edit': typeof ProfileDidDeckRkeyBulkEditRoute
   '/profile/$did/deck/$rkey/play': typeof ProfileDidDeckRkeyPlayRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/oauth/callback': typeof OauthCallbackRoute
   '/u/$handle': typeof UHandleRoute
   '/cards/': typeof CardsIndexRoute
+  '/profile/$did/lists': typeof ProfileDidListsRoute
   '/profile/$did/': typeof ProfileDidIndexRoute
   '/profile/$did/deck/$rkey': typeof ProfileDidDeckRkeyRouteWithChildren
   '/profile/$did/list/$rkey': typeof ProfileDidListRkeyRouteWithChildren
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/oauth/callback'
     | '/u/$handle'
     | '/cards'
+    | '/profile/$did/lists'
     | '/profile/$did'
     | '/profile/$did/deck/$rkey'
     | '/profile/$did/list/$rkey'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/oauth/callback'
     | '/u/$handle'
     | '/cards'
+    | '/profile/$did/lists'
     | '/profile/$did'
     | '/profile/$did/deck/$rkey/bulk-edit'
     | '/profile/$did/deck/$rkey/play'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/oauth/callback'
     | '/u/$handle'
     | '/cards/'
+    | '/profile/$did/lists'
     | '/profile/$did/'
     | '/profile/$did/deck/$rkey'
     | '/profile/$did/list/$rkey'
@@ -237,6 +249,7 @@ export interface RootRouteChildren {
   OauthCallbackRoute: typeof OauthCallbackRoute
   UHandleRoute: typeof UHandleRoute
   CardsIndexRoute: typeof CardsIndexRoute
+  ProfileDidListsRoute: typeof ProfileDidListsRoute
   ProfileDidIndexRoute: typeof ProfileDidIndexRoute
   ProfileDidDeckRkeyRoute: typeof ProfileDidDeckRkeyRouteWithChildren
   ProfileDidListRkeyRoute: typeof ProfileDidListRkeyRouteWithChildren
@@ -319,6 +332,13 @@ declare module '@tanstack/react-router' {
       path: '/profile/$did'
       fullPath: '/profile/$did'
       preLoaderRoute: typeof ProfileDidIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$did/lists': {
+      id: '/profile/$did/lists'
+      path: '/profile/$did/lists'
+      fullPath: '/profile/$did/lists'
+      preLoaderRoute: typeof ProfileDidListsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile/$did/list/$rkey': {
@@ -415,6 +435,7 @@ const rootRouteChildren: RootRouteChildren = {
   OauthCallbackRoute: OauthCallbackRoute,
   UHandleRoute: UHandleRoute,
   CardsIndexRoute: CardsIndexRoute,
+  ProfileDidListsRoute: ProfileDidListsRoute,
   ProfileDidIndexRoute: ProfileDidIndexRoute,
   ProfileDidDeckRkeyRoute: ProfileDidDeckRkeyRouteWithChildren,
   ProfileDidListRkeyRoute: ProfileDidListRkeyRouteWithChildren,

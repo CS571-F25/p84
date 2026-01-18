@@ -1,46 +1,42 @@
 import type { Did } from "@atcute/lexicons";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useMemo } from "react";
 import { DeckPreview } from "@/components/DeckPreview";
-import { ListPreview } from "@/components/ListPreview";
-import {
-	listUserCollectionListsQueryOptions,
-	useCreateCollectionListMutation,
-} from "@/lib/collection-list-queries";
+import { ProfileLayout } from "@/components/profile/ProfileLayout";
 import {
 	type DeckListRecord,
 	listUserDecksQueryOptions,
 } from "@/lib/deck-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { formatDisplayName } from "@/lib/format-utils";
+import { getProfileQueryOptions } from "@/lib/profile-queries";
 import { useAuth } from "@/lib/useAuth";
 
 type SortOption = "updated-desc" | "updated-asc" | "name-asc" | "name-desc";
 
-interface ProfileSearch {
+interface DecksSearch {
 	sort?: SortOption;
 	format?: string;
 }
 
 export const Route = createFileRoute("/profile/$did/")({
-	component: ProfilePage,
-	validateSearch: (search: Record<string, unknown>): ProfileSearch => ({
+	component: DecksTab,
+	validateSearch: (search: Record<string, unknown>): DecksSearch => ({
 		sort: (search.sort as SortOption) || undefined,
 		format: (search.format as string) || undefined,
 	}),
 	loader: async ({ context, params }) => {
-		// Prefetch deck list, collection lists, and DID document during SSR
-		const [, , didDocument] = await Promise.all([
+		const [, didDocument] = await Promise.all([
 			context.queryClient.ensureInfiniteQueryData(
 				listUserDecksQueryOptions(params.did as Did),
 			),
-			context.queryClient.ensureInfiniteQueryData(
-				listUserCollectionListsQueryOptions(params.did as Did),
-			),
 			context.queryClient.ensureQueryData(
 				didDocumentQueryOptions(params.did as Did),
+			),
+			context.queryClient.ensureQueryData(
+				getProfileQueryOptions(params.did as Did),
 			),
 		]);
 		return { handle: extractHandle(didDocument) };
@@ -90,26 +86,49 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 	{ value: "name-desc", label: "Name Z-A" },
 ];
 
-function ProfilePage() {
+function DecksTab() {
 	const { did } = Route.useParams();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const { session } = useAuth();
-	const { data: decksData, isLoading: decksLoading } = useInfiniteQuery(
+	const { data: decksData, isLoading } = useInfiniteQuery(
 		listUserDecksQueryOptions(did as Did),
 	);
-	const { data: listsData, isLoading: listsLoading } = useInfiniteQuery(
-		listUserCollectionListsQueryOptions(did as Did),
-	);
-	const { data: didDocument } = useQuery(didDocumentQueryOptions(did as Did));
-	const createListMutation = useCreateCollectionListMutation();
 
-	const handle = extractHandle(didDocument ?? null);
 	const isOwner = session?.info.sub === did;
 	const decks = decksData?.pages.flatMap((p) => p.records) ?? [];
-	const lists = listsData?.pages.flatMap((p) => p.records) ?? [];
 
-	// Get unique formats for filter dropdown
+	return (
+		<ProfileLayout did={did}>
+			<DecksContent
+				did={did}
+				decks={decks}
+				isLoading={isLoading}
+				isOwner={isOwner}
+				search={search}
+				navigate={navigate}
+			/>
+		</ProfileLayout>
+	);
+}
+
+interface DecksContentProps {
+	did: string;
+	decks: DeckListRecord[];
+	isLoading: boolean;
+	isOwner: boolean;
+	search: DecksSearch;
+	navigate: ReturnType<typeof Route.useNavigate>;
+}
+
+function DecksContent({
+	did,
+	decks,
+	isLoading,
+	isOwner,
+	search,
+	navigate,
+}: DecksContentProps) {
 	const availableFormats = useMemo(() => {
 		const formats = new Set<string>();
 		for (const record of decks) {
@@ -120,23 +139,20 @@ function ProfilePage() {
 		return Array.from(formats).sort();
 	}, [decks]);
 
-	// Filter and sort
 	const filteredAndSorted = useMemo(() => {
 		let records = decks;
 
-		// Filter by format
 		if (search.format) {
 			records = records.filter((r) => r.value.format === search.format);
 		}
 
-		// Sort
 		return sortDecks(records, search.sort);
 	}, [decks, search.format, search.sort]);
 
 	const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const value = e.target.value as SortOption | "";
 		navigate({
-			search: (prev) => ({
+			search: (prev: DecksSearch) => ({
 				...prev,
 				sort: value || undefined,
 			}),
@@ -147,7 +163,7 @@ function ProfilePage() {
 	const handleFormatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const value = e.target.value;
 		navigate({
-			search: (prev) => ({
+			search: (prev: DecksSearch) => ({
 				...prev,
 				format: value || undefined,
 			}),
@@ -158,20 +174,11 @@ function ProfilePage() {
 	const hasActiveFilters = search.format != null;
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900">
-			<div className="max-w-7xl mx-auto px-6 py-16">
-				<div className="mb-8">
-					<h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2 font-display">
-						Decklists
-					</h1>
-					<p className="text-gray-600 dark:text-gray-400">
-						{handle ? `@${handle}` : did}
-					</p>
-				</div>
-
-				{/* Sort and filter controls - only show if there are decks */}
+		<section>
+			{/* Sort and filter controls */}
+			<div className="flex flex-wrap items-center justify-between gap-4 mb-6">
 				{decks.length > 0 && (
-					<div className="flex flex-wrap gap-4 mb-6">
+					<div className="flex flex-wrap gap-4">
 						<select
 							value={search.sort ?? "updated-desc"}
 							onChange={handleSortChange}
@@ -200,128 +207,74 @@ function ProfilePage() {
 						)}
 					</div>
 				)}
-
-				{/* Decks Section */}
-				<section className="mb-12">
-					<div className="flex items-center justify-between mb-4">
-						<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-							Decks
-						</h2>
-						{isOwner && (
-							<Link
-								to="/deck/new"
-								className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors"
-							>
-								<Plus className="w-4 h-4" />
-								New Deck
-							</Link>
-						)}
-					</div>
-					{decksLoading ? (
-						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
-							<p className="text-gray-600 dark:text-gray-400">
-								Loading decklists...
-							</p>
-						</div>
-					) : decks.length === 0 ? (
-						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
-							<p className="text-gray-600 dark:text-gray-400 mb-4">
-								{isOwner ? "No decklists yet" : "No decklists"}
-							</p>
-							{isOwner && (
-								<Link
-									to="/deck/new"
-									className="inline-block px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors"
-								>
-									Create Your First Deck
-								</Link>
-							)}
-						</div>
-					) : filteredAndSorted.length === 0 ? (
-						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
-							<p className="text-gray-600 dark:text-gray-400 mb-4">
-								No decks match your filters
-							</p>
-							{hasActiveFilters && (
-								<button
-									type="button"
-									onClick={() =>
-										navigate({ search: { sort: search.sort }, replace: true })
-									}
-									className="text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 font-medium"
-								>
-									Clear filters
-								</button>
-							)}
-						</div>
-					) : (
-						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-							{filteredAndSorted.map((record) => {
-								const rkey = record.uri.split("/").pop();
-								if (!rkey) return null;
-
-								return (
-									<DeckPreview
-										key={record.uri}
-										did={did as Did}
-										rkey={rkey}
-										deck={record.value}
-									/>
-								);
-							})}
-						</div>
-					)}
-				</section>
-
-				{/* Lists Section */}
-				<section>
-					<div className="flex items-center justify-between mb-4">
-						<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-							Lists
-						</h2>
-						{isOwner && (
-							<button
-								type="button"
-								onClick={() => createListMutation.mutate({ name: "New List" })}
-								disabled={createListMutation.isPending}
-								className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white font-medium rounded-lg transition-colors"
-							>
-								<Plus className="w-4 h-4" />
-								New List
-							</button>
-						)}
-					</div>
-					{listsLoading ? (
-						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
-							<p className="text-gray-600 dark:text-gray-400">
-								Loading lists...
-							</p>
-						</div>
-					) : lists.length === 0 ? (
-						<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
-							<p className="text-gray-600 dark:text-gray-400">
-								{isOwner ? "No lists yet" : "No lists"}
-							</p>
-						</div>
-					) : (
-						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-							{lists.map((record) => {
-								const rkey = record.uri.split("/").pop();
-								if (!rkey) return null;
-
-								return (
-									<ListPreview
-										key={record.uri}
-										did={did as Did}
-										rkey={rkey}
-										list={record.value}
-									/>
-								);
-							})}
-						</div>
-					)}
-				</section>
+				{isOwner && (
+					<Link
+						to="/deck/new"
+						className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors"
+					>
+						<Plus className="w-4 h-4" />
+						New Deck
+					</Link>
+				)}
 			</div>
-		</div>
+
+			{isLoading ? (
+				<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
+					<p className="text-gray-600 dark:text-gray-400">
+						Loading decklists...
+					</p>
+				</div>
+			) : decks.length === 0 ? (
+				<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
+					<p className="text-gray-600 dark:text-gray-400 mb-4">
+						{isOwner ? "No decklists yet" : "No decklists"}
+					</p>
+					{isOwner && (
+						<Link
+							to="/deck/new"
+							className="inline-block px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors"
+						>
+							Create Your First Deck
+						</Link>
+					)}
+				</div>
+			) : filteredAndSorted.length === 0 ? (
+				<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
+					<p className="text-gray-600 dark:text-gray-400 mb-4">
+						No decks match your filters
+					</p>
+					{hasActiveFilters && (
+						<button
+							type="button"
+							onClick={() =>
+								navigate({
+									search: { sort: search.sort },
+									replace: true,
+								})
+							}
+							className="text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 font-medium"
+						>
+							Clear filters
+						</button>
+					)}
+				</div>
+			) : (
+				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					{filteredAndSorted.map((record) => {
+						const rkey = record.uri.split("/").pop();
+						if (!rkey) return null;
+
+						return (
+							<DeckPreview
+								key={record.uri}
+								did={did as Did}
+								rkey={rkey}
+								deck={record.value}
+							/>
+						);
+					})}
+				</div>
+			)}
+		</section>
 	);
 }
