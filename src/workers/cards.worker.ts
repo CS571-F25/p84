@@ -545,8 +545,7 @@ class CardsWorker implements CardsWorkerAPI {
 			throw new Error("Worker not initialized - call initialize() first");
 		}
 
-		const trimmed = query.trim();
-		if (!trimmed) {
+		if (!query.trim()) {
 			return {
 				mode: "fuzzy",
 				cards: [],
@@ -556,9 +555,9 @@ class CardsWorker implements CardsWorkerAPI {
 			};
 		}
 
-		const cacheKey = JSON.stringify({ query: trimmed, restrictions, sort });
+		const cacheKey = JSON.stringify({ query, restrictions, sort });
 		const cached = await this.searchCache.getOrSet(cacheKey, async () =>
-			this.executeFullUnifiedSearch(trimmed, restrictions, sort),
+			this.executeFullUnifiedSearch(query, restrictions, sort),
 		);
 
 		return {
