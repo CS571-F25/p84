@@ -22,6 +22,7 @@ import { TrashDropZone } from "@/components/deck/TrashDropZone";
 import { ValidationBadge } from "@/components/deck/ValidationBadge";
 import { ViewControls } from "@/components/deck/ViewControls";
 import { RichtextSection } from "@/components/richtext/RichtextSection";
+import { TagClickContext } from "@/components/richtext/TagClickContext";
 import { SocialStats } from "@/components/social/SocialStats";
 import { useDeckValidation } from "@/hooks/useDeckValidation";
 import { asRkey } from "@/lib/atproto-client";
@@ -209,10 +210,10 @@ function DeckEditorPage() {
 		await mutation.mutateAsync(updated);
 	};
 
-	// Highlight cards that were changed - clear after render so it can trigger again
+	// Highlight cards that were changed - clear after paint so it can trigger again
 	const handleCardsChanged = (changedIds: Set<ScryfallId>) => {
 		setHighlightedCards(changedIds);
-		setTimeout(() => setHighlightedCards(new Set()), 0);
+		requestAnimationFrame(() => setHighlightedCards(new Set()));
 	};
 
 	const handleCardHover = (cardId: ScryfallId | null) => {
@@ -583,6 +584,52 @@ function DeckEditorInner({
 		},
 	});
 
+	const scrollToTagGroup = useCallback(
+		(tag: string) => {
+			const el = document.querySelector(
+				`[data-tag-group="${CSS.escape(tag)}"]`,
+			);
+			if (!el) {
+				toast.info(`No cards have the "${tag}" tag`);
+				return;
+			}
+
+			el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+			// Highlight cards with this tag after scroll finishes
+			const cardsWithTag = deck.cards.filter((c) => c.tags?.includes(tag));
+			if (cardsWithTag.length > 0) {
+				setTimeout(() => {
+					handleCardsChanged(new Set(cardsWithTag.map((c) => c.scryfallId)));
+				}, 400);
+			}
+		},
+		[deck.cards, handleCardsChanged],
+	);
+
+	const handleTagClick = useCallback(
+		(tag: string) => {
+			if (groupBy !== "typeAndTags") {
+				toast.info("Switch to 'Type + Tags' view to see tag groups", {
+					action: {
+						label: "Switch",
+						onClick: () => {
+							setGroupBy("typeAndTags");
+							// Wait for React to render new grouping, then scroll
+							requestAnimationFrame(() => {
+								requestAnimationFrame(() => scrollToTagGroup(tag));
+							});
+						},
+					},
+				});
+				return;
+			}
+
+			scrollToTagGroup(tag);
+		},
+		[groupBy, setGroupBy, scrollToTagGroup],
+	);
+
 	return (
 		<div className="min-h-screen bg-white dark:bg-slate-900">
 			{/* Deck name and format */}
@@ -595,14 +642,16 @@ function DeckEditorInner({
 					readOnly={!isOwner}
 				/>
 				<ErrorBoundary fallback={null}>
-					<RichtextSection
-						document={primer}
-						onSave={onPrimerSave}
-						isSaving={isSaving}
-						readOnly={!isOwner}
-						placeholder="Write about your deck's strategy, key combos, card choices..."
-						availableTags={allTags}
-					/>
+					<TagClickContext.Provider value={{ onTagClick: handleTagClick }}>
+						<RichtextSection
+							document={primer}
+							onSave={onPrimerSave}
+							isSaving={isSaving}
+							readOnly={!isOwner}
+							placeholder="Write about your deck's strategy, key combos, card choices..."
+							availableTags={allTags}
+						/>
+					</TagClickContext.Provider>
 				</ErrorBoundary>
 			</div>
 

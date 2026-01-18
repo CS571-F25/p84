@@ -2,6 +2,7 @@ import { sanitizeUrl } from "@braintree/sanitize-url";
 import { Link } from "@tanstack/react-router";
 import { memo, type ReactNode } from "react";
 import { useCardHover } from "@/components/HoverCardPreview";
+import { useTagClick } from "@/components/richtext/TagClickContext";
 import type {
 	BulletListBlock,
 	CodeBlock,
@@ -229,6 +230,20 @@ function CardRefLink({
 	);
 }
 
+function TagPill({ tag, children }: { tag: string; children: ReactNode }) {
+	const { onTagClick } = useTagClick();
+
+	return (
+		<button
+			type="button"
+			onClick={onTagClick ? () => onTagClick(tag) : undefined}
+			className={`inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-medium${onTagClick ? " cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-900/50 motion-safe:transition-colors" : ""}`}
+		>
+			{children}
+		</button>
+	);
+}
+
 function applyFeature(
 	content: ReactNode,
 	feature: Facet["features"][number],
@@ -282,11 +297,7 @@ function applyFeature(
 		}
 
 		case "com.deckbelcher.richtext.facet#tag":
-			return (
-				<span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-medium">
-					{content}
-				</span>
-			);
+			return <TagPill tag={feature.tag}>{content}</TagPill>;
 
 		default:
 			return content;

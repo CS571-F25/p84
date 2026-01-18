@@ -34,7 +34,8 @@ export function DroppableTagGroup({
 	return (
 		<div
 			ref={setNodeRef}
-			className="mb-4 break-inside-avoid rounded-lg relative"
+			data-tag-group={tagName}
+			className="mb-4 break-inside-avoid rounded-lg relative scroll-mt-20"
 			style={{ breakInside: "avoid" }}
 		>
 			{/* Drop zone visual */}
