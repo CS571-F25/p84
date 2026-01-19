@@ -21,7 +21,7 @@ import {
 	ComDeckbelcherSocialReply,
 } from "./lexicons/index";
 
-type AtUri = `at://${string}`;
+export type AtUri = `at://${string}`;
 
 const SLINGSHOT_BASE = "https://slingshot.microcosm.blue";
 
@@ -161,6 +161,7 @@ async function createRecord<TSchema extends BaseSchema>(
 	agent: OAuthUserAgent,
 	record: InferOutput<TSchema>,
 	schema: TSchema,
+	rkey?: Rkey,
 ): Promise<Result<{ uri: AtUri; cid: string; rkey: Rkey }>> {
 	const collection = getCollectionFromSchema(schema);
 	try {
@@ -178,6 +179,7 @@ async function createRecord<TSchema extends BaseSchema>(
 				repo: agent.sub,
 				collection,
 				record: record as Record<string, unknown>,
+				rkey,
 			},
 		});
 
@@ -587,8 +589,14 @@ export function getCommentRecord(did: Did, rkey: Rkey) {
 export function createCommentRecord(
 	agent: OAuthUserAgent,
 	record: ComDeckbelcherSocialComment.Main,
+	rkey?: Rkey,
 ) {
-	return createRecord(agent, record, ComDeckbelcherSocialComment.mainSchema);
+	return createRecord(
+		agent,
+		record,
+		ComDeckbelcherSocialComment.mainSchema,
+		rkey,
+	);
 }
 
 export function updateCommentRecord(
@@ -622,8 +630,14 @@ export function getReplyRecord(did: Did, rkey: Rkey) {
 export function createReplyRecord(
 	agent: OAuthUserAgent,
 	record: ComDeckbelcherSocialReply.Main,
+	rkey?: Rkey,
 ) {
-	return createRecord(agent, record, ComDeckbelcherSocialReply.mainSchema);
+	return createRecord(
+		agent,
+		record,
+		ComDeckbelcherSocialReply.mainSchema,
+		rkey,
+	);
 }
 
 export function updateReplyRecord(

@@ -1,6 +1,9 @@
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { BacklinksResponse } from "../constellation-client";
+import type {
+	BacklinkRecord,
+	BacklinksResponse,
+} from "../constellation-client";
 import {
 	combineRollbacks,
 	optimisticBacklinks,
@@ -290,14 +293,22 @@ describe("optimistic-utils", () => {
 			did: "did:plc:test",
 			collection: "app.test.like",
 			rkey: "abc123",
-		};
+		} satisfies BacklinkRecord;
 
 		it("adds record to first page", async () => {
 			const initial: BacklinksResponse = {
 				total: 2,
 				records: [
-					{ did: "did:plc:other1", collection: "app.test.like", rkey: "xyz" },
-					{ did: "did:plc:other2", collection: "app.test.like", rkey: "xyz" },
+					{
+						did: "did:plc:other1",
+						collection: "app.test.like",
+						rkey: "xyz",
+					} satisfies BacklinkRecord,
+					{
+						did: "did:plc:other2",
+						collection: "app.test.like",
+						rkey: "xyz",
+					} satisfies BacklinkRecord,
 				],
 			};
 			queryClient.setQueryData(key, {
@@ -330,7 +341,11 @@ describe("optimistic-utils", () => {
 				total: 2,
 				records: [
 					record,
-					{ did: "did:plc:other", collection: "app.test.like", rkey: "xyz" },
+					{
+						did: "did:plc:other",
+						collection: "app.test.like",
+						rkey: "xyz",
+					} satisfies BacklinkRecord,
 				],
 			};
 			queryClient.setQueryData(key, {
@@ -354,18 +369,22 @@ describe("optimistic-utils", () => {
 				did: "did:plc:test",
 				collection: "com.deckbelcher.collection.list",
 				rkey: "list1",
-			};
+			} satisfies BacklinkRecord;
 			const list2 = {
 				did: "did:plc:test",
 				collection: "com.deckbelcher.collection.list",
 				rkey: "list2",
-			};
+			} satisfies BacklinkRecord;
 			const initial: BacklinksResponse = {
 				total: 3,
 				records: [
 					list1,
 					list2,
-					{ did: "did:plc:other", collection: "app.test.like", rkey: "xyz" },
+					{
+						did: "did:plc:other",
+						collection: "app.test.like",
+						rkey: "xyz",
+					} satisfies BacklinkRecord,
 				],
 			};
 			queryClient.setQueryData(key, {
@@ -407,7 +426,11 @@ describe("optimistic-utils", () => {
 			const initial: BacklinksResponse = {
 				total: 1,
 				records: [
-					{ did: "did:plc:other", collection: "app.test.like", rkey: "xyz" },
+					{
+						did: "did:plc:other",
+						collection: "app.test.like",
+						rkey: "xyz",
+					} satisfies BacklinkRecord,
 				],
 			};
 			queryClient.setQueryData(key, {

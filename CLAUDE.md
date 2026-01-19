@@ -179,6 +179,7 @@ Vite is configured to ignore large generated files in watch mode:
 ### Code Standards
 - **Stay focused on your current task** - If a global check (typecheck, lint) reports errors in files you haven't modified in this session, don't automatically fix them—mention them and let the user decide. Errors in files you did modify are your responsibility to fix. When in doubt, ask
 - **This is a TypeScript project** - ALL code (including scripts) must use TypeScript with proper types
+- **Use optimistic-utils for mutations** - All TanStack Query mutations should use helpers from `src/lib/optimistic-utils.ts` (`runOptimistic`, `optimisticRecord`, `optimisticCount`, `optimisticBacklinks`, etc). Pattern: `onMutate` returns `{ rollback }`, `onError` calls `context?.rollback()`. Never write raw cache manipulation—use the helpers. See `like-queries.ts` or `comment-queries.ts` for examples.
 - **Use `nix-shell -p <package>` for missing commands** - If a command isn't in PATH, use nix-shell to get it temporarily
 - **Prefer functional style over exceptions** - Avoid throwing errors for control flow. Use type predicates, Option/Result patterns, and early returns instead. Throwing is like GOTO—it breaks local reasoning and makes code harder to follow
 - **Avoid unnecessary try/catch blocks** - Don't wrap code in try/catch without a specific reason. It's not defensive coding—it's noisy and masks real errors. If a function can return null/undefined, use that instead of throwing. Let exceptions bubble naturally unless you have a specific recovery strategy

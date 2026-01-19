@@ -510,3 +510,26 @@ export function directReplyCountQueryOptions(commentOrReplyUri: string) {
 		staleTime: 60 * 1000,
 	});
 }
+
+/**
+ * Query for direct replies to a comment or reply.
+ * Each node uses this to find its children.
+ */
+export function directRepliesQueryOptions(parentUri: string) {
+	return infiniteQueryOptions({
+		queryKey: ["constellation", "directReplies", parentUri] as const,
+		queryFn: async ({ pageParam }) => {
+			const result = await getBacklinks({
+				subject: parentUri,
+				source: buildSource(REPLY_NSID, REPLY_PARENT_PATH),
+				limit: 50,
+				cursor: pageParam,
+			});
+			if (!result.success) throw result.error;
+			return result.data;
+		},
+		initialPageParam: undefined as string | undefined,
+		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+		staleTime: 30 * 1000,
+	});
+}

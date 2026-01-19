@@ -3,6 +3,7 @@
  * See .claude/CONSTELLATION.md for full API documentation
  */
 
+import type { Did } from "@atcute/lexicons";
 import { getCollectionFromSchema, type Result } from "./atproto-client";
 import {
 	ComDeckbelcherCollectionList,
@@ -57,7 +58,7 @@ export const REPLY_ROOT_PATH = ".root.uri";
 export const REPLY_PARENT_PATH = ".parent.uri";
 
 export interface BacklinkRecord {
-	did: string;
+	did: Did;
 	collection: string;
 	rkey: string;
 }

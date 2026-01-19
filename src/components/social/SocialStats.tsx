@@ -1,8 +1,12 @@
-import { Bookmark, Heart, Rows3 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Bookmark, Heart, MessageSquare, Rows3 } from "lucide-react";
 import { useState } from "react";
 import type { SaveItem } from "@/lib/collection-list-types";
 import type { SocialItemUri } from "@/lib/constellation-queries";
-import { useItemSocialStats } from "@/lib/constellation-queries";
+import {
+	itemCommentCountQueryOptions,
+	useItemSocialStats,
+} from "@/lib/constellation-queries";
 import { useLikeMutation } from "@/lib/like-queries";
 import { toOracleUri } from "@/lib/scryfall-types";
 import { useAuth } from "@/lib/useAuth";
@@ -14,7 +18,10 @@ interface SocialStatsProps {
 	item: SaveItem;
 	itemName?: string;
 	showCount?: boolean;
+	/** Hide comment count (useful when comments section is always visible) */
+	hideCommentCount?: boolean;
 	className?: string;
+	onCommentClick?: () => void;
 }
 
 function getItemUri(item: SaveItem): SocialItemUri {
@@ -25,7 +32,9 @@ export function SocialStats({
 	item,
 	itemName,
 	showCount = true,
+	hideCommentCount = false,
 	className = "",
+	onCommentClick,
 }: SocialStatsProps) {
 	const { session } = useAuth();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -44,6 +53,11 @@ export function SocialStats({
 		deckCount,
 		isDeckCountLoading,
 	} = useItemSocialStats(itemUri, item.type);
+
+	const commentCountQuery = useQuery(
+		itemCommentCountQueryOptions(itemUri, item.type),
+	);
+	const commentCount = commentCountQuery.data ?? 0;
 
 	const handleSaveClick = () => {
 		if (session) {
@@ -178,6 +192,28 @@ export function SocialStats({
 					>
 						{deckCount}
 					</button>
+				</div>
+			)}
+
+			{/* Comments button */}
+			{onCommentClick && (
+				<div className="flex items-center">
+					<button
+						type="button"
+						onClick={onCommentClick}
+						className={`${statBase} text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors`}
+						aria-label="Comments"
+						title="Comments"
+					>
+						<MessageSquare className="w-5 h-5" />
+					</button>
+					{showCount && !hideCommentCount && (
+						<span
+							className={`text-sm tabular-nums px-1 py-2 text-gray-600 dark:text-gray-400 ${commentCountQuery.isLoading ? "opacity-50" : ""}`}
+						>
+							{commentCount}
+						</span>
+					)}
 				</div>
 			)}
 

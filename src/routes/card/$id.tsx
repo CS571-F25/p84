@@ -2,6 +2,7 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { CardImage } from "@/components/CardImage";
+import { CommentsPanel } from "@/components/comments";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
 import { SocialStats } from "@/components/social/SocialStats";
@@ -19,7 +20,12 @@ import type {
 	OracleId,
 	ScryfallId,
 } from "@/lib/scryfall-types";
-import { asOracleId, isScryfallId, toOracleUri } from "@/lib/scryfall-types";
+import {
+	asOracleId,
+	isScryfallId,
+	toOracleUri,
+	toScryfallUri,
+} from "@/lib/scryfall-types";
 import { getImageUri } from "@/lib/scryfall-utils";
 
 const NOT_FOUND_META = {
@@ -447,6 +453,23 @@ function CardDetailPage() {
 						) : null}
 
 						{card.legalities && <LegalityTable legalities={card.legalities} />}
+
+						{card.oracle_id && (
+							<div className="border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
+								<CommentsPanel
+									subject={{
+										$type: "com.deckbelcher.social.comment#cardSubject",
+										ref: {
+											oracleUri: toOracleUri(asOracleId(card.oracle_id)),
+											scryfallUri: toScryfallUri(id),
+										},
+									}}
+									subjectUri={toOracleUri(asOracleId(card.oracle_id))}
+									itemType="card"
+									title={`Comments on ${card.name}`}
+								/>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
