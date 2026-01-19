@@ -73,9 +73,9 @@ function ResolvedCardRow({
 	const primaryFace = getPrimaryFace(line.cardData);
 
 	const bgClass = line.isImperfect
-		? "bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+		? "bg-amber-50 dark:bg-amber-900/40 hover:bg-amber-100 dark:hover:bg-amber-900/50"
 		: line.isNew
-			? "bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30"
+			? "bg-green-50 dark:bg-green-900/40 hover:bg-green-100 dark:hover:bg-green-900/50"
 			: "hover:bg-gray-100 dark:hover:bg-slate-800";
 
 	return (

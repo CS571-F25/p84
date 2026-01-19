@@ -1,0 +1,84 @@
+1 Alabaster Host Intercessor (MOM) 3 #!removal
+1 Ambitious Dragonborn (CLB) 213 #payoffs / big creatures
+1 Annoyed Altisaur (2X2) 134 #payoffs / big creatures
+1 Aquastrand Spider (MM2) 140 #!counter creatures
+1 Arbor Elf (LTC) 232 #!dorks
+1 Arcane Signet (FIC) 334 #!ramp
+1 Arcbound Mouser (MH2) 3 #!counter creatures
+1 Arctic Treeline (KHM) 249
+1 Ash Barrens (PIP) 253
+1 Avacyn's Pilgrim (ISD) 170 #!dorks
+1 Basking Broodscale (MH3) 145
+1 Bloom Hulk (WAR) 154 #counters
+1 Blossoming Sands (KTK) 231
+1 Bond Beetle (M13) 161 #!counter creatures
+1 Botanical Plaza (SNC) 247
+1 Captivating Cave (LCI) 268
+1 Cave of Temptation (MH1) 237
+1 Citanul Woodreaders (PLST) DDR-4 #!card advantage and friends
+1 Colossal Badger / Dig Deep (CLB) 223 #!counters #payoffs / big creatures
+1 Command Tower (CMR) 350
+1 Contagious Vorrac (ONE) 164 #counters
+1 Crib Swap (2XM) 12 #!removal
+1 Cytospawn Shambler (DIS) 82 #!counter creatures
+1 Deepwood Denizen (MH2) 155 #!card advantage and friends
+1 Devoted Druid (NCC) 286 #!dorks
+1 Dread Linnorm / Scale Deflection (CLB) 225 #!counters #!payoffs / big creatures #!protection
+1 Drix Fatemaker (EOE) 178 #!counter effects #counters
+1 Druidic Ritual (CLB) 227 #!card advantage and friends
+1 Duskshell Crawler (J25) 653 #counter creatures #!counter creatures #!counter effects
+1 Elvish Mystic (CMM) 284 #!dorks
+1 Etched Cornfield (DSK) 258
+1 Evolution Witness (MH3) 151
+1 Experiment One (2X2) 146 #counter creatures
+1 Fertilid (CMR) 226 #!counter creatures #!ramp
+1 Fierce Empath (M21) 181 #!card advantage and friends
+11 Forest (J25) 93
+1 Forge of Heroes (FIC) 395
+1 Fyndhorn Elves (CMR) 228 #!dorks
+1 Generous Gift (CMM) 624 #!removal
+1 Gnarlid Colony (FDN) 224 #!counter effects
+1 Grapple with the Past (EMN) 160 #!card advantage and friends
+1 Guardian Naga / Banishing Coils (CLB) 23 #payoffs / big creatures #!removal
+1 Heritage Reclamation (TDM) 145 #card advantage and friends #!removal
+1 Idyllic Grange (ELD) 246
+1 Ilysian Caryatid (THB) 174 #!dorks
+1 Iron Apprentice (NEO) 248 #!counter creatures
+1 Ivy Elemental (IMA) 170 #!payoffs / big creatures
+1 Journey to Nowhere (OTP) 3 #!removal
+1 Khalni Garden (PLST) DDR-28
+1 Now for Wrath, Now for Ruin! (LTR) 24 #!counters
+1 Nyxborn Hydra (MH3) 164 #!payoffs / big creatures
+1 Oblivion Ring (M13) 22 #!removal
+1 Opal Palace (CMR) 352
+1 Owlbear (AFR) 331 #!card advantage and friends
+6 Plains (J25) 82
+1 Pollenbright Druid (WAR) 173 #counter creatures #!counter creatures #!counters
+1 Predatory Hunger (EXO) 117 #!counters
+1 Pridemalkin (M21) 196 #counter creatures #!counter effects
+1 Radiant Grove (DMU) 253
+1 Ram Through (PLST) IKO-170 #!removal
+1 Rust Goliath (BRO) 204 #payoffs / big creatures
+1 Salt Road Packbeast (TDM) 23 #!card advantage and friends
+1 Scrounging Bandar (CMR) 252 #!counter creatures
+1 Secluded Steppe (CMR) 491
+1 Selesnya Sanctuary (ZNC) 140
+1 Selesnya Signet (TDC) 324 #!ramp
+1 Servant of the Scale (J22) 727 #!counter creatures
+1 Simic Initiate (DIS) 92 #!counter creatures
+1 Smell Fear (MH2) 173 #!removal
+1 Snakeskin Veil (TDM) 159 #!counters #!protection
+1 Spectacular Tactics (SPM) 15 #!counters #!protection #!removal
+1 Spike Drone (TMP) 258 #!counter creatures
+1 Star Pupil (J25) 259 #!counter creatures
+1 Suburban Sanctuary (SPM) 185
+1 Sunshower Druid (BLB) 195 #!counter creatures
+1 Thornglint Bridge (MH2) 258
+1 Thraben Charm (MH3) 45 #!removal
+1 Tranquil Expanse (C18) 289
+1 Tranquil Thicket (BLC) 350
+1 Travel Preparations (2X2) 162 #!counters
+1 Tuinvale Treefolk / Oaken Boon (ELD) 180 #!counters #!payoffs / big creatures
+1 Tuskguard Captain (CMM) 328 #!counter effects
+1 Weftblade Enhancer (EOE) 44 #!counters
+1 You Meet in a Tavern (CLB) 263 #card advantage and friends

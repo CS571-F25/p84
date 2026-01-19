@@ -1,0 +1,101 @@
+1 Hamza, Guardian of Arashin (CMM) 339 *F*
+1 Alabaster Host Intercessor (MOM) 3
+1 Ambitious Dragonborn (CLB) 213
+1 Annoyed Altisaur (2X2) 134
+1 Aquastrand Spider (MM2) 140
+1 Arbor Elf (LTC) 232
+1 Arcane Signet (FIC) 334
+1 Arcbound Mouser (MH2) 3
+1 Arctic Treeline (KHM) 249
+1 Ash Barrens (PIP) 253
+1 Avacyn's Pilgrim (ISD) 170
+1 Basking Broodscale (MH3) 145
+1 Bloom Hulk (WAR) 154
+1 Blossoming Sands (KTK) 231
+1 Bond Beetle (M13) 161
+1 Botanical Plaza (SNC) 247
+1 Captivating Cave (LCI) 268
+1 Cave of Temptation (MH1) 237
+1 Citanul Woodreaders (PLST) DDR-4
+1 Colossal Badger / Dig Deep (CLB) 223
+1 Command Tower (CMR) 350
+1 Contagious Vorrac (ONE) 164
+1 Crib Swap (2XM) 12
+1 Cytospawn Shambler (DIS) 82
+1 Deepwood Denizen (MH2) 155
+1 Devoted Druid (NCC) 286
+1 Dread Linnorm / Scale Deflection (CLB) 225
+1 Drix Fatemaker (EOE) 178
+1 Druidic Ritual (CLB) 227
+1 Duskshell Crawler (J25) 653
+1 Elvish Mystic (CMM) 284
+1 Etched Cornfield (DSK) 258
+1 Evolution Witness (MH3) 151
+1 Experiment One (2X2) 146
+1 Fertilid (CMR) 226
+1 Fierce Empath (M21) 181
+11 Forest (J25) 93
+1 Forge of Heroes (FIC) 395
+1 Fyndhorn Elves (CMR) 228
+1 Generous Gift (CMM) 624
+1 Gnarlid Colony (FDN) 224
+1 Grapple with the Past (EMN) 160
+1 Guardian Naga / Banishing Coils (CLB) 23
+1 Heritage Reclamation (TDM) 145
+1 Idyllic Grange (ELD) 246
+1 Ilysian Caryatid (THB) 174
+1 Iron Apprentice (NEO) 248
+1 Ivy Elemental (IMA) 170
+1 Journey to Nowhere (OTP) 3
+1 Khalni Garden (PLST) DDR-28
+1 Now for Wrath, Now for Ruin! (LTR) 24
+1 Nyxborn Hydra (MH3) 164
+1 Oblivion Ring (M13) 22
+1 Opal Palace (CMR) 352
+1 Owlbear (AFR) 331
+6 Plains (J25) 82
+1 Pollenbright Druid (WAR) 173
+1 Predatory Hunger (EXO) 117
+1 Pridemalkin (M21) 196
+1 Radiant Grove (DMU) 253
+1 Ram Through (PLST) IKO-170
+1 Rust Goliath (BRO) 204
+1 Salt Road Packbeast (TDM) 23
+1 Scrounging Bandar (CMR) 252
+1 Secluded Steppe (CMR) 491
+1 Selesnya Sanctuary (ZNC) 140
+1 Selesnya Signet (TDC) 324
+1 Servant of the Scale (J22) 727
+1 Simic Initiate (DIS) 92
+1 Smell Fear (MH2) 173
+1 Snakeskin Veil (TDM) 159
+1 Spectacular Tactics (SPM) 15
+1 Spike Drone (TMP) 258
+1 Star Pupil (J25) 259
+1 Suburban Sanctuary (SPM) 185
+1 Sunshower Druid (BLB) 195
+1 Thornglint Bridge (MH2) 258
+1 Thraben Charm (MH3) 45
+1 Tranquil Expanse (C18) 289
+1 Tranquil Thicket (BLC) 350
+1 Travel Preparations (2X2) 162
+1 Tuinvale Treefolk / Oaken Boon (ELD) 180
+1 Tuskguard Captain (CMM) 328
+1 Weftblade Enhancer (EOE) 44
+1 You Meet in a Tavern (CLB) 263
+
+SIDEBOARD:
+1 Ainok Bond-Kin (2X2) 5
+1 Farseek (BLC) 119
+1 Forced Adaptation (RVR) 140
+1 Longshot Squad (KTK) 140
+1 Master Chef (CLB) 241
+1 Night Soil (FEM) 71b
+1 Shinewend (MOR) 23
+1 Shoulder to Shoulder (BBD) 105
+1 Sporeback Troll (DIS) 94
+1 Thirsting Roots (ONE) 185
+1 Titanic Brawl (RVR) 158
+1 Unbounded Potential (MH2) 36
+1 Weapon Rack (ELD) 236
+1 Winding Way (PLST) MH1-193
