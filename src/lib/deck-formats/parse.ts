@@ -14,10 +14,10 @@
 import { detectFormat } from "./detect";
 import { extractInlineSection, parseSectionMarker } from "./sections";
 import type {
-	DeckFormat,
 	DeckSection,
 	ParsedCardLine,
 	ParsedDeck,
+	ParseOptions,
 } from "./types";
 
 /**
@@ -79,7 +79,10 @@ export function parseCardLine(line: string): ParsedCardLine | null {
 	}
 
 	// Try XMage format first: [SET:123] or [SET] before name (most distinctive)
-	const xmageMatch = remaining.match(/^\[([A-Z0-9]{2,5}):?(\d+)?\]\s+(.+)$/i);
+	// Use [^\]]+ for collector number to handle any characters (letters, ★, †, etc.)
+	const xmageMatch = remaining.match(
+		/^\[([A-Z0-9]{2,5})(?::([^\]]+))?\]\s+(.+)$/i,
+	);
 	if (xmageMatch) {
 		return {
 			quantity,
@@ -143,8 +146,9 @@ export function parseCardLine(line: string): ParsedCardLine | null {
  * Auto-detects format if not specified. Uses format hint to resolve
  * ambiguous situations (e.g., blank line handling).
  */
-export function parseDeck(text: string, formatHint?: DeckFormat): ParsedDeck {
-	const format = formatHint ?? detectFormat(text);
+export function parseDeck(text: string, options?: ParseOptions): ParsedDeck {
+	const format = options?.format ?? detectFormat(text);
+	const stripRedundantTypeTags = options?.stripRedundantTypeTags ?? true;
 	const lines = text.split("\n");
 
 	const deck: ParsedDeck = {
@@ -190,8 +194,26 @@ export function parseDeck(text: string, formatHint?: DeckFormat): ParsedDeck {
 			continue;
 		}
 
+		// Arena/TappedOut "About" header and "Name ..." line
+		if (/^About$/i.test(trimmed)) {
+			continue;
+		}
+		if (/^Name\s+/i.test(trimmed)) {
+			deck.name = trimmed.slice(5).trim();
+			continue;
+		}
+
+		// Deckstats //NAME: comment
+		if (trimmed.startsWith("//NAME:")) {
+			deck.name = trimmed.slice(7).trim();
+			continue;
+		}
+
 		// Check for inline section markers (SB:, [Sideboard], # !Commander)
-		const inlineResult = extractInlineSection(trimmed);
+		const inlineResult = extractInlineSection(trimmed, {
+			format,
+			stripRedundantTypeTags,
+		});
 		let effectiveSection: DeckSection = inlineResult.section ?? currentSection;
 		const cardLine = inlineResult.cardLine;
 
@@ -213,6 +235,10 @@ export function parseDeck(text: string, formatHint?: DeckFormat): ParsedDeck {
 		// Parse the card line
 		const parsed = parseCardLine(cardLine);
 		if (parsed) {
+			// Merge inline tags (from [Category]) with parsed tags (from #tag)
+			if (inlineResult.tags) {
+				parsed.tags = [...new Set([...inlineResult.tags, ...parsed.tags])];
+			}
 			deck[effectiveSection].push(parsed);
 		}
 	}

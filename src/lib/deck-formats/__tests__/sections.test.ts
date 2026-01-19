@@ -82,10 +82,16 @@ describe("parseSectionMarker", () => {
 	});
 
 	describe("TappedOut About/Name header", () => {
-		it("recognizes 'About' line as consumable", () => {
-			// TappedOut arena export starts with "About" line
+		it("returns null for 'About' line (handled by parse.ts)", () => {
+			// TappedOut arena export starts with "About" line - handled in parse.ts
 			const result = parseSectionMarker("About");
-			expect(result?.consumeLine).toBe(true);
+			expect(result).toBeNull();
+		});
+
+		it("returns null for 'Name ...' line (handled by parse.ts)", () => {
+			// TappedOut deck name line - handled in parse.ts
+			const result = parseSectionMarker("Name My Deck");
+			expect(result).toBeNull();
 		});
 	});
 
@@ -120,7 +126,7 @@ describe("extractInlineSection", () => {
 				"1x Sol Ring (cmm) 647 [Sideboard] ^Have^",
 			);
 			expect(result.section).toBe("sideboard");
-			expect(result.cardLine).toBe("1x Sol Ring (cmm) 647  ^Have^");
+			expect(result.cardLine).toBe("1x Sol Ring (cmm) 647 ^Have^");
 		});
 
 		it("extracts [Commander{top}] marker", () => {
@@ -128,7 +134,7 @@ describe("extractInlineSection", () => {
 				"1x Tifa Lockhart (fin) 567 *F* [Commander{top}] ^Have^",
 			);
 			expect(result.section).toBe("commander");
-			expect(result.cardLine).toBe("1x Tifa Lockhart (fin) 567 *F*  ^Have^");
+			expect(result.cardLine).toBe("1x Tifa Lockhart (fin) 567 *F* ^Have^");
 		});
 
 		it("extracts [Maybeboard{noDeck}{noPrice}] marker", () => {
@@ -136,15 +142,16 @@ describe("extractInlineSection", () => {
 				"1x Alpha Authority (gtc) 114 [Maybeboard{noDeck}{noPrice}]",
 			);
 			expect(result.section).toBe("maybeboard");
-			expect(result.cardLine).toBe("1x Alpha Authority (gtc) 114 ");
+			expect(result.cardLine).toBe("1x Alpha Authority (gtc) 114");
 		});
 
-		it("handles multiple category markers (takes first section)", () => {
+		it("handles multiple category markers (takes last section)", () => {
 			// Archidekt can have multiple categories like [Maybeboard{...},Enchantment]
+			// When multiple sections are present, last one wins
 			const result = extractInlineSection(
 				"1x Card (set) 1 [Maybeboard{noDeck},Sideboard,Creature]",
 			);
-			expect(result.section).toBe("maybeboard");
+			expect(result.section).toBe("sideboard");
 		});
 	});
 
@@ -177,9 +184,11 @@ describe("extractInlineSection", () => {
 			expect(result.cardLine).toBe("4 Lightning Bolt (2XM) 141");
 		});
 
-		it("does not confuse [SET] with [Sideboard]", () => {
-			// MTGGoldfish format: [SET] after name
-			const result = extractInlineSection("4 Lightning Bolt [2XM]");
+		it("does not confuse [SET] with [Sideboard] (with mtggoldfish hint)", () => {
+			// MTGGoldfish format: [SET] after name - need format hint
+			const result = extractInlineSection("4 Lightning Bolt [2XM]", {
+				format: "mtggoldfish",
+			});
 			expect(result.section).toBeUndefined();
 			expect(result.cardLine).toBe("4 Lightning Bolt [2XM]");
 		});

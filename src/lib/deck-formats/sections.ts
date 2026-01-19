@@ -39,6 +39,11 @@ export function parseSectionMarker(line: string): SectionMarkerResult | null {
 	if (trimmed.startsWith("//")) {
 		const sectionName = trimmed.slice(2).trim().toLowerCase();
 
+		// //NAME: is metadata, not a section - let parse.ts handle it
+		if (sectionName.startsWith("name:")) {
+			return null;
+		}
+
 		// Map known section names
 		if (sectionName === "main" || sectionName === "mainboard") {
 			return { section: "mainboard", consumeLine: true };
@@ -57,14 +62,15 @@ export function parseSectionMarker(line: string): SectionMarkerResult | null {
 		return { section: "mainboard", consumeLine: true };
 	}
 
-	// TappedOut "About" header line (and "Name ..." line)
-	if (/^About$/i.test(trimmed) || /^Name\s+/i.test(trimmed)) {
-		// These are metadata lines, consume but don't change section
-		return { section: "mainboard", consumeLine: true };
+	// XMage metadata lines - don't treat as section marker
+	// (handled by parse.ts to extract deck name)
+	if (trimmed.startsWith("NAME:") || trimmed.startsWith("LAYOUT ")) {
+		return null;
 	}
 
-	// XMage metadata lines - consume but don't treat as section
-	if (trimmed.startsWith("NAME:") || trimmed.startsWith("LAYOUT ")) {
+	// TappedOut "About" and "Name ..." metadata lines - don't treat as section marker
+	// (handled by parse.ts to extract deck name)
+	if (/^About$/i.test(trimmed) || /^Name\s+/i.test(trimmed)) {
 		return null;
 	}
 
@@ -81,19 +87,51 @@ export function parseSectionMarker(line: string): SectionMarkerResult | null {
 	return null;
 }
 
+// Card types to ignore when extracting category tags
+const CARD_TYPES = new Set([
+	"creature",
+	"instant",
+	"sorcery",
+	"artifact",
+	"enchantment",
+	"land",
+	"planeswalker",
+	"battle",
+	"kindred",
+	"tribal",
+]);
+
+// Section names that indicate deck sections, not categories
+const SECTION_NAMES = new Set(["sideboard", "commander", "maybeboard"]);
+
 /**
- * Extract inline section markers from a card line.
+ * Options for extractInlineSection
+ */
+export interface ExtractInlineSectionOptions {
+	/** Format hint to determine bracket handling (XMage uses [SET:NUM], Archidekt uses [Category]) */
+	format?: string;
+	/** Strip tags that match card types (creature, land, etc.) - default true */
+	stripRedundantTypeTags?: boolean;
+}
+
+/**
+ * Extract inline section markers and category tags from a card line.
  *
  * Handles:
- * - Archidekt: [Sideboard], [Commander{top}], [Maybeboard{noDeck}{noPrice}]
+ * - Archidekt: [Sideboard], [Commander{top}], [Maybeboard{noDeck}{noPrice}], [Removal,Draw]
  * - Deckstats: # !Commander
  * - XMage/Deckstats: SB: prefix
  *
- * Returns the section (if found) and the card line with the marker removed.
+ * Returns the section (if found), category tags, and the card line with markers removed.
  */
-export function extractInlineSection(line: string): InlineSectionResult {
+export function extractInlineSection(
+	line: string,
+	options?: ExtractInlineSectionOptions,
+): InlineSectionResult {
+	const { format, stripRedundantTypeTags = true } = options ?? {};
 	let cardLine = line;
 	let section: DeckSection | undefined;
+	const tags: string[] = [];
 
 	// XMage/Deckstats SB: prefix
 	const sbPrefixMatch = /^SB:\s*(.*)$/i.exec(cardLine);
@@ -113,21 +151,46 @@ export function extractInlineSection(line: string): InlineSectionResult {
 		};
 	}
 
-	// Archidekt inline section markers: [Sideboard], [Commander{...}], [Maybeboard{...}]
-	// These can appear with other category info like [Maybeboard{noDeck},Creature]
-	const archidektMatch =
-		/\[(Sideboard|Commander|Maybeboard)(?:\{[^}]*\})?[^\]]*\]/i.exec(cardLine);
-	if (archidektMatch) {
-		section = normalizeSectionName(archidektMatch[1]);
-		// Remove the entire [...] marker
-		cardLine =
-			cardLine.slice(0, archidektMatch.index) +
-			cardLine.slice(archidektMatch.index + archidektMatch[0].length);
+	// XMage uses [SET:NUM] for set codes, MTGGoldfish uses [SET] after name
+	// Don't extract brackets as categories for these formats
+	if (format === "xmage" || format === "mtggoldfish") {
+		return { section, cardLine };
 	}
+
+	// Extract all [...] markers from Archidekt format
+	// Match [Content] or [Content{options}] or [Content{options},MoreContent]
+	const bracketMatches = cardLine.matchAll(/\[([^\]]+)\]/g);
+	for (const match of bracketMatches) {
+		const content = match[1];
+		// Split by comma to handle [Burn,Recursion] or [Sideboard,Artifact]
+		const parts = content.split(",").map((p) => p.trim());
+
+		for (const part of parts) {
+			// Strip {options} like {top}, {noDeck}, {noPrice}
+			const name = part.replace(/\{[^}]*\}/g, "").trim();
+			if (!name) continue;
+
+			const lower = name.toLowerCase();
+
+			// Check if it's a section marker
+			if (SECTION_NAMES.has(lower)) {
+				section = normalizeSectionName(name);
+			}
+			// Skip card types if stripping is enabled
+			else if (!stripRedundantTypeTags || !CARD_TYPES.has(lower)) {
+				// It's a category tag
+				tags.push(name);
+			}
+		}
+	}
+
+	// Remove all [...] markers from the card line
+	cardLine = cardLine.replace(/\s*\[[^\]]+\]/g, "").trim();
 
 	return {
 		section,
 		cardLine,
+		tags: tags.length > 0 ? tags : undefined,
 	};
 }
 

@@ -144,5 +144,14 @@ SB: 2 [EMA:142] Pyroblast`;
 2 Counterspell [IMA]`;
 			expect(detectFormat(text)).toBe("mtggoldfish");
 		});
+
+		it("detects moxfield when #tags present (even with [SET])", () => {
+			// Conflict: [SET] is MTGGoldfish style, #tags is Moxfield
+			// Detection prioritizes #tags → moxfield
+			// User needs explicit hint if they want MTGGoldfish behavior
+			const text = `4 Lightning Bolt [2XM] #removal
+2 Counterspell [IMA] #counter`;
+			expect(detectFormat(text)).toBe("moxfield");
+		});
 	});
 });

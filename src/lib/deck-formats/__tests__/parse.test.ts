@@ -129,6 +129,12 @@ describe("parseCardLine", () => {
 			const result = parseCardLine("1 Sol Ring #!staple #ramp");
 			expect(result?.tags).toEqual(["staple", "ramp"]);
 		});
+
+		it("deduplicates tags after stripping #! prefix", () => {
+			// #!staple and #staple should collapse to single "staple"
+			const result = parseCardLine("1 Sol Ring #!staple #staple #ramp");
+			expect(result?.tags).toEqual(["staple", "ramp"]);
+		});
 	});
 
 	describe("Archidekt format: extras stripped", () => {
@@ -380,10 +386,12 @@ Deck
 				cards.reduce((sum, c) => sum + c.quantity, 0);
 
 			// Verify total card counts based on inline [Sideboard], [Commander{top}], [Maybeboard{...}]
+			// When multiple sections in one marker, last wins (e.g. [Maybeboard,Sideboard] → sideboard)
 			expect(countCards(result.commander)).toBe(1);
-			expect(countCards(result.mainboard)).toBe(99);
-			expect(countCards(result.sideboard)).toBe(11);
-			expect(countCards(result.maybeboard)).toBe(34);
+			expect(countCards(result.mainboard)).toBe(96);
+			expect(countCards(result.sideboard)).toBe(23);
+			expect(countCards(result.maybeboard)).toBe(25);
+			// Total: 145 cards
 
 			// Commander identified by [Commander{top}] marker
 			expect(result.commander[0].name).toBe("Tifa Lockhart");
@@ -620,11 +628,14 @@ Sideboard
 	});
 
 	describe("format conflict resolution", () => {
-		it("handles deck with both [SET] and #tags", () => {
+		it("handles deck with both [SET] and #tags (with mtggoldfish hint)", () => {
+			// [SET] is MTGGoldfish style, #tags is Moxfield style
+			// Without a hint, [SET] gets treated as category tag
+			// With mtggoldfish hint, brackets are preserved as set codes
 			const text = `4 Lightning Bolt [2XM] #removal
 2 Counterspell [IMA] #counter`;
 
-			const result = parseDeck(text);
+			const result = parseDeck(text, { format: "mtggoldfish" });
 			expect(result.mainboard).toHaveLength(2);
 
 			const bolt = result.mainboard[0];

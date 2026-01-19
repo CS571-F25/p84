@@ -6,6 +6,7 @@
  * Supported deck formats for import/export
  *
  * - arena: MTG Arena format (de facto standard)
+ * - mtgo: MTGO format (names only, Sideboard: section)
  * - moxfield: Moxfield format (Arena + foil markers + tags)
  * - archidekt: Archidekt text export (inline section markers)
  * - mtggoldfish: MTGGoldfish exact versions (square brackets for set)
@@ -16,6 +17,7 @@
  */
 export type DeckFormat =
 	| "arena"
+	| "mtgo"
 	| "moxfield"
 	| "archidekt"
 	| "mtggoldfish"
@@ -87,6 +89,8 @@ export interface InlineSectionResult {
 	section?: DeckSection;
 	/** The card line with inline marker removed */
 	cardLine: string;
+	/** Category tags extracted from inline markers (e.g., [Removal,Draw]) */
+	tags?: string[];
 }
 
 /**
@@ -97,6 +101,12 @@ export interface ParseOptions {
 	format?: DeckFormat;
 	/** Default section for cards without explicit section */
 	defaultSection?: DeckSection;
+	/**
+	 * Strip tags that match card types (creature, land, instant, etc.)
+	 * These are often redundant with the card's actual type.
+	 * Default: true
+	 */
+	stripRedundantTypeTags?: boolean;
 }
 
 /**
