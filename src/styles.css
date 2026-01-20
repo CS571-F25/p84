@@ -66,6 +66,7 @@
 
 html {
 	@apply bg-white dark:bg-slate-900;
+	color-scheme: light;
 }
 
 body {
@@ -80,9 +81,10 @@ code,
 	font-variation-settings: "MONO" 1, "CASL" 0;
 }
 
-/* Dark mode scrollbar styling */
+/* Dark mode native control & scrollbar styling */
 .dark {
-  /* Firefox */
+  color-scheme: dark;
+  /* Firefox scrollbar */
   scrollbar-color: var(--color-gray-600) var(--color-gray-800);
 }
 

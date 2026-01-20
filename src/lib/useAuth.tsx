@@ -22,6 +22,7 @@ interface AuthContextValue {
 	session: Session | null;
 	agent: OAuthUserAgent | null;
 	signIn: (handle: string) => Promise<void>;
+	signUp: (pdsUrl: string) => Promise<void>;
 	signOut: () => Promise<void>;
 	setAuthSession: (session: Session) => void;
 	isLoading: boolean;
@@ -78,6 +79,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		window.location.assign(authUrl);
 	};
 
+	const signUp = async (pdsUrl: string) => {
+		// TODO: add `prompt: "create"` when more PDS implementations support it
+		// to hint that signup UI should be shown instead of login
+		const authUrl = await createAuthorizationUrl({
+			target: { type: "pds", serviceUrl: pdsUrl },
+			scope: import.meta.env.VITE_OAUTH_SCOPE,
+		});
+
+		window.location.assign(authUrl);
+	};
+
 	const signOut = async () => {
 		if (agent) {
 			await agent.signOut();
@@ -95,7 +107,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	return (
 		<AuthContext.Provider
-			value={{ session, agent, signIn, signOut, isLoading, setAuthSession }}
+			value={{
+				session,
+				agent,
+				signIn,
+				signUp,
+				signOut,
+				isLoading,
+				setAuthSession,
+			}}
 		>
 			{children}
 		</AuthContext.Provider>

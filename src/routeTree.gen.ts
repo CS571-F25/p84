@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as DevRouteRouteImport } from './routes/dev/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -28,6 +29,11 @@ import { Route as ProfileDidDeckRkeyIndexRouteImport } from './routes/profile/$d
 import { Route as ProfileDidDeckRkeyPlayRouteImport } from './routes/profile/$did/deck/$rkey/play'
 import { Route as ProfileDidDeckRkeyBulkEditRouteImport } from './routes/profile/$did/deck/$rkey/bulk-edit'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SigninRoute = SigninRouteImport.update({
   id: '/signin',
   path: '/signin',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dev': typeof DevRouteRouteWithChildren
   '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/card/$id': typeof CardIdRoute
   '/deck/new': typeof DeckNewRoute
   '/dev/migrate': typeof DevMigrateRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dev': typeof DevRouteRouteWithChildren
   '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/card/$id': typeof CardIdRoute
   '/deck/new': typeof DeckNewRoute
   '/dev/migrate': typeof DevMigrateRoute
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dev': typeof DevRouteRouteWithChildren
   '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/card/$id': typeof CardIdRoute
   '/deck/new': typeof DeckNewRoute
   '/dev/migrate': typeof DevMigrateRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dev'
     | '/signin'
+    | '/signup'
     | '/card/$id'
     | '/deck/new'
     | '/dev/migrate'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dev'
     | '/signin'
+    | '/signup'
     | '/card/$id'
     | '/deck/new'
     | '/dev/migrate'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dev'
     | '/signin'
+    | '/signup'
     | '/card/$id'
     | '/deck/new'
     | '/dev/migrate'
@@ -244,6 +256,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DevRouteRoute: typeof DevRouteRouteWithChildren
   SigninRoute: typeof SigninRoute
+  SignupRoute: typeof SignupRoute
   CardIdRoute: typeof CardIdRoute
   DeckNewRoute: typeof DeckNewRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
@@ -257,6 +270,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signin': {
       id: '/signin'
       path: '/signin'
@@ -430,6 +450,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DevRouteRoute: DevRouteRouteWithChildren,
   SigninRoute: SigninRoute,
+  SignupRoute: SignupRoute,
   CardIdRoute: CardIdRoute,
   DeckNewRoute: DeckNewRoute,
   OauthCallbackRoute: OauthCallbackRoute,

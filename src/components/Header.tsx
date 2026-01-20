@@ -12,7 +12,7 @@ export default function Header() {
 	const location = useLocation();
 
 	const handleSignInClick = () => {
-		if (location.pathname !== "/signin") {
+		if (location.pathname !== "/signin" && location.pathname !== "/signup") {
 			sessionStorage.setItem(RETURN_TO_KEY, location.href);
 		}
 	};

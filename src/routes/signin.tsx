@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LogIn } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { searchActorsQueryOptions } from "@/lib/actor-search";
@@ -252,17 +252,16 @@ function SignIn() {
 						)}
 					</button>
 				</form>
-			</div>
 
-			<div className="max-w-md w-full mt-6">
-				<div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-					<p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-						For example, if you have a Bluesky account, enter the handle of that
-						account! You'll use that same identity and handle on Deckbelcher.
-						Bluesky and Deckbelcher are both built on AT Protocol—there's a
-						whole Atmosphere of other apps that can interact.
-					</p>
-				</div>
+				<p className="mt-6 text-center text-gray-600 dark:text-gray-400">
+					Don't have an account?{" "}
+					<Link
+						to="/signup"
+						className="text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 font-medium"
+					>
+						Create one
+					</Link>
+				</p>
 			</div>
 		</div>
 	);
