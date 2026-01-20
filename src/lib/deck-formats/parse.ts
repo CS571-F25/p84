@@ -140,6 +140,45 @@ export function parseCardLine(line: string): ParsedCardLine | null {
 	};
 }
 
+// Known section names that shouldn't be treated as categories
+const SECTION_NAMES = new Set([
+	"commander",
+	"companion",
+	"mainboard",
+	"main",
+	"deck",
+	"sideboard",
+	"side",
+	"maybeboard",
+	"maybe",
+]);
+
+/**
+ * Check if a line is a category header (not a section or card).
+ * - Archidekt: Line that doesn't start with a digit (not a card line)
+ * - Deckstats: //category comment that's not a known section
+ */
+function parseCategoryHeader(line: string, format: string): string | undefined {
+	// Deckstats: //category (but not //Main, //Sideboard, etc.)
+	if (format === "deckstats" && line.startsWith("//")) {
+		const category = line.slice(2).trim();
+		const lower = category.toLowerCase();
+		if (category && !SECTION_NAMES.has(lower) && !lower.startsWith("name:")) {
+			return category;
+		}
+	}
+
+	// Archidekt: Line that doesn't start with a digit and isn't a section name
+	if (format === "archidekt" && line && !/^\d/.test(line)) {
+		const lower = line.toLowerCase();
+		if (!SECTION_NAMES.has(lower)) {
+			return line;
+		}
+	}
+
+	return undefined;
+}
+
 /**
  * Parse a complete deck list with sections.
  *
@@ -160,6 +199,7 @@ export function parseDeck(text: string, options?: ParseOptions): ParsedDeck {
 	};
 
 	let currentSection: DeckSection = "mainboard";
+	let currentCategory: string | undefined;
 	let sawBlankLine = false;
 	let hasExplicitSections = false;
 
@@ -171,10 +211,22 @@ export function parseDeck(text: string, options?: ParseOptions): ParsedDeck {
 		if (sectionResult) {
 			if (sectionResult.consumeLine) {
 				currentSection = sectionResult.section;
+				currentCategory = undefined; // Reset category on section change
 				hasExplicitSections = true;
 				sawBlankLine = false;
 				continue;
 			}
+		}
+
+		// Check for category header (Archidekt "Burn", Deckstats "//burn")
+		const category = parseCategoryHeader(trimmed, format);
+		if (category !== undefined) {
+			currentCategory = category;
+			// Category headers implicitly switch to mainboard (unless already in a specific section)
+			if (currentSection === "commander") {
+				currentSection = "mainboard";
+			}
+			continue;
 		}
 
 		// Handle blank lines
@@ -217,6 +269,11 @@ export function parseDeck(text: string, options?: ParseOptions): ParsedDeck {
 		let effectiveSection: DeckSection = inlineResult.section ?? currentSection;
 		const cardLine = inlineResult.cardLine;
 
+		// If inline section changed, reset category
+		if (inlineResult.section && inlineResult.section !== currentSection) {
+			currentCategory = undefined;
+		}
+
 		// Format-specific: blank line as sideboard separator
 		// Only for MTGGoldfish/generic when no explicit sections exist
 		if (
@@ -229,16 +286,24 @@ export function parseDeck(text: string, options?: ParseOptions): ParsedDeck {
 		) {
 			currentSection = "sideboard";
 			effectiveSection = "sideboard";
+			currentCategory = undefined;
 		}
 		sawBlankLine = false;
 
 		// Parse the card line
 		const parsed = parseCardLine(cardLine);
 		if (parsed) {
-			// Merge inline tags (from [Category]) with parsed tags (from #tag)
-			if (inlineResult.tags) {
-				parsed.tags = [...new Set([...inlineResult.tags, ...parsed.tags])];
+			// Merge tags: category header + inline tags + parsed tags
+			const allTags: string[] = [];
+			if (currentCategory) {
+				allTags.push(currentCategory);
 			}
+			if (inlineResult.tags) {
+				allTags.push(...inlineResult.tags);
+			}
+			allTags.push(...parsed.tags);
+			parsed.tags = [...new Set(allTags)];
+
 			deck[effectiveSection].push(parsed);
 		}
 	}

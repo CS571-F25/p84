@@ -695,14 +695,13 @@ SB: 1 [ONE:191] Unnatural Restoration"
 exports[`export snapshots > archidekt/ashling-by-category.txt > export to arena 1`] = `
 "Commander
 1 Ashling, Rekindled // Ashling, Rimebound (ECL) 290
-1 Burn
+
+Deck
 1 Caldera Pyremaw (TDC) 33
 1 Exalted Flamer of Tzeentch (40K) 119
-1 Copy
 1 Flash Photography (FIC) 463
 1 Relm's Sketching (FIN) 67
 1 Replication Technique (M3C) 192
-1 Draw
 1 Archmage Emeritus (TDC) 145
 1 Archmage of Runes (FDN) 30
 1 Ashling's Command (ECL) 205
@@ -722,7 +721,6 @@ exports[`export snapshots > archidekt/ashling-by-category.txt > export to arena 
 1 Tellah, Great Sage (FIN) 244
 1 Unexpected Windfall (AFR) 164
 1 Valakut Awakening // Valakut Stoneforge (PLST) ZNR-174
-1 Greed
 1 Arcane Bombardment (OTC) 154
 1 Chimil, the Inner Sun (LCI) 249
 1 Double Vision (NCC) 267
@@ -732,7 +730,6 @@ exports[`export snapshots > archidekt/ashling-by-category.txt > export to arena 
 1 Mana Geyser (TDC) 223
 1 Summon: G.F. Cerberus (FIN) 162
 1 Sunbird's Invocation (C21) 180
-1 Land
 1 Cascade Bluffs (EOC) 153
 1 Command Tower (ECC) 59
 1 Fiery Islet (MH1) 238
@@ -751,9 +748,7 @@ exports[`export snapshots > archidekt/ashling-by-category.txt > export to arena 
 1 Stormcarved Coast (INR) 285
 1 Sulfur Falls (EOC) 184
 1 Training Center (CMM) 434
-1 Okay Pal
 1 Omniscience (FDN) 161
-1 Ramp
 1 Creative Outburst (STX) 171
 1 Elemental Masterpiece (STX) 182
 1 Hedron Archive (BLC) 275
@@ -763,12 +758,10 @@ exports[`export snapshots > archidekt/ashling-by-category.txt > export to arena 
 1 Stonespeaker Crystal (CLB) 338
 1 Thran Dynamo (BLC) 290
 1 Ur-Golem's Eye (C14) 280
-1 Recursion
 1 Archaeomancer (J25) 285
 1 Ardent Elementalist (MID) 128
 1 Mizzix's Mastery (OTC) 175
 1 Pinnacle Monk // Mystic Peak (MH3) 246
-1 Removal
 1 Aether Gale (DSC) 109
 1 All Is Dust (M3C) 152
 1 Baral's Expertise (TDC) 146
@@ -785,118 +778,19 @@ exports[`export snapshots > archidekt/ashling-by-category.txt > export to arena 
 1 Reckless Endeavor (AFC) 33
 1 Sink into Stupor // Soporific Springs (MH3) 241
 1 Volcanic Vision (C21) 182
-1 Tokens
 1 Rite of the Dragoncaller (FDN) 92
 1 Shark Typhoon (DSC) 127"
 `;
 
 exports[`export snapshots > archidekt/ashling-by-category.txt > export to deckstats 1`] = `
 "1 Ashling, Rekindled // Ashling, Rimebound (ECL) 290 # !Commander
-1 Burn # !Commander
-1 Caldera Pyremaw (TDC) 33 #Burn # !Commander
-1 Exalted Flamer of Tzeentch (40K) 119 #Burn #Recursion # !Commander
-1 Copy # !Commander
-1 Flash Photography (FIC) 463 #Copy # !Commander
-1 Relm's Sketching (FIN) 67 #Copy # !Commander
-1 Replication Technique (M3C) 192 #Copy # !Commander
-1 Draw # !Commander
-1 Archmage Emeritus (TDC) 145 #Draw # !Commander
-1 Archmage of Runes (FDN) 30 #Draw # !Commander
-1 Ashling's Command (ECL) 205 #Draw # !Commander
-1 Big Score (TDC) 206 #Draw # !Commander
-1 Deep Analysis (TDC) 150 #Draw # !Commander
-1 Dig Through Time (DSC) 115 #Draw # !Commander
-1 Drawn from Dreams (NCC) 220 #Draw # !Commander
-1 Flame of Anor (LTR) 203 #Draw # !Commander
-1 Hypothesizzle (PLST) GRN-178 #Draw #Removal # !Commander
-1 Lórien Revealed (LTR) 60 #Draw # !Commander
-1 Memories Returning (FIN) 63 #Draw # !Commander
-1 Memory Deluge (INR) 75 #Draw # !Commander
-1 Pirate's Pillage (2X2) 120 #Draw # !Commander
-1 Scattered Thoughts (VOW) 74 #Draw # !Commander
-1 Sea Gate Restoration // Sea Gate, Reborn (ZNR) 76 #Draw # !Commander
-1 Silundi Vision // Silundi Isle (ZNR) 80 #Draw # !Commander
-1 Tellah, Great Sage (FIN) 244 #Draw # !Commander
-1 Unexpected Windfall (AFR) 164 #Draw # !Commander
-1 Valakut Awakening // Valakut Stoneforge (PLST) ZNR-174 #Draw # !Commander
-1 Greed # !Commander
-1 Arcane Bombardment (OTC) 154 #Greed # !Commander
-1 Chimil, the Inner Sun (LCI) 249 #Greed # !Commander
-1 Double Vision (NCC) 267 #Greed # !Commander
-1 Fury Storm (C18) 22 #Greed # !Commander
-1 Harmonic Prodigy (MH2) 132 #Greed # !Commander
-1 Jin-Gitaxias, Progress Tyrant (NEO) 59 #Greed # !Commander
-1 Mana Geyser (TDC) 223 #Greed # !Commander
-1 Summon: G.F. Cerberus (FIN) 162 #Greed # !Commander
-1 Sunbird's Invocation (C21) 180 #Greed # !Commander
-1 Land # !Commander
-1 Cascade Bluffs (EOC) 153 #Land # !Commander
-1 Command Tower (ECC) 59 #Land # !Commander
-1 Fiery Islet (MH1) 238 #Land # !Commander
-1 Frostboil Snarl (DRC) 158 #Land # !Commander
-9 Island (ECL) 270 #Land # !Commander
-1 Izzet Boilerworks (M3C) 350 #Land # !Commander
-1 Mistrise Village (TDM) 261 #Land # !Commander
-9 Mountain (ECL) 272 #Land # !Commander
-1 Reliquary Tower (TDC) 386 #Land # !Commander
-1 Riverglide Pathway // Lavaglide Pathway (PLST) ZNR-264 #Land # !Commander
-1 Riverpyre Verge (DFT) 260 #Land # !Commander
-1 Scalding Tarn (MH2) 254 #Land # !Commander
-1 Scavenger Grounds (MKC) 287 #Land # !Commander
-1 Shivan Reef (EOC) 179 #Land # !Commander
-1 Steam Vents (ECL) 267 #Land # !Commander
-1 Stormcarved Coast (INR) 285 #Land # !Commander
-1 Sulfur Falls (EOC) 184 #Land # !Commander
-1 Training Center (CMM) 434 #Land # !Commander
-1 Okay Pal # !Commander
-1 Omniscience (FDN) 161 #Okay Pal # !Commander
-1 Ramp # !Commander
-1 Creative Outburst (STX) 171 #Ramp #Removal #Draw # !Commander
-1 Elemental Masterpiece (STX) 182 #Ramp #Tokens # !Commander
-1 Hedron Archive (BLC) 275 #Ramp # !Commander
-1 Magma Opus (TDC) 296 #Ramp #Draw #Tokens #Removal # !Commander
-1 Sisay's Ring (CMR) 340 #Ramp # !Commander
-1 Sol Ring (ECC) 57 #Ramp # !Commander
-1 Stonespeaker Crystal (CLB) 338 #Ramp #Removal # !Commander
-1 Thran Dynamo (BLC) 290 #Ramp # !Commander
-1 Ur-Golem's Eye (C14) 280 #Ramp # !Commander
-1 Recursion # !Commander
-1 Archaeomancer (J25) 285 #Recursion # !Commander
-1 Ardent Elementalist (MID) 128 #Recursion # !Commander
-1 Mizzix's Mastery (OTC) 175 #Recursion # !Commander
-1 Pinnacle Monk // Mystic Peak (MH3) 246 #Recursion # !Commander
-1 Removal # !Commander
-1 Aether Gale (DSC) 109 #Removal # !Commander
-1 All Is Dust (M3C) 152 #Removal # !Commander
-1 Baral's Expertise (TDC) 146 #Removal # !Commander
-1 Blasphemous Act (DSC) 160 #Removal # !Commander
-1 Call Forth the Tempest (LTC) 509 #Removal # !Commander
-1 Chaos Warp (OTC) 160 #Removal # !Commander
-1 Counterspell (DSC) 114 #Removal # !Commander
-1 Fiery Confluence (LCC) 226 #Removal # !Commander
-1 Flood of Tears (VOC) 104 #Removal # !Commander
-1 Ill-Timed Explosion (MKM) 207 #Removal # !Commander
-1 Mystic Confluence (CMM) 108 #Removal # !Commander
-1 Prophetic Bolt (2X2) 265 #Removal #Draw # !Commander
-1 Ral's Outburst (WAR) 212 #Removal # !Commander
-1 Reckless Endeavor (AFC) 33 #Removal # !Commander
-1 Sink into Stupor // Soporific Springs (MH3) 241 #Removal # !Commander
-1 Volcanic Vision (C21) 182 #Removal #Recursion # !Commander
-1 Tokens # !Commander
-1 Rite of the Dragoncaller (FDN) 92 #Tokens # !Commander
-1 Shark Typhoon (DSC) 127 #Tokens # !Commander"
-`;
 
-exports[`export snapshots > archidekt/ashling-by-category.txt > export to moxfield 1`] = `
-"1 Ashling, Rekindled // Ashling, Rimebound (ECL) 290
-1 Burn
+//Main
 1 Caldera Pyremaw (TDC) 33 #Burn
 1 Exalted Flamer of Tzeentch (40K) 119 #Burn #Recursion
-1 Copy
 1 Flash Photography (FIC) 463 #Copy
 1 Relm's Sketching (FIN) 67 #Copy
 1 Replication Technique (M3C) 192 #Copy
-1 Draw
 1 Archmage Emeritus (TDC) 145 #Draw
 1 Archmage of Runes (FDN) 30 #Draw
 1 Ashling's Command (ECL) 205 #Draw
@@ -916,7 +810,6 @@ exports[`export snapshots > archidekt/ashling-by-category.txt > export to moxfie
 1 Tellah, Great Sage (FIN) 244 #Draw
 1 Unexpected Windfall (AFR) 164 #Draw
 1 Valakut Awakening // Valakut Stoneforge (PLST) ZNR-174 #Draw
-1 Greed
 1 Arcane Bombardment (OTC) 154 #Greed
 1 Chimil, the Inner Sun (LCI) 249 #Greed
 1 Double Vision (NCC) 267 #Greed
@@ -926,7 +819,6 @@ exports[`export snapshots > archidekt/ashling-by-category.txt > export to moxfie
 1 Mana Geyser (TDC) 223 #Greed
 1 Summon: G.F. Cerberus (FIN) 162 #Greed
 1 Sunbird's Invocation (C21) 180 #Greed
-1 Land
 1 Cascade Bluffs (EOC) 153 #Land
 1 Command Tower (ECC) 59 #Land
 1 Fiery Islet (MH1) 238 #Land
@@ -945,9 +837,7 @@ exports[`export snapshots > archidekt/ashling-by-category.txt > export to moxfie
 1 Stormcarved Coast (INR) 285 #Land
 1 Sulfur Falls (EOC) 184 #Land
 1 Training Center (CMM) 434 #Land
-1 Okay Pal
 1 Omniscience (FDN) 161 #Okay Pal
-1 Ramp
 1 Creative Outburst (STX) 171 #Ramp #Removal #Draw
 1 Elemental Masterpiece (STX) 182 #Ramp #Tokens
 1 Hedron Archive (BLC) 275 #Ramp
@@ -957,12 +847,10 @@ exports[`export snapshots > archidekt/ashling-by-category.txt > export to moxfie
 1 Stonespeaker Crystal (CLB) 338 #Ramp #Removal
 1 Thran Dynamo (BLC) 290 #Ramp
 1 Ur-Golem's Eye (C14) 280 #Ramp
-1 Recursion
 1 Archaeomancer (J25) 285 #Recursion
 1 Ardent Elementalist (MID) 128 #Recursion
 1 Mizzix's Mastery (OTC) 175 #Recursion
 1 Pinnacle Monk // Mystic Peak (MH3) 246 #Recursion
-1 Removal
 1 Aether Gale (DSC) 109 #Removal
 1 All Is Dust (M3C) 152 #Removal
 1 Baral's Expertise (TDC) 146 #Removal
@@ -979,18 +867,440 @@ exports[`export snapshots > archidekt/ashling-by-category.txt > export to moxfie
 1 Reckless Endeavor (AFC) 33 #Removal
 1 Sink into Stupor // Soporific Springs (MH3) 241 #Removal
 1 Volcanic Vision (C21) 182 #Removal #Recursion
-1 Tokens
 1 Rite of the Dragoncaller (FDN) 92 #Tokens
 1 Shark Typhoon (DSC) 127 #Tokens"
 `;
 
-exports[`export snapshots > archidekt/ashling-by-category.txt > export to mtggoldfish 1`] = `""`;
+exports[`export snapshots > archidekt/ashling-by-category.txt > export to moxfield 1`] = `
+"1 Ashling, Rekindled // Ashling, Rimebound (ECL) 290
+1 Caldera Pyremaw (TDC) 33 #Burn
+1 Exalted Flamer of Tzeentch (40K) 119 #Burn #Recursion
+1 Flash Photography (FIC) 463 #Copy
+1 Relm's Sketching (FIN) 67 #Copy
+1 Replication Technique (M3C) 192 #Copy
+1 Archmage Emeritus (TDC) 145 #Draw
+1 Archmage of Runes (FDN) 30 #Draw
+1 Ashling's Command (ECL) 205 #Draw
+1 Big Score (TDC) 206 #Draw
+1 Deep Analysis (TDC) 150 #Draw
+1 Dig Through Time (DSC) 115 #Draw
+1 Drawn from Dreams (NCC) 220 #Draw
+1 Flame of Anor (LTR) 203 #Draw
+1 Hypothesizzle (PLST) GRN-178 #Draw #Removal
+1 Lórien Revealed (LTR) 60 #Draw
+1 Memories Returning (FIN) 63 #Draw
+1 Memory Deluge (INR) 75 #Draw
+1 Pirate's Pillage (2X2) 120 #Draw
+1 Scattered Thoughts (VOW) 74 #Draw
+1 Sea Gate Restoration // Sea Gate, Reborn (ZNR) 76 #Draw
+1 Silundi Vision // Silundi Isle (ZNR) 80 #Draw
+1 Tellah, Great Sage (FIN) 244 #Draw
+1 Unexpected Windfall (AFR) 164 #Draw
+1 Valakut Awakening // Valakut Stoneforge (PLST) ZNR-174 #Draw
+1 Arcane Bombardment (OTC) 154 #Greed
+1 Chimil, the Inner Sun (LCI) 249 #Greed
+1 Double Vision (NCC) 267 #Greed
+1 Fury Storm (C18) 22 #Greed
+1 Harmonic Prodigy (MH2) 132 #Greed
+1 Jin-Gitaxias, Progress Tyrant (NEO) 59 #Greed
+1 Mana Geyser (TDC) 223 #Greed
+1 Summon: G.F. Cerberus (FIN) 162 #Greed
+1 Sunbird's Invocation (C21) 180 #Greed
+1 Cascade Bluffs (EOC) 153 #Land
+1 Command Tower (ECC) 59 #Land
+1 Fiery Islet (MH1) 238 #Land
+1 Frostboil Snarl (DRC) 158 #Land
+9 Island (ECL) 270 #Land
+1 Izzet Boilerworks (M3C) 350 #Land
+1 Mistrise Village (TDM) 261 #Land
+9 Mountain (ECL) 272 #Land
+1 Reliquary Tower (TDC) 386 #Land
+1 Riverglide Pathway // Lavaglide Pathway (PLST) ZNR-264 #Land
+1 Riverpyre Verge (DFT) 260 #Land
+1 Scalding Tarn (MH2) 254 #Land
+1 Scavenger Grounds (MKC) 287 #Land
+1 Shivan Reef (EOC) 179 #Land
+1 Steam Vents (ECL) 267 #Land
+1 Stormcarved Coast (INR) 285 #Land
+1 Sulfur Falls (EOC) 184 #Land
+1 Training Center (CMM) 434 #Land
+1 Omniscience (FDN) 161 #Okay Pal
+1 Creative Outburst (STX) 171 #Ramp #Removal #Draw
+1 Elemental Masterpiece (STX) 182 #Ramp #Tokens
+1 Hedron Archive (BLC) 275 #Ramp
+1 Magma Opus (TDC) 296 #Ramp #Draw #Tokens #Removal
+1 Sisay's Ring (CMR) 340 #Ramp
+1 Sol Ring (ECC) 57 #Ramp
+1 Stonespeaker Crystal (CLB) 338 #Ramp #Removal
+1 Thran Dynamo (BLC) 290 #Ramp
+1 Ur-Golem's Eye (C14) 280 #Ramp
+1 Archaeomancer (J25) 285 #Recursion
+1 Ardent Elementalist (MID) 128 #Recursion
+1 Mizzix's Mastery (OTC) 175 #Recursion
+1 Pinnacle Monk // Mystic Peak (MH3) 246 #Recursion
+1 Aether Gale (DSC) 109 #Removal
+1 All Is Dust (M3C) 152 #Removal
+1 Baral's Expertise (TDC) 146 #Removal
+1 Blasphemous Act (DSC) 160 #Removal
+1 Call Forth the Tempest (LTC) 509 #Removal
+1 Chaos Warp (OTC) 160 #Removal
+1 Counterspell (DSC) 114 #Removal
+1 Fiery Confluence (LCC) 226 #Removal
+1 Flood of Tears (VOC) 104 #Removal
+1 Ill-Timed Explosion (MKM) 207 #Removal
+1 Mystic Confluence (CMM) 108 #Removal
+1 Prophetic Bolt (2X2) 265 #Removal #Draw
+1 Ral's Outburst (WAR) 212 #Removal
+1 Reckless Endeavor (AFC) 33 #Removal
+1 Sink into Stupor // Soporific Springs (MH3) 241 #Removal
+1 Volcanic Vision (C21) 182 #Removal #Recursion
+1 Rite of the Dragoncaller (FDN) 92 #Tokens
+1 Shark Typhoon (DSC) 127 #Tokens"
+`;
 
-exports[`export snapshots > archidekt/ashling-by-category.txt > export to mtgo 1`] = `""`;
+exports[`export snapshots > archidekt/ashling-by-category.txt > export to mtggoldfish 1`] = `
+"1 Caldera Pyremaw <33> [TDC]
+1 Exalted Flamer of Tzeentch <119> [40K]
+1 Flash Photography <463> [FIC]
+1 Relm's Sketching <67> [FIN]
+1 Replication Technique <192> [M3C]
+1 Archmage Emeritus <145> [TDC]
+1 Archmage of Runes <30> [FDN]
+1 Ashling's Command <205> [ECL]
+1 Big Score <206> [TDC]
+1 Deep Analysis <150> [TDC]
+1 Dig Through Time <115> [DSC]
+1 Drawn from Dreams <220> [NCC]
+1 Flame of Anor <203> [LTR]
+1 Hypothesizzle <GRN-178> [PLST]
+1 Lórien Revealed <60> [LTR]
+1 Memories Returning <63> [FIN]
+1 Memory Deluge <75> [INR]
+1 Pirate's Pillage <120> [2X2]
+1 Scattered Thoughts <74> [VOW]
+1 Sea Gate Restoration // Sea Gate, Reborn <76> [ZNR]
+1 Silundi Vision // Silundi Isle <80> [ZNR]
+1 Tellah, Great Sage <244> [FIN]
+1 Unexpected Windfall <164> [AFR]
+1 Valakut Awakening // Valakut Stoneforge <ZNR-174> [PLST]
+1 Arcane Bombardment <154> [OTC]
+1 Chimil, the Inner Sun <249> [LCI]
+1 Double Vision <267> [NCC]
+1 Fury Storm <22> [C18]
+1 Harmonic Prodigy <132> [MH2]
+1 Jin-Gitaxias, Progress Tyrant <59> [NEO]
+1 Mana Geyser <223> [TDC]
+1 Summon: G.F. Cerberus <162> [FIN]
+1 Sunbird's Invocation <180> [C21]
+1 Cascade Bluffs <153> [EOC]
+1 Command Tower <59> [ECC]
+1 Fiery Islet <238> [MH1]
+1 Frostboil Snarl <158> [DRC]
+9 Island <270> [ECL]
+1 Izzet Boilerworks <350> [M3C]
+1 Mistrise Village <261> [TDM]
+9 Mountain <272> [ECL]
+1 Reliquary Tower <386> [TDC]
+1 Riverglide Pathway // Lavaglide Pathway <ZNR-264> [PLST]
+1 Riverpyre Verge <260> [DFT]
+1 Scalding Tarn <254> [MH2]
+1 Scavenger Grounds <287> [MKC]
+1 Shivan Reef <179> [EOC]
+1 Steam Vents <267> [ECL]
+1 Stormcarved Coast <285> [INR]
+1 Sulfur Falls <184> [EOC]
+1 Training Center <434> [CMM]
+1 Omniscience <161> [FDN]
+1 Creative Outburst <171> [STX]
+1 Elemental Masterpiece <182> [STX]
+1 Hedron Archive <275> [BLC]
+1 Magma Opus <296> [TDC]
+1 Sisay's Ring <340> [CMR]
+1 Sol Ring <57> [ECC]
+1 Stonespeaker Crystal <338> [CLB]
+1 Thran Dynamo <290> [BLC]
+1 Ur-Golem's Eye <280> [C14]
+1 Archaeomancer <285> [J25]
+1 Ardent Elementalist <128> [MID]
+1 Mizzix's Mastery <175> [OTC]
+1 Pinnacle Monk // Mystic Peak <246> [MH3]
+1 Aether Gale <109> [DSC]
+1 All Is Dust <152> [M3C]
+1 Baral's Expertise <146> [TDC]
+1 Blasphemous Act <160> [DSC]
+1 Call Forth the Tempest <509> [LTC]
+1 Chaos Warp <160> [OTC]
+1 Counterspell <114> [DSC]
+1 Fiery Confluence <226> [LCC]
+1 Flood of Tears <104> [VOC]
+1 Ill-Timed Explosion <207> [MKM]
+1 Mystic Confluence <108> [CMM]
+1 Prophetic Bolt <265> [2X2]
+1 Ral's Outburst <212> [WAR]
+1 Reckless Endeavor <33> [AFC]
+1 Sink into Stupor // Soporific Springs <241> [MH3]
+1 Volcanic Vision <182> [C21]
+1 Rite of the Dragoncaller <92> [FDN]
+1 Shark Typhoon <127> [DSC]"
+`;
 
-exports[`export snapshots > archidekt/ashling-by-category.txt > export to tappedout 1`] = `""`;
+exports[`export snapshots > archidekt/ashling-by-category.txt > export to mtgo 1`] = `
+"1 Caldera Pyremaw
+1 Exalted Flamer of Tzeentch
+1 Flash Photography
+1 Relm's Sketching
+1 Replication Technique
+1 Archmage Emeritus
+1 Archmage of Runes
+1 Ashling's Command
+1 Big Score
+1 Deep Analysis
+1 Dig Through Time
+1 Drawn from Dreams
+1 Flame of Anor
+1 Hypothesizzle
+1 Lórien Revealed
+1 Memories Returning
+1 Memory Deluge
+1 Pirate's Pillage
+1 Scattered Thoughts
+1 Sea Gate Restoration // Sea Gate, Reborn
+1 Silundi Vision // Silundi Isle
+1 Tellah, Great Sage
+1 Unexpected Windfall
+1 Valakut Awakening // Valakut Stoneforge
+1 Arcane Bombardment
+1 Chimil, the Inner Sun
+1 Double Vision
+1 Fury Storm
+1 Harmonic Prodigy
+1 Jin-Gitaxias, Progress Tyrant
+1 Mana Geyser
+1 Summon: G.F. Cerberus
+1 Sunbird's Invocation
+1 Cascade Bluffs
+1 Command Tower
+1 Fiery Islet
+1 Frostboil Snarl
+9 Island
+1 Izzet Boilerworks
+1 Mistrise Village
+9 Mountain
+1 Reliquary Tower
+1 Riverglide Pathway // Lavaglide Pathway
+1 Riverpyre Verge
+1 Scalding Tarn
+1 Scavenger Grounds
+1 Shivan Reef
+1 Steam Vents
+1 Stormcarved Coast
+1 Sulfur Falls
+1 Training Center
+1 Omniscience
+1 Creative Outburst
+1 Elemental Masterpiece
+1 Hedron Archive
+1 Magma Opus
+1 Sisay's Ring
+1 Sol Ring
+1 Stonespeaker Crystal
+1 Thran Dynamo
+1 Ur-Golem's Eye
+1 Archaeomancer
+1 Ardent Elementalist
+1 Mizzix's Mastery
+1 Pinnacle Monk // Mystic Peak
+1 Aether Gale
+1 All Is Dust
+1 Baral's Expertise
+1 Blasphemous Act
+1 Call Forth the Tempest
+1 Chaos Warp
+1 Counterspell
+1 Fiery Confluence
+1 Flood of Tears
+1 Ill-Timed Explosion
+1 Mystic Confluence
+1 Prophetic Bolt
+1 Ral's Outburst
+1 Reckless Endeavor
+1 Sink into Stupor // Soporific Springs
+1 Volcanic Vision
+1 Rite of the Dragoncaller
+1 Shark Typhoon"
+`;
 
-exports[`export snapshots > archidekt/ashling-by-category.txt > export to xmage 1`] = `""`;
+exports[`export snapshots > archidekt/ashling-by-category.txt > export to tappedout 1`] = `
+"1x Caldera Pyremaw (TDC) 33
+1x Exalted Flamer of Tzeentch (40K) 119
+1x Flash Photography (FIC) 463
+1x Relm's Sketching (FIN) 67
+1x Replication Technique (M3C) 192
+1x Archmage Emeritus (TDC) 145
+1x Archmage of Runes (FDN) 30
+1x Ashling's Command (ECL) 205
+1x Big Score (TDC) 206
+1x Deep Analysis (TDC) 150
+1x Dig Through Time (DSC) 115
+1x Drawn from Dreams (NCC) 220
+1x Flame of Anor (LTR) 203
+1x Hypothesizzle (PLST) GRN-178
+1x Lórien Revealed (LTR) 60
+1x Memories Returning (FIN) 63
+1x Memory Deluge (INR) 75
+1x Pirate's Pillage (2X2) 120
+1x Scattered Thoughts (VOW) 74
+1x Sea Gate Restoration // Sea Gate, Reborn (ZNR) 76
+1x Silundi Vision // Silundi Isle (ZNR) 80
+1x Tellah, Great Sage (FIN) 244
+1x Unexpected Windfall (AFR) 164
+1x Valakut Awakening // Valakut Stoneforge (PLST) ZNR-174
+1x Arcane Bombardment (OTC) 154
+1x Chimil, the Inner Sun (LCI) 249
+1x Double Vision (NCC) 267
+1x Fury Storm (C18) 22
+1x Harmonic Prodigy (MH2) 132
+1x Jin-Gitaxias, Progress Tyrant (NEO) 59
+1x Mana Geyser (TDC) 223
+1x Summon: G.F. Cerberus (FIN) 162
+1x Sunbird's Invocation (C21) 180
+1x Cascade Bluffs (EOC) 153
+1x Command Tower (ECC) 59
+1x Fiery Islet (MH1) 238
+1x Frostboil Snarl (DRC) 158
+9x Island (ECL) 270
+1x Izzet Boilerworks (M3C) 350
+1x Mistrise Village (TDM) 261
+9x Mountain (ECL) 272
+1x Reliquary Tower (TDC) 386
+1x Riverglide Pathway // Lavaglide Pathway (PLST) ZNR-264
+1x Riverpyre Verge (DFT) 260
+1x Scalding Tarn (MH2) 254
+1x Scavenger Grounds (MKC) 287
+1x Shivan Reef (EOC) 179
+1x Steam Vents (ECL) 267
+1x Stormcarved Coast (INR) 285
+1x Sulfur Falls (EOC) 184
+1x Training Center (CMM) 434
+1x Omniscience (FDN) 161
+1x Creative Outburst (STX) 171
+1x Elemental Masterpiece (STX) 182
+1x Hedron Archive (BLC) 275
+1x Magma Opus (TDC) 296
+1x Sisay's Ring (CMR) 340
+1x Sol Ring (ECC) 57
+1x Stonespeaker Crystal (CLB) 338
+1x Thran Dynamo (BLC) 290
+1x Ur-Golem's Eye (C14) 280
+1x Archaeomancer (J25) 285
+1x Ardent Elementalist (MID) 128
+1x Mizzix's Mastery (OTC) 175
+1x Pinnacle Monk // Mystic Peak (MH3) 246
+1x Aether Gale (DSC) 109
+1x All Is Dust (M3C) 152
+1x Baral's Expertise (TDC) 146
+1x Blasphemous Act (DSC) 160
+1x Call Forth the Tempest (LTC) 509
+1x Chaos Warp (OTC) 160
+1x Counterspell (DSC) 114
+1x Fiery Confluence (LCC) 226
+1x Flood of Tears (VOC) 104
+1x Ill-Timed Explosion (MKM) 207
+1x Mystic Confluence (CMM) 108
+1x Prophetic Bolt (2X2) 265
+1x Ral's Outburst (WAR) 212
+1x Reckless Endeavor (AFC) 33
+1x Sink into Stupor // Soporific Springs (MH3) 241
+1x Volcanic Vision (C21) 182
+1x Rite of the Dragoncaller (FDN) 92
+1x Shark Typhoon (DSC) 127"
+`;
+
+exports[`export snapshots > archidekt/ashling-by-category.txt > export to xmage 1`] = `
+"1 [TDC:33] Caldera Pyremaw
+1 [40K:119] Exalted Flamer of Tzeentch
+1 [FIC:463] Flash Photography
+1 [FIN:67] Relm's Sketching
+1 [M3C:192] Replication Technique
+1 [TDC:145] Archmage Emeritus
+1 [FDN:30] Archmage of Runes
+1 [ECL:205] Ashling's Command
+1 [TDC:206] Big Score
+1 [TDC:150] Deep Analysis
+1 [DSC:115] Dig Through Time
+1 [NCC:220] Drawn from Dreams
+1 [LTR:203] Flame of Anor
+1 [PLST:GRN-178] Hypothesizzle
+1 [LTR:60] Lórien Revealed
+1 [FIN:63] Memories Returning
+1 [INR:75] Memory Deluge
+1 [2X2:120] Pirate's Pillage
+1 [VOW:74] Scattered Thoughts
+1 [ZNR:76] Sea Gate Restoration // Sea Gate, Reborn
+1 [ZNR:80] Silundi Vision // Silundi Isle
+1 [FIN:244] Tellah, Great Sage
+1 [AFR:164] Unexpected Windfall
+1 [PLST:ZNR-174] Valakut Awakening // Valakut Stoneforge
+1 [OTC:154] Arcane Bombardment
+1 [LCI:249] Chimil, the Inner Sun
+1 [NCC:267] Double Vision
+1 [C18:22] Fury Storm
+1 [MH2:132] Harmonic Prodigy
+1 [NEO:59] Jin-Gitaxias, Progress Tyrant
+1 [TDC:223] Mana Geyser
+1 [FIN:162] Summon: G.F. Cerberus
+1 [C21:180] Sunbird's Invocation
+1 [EOC:153] Cascade Bluffs
+1 [ECC:59] Command Tower
+1 [MH1:238] Fiery Islet
+1 [DRC:158] Frostboil Snarl
+9 [ECL:270] Island
+1 [M3C:350] Izzet Boilerworks
+1 [TDM:261] Mistrise Village
+9 [ECL:272] Mountain
+1 [TDC:386] Reliquary Tower
+1 [PLST:ZNR-264] Riverglide Pathway // Lavaglide Pathway
+1 [DFT:260] Riverpyre Verge
+1 [MH2:254] Scalding Tarn
+1 [MKC:287] Scavenger Grounds
+1 [EOC:179] Shivan Reef
+1 [ECL:267] Steam Vents
+1 [INR:285] Stormcarved Coast
+1 [EOC:184] Sulfur Falls
+1 [CMM:434] Training Center
+1 [FDN:161] Omniscience
+1 [STX:171] Creative Outburst
+1 [STX:182] Elemental Masterpiece
+1 [BLC:275] Hedron Archive
+1 [TDC:296] Magma Opus
+1 [CMR:340] Sisay's Ring
+1 [ECC:57] Sol Ring
+1 [CLB:338] Stonespeaker Crystal
+1 [BLC:290] Thran Dynamo
+1 [C14:280] Ur-Golem's Eye
+1 [J25:285] Archaeomancer
+1 [MID:128] Ardent Elementalist
+1 [OTC:175] Mizzix's Mastery
+1 [MH3:246] Pinnacle Monk // Mystic Peak
+1 [DSC:109] Aether Gale
+1 [M3C:152] All Is Dust
+1 [TDC:146] Baral's Expertise
+1 [DSC:160] Blasphemous Act
+1 [LTC:509] Call Forth the Tempest
+1 [OTC:160] Chaos Warp
+1 [DSC:114] Counterspell
+1 [LCC:226] Fiery Confluence
+1 [VOC:104] Flood of Tears
+1 [MKM:207] Ill-Timed Explosion
+1 [CMM:108] Mystic Confluence
+1 [2X2:265] Prophetic Bolt
+1 [WAR:212] Ral's Outburst
+1 [AFC:33] Reckless Endeavor
+1 [MH3:241] Sink into Stupor // Soporific Springs
+1 [C21:182] Volcanic Vision
+1 [FDN:92] Rite of the Dragoncaller
+1 [DSC:127] Shark Typhoon"
+`;
 
 exports[`export snapshots > archidekt/ashling-flat.txt > export to arena 1`] = `
 "Commander
@@ -4999,322 +5309,322 @@ exports[`export snapshots > deckstats/commander-with-categories.dec > export to 
 1 Black Waltz No. 3 # !Commander
 
 //Main
-1 Agate Instigator
-1 Aria of Flame
-1 Artist's Talent
-1 Ashling, Flame Dancer
-1 Black Mage's Rod
-1 Blisterspit Gremlin
-1 Bloodchief Ascension
-1 Bontu's Monument
-1 Burning Vengeance
-1 Cabal Paladin
-1 Caldera Pyremaw
-1 Cinder Pyromancer
-1 Circle of Power
-1 Cornered by Black Mages
-1 Coruscation Mage
-1 Curse of Fool's Wisdom
-1 Defiler of Instinct
-1 Devoted Duelist
-1 Dynavolt Tower
-1 Electrostatic Field
-1 Erebor Flamesmith
-1 Fiery Inscription
-1 Firebrand Archer
-1 Firespitter Whelp
-1 Geistflame Reservoir
-1 Guttersnipe
-1 Invasion of Regatha // Disciples of the Inferno
-1 Kessig Flamebreather
-1 Kindlespark Duo
-1 Kuja, Genome Sorcerer // Trance Kuja, Fate Defied
-1 Lambholt Raconteur // Lambholt Ravager
-1 Mysidian Elder
-1 Overlord of the Boilerbilges
-1 Professor Onyx
-1 Pyromancer's Assault
-1 Queen Brahne
-1 Rockslide Sorcerer
-1 Rottenmouth Viper
-1 Sawblade Scamp
-1 Sheoldred, the Apocalypse
-1 Shrine of Burning Rage
-1 Sphinx-Bone Wand
-1 Star Athlete
-1 Teapot Slinger
-1 Thermo-Alchemist
-1 Tor Wauki the Younger
-1 Transpose
-1 Urabrask // The Great Work
-1 Vial Smasher the Fierce
-1 Virtue of Courage // Embereth Blaze
-1 Weaver of Lightning
-1 Basilisk Collar
-1 Burst Lightning
-1 Char
-1 Eternal Thirst
-1 Leech Gauntlet
-1 Mask of Griselbrand
-1 Poet's Quill
-1 Resurrection Orb
-1 Shadowspear
-1 Bothersome Quasit
-1 Burning Prophet
-1 Dragon's Rage Channeler
-1 Fandaniel, Telophoroi Ascian
-1 Garland, Knight of Cornelia // Chaos, the Endless
-1 Harnesser of Storms
-1 Levitating Statue
-1 Manaform Hellkite
-1 Pyroceratops
-1 Rite of the Dragoncaller
-1 Scroll of the Masters
-1 Shambling Cie'th
-1 Spellgorger Weird
-1 Storm-Kiln Artist
-1 Sunbird's Invocation
-1 Vindictive Flamestoker
-1 Chandra's Incinerator
-1 Harmonic Prodigy
-1 Lindblum, Industrial Regency // Mage Siege
-1 Arcane Bombardment
-1 Birgi, God of Storytelling // Harnfel, Horn of Bounty
-1 Chandra, Hope's Beacon
-1 Double Vision
-1 Surge to Victory
-1 Terror of the Peaks
-1 Primal Amulet // Primal Wellspring
-1 Ambition's Cost
-1 Ancient Craving
-1 Bad Deal
-1 Big Score
-1 Bitter Reunion
-1 Black Market Connections
-1 Cathartic Reunion
-1 Cosmos Elixir
-1 Cruel Truths
-1 Crushing Disappointment
-1 Cut of the Profits
-1 Demand Answers
-1 Demon's Due
-1 Diresight
-1 Electric Revelation
-1 Faithless Looting
-1 Font of Mythos
-1 Funeral Rites
-1 Grab the Prize
-1 Greed
-1 Gruesome Realization
-1 Hoarder's Greed
-1 Howling Mine
-1 Imposing Grandeur
-1 Infectious Inquiry
-1 Laughing Mad
-1 Live Fast
-1 Magmatic Insight
-1 Monument to Endurance
-1 Night's Whisper
-1 Path of the Pyromancer
-1 Phyrexian Arena
-1 Pointed Discussion
-1 Promise of Power
-1 Racers' Scoreboard
-1 Read the Bones
-1 Risky Shortcut
-1 Seize the Spoils
-1 Skeletal Scrying
-1 Invoke Despair
-1 Dictate of the Twin Gods
-1 Fiendish Duo
-1 Fiery Emancipation
-1 Ojer Axonil, Deepest Might // Temple of Power
-1 Sawhorn Nemesis
-1 Solphim, Mayhem Dominus
-1 Torbran, Thane of Red Fell
-1 Twinflame Tyrant
-1 Boltwave
-1 Breath of Malfegor
-1 Chandra's Ignition
-1 Collective Defiance
-1 Cut // Ribbons
-1 Delayed Blast Fireball
-1 End the Festivities
-1 Farideh's Fireball
-1 Fiery Confluence
-1 Iron Maiden
-1 Misers' Cage
-1 Mob Verdict
-1 Oath of Mages
-1 Price of Knowledge
-1 Sizzle
-1 Skull Rend
-1 Snort
-1 Spiteful Repossession
-1 Tectonic Hazard
-1 The Elder Dragon War
-1 Vicious Rumors
-1 Wheel of Torture"
+1 Agate Instigator #burn
+1 Aria of Flame #burn
+1 Artist's Talent #burn
+1 Ashling, Flame Dancer #burn
+1 Black Mage's Rod #burn
+1 Blisterspit Gremlin #burn
+1 Bloodchief Ascension #burn
+1 Bontu's Monument #burn
+1 Burning Vengeance #burn
+1 Cabal Paladin #burn
+1 Caldera Pyremaw #burn
+1 Cinder Pyromancer #burn
+1 Circle of Power #burn
+1 Cornered by Black Mages #burn
+1 Coruscation Mage #burn
+1 Curse of Fool's Wisdom #burn
+1 Defiler of Instinct #burn
+1 Devoted Duelist #burn
+1 Dynavolt Tower #burn
+1 Electrostatic Field #burn
+1 Erebor Flamesmith #burn
+1 Fiery Inscription #burn
+1 Firebrand Archer #burn
+1 Firespitter Whelp #burn
+1 Geistflame Reservoir #burn
+1 Guttersnipe #burn
+1 Invasion of Regatha // Disciples of the Inferno #burn
+1 Kessig Flamebreather #burn
+1 Kindlespark Duo #burn
+1 Kuja, Genome Sorcerer // Trance Kuja, Fate Defied #burn
+1 Lambholt Raconteur // Lambholt Ravager #burn
+1 Mysidian Elder #burn
+1 Overlord of the Boilerbilges #burn
+1 Professor Onyx #burn
+1 Pyromancer's Assault #burn
+1 Queen Brahne #burn
+1 Rockslide Sorcerer #burn
+1 Rottenmouth Viper #burn
+1 Sawblade Scamp #burn
+1 Sheoldred, the Apocalypse #burn
+1 Shrine of Burning Rage #burn
+1 Sphinx-Bone Wand #burn
+1 Star Athlete #burn
+1 Teapot Slinger #burn
+1 Thermo-Alchemist #burn
+1 Tor Wauki the Younger #burn
+1 Transpose #burn
+1 Urabrask // The Great Work #burn
+1 Vial Smasher the Fierce #burn
+1 Virtue of Courage // Embereth Blaze #burn
+1 Weaver of Lightning #burn
+1 Basilisk Collar #Non creature spell
+1 Burst Lightning #Non creature spell
+1 Char #Non creature spell
+1 Eternal Thirst #Non creature spell
+1 Leech Gauntlet #Non creature spell
+1 Mask of Griselbrand #Non creature spell
+1 Poet's Quill #Non creature spell
+1 Resurrection Orb #Non creature spell
+1 Shadowspear #Non creature spell
+1 Bothersome Quasit #whenever you cast non creature spell shit
+1 Burning Prophet #whenever you cast non creature spell shit
+1 Dragon's Rage Channeler #whenever you cast non creature spell shit
+1 Fandaniel, Telophoroi Ascian #whenever you cast non creature spell shit
+1 Garland, Knight of Cornelia // Chaos, the Endless #whenever you cast non creature spell shit
+1 Harnesser of Storms #whenever you cast non creature spell shit
+1 Levitating Statue #whenever you cast non creature spell shit
+1 Manaform Hellkite #whenever you cast non creature spell shit
+1 Pyroceratops #whenever you cast non creature spell shit
+1 Rite of the Dragoncaller #whenever you cast non creature spell shit
+1 Scroll of the Masters #whenever you cast non creature spell shit
+1 Shambling Cie'th #whenever you cast non creature spell shit
+1 Spellgorger Weird #whenever you cast non creature spell shit
+1 Storm-Kiln Artist #whenever you cast non creature spell shit
+1 Sunbird's Invocation #whenever you cast non creature spell shit
+1 Vindictive Flamestoker #whenever you cast non creature spell shit
+1 Chandra's Incinerator #truc cool
+1 Harmonic Prodigy #truc cool
+1 Lindblum, Industrial Regency // Mage Siege #land
+1 Arcane Bombardment #truc rigolo
+1 Birgi, God of Storytelling // Harnfel, Horn of Bounty #truc rigolo
+1 Chandra, Hope's Beacon #truc rigolo
+1 Double Vision #truc rigolo
+1 Surge to Victory #truc rigolo
+1 Terror of the Peaks #truc rigolo
+1 Primal Amulet // Primal Wellspring #reduce cost
+1 Ambition's Cost #draw
+1 Ancient Craving #draw
+1 Bad Deal #draw
+1 Big Score #draw
+1 Bitter Reunion #draw
+1 Black Market Connections #draw
+1 Cathartic Reunion #draw
+1 Cosmos Elixir #draw
+1 Cruel Truths #draw
+1 Crushing Disappointment #draw
+1 Cut of the Profits #draw
+1 Demand Answers #draw
+1 Demon's Due #draw
+1 Diresight #draw
+1 Electric Revelation #draw
+1 Faithless Looting #draw
+1 Font of Mythos #draw
+1 Funeral Rites #draw
+1 Grab the Prize #draw
+1 Greed #draw
+1 Gruesome Realization #draw
+1 Hoarder's Greed #draw
+1 Howling Mine #draw
+1 Imposing Grandeur #draw
+1 Infectious Inquiry #draw
+1 Laughing Mad #draw
+1 Live Fast #draw
+1 Magmatic Insight #draw
+1 Monument to Endurance #draw
+1 Night's Whisper #draw
+1 Path of the Pyromancer #draw
+1 Phyrexian Arena #draw
+1 Pointed Discussion #draw
+1 Promise of Power #draw
+1 Racers' Scoreboard #draw
+1 Read the Bones #draw
+1 Risky Shortcut #draw
+1 Seize the Spoils #draw
+1 Skeletal Scrying #draw
+1 Invoke Despair #gestion
+1 Dictate of the Twin Gods #dmg en plus
+1 Fiendish Duo #dmg en plus
+1 Fiery Emancipation #dmg en plus
+1 Ojer Axonil, Deepest Might // Temple of Power #dmg en plus
+1 Sawhorn Nemesis #dmg en plus
+1 Solphim, Mayhem Dominus #dmg en plus
+1 Torbran, Thane of Red Fell #dmg en plus
+1 Twinflame Tyrant #dmg en plus
+1 Boltwave #sort de burn
+1 Breath of Malfegor #sort de burn
+1 Chandra's Ignition #sort de burn
+1 Collective Defiance #sort de burn
+1 Cut // Ribbons #sort de burn
+1 Delayed Blast Fireball #sort de burn
+1 End the Festivities #sort de burn
+1 Farideh's Fireball #sort de burn
+1 Fiery Confluence #sort de burn
+1 Iron Maiden #sort de burn
+1 Misers' Cage #sort de burn
+1 Mob Verdict #sort de burn
+1 Oath of Mages #sort de burn
+1 Price of Knowledge #sort de burn
+1 Sizzle #sort de burn
+1 Skull Rend #sort de burn
+1 Snort #sort de burn
+1 Spiteful Repossession #sort de burn
+1 Tectonic Hazard #sort de burn
+1 The Elder Dragon War #sort de burn
+1 Vicious Rumors #sort de burn
+1 Wheel of Torture #sort de burn"
 `;
 
 exports[`export snapshots > deckstats/commander-with-categories.dec > export to moxfield 1`] = `
 "1 Black Waltz No. 3
-1 Agate Instigator
-1 Aria of Flame
-1 Artist's Talent
-1 Ashling, Flame Dancer
-1 Black Mage's Rod
-1 Blisterspit Gremlin
-1 Bloodchief Ascension
-1 Bontu's Monument
-1 Burning Vengeance
-1 Cabal Paladin
-1 Caldera Pyremaw
-1 Cinder Pyromancer
-1 Circle of Power
-1 Cornered by Black Mages
-1 Coruscation Mage
-1 Curse of Fool's Wisdom
-1 Defiler of Instinct
-1 Devoted Duelist
-1 Dynavolt Tower
-1 Electrostatic Field
-1 Erebor Flamesmith
-1 Fiery Inscription
-1 Firebrand Archer
-1 Firespitter Whelp
-1 Geistflame Reservoir
-1 Guttersnipe
-1 Invasion of Regatha // Disciples of the Inferno
-1 Kessig Flamebreather
-1 Kindlespark Duo
-1 Kuja, Genome Sorcerer // Trance Kuja, Fate Defied
-1 Lambholt Raconteur // Lambholt Ravager
-1 Mysidian Elder
-1 Overlord of the Boilerbilges
-1 Professor Onyx
-1 Pyromancer's Assault
-1 Queen Brahne
-1 Rockslide Sorcerer
-1 Rottenmouth Viper
-1 Sawblade Scamp
-1 Sheoldred, the Apocalypse
-1 Shrine of Burning Rage
-1 Sphinx-Bone Wand
-1 Star Athlete
-1 Teapot Slinger
-1 Thermo-Alchemist
-1 Tor Wauki the Younger
-1 Transpose
-1 Urabrask // The Great Work
-1 Vial Smasher the Fierce
-1 Virtue of Courage // Embereth Blaze
-1 Weaver of Lightning
-1 Basilisk Collar
-1 Burst Lightning
-1 Char
-1 Eternal Thirst
-1 Leech Gauntlet
-1 Mask of Griselbrand
-1 Poet's Quill
-1 Resurrection Orb
-1 Shadowspear
-1 Bothersome Quasit
-1 Burning Prophet
-1 Dragon's Rage Channeler
-1 Fandaniel, Telophoroi Ascian
-1 Garland, Knight of Cornelia // Chaos, the Endless
-1 Harnesser of Storms
-1 Levitating Statue
-1 Manaform Hellkite
-1 Pyroceratops
-1 Rite of the Dragoncaller
-1 Scroll of the Masters
-1 Shambling Cie'th
-1 Spellgorger Weird
-1 Storm-Kiln Artist
-1 Sunbird's Invocation
-1 Vindictive Flamestoker
-1 Chandra's Incinerator
-1 Harmonic Prodigy
-1 Lindblum, Industrial Regency // Mage Siege
-1 Arcane Bombardment
-1 Birgi, God of Storytelling // Harnfel, Horn of Bounty
-1 Chandra, Hope's Beacon
-1 Double Vision
-1 Surge to Victory
-1 Terror of the Peaks
-1 Primal Amulet // Primal Wellspring
-1 Ambition's Cost
-1 Ancient Craving
-1 Bad Deal
-1 Big Score
-1 Bitter Reunion
-1 Black Market Connections
-1 Cathartic Reunion
-1 Cosmos Elixir
-1 Cruel Truths
-1 Crushing Disappointment
-1 Cut of the Profits
-1 Demand Answers
-1 Demon's Due
-1 Diresight
-1 Electric Revelation
-1 Faithless Looting
-1 Font of Mythos
-1 Funeral Rites
-1 Grab the Prize
-1 Greed
-1 Gruesome Realization
-1 Hoarder's Greed
-1 Howling Mine
-1 Imposing Grandeur
-1 Infectious Inquiry
-1 Laughing Mad
-1 Live Fast
-1 Magmatic Insight
-1 Monument to Endurance
-1 Night's Whisper
-1 Path of the Pyromancer
-1 Phyrexian Arena
-1 Pointed Discussion
-1 Promise of Power
-1 Racers' Scoreboard
-1 Read the Bones
-1 Risky Shortcut
-1 Seize the Spoils
-1 Skeletal Scrying
-1 Invoke Despair
-1 Dictate of the Twin Gods
-1 Fiendish Duo
-1 Fiery Emancipation
-1 Ojer Axonil, Deepest Might // Temple of Power
-1 Sawhorn Nemesis
-1 Solphim, Mayhem Dominus
-1 Torbran, Thane of Red Fell
-1 Twinflame Tyrant
-1 Boltwave
-1 Breath of Malfegor
-1 Chandra's Ignition
-1 Collective Defiance
-1 Cut // Ribbons
-1 Delayed Blast Fireball
-1 End the Festivities
-1 Farideh's Fireball
-1 Fiery Confluence
-1 Iron Maiden
-1 Misers' Cage
-1 Mob Verdict
-1 Oath of Mages
-1 Price of Knowledge
-1 Sizzle
-1 Skull Rend
-1 Snort
-1 Spiteful Repossession
-1 Tectonic Hazard
-1 The Elder Dragon War
-1 Vicious Rumors
-1 Wheel of Torture"
+1 Agate Instigator #burn
+1 Aria of Flame #burn
+1 Artist's Talent #burn
+1 Ashling, Flame Dancer #burn
+1 Black Mage's Rod #burn
+1 Blisterspit Gremlin #burn
+1 Bloodchief Ascension #burn
+1 Bontu's Monument #burn
+1 Burning Vengeance #burn
+1 Cabal Paladin #burn
+1 Caldera Pyremaw #burn
+1 Cinder Pyromancer #burn
+1 Circle of Power #burn
+1 Cornered by Black Mages #burn
+1 Coruscation Mage #burn
+1 Curse of Fool's Wisdom #burn
+1 Defiler of Instinct #burn
+1 Devoted Duelist #burn
+1 Dynavolt Tower #burn
+1 Electrostatic Field #burn
+1 Erebor Flamesmith #burn
+1 Fiery Inscription #burn
+1 Firebrand Archer #burn
+1 Firespitter Whelp #burn
+1 Geistflame Reservoir #burn
+1 Guttersnipe #burn
+1 Invasion of Regatha // Disciples of the Inferno #burn
+1 Kessig Flamebreather #burn
+1 Kindlespark Duo #burn
+1 Kuja, Genome Sorcerer // Trance Kuja, Fate Defied #burn
+1 Lambholt Raconteur // Lambholt Ravager #burn
+1 Mysidian Elder #burn
+1 Overlord of the Boilerbilges #burn
+1 Professor Onyx #burn
+1 Pyromancer's Assault #burn
+1 Queen Brahne #burn
+1 Rockslide Sorcerer #burn
+1 Rottenmouth Viper #burn
+1 Sawblade Scamp #burn
+1 Sheoldred, the Apocalypse #burn
+1 Shrine of Burning Rage #burn
+1 Sphinx-Bone Wand #burn
+1 Star Athlete #burn
+1 Teapot Slinger #burn
+1 Thermo-Alchemist #burn
+1 Tor Wauki the Younger #burn
+1 Transpose #burn
+1 Urabrask // The Great Work #burn
+1 Vial Smasher the Fierce #burn
+1 Virtue of Courage // Embereth Blaze #burn
+1 Weaver of Lightning #burn
+1 Basilisk Collar #Non creature spell
+1 Burst Lightning #Non creature spell
+1 Char #Non creature spell
+1 Eternal Thirst #Non creature spell
+1 Leech Gauntlet #Non creature spell
+1 Mask of Griselbrand #Non creature spell
+1 Poet's Quill #Non creature spell
+1 Resurrection Orb #Non creature spell
+1 Shadowspear #Non creature spell
+1 Bothersome Quasit #whenever you cast non creature spell shit
+1 Burning Prophet #whenever you cast non creature spell shit
+1 Dragon's Rage Channeler #whenever you cast non creature spell shit
+1 Fandaniel, Telophoroi Ascian #whenever you cast non creature spell shit
+1 Garland, Knight of Cornelia // Chaos, the Endless #whenever you cast non creature spell shit
+1 Harnesser of Storms #whenever you cast non creature spell shit
+1 Levitating Statue #whenever you cast non creature spell shit
+1 Manaform Hellkite #whenever you cast non creature spell shit
+1 Pyroceratops #whenever you cast non creature spell shit
+1 Rite of the Dragoncaller #whenever you cast non creature spell shit
+1 Scroll of the Masters #whenever you cast non creature spell shit
+1 Shambling Cie'th #whenever you cast non creature spell shit
+1 Spellgorger Weird #whenever you cast non creature spell shit
+1 Storm-Kiln Artist #whenever you cast non creature spell shit
+1 Sunbird's Invocation #whenever you cast non creature spell shit
+1 Vindictive Flamestoker #whenever you cast non creature spell shit
+1 Chandra's Incinerator #truc cool
+1 Harmonic Prodigy #truc cool
+1 Lindblum, Industrial Regency // Mage Siege #land
+1 Arcane Bombardment #truc rigolo
+1 Birgi, God of Storytelling // Harnfel, Horn of Bounty #truc rigolo
+1 Chandra, Hope's Beacon #truc rigolo
+1 Double Vision #truc rigolo
+1 Surge to Victory #truc rigolo
+1 Terror of the Peaks #truc rigolo
+1 Primal Amulet // Primal Wellspring #reduce cost
+1 Ambition's Cost #draw
+1 Ancient Craving #draw
+1 Bad Deal #draw
+1 Big Score #draw
+1 Bitter Reunion #draw
+1 Black Market Connections #draw
+1 Cathartic Reunion #draw
+1 Cosmos Elixir #draw
+1 Cruel Truths #draw
+1 Crushing Disappointment #draw
+1 Cut of the Profits #draw
+1 Demand Answers #draw
+1 Demon's Due #draw
+1 Diresight #draw
+1 Electric Revelation #draw
+1 Faithless Looting #draw
+1 Font of Mythos #draw
+1 Funeral Rites #draw
+1 Grab the Prize #draw
+1 Greed #draw
+1 Gruesome Realization #draw
+1 Hoarder's Greed #draw
+1 Howling Mine #draw
+1 Imposing Grandeur #draw
+1 Infectious Inquiry #draw
+1 Laughing Mad #draw
+1 Live Fast #draw
+1 Magmatic Insight #draw
+1 Monument to Endurance #draw
+1 Night's Whisper #draw
+1 Path of the Pyromancer #draw
+1 Phyrexian Arena #draw
+1 Pointed Discussion #draw
+1 Promise of Power #draw
+1 Racers' Scoreboard #draw
+1 Read the Bones #draw
+1 Risky Shortcut #draw
+1 Seize the Spoils #draw
+1 Skeletal Scrying #draw
+1 Invoke Despair #gestion
+1 Dictate of the Twin Gods #dmg en plus
+1 Fiendish Duo #dmg en plus
+1 Fiery Emancipation #dmg en plus
+1 Ojer Axonil, Deepest Might // Temple of Power #dmg en plus
+1 Sawhorn Nemesis #dmg en plus
+1 Solphim, Mayhem Dominus #dmg en plus
+1 Torbran, Thane of Red Fell #dmg en plus
+1 Twinflame Tyrant #dmg en plus
+1 Boltwave #sort de burn
+1 Breath of Malfegor #sort de burn
+1 Chandra's Ignition #sort de burn
+1 Collective Defiance #sort de burn
+1 Cut // Ribbons #sort de burn
+1 Delayed Blast Fireball #sort de burn
+1 End the Festivities #sort de burn
+1 Farideh's Fireball #sort de burn
+1 Fiery Confluence #sort de burn
+1 Iron Maiden #sort de burn
+1 Misers' Cage #sort de burn
+1 Mob Verdict #sort de burn
+1 Oath of Mages #sort de burn
+1 Price of Knowledge #sort de burn
+1 Sizzle #sort de burn
+1 Skull Rend #sort de burn
+1 Snort #sort de burn
+1 Spiteful Repossession #sort de burn
+1 Tectonic Hazard #sort de burn
+1 The Elder Dragon War #sort de burn
+1 Vicious Rumors #sort de burn
+1 Wheel of Torture #sort de burn"
 `;
 
 exports[`export snapshots > deckstats/commander-with-categories.dec > export to mtggoldfish 1`] = `
@@ -13958,12 +14268,9 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
       "setCode": "ECL",
       "tags": [],
     },
-    {
-      "name": "Burn",
-      "quantity": 1,
-      "raw": "Burn",
-      "tags": [],
-    },
+  ],
+  "format": "archidekt",
+  "mainboard": [
     {
       "collectorNumber": "33",
       "name": "Caldera Pyremaw",
@@ -13984,12 +14291,6 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
         "Burn",
         "Recursion",
       ],
-    },
-    {
-      "name": "Copy",
-      "quantity": 1,
-      "raw": "Copy",
-      "tags": [],
     },
     {
       "collectorNumber": "463",
@@ -14020,12 +14321,6 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
       "tags": [
         "Copy",
       ],
-    },
-    {
-      "name": "Draw",
-      "quantity": 1,
-      "raw": "Draw",
-      "tags": [],
     },
     {
       "collectorNumber": "145",
@@ -14219,12 +14514,6 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
       ],
     },
     {
-      "name": "Greed",
-      "quantity": 1,
-      "raw": "Greed",
-      "tags": [],
-    },
-    {
       "collectorNumber": "154",
       "name": "Arcane Bombardment",
       "quantity": 1,
@@ -14313,12 +14602,6 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
       "tags": [
         "Greed",
       ],
-    },
-    {
-      "name": "Land",
-      "quantity": 1,
-      "raw": "Land",
-      "tags": [],
     },
     {
       "collectorNumber": "153",
@@ -14501,12 +14784,6 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
       ],
     },
     {
-      "name": "Okay Pal",
-      "quantity": 1,
-      "raw": "Okay Pal",
-      "tags": [],
-    },
-    {
       "collectorNumber": "161",
       "name": "Omniscience",
       "quantity": 1,
@@ -14515,12 +14792,6 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
       "tags": [
         "Okay Pal",
       ],
-    },
-    {
-      "name": "Ramp",
-      "quantity": 1,
-      "raw": "Ramp",
-      "tags": [],
     },
     {
       "collectorNumber": "171",
@@ -14620,12 +14891,6 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
       ],
     },
     {
-      "name": "Recursion",
-      "quantity": 1,
-      "raw": "Recursion",
-      "tags": [],
-    },
-    {
       "collectorNumber": "285",
       "name": "Archaeomancer",
       "quantity": 1,
@@ -14664,12 +14929,6 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
       "tags": [
         "Recursion",
       ],
-    },
-    {
-      "name": "Removal",
-      "quantity": 1,
-      "raw": "Removal",
-      "tags": [],
     },
     {
       "collectorNumber": "109",
@@ -14834,12 +15093,6 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
       ],
     },
     {
-      "name": "Tokens",
-      "quantity": 1,
-      "raw": "Tokens",
-      "tags": [],
-    },
-    {
       "collectorNumber": "92",
       "name": "Rite of the Dragoncaller",
       "quantity": 1,
@@ -14860,8 +15113,6 @@ exports[`parse snapshots > 'archidekt/ashling-by-category.txt' 1`] = `
       ],
     },
   ],
-  "format": "archidekt",
-  "mainboard": [],
   "maybeboard": [],
   "sideboard": [],
 }
@@ -20289,937 +20540,1249 @@ exports[`parse snapshots > 'deckstats/commander-with-categories.d…' 1`] = `
       "name": "Agate Instigator",
       "quantity": 1,
       "raw": "1 Agate Instigator",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Aria of Flame",
       "quantity": 1,
       "raw": "1 Aria of Flame",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Artist's Talent",
       "quantity": 1,
       "raw": "1 Artist's Talent",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Ashling, Flame Dancer",
       "quantity": 1,
       "raw": "1 Ashling, Flame Dancer",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Black Mage's Rod",
       "quantity": 1,
       "raw": "1 Black Mage's Rod",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Blisterspit Gremlin",
       "quantity": 1,
       "raw": "1 Blisterspit Gremlin",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Bloodchief Ascension",
       "quantity": 1,
       "raw": "1 Bloodchief Ascension",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Bontu's Monument",
       "quantity": 1,
       "raw": "1 Bontu's Monument",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Burning Vengeance",
       "quantity": 1,
       "raw": "1 Burning Vengeance",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Cabal Paladin",
       "quantity": 1,
       "raw": "1 Cabal Paladin",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Caldera Pyremaw",
       "quantity": 1,
       "raw": "1 Caldera Pyremaw",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Cinder Pyromancer",
       "quantity": 1,
       "raw": "1 Cinder Pyromancer",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Circle of Power",
       "quantity": 1,
       "raw": "1 Circle of Power",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Cornered by Black Mages",
       "quantity": 1,
       "raw": "1 Cornered by Black Mages",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Coruscation Mage",
       "quantity": 1,
       "raw": "1 Coruscation Mage",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Curse of Fool's Wisdom",
       "quantity": 1,
       "raw": "1 Curse of Fool's Wisdom",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Defiler of Instinct",
       "quantity": 1,
       "raw": "1 Defiler of Instinct",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Devoted Duelist",
       "quantity": 1,
       "raw": "1 Devoted Duelist",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Dynavolt Tower",
       "quantity": 1,
       "raw": "1 Dynavolt Tower",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Electrostatic Field",
       "quantity": 1,
       "raw": "1 Electrostatic Field",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Erebor Flamesmith",
       "quantity": 1,
       "raw": "1 Erebor Flamesmith",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Fiery Inscription",
       "quantity": 1,
       "raw": "1 Fiery Inscription",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Firebrand Archer",
       "quantity": 1,
       "raw": "1 Firebrand Archer",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Firespitter Whelp",
       "quantity": 1,
       "raw": "1 Firespitter Whelp",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Geistflame Reservoir",
       "quantity": 1,
       "raw": "1 Geistflame Reservoir",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Guttersnipe",
       "quantity": 1,
       "raw": "1 Guttersnipe",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Invasion of Regatha // Disciples of the Inferno",
       "quantity": 1,
       "raw": "1 Invasion of Regatha // Disciples of the Inferno",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Kessig Flamebreather",
       "quantity": 1,
       "raw": "1 Kessig Flamebreather",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Kindlespark Duo",
       "quantity": 1,
       "raw": "1 Kindlespark Duo",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Kuja, Genome Sorcerer // Trance Kuja, Fate Defied",
       "quantity": 1,
       "raw": "1 Kuja, Genome Sorcerer // Trance Kuja, Fate Defied",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Lambholt Raconteur // Lambholt Ravager",
       "quantity": 1,
       "raw": "1 Lambholt Raconteur // Lambholt Ravager",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Mysidian Elder",
       "quantity": 1,
       "raw": "1 Mysidian Elder",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Overlord of the Boilerbilges",
       "quantity": 1,
       "raw": "1 Overlord of the Boilerbilges",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Professor Onyx",
       "quantity": 1,
       "raw": "1 Professor Onyx",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Pyromancer's Assault",
       "quantity": 1,
       "raw": "1 Pyromancer's Assault",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Queen Brahne",
       "quantity": 1,
       "raw": "1 Queen Brahne",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Rockslide Sorcerer",
       "quantity": 1,
       "raw": "1 Rockslide Sorcerer",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Rottenmouth Viper",
       "quantity": 1,
       "raw": "1 Rottenmouth Viper",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Sawblade Scamp",
       "quantity": 1,
       "raw": "1 Sawblade Scamp",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Sheoldred, the Apocalypse",
       "quantity": 1,
       "raw": "1 Sheoldred, the Apocalypse",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Shrine of Burning Rage",
       "quantity": 1,
       "raw": "1 Shrine of Burning Rage",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Sphinx-Bone Wand",
       "quantity": 1,
       "raw": "1 Sphinx-Bone Wand",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Star Athlete",
       "quantity": 1,
       "raw": "1 Star Athlete",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Teapot Slinger",
       "quantity": 1,
       "raw": "1 Teapot Slinger",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Thermo-Alchemist",
       "quantity": 1,
       "raw": "1 Thermo-Alchemist",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Tor Wauki the Younger",
       "quantity": 1,
       "raw": "1 Tor Wauki the Younger",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Transpose",
       "quantity": 1,
       "raw": "1 Transpose",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Urabrask // The Great Work",
       "quantity": 1,
       "raw": "1 Urabrask // The Great Work",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Vial Smasher the Fierce",
       "quantity": 1,
       "raw": "1 Vial Smasher the Fierce",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Virtue of Courage // Embereth Blaze",
       "quantity": 1,
       "raw": "1 Virtue of Courage // Embereth Blaze",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Weaver of Lightning",
       "quantity": 1,
       "raw": "1 Weaver of Lightning",
-      "tags": [],
+      "tags": [
+        "burn",
+      ],
     },
     {
       "name": "Basilisk Collar",
       "quantity": 1,
       "raw": "1 Basilisk Collar",
-      "tags": [],
+      "tags": [
+        "Non creature spell",
+      ],
     },
     {
       "name": "Burst Lightning",
       "quantity": 1,
       "raw": "1 Burst Lightning",
-      "tags": [],
+      "tags": [
+        "Non creature spell",
+      ],
     },
     {
       "name": "Char",
       "quantity": 1,
       "raw": "1 Char",
-      "tags": [],
+      "tags": [
+        "Non creature spell",
+      ],
     },
     {
       "name": "Eternal Thirst",
       "quantity": 1,
       "raw": "1 Eternal Thirst",
-      "tags": [],
+      "tags": [
+        "Non creature spell",
+      ],
     },
     {
       "name": "Leech Gauntlet",
       "quantity": 1,
       "raw": "1 Leech Gauntlet",
-      "tags": [],
+      "tags": [
+        "Non creature spell",
+      ],
     },
     {
       "name": "Mask of Griselbrand",
       "quantity": 1,
       "raw": "1 Mask of Griselbrand",
-      "tags": [],
+      "tags": [
+        "Non creature spell",
+      ],
     },
     {
       "name": "Poet's Quill",
       "quantity": 1,
       "raw": "1 Poet's Quill",
-      "tags": [],
+      "tags": [
+        "Non creature spell",
+      ],
     },
     {
       "name": "Resurrection Orb",
       "quantity": 1,
       "raw": "1 Resurrection Orb",
-      "tags": [],
+      "tags": [
+        "Non creature spell",
+      ],
     },
     {
       "name": "Shadowspear",
       "quantity": 1,
       "raw": "1 Shadowspear",
-      "tags": [],
+      "tags": [
+        "Non creature spell",
+      ],
     },
     {
       "name": "Bothersome Quasit",
       "quantity": 1,
       "raw": "1 Bothersome Quasit",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Burning Prophet",
       "quantity": 1,
       "raw": "1 Burning Prophet",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Dragon's Rage Channeler",
       "quantity": 1,
       "raw": "1 Dragon's Rage Channeler",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Fandaniel, Telophoroi Ascian",
       "quantity": 1,
       "raw": "1 Fandaniel, Telophoroi Ascian",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Garland, Knight of Cornelia // Chaos, the Endless",
       "quantity": 1,
       "raw": "1 Garland, Knight of Cornelia // Chaos, the Endless",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Harnesser of Storms",
       "quantity": 1,
       "raw": "1 Harnesser of Storms",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Levitating Statue",
       "quantity": 1,
       "raw": "1 Levitating Statue",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Manaform Hellkite",
       "quantity": 1,
       "raw": "1 Manaform Hellkite",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Pyroceratops",
       "quantity": 1,
       "raw": "1 Pyroceratops",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Rite of the Dragoncaller",
       "quantity": 1,
       "raw": "1 Rite of the Dragoncaller",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Scroll of the Masters",
       "quantity": 1,
       "raw": "1 Scroll of the Masters",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Shambling Cie'th",
       "quantity": 1,
       "raw": "1 Shambling Cie'th",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Spellgorger Weird",
       "quantity": 1,
       "raw": "1 Spellgorger Weird",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Storm-Kiln Artist",
       "quantity": 1,
       "raw": "1 Storm-Kiln Artist",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Sunbird's Invocation",
       "quantity": 1,
       "raw": "1 Sunbird's Invocation",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Vindictive Flamestoker",
       "quantity": 1,
       "raw": "1 Vindictive Flamestoker",
-      "tags": [],
+      "tags": [
+        "whenever you cast non creature spell shit",
+      ],
     },
     {
       "name": "Chandra's Incinerator",
       "quantity": 1,
       "raw": "1 Chandra's Incinerator",
-      "tags": [],
+      "tags": [
+        "truc cool",
+      ],
     },
     {
       "name": "Harmonic Prodigy",
       "quantity": 1,
       "raw": "1 Harmonic Prodigy",
-      "tags": [],
+      "tags": [
+        "truc cool",
+      ],
     },
     {
       "name": "Lindblum, Industrial Regency // Mage Siege",
       "quantity": 1,
       "raw": "1 Lindblum, Industrial Regency // Mage Siege",
-      "tags": [],
+      "tags": [
+        "land",
+      ],
     },
     {
       "name": "Arcane Bombardment",
       "quantity": 1,
       "raw": "1 Arcane Bombardment",
-      "tags": [],
+      "tags": [
+        "truc rigolo",
+      ],
     },
     {
       "name": "Birgi, God of Storytelling // Harnfel, Horn of Bounty",
       "quantity": 1,
       "raw": "1 Birgi, God of Storytelling // Harnfel, Horn of Bounty",
-      "tags": [],
+      "tags": [
+        "truc rigolo",
+      ],
     },
     {
       "name": "Chandra, Hope's Beacon",
       "quantity": 1,
       "raw": "1 Chandra, Hope's Beacon",
-      "tags": [],
+      "tags": [
+        "truc rigolo",
+      ],
     },
     {
       "name": "Double Vision",
       "quantity": 1,
       "raw": "1 Double Vision",
-      "tags": [],
+      "tags": [
+        "truc rigolo",
+      ],
     },
     {
       "name": "Surge to Victory",
       "quantity": 1,
       "raw": "1 Surge to Victory",
-      "tags": [],
+      "tags": [
+        "truc rigolo",
+      ],
     },
     {
       "name": "Terror of the Peaks",
       "quantity": 1,
       "raw": "1 Terror of the Peaks",
-      "tags": [],
+      "tags": [
+        "truc rigolo",
+      ],
     },
     {
       "name": "Primal Amulet // Primal Wellspring",
       "quantity": 1,
       "raw": "1 Primal Amulet // Primal Wellspring",
-      "tags": [],
+      "tags": [
+        "reduce cost",
+      ],
     },
     {
       "name": "Ambition's Cost",
       "quantity": 1,
       "raw": "1 Ambition's Cost",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Ancient Craving",
       "quantity": 1,
       "raw": "1 Ancient Craving",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Bad Deal",
       "quantity": 1,
       "raw": "1 Bad Deal",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Big Score",
       "quantity": 1,
       "raw": "1 Big Score",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Bitter Reunion",
       "quantity": 1,
       "raw": "1 Bitter Reunion",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Black Market Connections",
       "quantity": 1,
       "raw": "1 Black Market Connections",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Cathartic Reunion",
       "quantity": 1,
       "raw": "1 Cathartic Reunion",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Cosmos Elixir",
       "quantity": 1,
       "raw": "1 Cosmos Elixir",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Cruel Truths",
       "quantity": 1,
       "raw": "1 Cruel Truths",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Crushing Disappointment",
       "quantity": 1,
       "raw": "1 Crushing Disappointment",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Cut of the Profits",
       "quantity": 1,
       "raw": "1 Cut of the Profits",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Demand Answers",
       "quantity": 1,
       "raw": "1 Demand Answers",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Demon's Due",
       "quantity": 1,
       "raw": "1 Demon's Due",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Diresight",
       "quantity": 1,
       "raw": "1 Diresight",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Electric Revelation",
       "quantity": 1,
       "raw": "1 Electric Revelation",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Faithless Looting",
       "quantity": 1,
       "raw": "1 Faithless Looting",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Font of Mythos",
       "quantity": 1,
       "raw": "1 Font of Mythos",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Funeral Rites",
       "quantity": 1,
       "raw": "1 Funeral Rites",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Grab the Prize",
       "quantity": 1,
       "raw": "1 Grab the Prize",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Greed",
       "quantity": 1,
       "raw": "1 Greed",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Gruesome Realization",
       "quantity": 1,
       "raw": "1 Gruesome Realization",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Hoarder's Greed",
       "quantity": 1,
       "raw": "1 Hoarder's Greed",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Howling Mine",
       "quantity": 1,
       "raw": "1 Howling Mine",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Imposing Grandeur",
       "quantity": 1,
       "raw": "1 Imposing Grandeur",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Infectious Inquiry",
       "quantity": 1,
       "raw": "1 Infectious Inquiry",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Laughing Mad",
       "quantity": 1,
       "raw": "1 Laughing Mad",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Live Fast",
       "quantity": 1,
       "raw": "1 Live Fast",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Magmatic Insight",
       "quantity": 1,
       "raw": "1 Magmatic Insight",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Monument to Endurance",
       "quantity": 1,
       "raw": "1 Monument to Endurance",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Night's Whisper",
       "quantity": 1,
       "raw": "1 Night's Whisper",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Path of the Pyromancer",
       "quantity": 1,
       "raw": "1 Path of the Pyromancer",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Phyrexian Arena",
       "quantity": 1,
       "raw": "1 Phyrexian Arena",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Pointed Discussion",
       "quantity": 1,
       "raw": "1 Pointed Discussion",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Promise of Power",
       "quantity": 1,
       "raw": "1 Promise of Power",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Racers' Scoreboard",
       "quantity": 1,
       "raw": "1 Racers' Scoreboard",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Read the Bones",
       "quantity": 1,
       "raw": "1 Read the Bones",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Risky Shortcut",
       "quantity": 1,
       "raw": "1 Risky Shortcut",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Seize the Spoils",
       "quantity": 1,
       "raw": "1 Seize the Spoils",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Skeletal Scrying",
       "quantity": 1,
       "raw": "1 Skeletal Scrying",
-      "tags": [],
+      "tags": [
+        "draw",
+      ],
     },
     {
       "name": "Invoke Despair",
       "quantity": 1,
       "raw": "1 Invoke Despair",
-      "tags": [],
+      "tags": [
+        "gestion",
+      ],
     },
     {
       "name": "Dictate of the Twin Gods",
       "quantity": 1,
       "raw": "1 Dictate of the Twin Gods",
-      "tags": [],
+      "tags": [
+        "dmg en plus",
+      ],
     },
     {
       "name": "Fiendish Duo",
       "quantity": 1,
       "raw": "1 Fiendish Duo",
-      "tags": [],
+      "tags": [
+        "dmg en plus",
+      ],
     },
     {
       "name": "Fiery Emancipation",
       "quantity": 1,
       "raw": "1 Fiery Emancipation",
-      "tags": [],
+      "tags": [
+        "dmg en plus",
+      ],
     },
     {
       "name": "Ojer Axonil, Deepest Might // Temple of Power",
       "quantity": 1,
       "raw": "1 Ojer Axonil, Deepest Might // Temple of Power",
-      "tags": [],
+      "tags": [
+        "dmg en plus",
+      ],
     },
     {
       "name": "Sawhorn Nemesis",
       "quantity": 1,
       "raw": "1 Sawhorn Nemesis",
-      "tags": [],
+      "tags": [
+        "dmg en plus",
+      ],
     },
     {
       "name": "Solphim, Mayhem Dominus",
       "quantity": 1,
       "raw": "1 Solphim, Mayhem Dominus",
-      "tags": [],
+      "tags": [
+        "dmg en plus",
+      ],
     },
     {
       "name": "Torbran, Thane of Red Fell",
       "quantity": 1,
       "raw": "1 Torbran, Thane of Red Fell",
-      "tags": [],
+      "tags": [
+        "dmg en plus",
+      ],
     },
     {
       "name": "Twinflame Tyrant",
       "quantity": 1,
       "raw": "1 Twinflame Tyrant",
-      "tags": [],
+      "tags": [
+        "dmg en plus",
+      ],
     },
     {
       "name": "Boltwave",
       "quantity": 1,
       "raw": "1 Boltwave",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Breath of Malfegor",
       "quantity": 1,
       "raw": "1 Breath of Malfegor",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Chandra's Ignition",
       "quantity": 1,
       "raw": "1 Chandra's Ignition",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Collective Defiance",
       "quantity": 1,
       "raw": "1 Collective Defiance",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Cut // Ribbons",
       "quantity": 1,
       "raw": "1 Cut // Ribbons",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Delayed Blast Fireball",
       "quantity": 1,
       "raw": "1 Delayed Blast Fireball",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "End the Festivities",
       "quantity": 1,
       "raw": "1 End the Festivities",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Farideh's Fireball",
       "quantity": 1,
       "raw": "1 Farideh's Fireball",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Fiery Confluence",
       "quantity": 1,
       "raw": "1 Fiery Confluence",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Iron Maiden",
       "quantity": 1,
       "raw": "1 Iron Maiden",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Misers' Cage",
       "quantity": 1,
       "raw": "1 Misers' Cage",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Mob Verdict",
       "quantity": 1,
       "raw": "1 Mob Verdict",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Oath of Mages",
       "quantity": 1,
       "raw": "1 Oath of Mages",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Price of Knowledge",
       "quantity": 1,
       "raw": "1 Price of Knowledge",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Sizzle",
       "quantity": 1,
       "raw": "1 Sizzle",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Skull Rend",
       "quantity": 1,
       "raw": "1 Skull Rend",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Snort",
       "quantity": 1,
       "raw": "1 Snort",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Spiteful Repossession",
       "quantity": 1,
       "raw": "1 Spiteful Repossession",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Tectonic Hazard",
       "quantity": 1,
       "raw": "1 Tectonic Hazard",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "The Elder Dragon War",
       "quantity": 1,
       "raw": "1 The Elder Dragon War",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Vicious Rumors",
       "quantity": 1,
       "raw": "1 Vicious Rumors",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
     {
       "name": "Wheel of Torture",
       "quantity": 1,
       "raw": "1 Wheel of Torture",
-      "tags": [],
+      "tags": [
+        "sort de burn",
+      ],
     },
   ],
   "maybeboard": [],

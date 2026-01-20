@@ -72,12 +72,9 @@ describe("parseSectionMarker", () => {
 			});
 		});
 
-		it("treats other // comments as mainboard (custom categories)", () => {
-			// Custom categories like //burn, //draw should stay in mainboard
-			expect(parseSectionMarker("//burn")).toEqual({
-				section: "mainboard",
-				consumeLine: true,
-			});
+		it("returns null for custom category comments (handled by parse.ts)", () => {
+			// Custom categories like //burn, //draw become category tags on subsequent cards
+			expect(parseSectionMarker("//burn")).toBeNull();
 		});
 	});
 

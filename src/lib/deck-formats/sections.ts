@@ -58,8 +58,8 @@ export function parseSectionMarker(line: string): SectionMarkerResult | null {
 			return { section: "commander", consumeLine: true };
 		}
 
-		// Other // comments are custom categories - treat as mainboard, consume line
-		return { section: "mainboard", consumeLine: true };
+		// Other // comments are custom categories - let parse.ts handle them
+		return null;
 	}
 
 	// XMage metadata lines - don't treat as section marker

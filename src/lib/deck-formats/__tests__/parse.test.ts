@@ -654,6 +654,68 @@ Sideboard
 		});
 	});
 
+	describe("category headers as tags", () => {
+		it("applies Deckstats //category comments to subsequent cards", () => {
+			const text = readFixture("deckstats", "commander-with-categories.dec");
+			const result = parseDeck(text, { format: "deckstats" });
+
+			// Cards under //burn should have "burn" tag
+			const instigator = result.mainboard.find(
+				(c) => c.name === "Agate Instigator",
+			);
+			expect(instigator?.tags).toContain("burn");
+
+			const aria = result.mainboard.find((c) => c.name === "Aria of Flame");
+			expect(aria?.tags).toContain("burn");
+		});
+
+		it("applies Archidekt category headers to subsequent cards", () => {
+			const text = readFixture("archidekt", "ashling-by-category.txt");
+			const result = parseDeck(text, { format: "archidekt" });
+
+			// Cards under "Burn" header should have "Burn" tag
+			// (in addition to any inline [Burn] tag they already have)
+			const pyremaw = result.mainboard.find(
+				(c) => c.name === "Caldera Pyremaw",
+			);
+			expect(pyremaw?.tags).toContain("Burn");
+
+			// Cards under "Draw" header should have "Draw" tag
+			const emeritus = result.mainboard.find(
+				(c) => c.name === "Archmage Emeritus",
+			);
+			expect(emeritus?.tags).toContain("Draw");
+		});
+
+		it("category resets when section changes", () => {
+			const text = `//burn
+1 Lightning Bolt
+
+Sideboard
+1 Pyroblast
+`;
+			const result = parseDeck(text, { format: "deckstats" });
+
+			const bolt = result.mainboard.find((c) => c.name === "Lightning Bolt");
+			expect(bolt?.tags).toContain("burn");
+
+			// Pyroblast should NOT have burn tag - section change resets category
+			const pyro = result.sideboard.find((c) => c.name === "Pyroblast");
+			expect(pyro?.tags).not.toContain("burn");
+		});
+
+		it("merges category tag with inline tags", () => {
+			const text = `Burn
+1x Lightning Bolt (2XM) 141 [Removal]
+`;
+			const result = parseDeck(text, { format: "archidekt" });
+
+			const bolt = result.mainboard[0];
+			expect(bolt.tags).toContain("Burn");
+			expect(bolt.tags).toContain("Removal");
+		});
+	});
+
 	describe("card name edge cases", () => {
 		it("parses cards with commas in name", () => {
 			const result = parseCardLine("1 Ach! Hans, Run!");
