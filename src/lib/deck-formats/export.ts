@@ -80,19 +80,8 @@ export function formatCardLine(
 		case "mtgo":
 			return `${quantity} ${name}`;
 
-		case "arena": {
-			const parts = [String(quantity), name];
-			if (setCode) {
-				parts.push(`(${setCode})`);
-				if (collectorNumber) {
-					parts.push(collectorNumber);
-				}
-			}
-			return parts.join(" ");
-		}
-
-		default: {
-			// moxfield, deckstats, generic, and unknown formats
+		case "moxfield": {
+			// Moxfield supports #tags
 			const parts = [String(quantity), name];
 			if (setCode) {
 				parts.push(`(${setCode})`);
@@ -102,6 +91,18 @@ export function formatCardLine(
 			}
 			if (tags.length > 0) {
 				parts.push(...tags.map((t) => `#${t}`));
+			}
+			return parts.join(" ");
+		}
+
+		default: {
+			// arena, deckstats, generic, unknown - no tag support
+			const parts = [String(quantity), name];
+			if (setCode) {
+				parts.push(`(${setCode})`);
+				if (collectorNumber) {
+					parts.push(collectorNumber);
+				}
 			}
 			return parts.join(" ");
 		}
@@ -185,14 +186,15 @@ function formatGeneric(deck: ParsedDeck): string {
 }
 
 /**
- * Archidekt format with Nx quantity, lowercase set codes, and section headers.
- * Uses [Category] markers for tags. We don't preserve {top}/{noDeck}/{noPrice} options.
+ * Archidekt format with Nx quantity, lowercase set codes.
+ * Uses [Category] markers for tags. Commander uses [Commander] inline tag.
+ * Only Sideboard and Maybeboard have section headers (`# Sideboard`, `# Maybeboard`).
  */
 function formatArchidekt(deck: ParsedDeck): string {
 	const sections: string[] = [];
 
+	// Commander uses [Commander] inline tag, no section header
 	if (deck.commander.length > 0) {
-		sections.push("Commander");
 		sections.push(
 			...deck.commander.map((c) => {
 				const line = formatCardLine(c, "archidekt");
@@ -200,46 +202,31 @@ function formatArchidekt(deck: ParsedDeck): string {
 				if (!c.tags?.length) {
 					return `${line} [Commander]`;
 				}
-				return line;
+				// Append Commander to existing tags
+				return `${line.slice(0, -1)},Commander]`;
 			}),
 		);
 		sections.push("");
 	}
 
+	// Mainboard has no section header
 	if (deck.mainboard.length > 0) {
-		sections.push("Mainboard");
 		sections.push(...deck.mainboard.map((c) => formatCardLine(c, "archidekt")));
 		sections.push("");
 	}
 
+	// Sideboard uses # Sideboard header
 	if (deck.sideboard.length > 0) {
-		sections.push("Sideboard");
-		sections.push(
-			...deck.sideboard.map((c) => {
-				const line = formatCardLine(c, "archidekt");
-				// Add [Sideboard] marker
-				if (!c.tags?.length) {
-					return `${line} [Sideboard]`;
-				}
-				// Append Sideboard to existing tags
-				return `${line.slice(0, -1)},Sideboard]`;
-			}),
-		);
+		sections.push("# Sideboard");
+		sections.push(...deck.sideboard.map((c) => formatCardLine(c, "archidekt")));
 		sections.push("");
 	}
 
+	// Maybeboard uses # Maybeboard header
 	if (deck.maybeboard.length > 0) {
-		sections.push("Maybeboard");
+		sections.push("# Maybeboard");
 		sections.push(
-			...deck.maybeboard.map((c) => {
-				const line = formatCardLine(c, "archidekt");
-				// Add [Maybeboard] marker (we don't preserve {noDeck}{noPrice} options)
-				if (!c.tags?.length) {
-					return `${line} [Maybeboard]`;
-				}
-				// Append Maybeboard to existing tags
-				return `${line.slice(0, -1)},Maybeboard]`;
-			}),
+			...deck.maybeboard.map((c) => formatCardLine(c, "archidekt")),
 		);
 	}
 
@@ -375,6 +362,7 @@ function formatMtggoldfish(deck: ParsedDeck): string {
 
 /**
  * Deckstats format with //Section comments and //NAME: metadata.
+ * Commander goes in mainboard with `# !Commander` marker (no separate section).
  */
 function formatDeckstats(deck: ParsedDeck): string {
 	const sections: string[] = [];
@@ -384,17 +372,16 @@ function formatDeckstats(deck: ParsedDeck): string {
 		sections.push("");
 	}
 
-	if (deck.commander.length > 0) {
+	// Mainboard includes commander cards (with # !Commander marker)
+	const hasMainContent = deck.commander.length > 0 || deck.mainboard.length > 0;
+	if (hasMainContent) {
+		sections.push("//Main");
+		// Commander cards first with marker
 		sections.push(
 			...deck.commander.map(
 				(c) => `${formatCardLine(c, "deckstats")} # !Commander`,
 			),
 		);
-		sections.push("");
-	}
-
-	if (deck.mainboard.length > 0) {
-		sections.push("//Main");
 		sections.push(...deck.mainboard.map((c) => formatCardLine(c, "deckstats")));
 		sections.push("");
 	}

@@ -96,12 +96,15 @@ const fixtures = collectFixtures();
 
 // Fixtures with structural differences that prevent text-identical roundtrip
 // - archidekt flat/by-category: cards alphabetized, category headers become card names
+// - archidekt sections: old format uses Commander/Mainboard headers, we use # Sideboard + inline [Commander]
 // - deckstats generic-*: cross-format (deckstats dir but generic expected format)
 // - deckstats commander-with-categories: custom //category comments we don't preserve
 const structurallyDifferentFixtures = new Set([
 	"archidekt/ashling-flat.txt",
 	"archidekt/ashling-flat-no-maybe.txt",
 	"archidekt/ashling-by-category.txt",
+	"archidekt/ashling-sections.txt",
+	"archidekt/ashling-sections-no-maybe.txt",
 	"archidekt/txt-with-categories.txt",
 	"deckstats/generic-simple.txt",
 	"deckstats/generic-txt.txt",

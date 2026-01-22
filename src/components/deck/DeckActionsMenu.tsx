@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { MoreVertical, Play, Trash2 } from "lucide-react";
+import { Download, MoreVertical, Play, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DeleteDeckDialog } from "@/components/deck/DeleteDeckDialog";
@@ -121,6 +121,15 @@ export function DeckActionsMenu({
 					>
 						<Play size={14} />
 						Playtest
+					</Link>
+					<Link
+						to="/profile/$did/deck/$rkey/export"
+						params={{ did, rkey }}
+						className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm flex items-center gap-2"
+						onClick={() => setIsOpen(false)}
+					>
+						<Download size={14} />
+						Export
 					</Link>
 					{!readOnly && (
 						<>

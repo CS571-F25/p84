@@ -31,7 +31,6 @@ export {
 export { parseCardLine, parseDeck } from "./parse";
 // Section utilities (for advanced use)
 export { extractInlineSection, parseSectionMarker } from "./sections";
-// Types
 export type {
 	DeckFormat,
 	DeckSection,
@@ -40,3 +39,5 @@ export type {
 	ParsedDeck,
 	SectionMarkerResult,
 } from "./types";
+// Types and constants
+export { DECK_FORMATS } from "./types";

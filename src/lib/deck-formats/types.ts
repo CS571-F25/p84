@@ -3,28 +3,69 @@
  */
 
 /**
- * Supported deck formats for import/export
- *
- * - arena: MTG Arena format (de facto standard)
- * - mtgo: MTGO format (names only, Sideboard: section)
- * - moxfield: Moxfield format (Arena + foil markers + tags)
- * - archidekt: Archidekt text export (inline section markers)
- * - mtggoldfish: MTGGoldfish exact versions (square brackets for set)
- * - xmage: XMage .dck format (set before name)
- * - deckstats: Deckstats.net format (comment sections)
- * - tappedout: TappedOut format (quantity with x suffix)
- * - generic: Plain card list (quantity + name only)
+ * Metadata for each supported deck format
  */
-export type DeckFormat =
-	| "arena"
-	| "mtgo"
-	| "moxfield"
-	| "archidekt"
-	| "mtggoldfish"
-	| "xmage"
-	| "deckstats"
-	| "tappedout"
-	| "generic";
+export const DECK_FORMATS = {
+	arena: {
+		label: "Arena",
+		description: "MTG Arena format",
+		extension: "txt",
+		options: { tags: false, setcodes: true },
+	},
+	mtgo: {
+		label: "MTGO",
+		description: "Names only",
+		extension: "txt",
+		options: { tags: false, setcodes: false },
+	},
+	moxfield: {
+		label: "Moxfield",
+		description: "With tags support",
+		extension: "txt",
+		options: { tags: true, setcodes: true },
+	},
+	archidekt: {
+		label: "Archidekt",
+		description: "With [markers]",
+		extension: "txt",
+		options: { tags: true, setcodes: true },
+	},
+	mtggoldfish: {
+		label: "MTGGoldfish",
+		description: "Exact versions",
+		extension: "txt",
+		options: { tags: false, setcodes: true },
+	},
+	xmage: {
+		label: "XMage",
+		description: "With set codes",
+		extension: "dck",
+		options: { tags: false, setcodes: true },
+	},
+	deckstats: {
+		label: "Deckstats",
+		description: "With //sections",
+		extension: "txt",
+		options: { tags: false, setcodes: true },
+	},
+	tappedout: {
+		label: "TappedOut",
+		description: "4x quantity style",
+		extension: "txt",
+		options: { tags: false, setcodes: true },
+	},
+	generic: {
+		label: "Plain Text",
+		description: "Quantity + name only",
+		extension: "txt",
+		options: { tags: false, setcodes: false },
+	},
+} as const;
+
+/**
+ * Supported deck formats for import/export
+ */
+export type DeckFormat = keyof typeof DECK_FORMATS;
 
 /**
  * Sections in a parsed deck
