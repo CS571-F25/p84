@@ -1,12 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { MessageSquare, Trash2 } from "lucide-react";
+import { useCallback, useState } from "react";
 import { ClientDate } from "@/components/ClientDate";
 import { RichtextRenderer } from "@/components/richtext/RichtextRenderer";
 import { type AtUri, asRkey } from "@/lib/atproto-client";
 import {
+	generateRkey,
 	getCommentQueryOptions,
 	getReplyQueryOptions,
+	useCreateReplyMutation,
 	useDeleteCommentMutation,
 	useDeleteReplyMutation,
 } from "@/lib/comment-queries";
@@ -16,7 +19,9 @@ import {
 	type SocialItemUri,
 } from "@/lib/constellation-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
+import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { useAuth } from "@/lib/useAuth";
+import { CommentForm } from "./CommentForm";
 
 type CommentType = "comment" | "reply";
 
@@ -25,7 +30,6 @@ interface CommentItemProps {
 	type: CommentType;
 	subjectUri?: SocialItemUri;
 	parentUri?: AtUri;
-	onReply?: () => void;
 }
 
 export function CommentItem({
@@ -33,9 +37,11 @@ export function CommentItem({
 	type,
 	subjectUri,
 	parentUri,
-	onReply,
 }: CommentItemProps) {
 	const { session } = useAuth();
+	const [showReplyForm, setShowReplyForm] = useState(false);
+	const createReply = useCreateReplyMutation();
+
 	const did = backlink.did;
 	const rkey = asRkey(backlink.rkey);
 
@@ -55,10 +61,7 @@ export function CommentItem({
 		enabled: type === "reply",
 	});
 
-	const replyCountQuery = useQuery({
-		...directReplyCountQueryOptions(uri),
-		enabled: !!onReply,
-	});
+	const replyCountQuery = useQuery(directReplyCountQueryOptions(uri));
 
 	const { data: didDoc } = useQuery(didDocumentQueryOptions(did));
 	const handle = extractHandle(didDoc ?? null);
@@ -69,6 +72,50 @@ export function CommentItem({
 		type === "comment" ? commentQuery.isError : replyQuery.isError;
 	const record =
 		type === "comment" ? commentQuery.data?.comment : replyQuery.data?.reply;
+	const cid =
+		type === "comment" ? commentQuery.data?.cid : replyQuery.data?.cid;
+	const rootRef =
+		type === "comment" && cid ? { uri, cid } : replyQuery.data?.reply.root;
+	const replyCount = replyCountQuery.data ?? 0;
+
+	const handleReplySubmit = useCallback(
+		(content: Document) => {
+			if (!session || !cid || !rootRef) return;
+
+			createReply.mutate(
+				{
+					record: {
+						$type: "com.deckbelcher.social.reply",
+						parent: { uri, cid },
+						root: rootRef,
+						content,
+						createdAt: new Date().toISOString(),
+					},
+					rkey: generateRkey(),
+				},
+				{
+					onSuccess: () => setShowReplyForm(false),
+				},
+			);
+		},
+		[session, uri, cid, rootRef, createReply],
+	);
+
+	const handleDelete = useCallback(() => {
+		if (type === "comment" && subjectUri) {
+			deleteCommentMutation.mutate({ rkey, subjectUri, did });
+		} else if (type === "reply" && parentUri) {
+			deleteReplyMutation.mutate({ rkey, parentUri, did });
+		}
+	}, [
+		type,
+		subjectUri,
+		parentUri,
+		rkey,
+		did,
+		deleteCommentMutation,
+		deleteReplyMutation,
+	]);
 
 	if (isLoading) {
 		return <CommentSkeleton />;
@@ -81,16 +128,6 @@ export function CommentItem({
 			</div>
 		);
 	}
-
-	const handleDelete = () => {
-		if (type === "comment" && subjectUri) {
-			deleteCommentMutation.mutate({ rkey, subjectUri, did });
-		} else if (type === "reply" && parentUri) {
-			deleteReplyMutation.mutate({ rkey, parentUri, did });
-		}
-	};
-
-	const replyCount = replyCountQuery.data ?? 0;
 
 	return (
 		<div className="py-3">
@@ -122,15 +159,22 @@ export function CommentItem({
 					</div>
 
 					<div className="mt-2 flex items-center gap-4">
-						{onReply && (
+						{session ? (
 							<button
 								type="button"
-								onClick={onReply}
+								onClick={() => setShowReplyForm(!showReplyForm)}
 								className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
 							>
 								<MessageSquare className="w-4 h-4" />
 								{replyCount > 0 && <span>{replyCount}</span>}
 							</button>
+						) : (
+							replyCount > 0 && (
+								<span className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+									<MessageSquare className="w-4 h-4" />
+									<span>{replyCount}</span>
+								</span>
+							)
 						)}
 
 						{isOwner &&
@@ -149,6 +193,18 @@ export function CommentItem({
 								</button>
 							)}
 					</div>
+
+					{showReplyForm && (
+						<div className="mt-3">
+							<CommentForm
+								onSubmit={handleReplySubmit}
+								onCancel={() => setShowReplyForm(false)}
+								isPending={createReply.isPending}
+								placeholder="Write a reply..."
+								submitLabel="Reply"
+							/>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>
@@ -161,12 +217,12 @@ function CommentSkeleton() {
 			<div className="flex items-start gap-3">
 				<div className="flex-1">
 					<div className="flex items-center gap-2">
-						<div className="h-4 w-24 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
-						<div className="h-4 w-16 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+						<div className="h-4 w-24 bg-gray-200 dark:bg-slate-700 rounded motion-safe:animate-pulse" />
+						<div className="h-4 w-16 bg-gray-200 dark:bg-slate-700 rounded motion-safe:animate-pulse" />
 					</div>
 					<div className="mt-2 space-y-2">
-						<div className="h-4 w-full bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
-						<div className="h-4 w-3/4 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+						<div className="h-4 w-full bg-gray-200 dark:bg-slate-700 rounded motion-safe:animate-pulse" />
+						<div className="h-4 w-3/4 bg-gray-200 dark:bg-slate-700 rounded motion-safe:animate-pulse" />
 					</div>
 				</div>
 			</div>

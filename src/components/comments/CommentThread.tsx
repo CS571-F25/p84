@@ -16,7 +16,6 @@ interface CommentThreadProps {
 	/** URI of the parent comment/reply (for deletion cache updates) */
 	parentUri?: AtUri;
 	depth?: number;
-	maxDepth?: number;
 }
 
 export function CommentThread({
@@ -25,10 +24,8 @@ export function CommentThread({
 	subjectUri,
 	parentUri,
 	depth = 0,
-	maxDepth = 10,
 }: CommentThreadProps) {
 	const [showReplies, setShowReplies] = useState(depth < 2);
-	const [showReplyForm, setShowReplyForm] = useState(false);
 
 	const did = backlink.did;
 	const rkey = asRkey(backlink.rkey);
@@ -45,11 +42,6 @@ export function CommentThread({
 	const replies = repliesQuery.data?.pages.flatMap((p) => p.records) ?? [];
 	const hasReplies = replyCount > 0 || replies.length > 0;
 
-	const handleReply = () => {
-		setShowReplyForm(true);
-		setShowReplies(true);
-	};
-
 	return (
 		<div
 			className={
@@ -61,16 +53,7 @@ export function CommentThread({
 				type={type}
 				subjectUri={subjectUri}
 				parentUri={parentUri}
-				onReply={depth < maxDepth ? handleReply : undefined}
 			/>
-
-			{showReplyForm && (
-				<div className="pl-4 py-2">
-					<div className="text-sm text-gray-500 dark:text-gray-400 italic">
-						Reply form coming soon...
-					</div>
-				</div>
-			)}
 
 			{hasReplies && !showReplies && (
 				<button
@@ -92,7 +75,6 @@ export function CommentThread({
 							subjectUri={subjectUri}
 							parentUri={uri}
 							depth={depth + 1}
-							maxDepth={maxDepth}
 						/>
 					))}
 				</div>

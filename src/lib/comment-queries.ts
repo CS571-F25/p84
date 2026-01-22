@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import {
 	type AtUri,
 	asRkey,
+	computeRecordCid,
 	createCommentRecord,
 	createReplyRecord,
 	deleteCommentRecord,
@@ -41,25 +42,13 @@ import { useMutationWithToast } from "./useMutationWithToast";
 type CommentRecord = ComDeckbelcherSocialComment.Main;
 type ReplyRecord = ComDeckbelcherSocialReply.Main;
 
-/**
- * Marker for optimistic CIDs that haven't been confirmed by the server.
- * Using a symbol ensures TypeScript will error if you try to use an
- * optimistic CID in a strongRef, and it can't be accidentally serialized.
- *
- * WARN: Do not use optimistic CIDs when creating replies - the strongRef
- * would be invalid. Compute real CID client-side or wait for server confirmation.
- */
-const OPTIMISTIC_CID_SYMBOL = Symbol("optimistic-cid");
-type OptimisticCid = { readonly [OPTIMISTIC_CID_SYMBOL]: true };
-const OPTIMISTIC_CID: OptimisticCid = { [OPTIMISTIC_CID_SYMBOL]: true };
-
 // ============================================================================
 // Query Options (fetch record content from PDS)
 // ============================================================================
 
 export interface CommentRecordData {
 	comment: CommentRecord;
-	cid: string | OptimisticCid;
+	cid: string;
 }
 
 export const getCommentQueryOptions = (did: Did, rkey: Rkey) =>
@@ -80,7 +69,7 @@ export const getCommentQueryOptions = (did: Did, rkey: Rkey) =>
 
 export interface ReplyRecordData {
 	reply: ReplyRecord;
-	cid: string | OptimisticCid;
+	cid: string;
 }
 
 export const getReplyQueryOptions = (did: Did, rkey: Rkey) =>
@@ -133,6 +122,8 @@ export function useCreateCommentMutation() {
 			const userDid = session?.info.sub;
 			if (!subjectUri || !userDid) return;
 
+			const cid = await computeRecordCid(record);
+
 			const rollback = await runOptimistic([
 				optimisticCount(
 					queryClient,
@@ -149,11 +140,10 @@ export function useCreateCommentMutation() {
 						rkey,
 					},
 				),
-				// Seed the comment record cache so CommentItem doesn't show skeleton
 				optimisticRecord<CommentRecordData>(
 					queryClient,
 					["comment", userDid, rkey],
-					{ comment: record, cid: OPTIMISTIC_CID },
+					{ comment: record, cid },
 				),
 			]);
 
@@ -194,6 +184,7 @@ export function useCreateReplyMutation() {
 			if (!userDid) return;
 
 			const parentUri = record.parent.uri;
+			const cid = await computeRecordCid(record);
 
 			const rollback = await runOptimistic([
 				optimisticCount(
@@ -211,11 +202,10 @@ export function useCreateReplyMutation() {
 						rkey,
 					},
 				),
-				// Seed the reply record cache so CommentItem doesn't show skeleton
 				optimisticRecord<ReplyRecordData>(
 					queryClient,
 					["reply", userDid, rkey],
-					{ reply: record, cid: OPTIMISTIC_CID },
+					{ reply: record, cid },
 				),
 			]);
 

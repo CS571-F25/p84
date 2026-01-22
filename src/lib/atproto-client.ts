@@ -4,6 +4,12 @@
  */
 
 import type {} from "@atcute/atproto";
+import { encode as encodeCbor } from "@atcute/cbor";
+import {
+	CODEC_DCBOR,
+	toString as cidToString,
+	create as createCid,
+} from "@atcute/cid";
 import { Client } from "@atcute/client";
 import type { Did } from "@atcute/lexicons";
 import {
@@ -527,6 +533,14 @@ export async function hashToRkey(
 		.replace(/=/g, "");
 
 	return asRkey(base64url);
+}
+
+export async function computeRecordCid<T extends { $type: string }>(
+	record: T,
+): Promise<string> {
+	const bytes = encodeCbor(record);
+	const cid = await createCid(CODEC_DCBOR, bytes);
+	return cidToString(cid);
 }
 
 export async function createLikeRecord(

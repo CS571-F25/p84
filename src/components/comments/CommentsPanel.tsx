@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { MessageSquare, X } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { generateRkey, useCreateCommentMutation } from "@/lib/comment-queries";
 import {
 	itemCommentCountQueryOptions,
@@ -37,6 +37,7 @@ export function CommentsPanel({
 	maxHeight = "max-h-[64rem]",
 }: CommentsPanelProps) {
 	const { session } = useAuth();
+	const [showForm, setShowForm] = useState(false);
 	const createComment = useCreateCommentMutation();
 
 	const countQuery = useQuery(
@@ -53,15 +54,18 @@ export function CommentsPanel({
 	const handleSubmit = useCallback(
 		(content: Document) => {
 			if (!session) return;
-			createComment.mutate({
-				record: {
-					$type: "com.deckbelcher.social.comment",
-					subject,
-					content,
-					createdAt: new Date().toISOString(),
+			createComment.mutate(
+				{
+					record: {
+						$type: "com.deckbelcher.social.comment",
+						subject,
+						content,
+						createdAt: new Date().toISOString(),
+					},
+					rkey: generateRkey(),
 				},
-				rkey: generateRkey(),
-			});
+				{ onSuccess: () => setShowForm(false) },
+			);
 		},
 		[createComment, session, subject],
 	);
@@ -135,12 +139,23 @@ export function CommentsPanel({
 
 			{session && (
 				<div className="border-t border-gray-200 dark:border-slate-700 px-4 py-2">
-					<CommentForm
-						onSubmit={handleSubmit}
-						isPending={createComment.isPending}
-						placeholder="Write a comment..."
-						availableTags={availableTags}
-					/>
+					{showForm ? (
+						<CommentForm
+							onSubmit={handleSubmit}
+							onCancel={() => setShowForm(false)}
+							isPending={createComment.isPending}
+							placeholder="Write a comment..."
+							availableTags={availableTags}
+						/>
+					) : (
+						<button
+							type="button"
+							onClick={() => setShowForm(true)}
+							className="w-full text-left px-3 py-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-800 rounded-md hover:bg-gray-100 dark:hover:bg-slate-700"
+						>
+							Write a comment...
+						</button>
+					)}
 				</div>
 			)}
 
