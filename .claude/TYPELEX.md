@@ -89,9 +89,9 @@ To reference external AT Protocol lexicons (like `com.atproto.repo.strongRef`):
      > lexicons/com/atproto/repo/strongRef.json
    ```
 
-2. **Run typelex** - it auto-generates `typelex/externals.tsp` with `@external` stubs:
+2. **Run lexicons:compile** - it auto-generates `typelex/externals.tsp` with `@external` stubs:
    ```bash
-   npm run build:typelex
+   npm run lexicons:compile
    ```
 
 3. **Reference the external type** using the full namespace + `.Main`:
@@ -132,7 +132,7 @@ namespace com.atproto.repo.strongRef {
 ## Compilation
 
 ```bash
-npm run build:typelex
+npm run lexicons:compile
 # runs: typelex compile com.deckbelcher.*
 ```
 

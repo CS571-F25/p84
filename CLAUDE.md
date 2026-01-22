@@ -34,9 +34,11 @@ npm run format         # Format code
 npm run check          # Check both linting and formatting
 npm run typecheck      # Check TypeScript types
 
-# Typelex (schema generation)
-npm run build:typelex   # Compile lexicons from typelex/*.tsp to lexicons/
-npm run build:lexicons  # Generate TS types from lexicons/ to src/lib/lexicons/
+# Lexicons (schema generation)
+npm run lexicons:compile  # Compile TypeSpec (.tsp) → JSON lexicons
+npm run lexicons:codegen  # Generate TypeScript types from JSON lexicons
+npm run lexicons:scopes   # Generate OAuth scopes from JSON lexicons
+npm run lexicons:all      # Run all three in sequence
 ```
 
 ## Architecture
@@ -69,9 +71,10 @@ TypeScript paths are configured with `@/*` alias pointing to `src/*` (tsconfig.j
 - **Source**: `typelex/*.tsp` - TypeSpec definitions for AT Protocol lexicons
 - **Generated JSON**: `lexicons/com/deckbelcher/**/*.json` - Compiled lexicon schemas
 - **Generated TS**: `src/lib/lexicons/` - TypeScript types from lexicons
-- After modifying `.tsp` files, run both:
-  1. `npm run build:typelex` - compiles TypeSpec → JSON lexicons
-  2. `npm run build:lexicons` - generates TypeScript types from JSON lexicons
+- After modifying `.tsp` files, run `npm run lexicons:all` which:
+  1. `lexicons:compile` - compiles TypeSpec → JSON lexicons
+  2. `lexicons:codegen` - generates TypeScript types from JSON lexicons
+  3. `lexicons:scopes` - updates OAuth scopes in `public/client-metadata.json`
 - Lexicons follow AT Protocol conventions (used for ATProto/Bluesky integrations)
 
 ### Styling

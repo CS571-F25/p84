@@ -17,8 +17,10 @@
     "check": "biome check",
     "typecheck": "tsc --noEmit",
     "typecheck:faster": "npm run typecheck -- --skipLibCheck --incremental",
-    "build:typelex": "typelex compile com.deckbelcher.*",
-    "build:lexicons": "lex-cli generate -c ./lex.config.js",
+    "lexicons:compile": "typelex compile com.deckbelcher.*",
+    "lexicons:codegen": "lex-cli generate -c ./lex.config.js",
+    "lexicons:scopes": "node --experimental-strip-types scripts/generate-oauth-scopes.ts",
+    "lexicons:all": "npm run lexicons:compile && npm run lexicons:codegen && npm run lexicons:scopes",
     "download:scryfall": "node --experimental-strip-types scripts/download-scryfall.ts"
   },
   "dependencies": {

@@ -152,8 +152,7 @@ Lexicons define the schema for deck records. See `.claude/TYPELEX.md` for TypeSp
 
 **Generating types:**
 ```bash
-npm run build:typelex  # TypeSpec → JSON lexicons
-# Types are auto-generated to src/lib/lexicons/
+npm run lexicons:all  # TypeSpec → JSON → TypeScript types + OAuth scopes
 ```
 
 ## Query Integration
