@@ -38,6 +38,17 @@ namespace com.deckbelcher.deck.list {
   @maxLength(640)
   scalar CardTag extends string;
 
+  /** Which section of the deck this card belongs to. Extensible to support format-specific sections. */
+  @maxGraphemes(64)
+  @maxLength(640)
+  union Section {
+    "mainboard",
+    "sideboard",
+    "maybeboard",
+    "commander",
+    string,
+  }
+
   /** A card entry in a decklist. */
   model Card {
     /** Reference to the card (scryfall printing + oracle card). */
@@ -51,7 +62,7 @@ namespace com.deckbelcher.deck.list {
 
     /** Which section of the deck this card belongs to. Extensible to support format-specific sections. */
     @required
-    section: "mainboard" | "sideboard" | "maybeboard" | "commander" | string;
+    section: Section;
 
     /** User annotations for this card in this deck (e.g., "removal", "wincon", "ramp"). */
     @maxItems(128)

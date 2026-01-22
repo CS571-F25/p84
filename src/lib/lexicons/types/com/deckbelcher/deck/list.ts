@@ -24,9 +24,9 @@ const _cardSchema = /*#__PURE__*/ v.object({
   /**
    * Which section of the deck this card belongs to. Extensible to support format-specific sections.
    */
-  section: /*#__PURE__*/ v.string<
-    "commander" | "mainboard" | "maybeboard" | "sideboard" | (string & {})
-  >(),
+  get section() {
+    return sectionSchema;
+  },
   /**
    * User annotations for this card in this deck (e.g., "removal", "wincon", "ramp").
    * @maxLength 128
@@ -89,18 +89,31 @@ const _mainSchema = /*#__PURE__*/ v.record(
     updatedAt: /*#__PURE__*/ v.optional(/*#__PURE__*/ v.datetimeString()),
   }),
 );
+const _sectionSchema = /*#__PURE__*/ v.constrain(
+  /*#__PURE__*/ v.string<
+    "commander" | "mainboard" | "maybeboard" | "sideboard" | (string & {})
+  >(),
+  [
+    /*#__PURE__*/ v.stringLength(0, 640),
+    /*#__PURE__*/ v.stringGraphemes(0, 64),
+  ],
+);
 
 type card$schematype = typeof _cardSchema;
 type main$schematype = typeof _mainSchema;
+type section$schematype = typeof _sectionSchema;
 
 export interface cardSchema extends card$schematype {}
 export interface mainSchema extends main$schematype {}
+export interface sectionSchema extends section$schematype {}
 
 export const cardSchema = _cardSchema as cardSchema;
 export const mainSchema = _mainSchema as mainSchema;
+export const sectionSchema = _sectionSchema as sectionSchema;
 
 export interface Card extends v.InferInput<typeof cardSchema> {}
 export interface Main extends v.InferInput<typeof mainSchema> {}
+export type Section = v.InferInput<typeof sectionSchema>;
 
 declare module "@atcute/lexicons/ambient" {
   interface Records {

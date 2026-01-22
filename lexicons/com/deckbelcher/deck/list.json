@@ -66,13 +66,8 @@
           "description": "Number of copies in the deck."
         },
         "section": {
-          "type": "string",
-          "knownValues": [
-            "mainboard",
-            "sideboard",
-            "maybeboard",
-            "commander"
-          ],
+          "type": "ref",
+          "ref": "#section",
           "description": "Which section of the deck this card belongs to. Extensible to support format-specific sections."
         },
         "tags": {
@@ -93,6 +88,18 @@
         "quantity",
         "section"
       ]
+    },
+    "section": {
+      "type": "string",
+      "knownValues": [
+        "mainboard",
+        "sideboard",
+        "maybeboard",
+        "commander"
+      ],
+      "maxLength": 640,
+      "maxGraphemes": 64,
+      "description": "Which section of the deck this card belongs to. Extensible to support format-specific sections."
     }
   }
 }

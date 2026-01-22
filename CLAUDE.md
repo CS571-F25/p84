@@ -73,9 +73,12 @@ TypeScript paths are configured with `@/*` alias pointing to `src/*` (tsconfig.j
 - **Generated TS**: `src/lib/lexicons/` - TypeScript types from lexicons
 - After modifying `.tsp` files, run `npm run lexicons:all` which:
   1. `lexicons:compile` - compiles TypeSpec → JSON lexicons
-  2. `lexicons:codegen` - generates TypeScript types from JSON lexicons
-  3. `lexicons:scopes` - updates OAuth scopes in `public/client-metadata.json`
+  2. `lexicons:lint` - lints lexicons with `goat lex lint`
+  3. `lexicons:codegen` - generates TypeScript types from JSON lexicons
+  4. `lexicons:scopes` - updates OAuth scopes in `public/client-metadata.json`
 - Lexicons follow AT Protocol conventions (used for ATProto/Bluesky integrations)
+
+**IMPORTANT**: NEVER edit files in `lexicons/` directly - they are generated from TypeSpec. Edit the `.tsp` files in `typelex/` and run `npm run lexicons:all` to regenerate.
 
 ### Styling
 
