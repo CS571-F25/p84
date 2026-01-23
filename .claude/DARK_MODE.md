@@ -180,6 +180,18 @@ If cyan doesn't work out, these were researched as alternatives:
 | rose-400 | `#fb7185` | Links and buttons both | Could conflict with error red |
 | teal-400 | `#2dd4bf` | Warmer cyan alternative | Still cool-toned |
 
+## Automated Accessibility Testing
+
+Run `npm run test:a11y` to check for WCAG 2.1 AA violations in both light and dark mode.
+
+Tests cover: home page, card search, card detail pages. Uses axe-core via Playwright.
+
+**Playwright version must match nix flake browsers.** The flake provides `playwright-driver.browsers` and sets `PLAYWRIGHT_BROWSERS_PATH`. If you see "Executable doesn't exist" errors, the npm `playwright` version doesn't match the nix browser version. Check browser versions:
+- Nix: `ls $PLAYWRIGHT_BROWSERS_PATH` (e.g., `chromium_headless_shell-1200`)
+- NPM: error message shows expected version (e.g., `chromium_headless_shell-1181`)
+
+Update npm playwright to match: `npm install playwright@<version> --save-dev`
+
 ## References
 
 - [Discord Color Palette](https://www.color-hex.com/color-palette/114089)

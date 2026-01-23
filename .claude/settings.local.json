@@ -66,7 +66,8 @@
       "Bash(npm run build:lexicons:*)",
       "Bash(npm run lexicons:lint:*)",
       "Bash(npm run lexicons:all:*)",
-      "Bash(goat lex:*)"
+      "Bash(goat lex:*)",
+      "Bash(npm run test:a11y:*)"
     ],
     "deny": [],
     "ask": []

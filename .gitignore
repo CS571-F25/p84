@@ -19,3 +19,7 @@ src/lib/set-symbols.ts
 .cache/
 
 tsconfig.tsbuildinfo
+
+# Playwright test outputs
+test-results/
+playwright-report/

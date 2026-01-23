@@ -142,3 +142,24 @@ This file tracks discovered issues, refactoring opportunities, and feature ideas
 ### Integration tests for worker
 - Worker code tested via mocked Comlink
 - Would benefit from actual worker instantiation tests
+
+---
+
+## Accessibility (a11y)
+
+Run `npm run test:a11y` to check. Currently failing on Card Search, Profile, Deck pages.
+
+### color-contrast: cyan links on gray backgrounds
+- **Location**: Search primer (`src/components/SearchPrimer.tsx`)
+- **Issue**: cyan-600 (#007595) on gray-200 (#e5e7eb) = 4.26:1, need 4.5:1 for AA
+- **Fix**: Either darken cyan to ~cyan-700 or lighten background
+
+### link-in-text-block: links not distinguishable
+- **Location**: Inline links in search primer, profile bio, etc.
+- **Issue**: Links only distinguished by color, need underline or 3:1 contrast vs surrounding text
+- **Fix**: Add `hover:underline` → `underline hover:no-underline` or ensure sufficient contrast
+
+### select-name: dropdowns missing accessible names
+- **Location**: Sort dropdowns on card search, deck page
+- **Issue**: `<select>` elements have no `aria-label` or associated `<label>`
+- **Fix**: Add `aria-label="Sort by"` or wrap with `<label>`
