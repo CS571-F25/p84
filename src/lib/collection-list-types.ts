@@ -4,18 +4,8 @@
  */
 
 import type { ResourceUri } from "@atcute/lexicons";
-import type { DeckItemUri } from "./constellation-queries";
 import type { ComDeckbelcherCollectionList } from "./lexicons/index";
 import type { OracleId, ScryfallId } from "./scryfall-types";
-
-/**
- * Item to save to a list (card or deck)
- * Shared by SaveToListDialog and SocialStats
- * Deck items use strongRef (uri + cid) matching the lexicon
- */
-export type SaveItem =
-	| { type: "card"; scryfallId: ScryfallId; oracleId: OracleId }
-	| { type: "deck"; uri: DeckItemUri; cid: string };
 
 /**
  * App-side card item with flat typed IDs.

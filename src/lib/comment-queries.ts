@@ -25,7 +25,6 @@ import {
 	updateReplyRecord,
 } from "./atproto-client";
 import { COMMENT_NSID, REPLY_NSID } from "./constellation-client";
-import type { SocialItemUri } from "./constellation-queries";
 import type {
 	ComDeckbelcherSocialComment,
 	ComDeckbelcherSocialReply,
@@ -36,6 +35,7 @@ import {
 	optimisticRecord,
 	runOptimistic,
 } from "./optimistic-utils";
+import type { SocialItemUri } from "./social-item-types";
 import { useAuth } from "./useAuth";
 import { useMutationWithToast } from "./useMutationWithToast";
 

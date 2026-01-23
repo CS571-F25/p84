@@ -5,8 +5,8 @@ import type { BacklinkRecord } from "@/lib/constellation-client";
 import {
 	directRepliesQueryOptions,
 	directReplyCountQueryOptions,
-	type SocialItemUri,
 } from "@/lib/constellation-queries";
+import type { SocialItemUri } from "@/lib/social-item-types";
 import { CommentItem } from "./CommentItem";
 
 interface CommentThreadProps {

@@ -5,8 +5,11 @@
 import type { ResourceUri } from "@atcute/lexicons";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createLikeRecord, deleteLikeRecord } from "./atproto-client";
-import type { SaveItem } from "./collection-list-types";
+import {
+	createLikeRecord,
+	deleteLikeRecord,
+	hashToRkey,
+} from "./atproto-client";
 import { LIKE_NSID } from "./constellation-client";
 import { getConstellationQueryKeys } from "./constellation-queries";
 import type { ComDeckbelcherSocialLike } from "./lexicons/index";
@@ -18,6 +21,11 @@ import {
 } from "./optimistic-utils";
 import type { OracleId, ScryfallId } from "./scryfall-types";
 import { toOracleUri, toScryfallUri } from "./scryfall-types";
+import {
+	getItemTypeName,
+	getSocialItemUri,
+	type SocialItem,
+} from "./social-item-types";
 import { useAuth } from "./useAuth";
 import { useMutationWithToast } from "./useMutationWithToast";
 
@@ -54,13 +62,25 @@ function buildRecordSubject(
 }
 
 interface ToggleLikeParams {
-	item: SaveItem;
+	item: SocialItem;
 	isLiked: boolean;
 	itemName?: string;
 }
 
 /**
- * Mutation for toggling a like on a card or deck
+ * Build the like subject for any social item type.
+ * Cards use cardSubject, everything else uses recordSubject.
+ */
+function buildLikeSubject(item: SocialItem): LikeSubject {
+	if (item.type === "card") {
+		return buildCardSubject(item.scryfallId, item.oracleId);
+	}
+	// deck, comment, reply all use recordSubject with uri + cid
+	return buildRecordSubject(item.uri, item.cid);
+}
+
+/**
+ * Mutation for toggling a like on any social item (card, deck, comment, reply)
  * Handles optimistic updates for constellation queries
  */
 export function useLikeMutation() {
@@ -73,15 +93,7 @@ export function useLikeMutation() {
 				throw new Error("Must be authenticated to like");
 			}
 
-			let subject: LikeSubject;
-			if (params.item.type === "deck") {
-				subject = buildRecordSubject(params.item.uri, params.item.cid);
-			} else {
-				subject = buildCardSubject(
-					params.item.scryfallId,
-					params.item.oracleId,
-				);
-			}
+			const subject = buildLikeSubject(params.item);
 
 			if (params.isLiked) {
 				const result = await deleteLikeRecord(agent, subject);
@@ -99,13 +111,14 @@ export function useLikeMutation() {
 		},
 		onMutate: async (params: ToggleLikeParams) => {
 			const userDid = session?.info.sub;
-			const itemUri =
-				params.item.type === "deck"
-					? (params.item.uri as `at://${string}`)
-					: toOracleUri(params.item.oracleId);
+			const itemUri = getSocialItemUri(params.item);
 
 			const keys = getConstellationQueryKeys(itemUri, userDid);
 			const newLikedState = !params.isLiked;
+
+			// Compute the deterministic rkey from subject ref (same as create/delete)
+			const subject = buildLikeSubject(params.item);
+			const rkey = await hashToRkey(subject.ref);
 
 			const rollback = await runOptimistic([
 				optimisticToggle(
@@ -114,8 +127,6 @@ export function useLikeMutation() {
 					keys.likeCount,
 					newLikedState,
 				),
-				// rkey is deterministic (hash of subject) but empty is fine here
-				// since backlinks filtering is by did, not rkey
 				when(userDid, (did) =>
 					optimisticBacklinks(
 						queryClient,
@@ -124,7 +135,7 @@ export function useLikeMutation() {
 						{
 							did,
 							collection: LIKE_NSID,
-							rkey: "",
+							rkey,
 						},
 					),
 				),
@@ -136,8 +147,7 @@ export function useLikeMutation() {
 			context?.rollback();
 		},
 		onSuccess: (data, params) => {
-			const what =
-				params.itemName ?? (params.item.type === "card" ? "Card" : "Deck");
+			const what = params.itemName ?? getItemTypeName(params.item);
 			if (data.wasLiked) {
 				toast.success(`Unliked ${what}`);
 			} else {

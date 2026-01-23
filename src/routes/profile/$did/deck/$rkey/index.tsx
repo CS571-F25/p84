@@ -57,25 +57,23 @@ import { usePersistedState } from "@/lib/usePersistedState";
 export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 	component: DeckEditorPage,
 	loader: async ({ context, params }) => {
-		const deckUri =
-			`at://${params.did}/${DECK_LIST_NSID}/${params.rkey}` as const;
-
-		// Start social stats prefetch immediately (only needs params)
-		const socialPromise = prefetchSocialStats(
-			context.queryClient,
-			deckUri,
-			"deck",
-		);
-
-		// Prefetch deck data, then cards (needs deck.cards)
-		const { deck } = await context.queryClient.ensureQueryData(
+		// Prefetch deck data first (need cid for social stats)
+		const { deck, cid } = await context.queryClient.ensureQueryData(
 			getDeckQueryOptions(params.did as Did, asRkey(params.rkey)),
 		);
 
+		const deckUri =
+			`at://${params.did}/${DECK_LIST_NSID}/${params.rkey}` as const;
+
+		// Prefetch cards and social stats in parallel
 		const cardIds = deck.cards.map((card) => card.scryfallId);
 		await Promise.all([
 			prefetchCards(context.queryClient, cardIds),
-			socialPromise,
+			prefetchSocialStats(context.queryClient, {
+				type: "deck",
+				uri: deckUri,
+				cid,
+			}),
 		]);
 
 		// Compute featured card for OG image using same logic as deck preview

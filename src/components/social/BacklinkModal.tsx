@@ -3,22 +3,18 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { Bookmark, Heart, Loader2, Rows3, X } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 import {
-	type CardItemUri,
 	cardDeckBacklinksQueryOptions,
-	type DeckItemUri,
 	itemLikersQueryOptions,
 	itemSaversQueryOptions,
-	type SocialItemType,
-	type SocialItemUri,
 } from "@/lib/constellation-queries";
+import { isSaveable, type SocialItem } from "@/lib/social-item-types";
 import { BacklinkRow, type BacklinkType, RowSkeleton } from "./BacklinkRow";
 
 interface BacklinkModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	type: BacklinkType;
-	itemUri: SocialItemUri;
-	itemType: SocialItemType;
+	item: SocialItem;
 	total: number;
 }
 
@@ -47,8 +43,7 @@ export function BacklinkModal({
 	isOpen,
 	onClose,
 	type,
-	itemUri,
-	itemType,
+	item,
 	total,
 }: BacklinkModalProps) {
 	const titleId = useId();
@@ -56,20 +51,27 @@ export function BacklinkModal({
 	const config = MODAL_CONFIG[type];
 	const Icon = config.icon;
 
-	const likersQuery = useInfiniteQuery({
-		...itemLikersQueryOptions(itemUri as CardItemUri | DeckItemUri, itemType),
-		enabled: isOpen && type === "likes",
-	});
+	// Narrow to specific item types for type-safe queries
+	const saveableItem = isSaveable(item) ? item : undefined;
+	const cardItem = item.type === "card" ? item : undefined;
 
-	const saversQuery = useInfiniteQuery({
-		...itemSaversQueryOptions(itemUri as CardItemUri | DeckItemUri, itemType),
-		enabled: isOpen && type === "saves",
-	});
+	// Pass enabled state into query options to avoid spread + override type issues
+	const likersQuery = useInfiniteQuery(
+		itemLikersQueryOptions(isOpen && type === "likes" ? item : undefined),
+	);
 
-	const decksQuery = useInfiniteQuery({
-		...cardDeckBacklinksQueryOptions(itemUri as CardItemUri),
-		enabled: isOpen && type === "decks",
-	});
+	// Saves only apply to saveable items (card/deck)
+	const saversQuery = useInfiniteQuery(
+		itemSaversQueryOptions(
+			isOpen && type === "saves" ? saveableItem : undefined,
+		),
+	);
+
+	const decksQuery = useInfiniteQuery(
+		cardDeckBacklinksQueryOptions(
+			isOpen && type === "decks" ? cardItem : undefined,
+		),
+	);
 
 	const activeQuery =
 		type === "likes"

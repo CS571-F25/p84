@@ -12,13 +12,13 @@ import {
 	type CollectionList,
 	hasCard,
 	hasDeck,
-	type SaveItem,
 } from "@/lib/collection-list-types";
 import { getConstellationQueryKeys } from "@/lib/constellation-queries";
 import { toOracleUri } from "@/lib/scryfall-types";
+import type { SaveableItem } from "@/lib/social-item-types";
 
 interface SaveToListDialogProps {
-	item: SaveItem;
+	item: SaveableItem;
 	itemName?: string;
 	userDid: Did;
 	isOpen: boolean;
@@ -206,7 +206,7 @@ export function SaveToListDialog({
 interface ListRowProps {
 	list: CollectionList;
 	rkey: string;
-	item: SaveItem;
+	item: SaveableItem;
 	itemName?: string;
 	userDid: Did;
 	onClose: () => void;

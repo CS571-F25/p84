@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { MessageSquare, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { ClientDate } from "@/components/ClientDate";
 import { RichtextRenderer } from "@/components/richtext/RichtextRenderer";
+import { SocialStats } from "@/components/social/SocialStats";
 import { type AtUri, asRkey } from "@/lib/atproto-client";
 import {
 	generateRkey,
@@ -14,12 +15,14 @@ import {
 	useDeleteReplyMutation,
 } from "@/lib/comment-queries";
 import type { BacklinkRecord } from "@/lib/constellation-client";
-import {
-	directReplyCountQueryOptions,
-	type SocialItemUri,
-} from "@/lib/constellation-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
+import type {
+	CommentUri,
+	ReplyUri,
+	SocialItem,
+	SocialItemUri,
+} from "@/lib/social-item-types";
 import { useAuth } from "@/lib/useAuth";
 import { CommentForm } from "./CommentForm";
 
@@ -61,8 +64,6 @@ export function CommentItem({
 		enabled: type === "reply",
 	});
 
-	const replyCountQuery = useQuery(directReplyCountQueryOptions(uri));
-
 	const { data: didDoc } = useQuery(didDocumentQueryOptions(did));
 	const handle = extractHandle(didDoc ?? null);
 
@@ -76,7 +77,13 @@ export function CommentItem({
 		type === "comment" ? commentQuery.data?.cid : replyQuery.data?.cid;
 	const rootRef =
 		type === "comment" && cid ? { uri, cid } : replyQuery.data?.reply.root;
-	const replyCount = replyCountQuery.data ?? 0;
+
+	// Construct SocialItem for SocialStats - requires cid from loaded record
+	const socialItem: SocialItem | null = cid
+		? type === "comment"
+			? { type: "comment", uri: uri as CommentUri, cid }
+			: { type: "reply", uri: uri as ReplyUri, cid }
+		: null;
 
 	const handleReplySubmit = useCallback(
 		(content: Document) => {
@@ -158,25 +165,19 @@ export function CommentItem({
 						<RichtextRenderer doc={record.content} />
 					</div>
 
-					<div className="mt-2 flex items-center gap-4">
-						{session ? (
-							<button
-								type="button"
-								onClick={() => setShowReplyForm(!showReplyForm)}
-								className="flex items-center gap-1 text-sm text-gray-500 dark:text-zinc-300 hover:text-gray-700 dark:hover:text-zinc-200"
-							>
-								<MessageSquare className="w-4 h-4" />
-								{replyCount > 0 && <span>{replyCount}</span>}
-							</button>
-						) : (
-							replyCount > 0 && (
-								<span className="flex items-center gap-1 text-sm text-gray-500 dark:text-zinc-300">
-									<MessageSquare className="w-4 h-4" />
-									<span>{replyCount}</span>
-								</span>
-							)
+					<div className="mt-2 flex items-center gap-2">
+						{/* SocialStats for likes + reply button */}
+						{socialItem && (
+							<SocialStats
+								item={socialItem}
+								showCount={true}
+								onCommentClick={
+									session ? () => setShowReplyForm(!showReplyForm) : undefined
+								}
+							/>
 						)}
 
+						{/* Delete button for owner */}
 						{isOwner &&
 							((type === "comment" && subjectUri) ||
 								(type === "reply" && parentUri)) && (
@@ -187,7 +188,7 @@ export function CommentItem({
 										deleteCommentMutation.isPending ||
 										deleteReplyMutation.isPending
 									}
-									className="flex items-center gap-1 text-sm text-gray-500 dark:text-zinc-300 hover:text-red-600 dark:hover:text-red-400"
+									className="flex items-center gap-1 text-sm text-gray-500 dark:text-zinc-300 hover:text-red-600 dark:hover:text-red-400 p-2"
 								>
 									<Trash2 className="w-4 h-4" />
 								</button>

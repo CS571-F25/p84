@@ -165,7 +165,8 @@ export function optimisticToggle(
 
 /**
  * Optimistically add or remove a record from a backlinks infinite query
- * Adds to first page, removes from any page
+ * Adds to first page (if cache exists), removes from any page.
+ * Does NOT seed empty cache - that would show incomplete data when the query is first fetched.
  */
 export function optimisticBacklinks(
 	queryClient: QueryClient,
@@ -181,8 +182,10 @@ export function optimisticBacklinks(
 		queryClient.setQueryData<InfiniteData<BacklinksResponse>>(
 			queryKey,
 			(old) => {
+				// Don't modify cache if it doesn't exist - let the query fetch real data
+				if (!old) return old;
+
 				if (op === "remove") {
-					if (!old) return old;
 					return {
 						...old,
 						pages: old.pages.map((page, i) =>
@@ -204,13 +207,7 @@ export function optimisticBacklinks(
 					};
 				}
 
-				// Add to first page, seed cache if empty
-				if (!old) {
-					return {
-						pages: [{ records: [record], total: 1 }],
-						pageParams: [undefined],
-					};
-				}
+				// Add to first page
 				return {
 					...old,
 					pages: old.pages.map((page, i) =>

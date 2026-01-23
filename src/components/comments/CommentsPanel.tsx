@@ -5,11 +5,10 @@ import { generateRkey, useCreateCommentMutation } from "@/lib/comment-queries";
 import {
 	itemCommentCountQueryOptions,
 	itemCommentsQueryOptions,
-	type SocialItemType,
-	type SocialItemUri,
 } from "@/lib/constellation-queries";
 import type { ComDeckbelcherSocialComment } from "@/lib/lexicons/index";
 import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
+import { getSocialItemUri, type SaveableItem } from "@/lib/social-item-types";
 import { useAuth } from "@/lib/useAuth";
 import { CommentForm } from "./CommentForm";
 import { CommentThread } from "./CommentThread";
@@ -18,8 +17,7 @@ type CommentSubject = ComDeckbelcherSocialComment.Main["subject"];
 
 interface CommentsPanelProps {
 	subject: CommentSubject;
-	subjectUri: SocialItemUri;
-	itemType: SocialItemType;
+	item: SaveableItem;
 	title?: string;
 	onClose?: () => void;
 	availableTags?: string[];
@@ -29,8 +27,7 @@ interface CommentsPanelProps {
 
 export function CommentsPanel({
 	subject,
-	subjectUri,
-	itemType,
+	item,
 	title = "Comments",
 	onClose,
 	availableTags,
@@ -40,13 +37,11 @@ export function CommentsPanel({
 	const [showForm, setShowForm] = useState(false);
 	const createComment = useCreateCommentMutation();
 
-	const countQuery = useQuery(
-		itemCommentCountQueryOptions(subjectUri, itemType),
-	);
+	const subjectUri = getSocialItemUri(item);
 
-	const commentsQuery = useInfiniteQuery(
-		itemCommentsQueryOptions(subjectUri, itemType),
-	);
+	const countQuery = useQuery(itemCommentCountQueryOptions(item));
+
+	const commentsQuery = useInfiniteQuery(itemCommentsQueryOptions(item));
 
 	const comments = commentsQuery.data?.pages.flatMap((p) => p.records) ?? [];
 	const count = countQuery.data ?? 0;

@@ -28,41 +28,38 @@ import {
 	REPLY_PARENT_PATH,
 	REPLY_ROOT_PATH,
 } from "./constellation-client";
-import type { OracleUri } from "./scryfall-types";
+import {
+	type CardItem,
+	getSocialItemUri,
+	isSaveable,
+	type SaveableItem,
+	type SaveableItemType,
+	type SocialItem,
+	type SocialItemType,
+	type SocialItemUri,
+} from "./social-item-types";
 import { useAuth } from "./useAuth";
 
-/**
- * Item types that can have social stats
- */
-export type SocialItemType = "card" | "deck";
-
-/**
- * URI types for each item type
- * - Cards use oracle:<uuid> URIs (aggregates across printings)
- * - Decks use at://<did>/com.deckbelcher.deck.list/<rkey> URIs
- */
-export type CardItemUri = OracleUri;
-export type DeckItemUri = `at://${string}`;
-export type SocialItemUri = CardItemUri | DeckItemUri;
-
-function getPathForItemType(itemType: SocialItemType): string {
+function getPathForItemType(itemType: SaveableItemType): string {
 	return itemType === "card"
 		? COLLECTION_LIST_CARD_PATH
 		: COLLECTION_LIST_DECK_PATH;
 }
 
 /**
- * Query options for checking if current user has saved an item to any list
+ * Query options for checking if current user has saved an item to any list.
+ * Auto-disables when item is undefined.
  */
-export function userSavedItemQueryOptions<T extends SocialItemType>(
-	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
+export function userSavedItemQueryOptions(
+	item: SaveableItem | undefined,
 	userDid: Did | undefined,
-	itemType: T,
 ) {
+	const itemUri = item ? getSocialItemUri(item) : undefined;
+	const itemType = item?.type;
 	return queryOptions({
 		queryKey: ["constellation", "userSaved", itemUri, userDid] as const,
 		queryFn: async (): Promise<boolean> => {
-			if (!userDid) return false;
+			if (!userDid || !itemUri || !itemType) return false;
 
 			const result = await getBacklinks({
 				subject: itemUri,
@@ -77,21 +74,23 @@ export function userSavedItemQueryOptions<T extends SocialItemType>(
 
 			return result.data.records.length > 0;
 		},
-		enabled: !!userDid,
+		enabled: !!userDid && !!item,
 		staleTime: 30 * 1000,
 	});
 }
 
 /**
- * Query options for getting total save count for an item
+ * Query options for getting total save count for an item.
+ * Auto-disables when item is undefined.
  */
-export function itemSaveCountQueryOptions<T extends SocialItemType>(
-	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
-	itemType: T,
-) {
+export function itemSaveCountQueryOptions(item: SaveableItem | undefined) {
+	const itemUri = item ? getSocialItemUri(item) : undefined;
+	const itemType = item?.type;
 	return queryOptions({
 		queryKey: ["constellation", "saveCount", itemUri] as const,
 		queryFn: async (): Promise<number> => {
+			if (!itemUri || !itemType) return 0;
+
 			const result = await getLinksCount({
 				target: itemUri,
 				collection: COLLECTION_LIST_NSID,
@@ -104,21 +103,24 @@ export function itemSaveCountQueryOptions<T extends SocialItemType>(
 
 			return result.data.total;
 		},
+		enabled: !!item,
 		staleTime: 60 * 1000,
 	});
 }
 
 /**
- * Query options for checking if current user has any deck containing a card
+ * Query options for checking if current user has any deck containing a card.
+ * Auto-disables when item is undefined.
  */
 export function userDeckContainsCardQueryOptions(
-	itemUri: CardItemUri,
+	item: CardItem | undefined,
 	userDid: Did | undefined,
 ) {
+	const itemUri = item ? getSocialItemUri(item) : undefined;
 	return queryOptions({
 		queryKey: ["constellation", "userDeckContains", itemUri, userDid] as const,
 		queryFn: async (): Promise<boolean> => {
-			if (!userDid) return false;
+			if (!userDid || !itemUri) return false;
 
 			const result = await getBacklinks({
 				subject: itemUri,
@@ -133,18 +135,22 @@ export function userDeckContainsCardQueryOptions(
 
 			return result.data.records.length > 0;
 		},
-		enabled: !!userDid,
+		enabled: !!userDid && !!item,
 		staleTime: 30 * 1000,
 	});
 }
 
 /**
- * Query options for getting count of decks containing a card (cards only)
+ * Query options for getting count of decks containing a card (cards only).
+ * Auto-disables when item is undefined.
  */
-export function cardDeckCountQueryOptions(itemUri: CardItemUri) {
+export function cardDeckCountQueryOptions(item: CardItem | undefined) {
+	const itemUri = item ? getSocialItemUri(item) : undefined;
 	return queryOptions({
 		queryKey: ["constellation", "deckCount", itemUri] as const,
 		queryFn: async (): Promise<number> => {
+			if (!itemUri) return 0;
+
 			const result = await getLinksCount({
 				target: itemUri,
 				collection: DECK_LIST_NSID,
@@ -157,6 +163,7 @@ export function cardDeckCountQueryOptions(itemUri: CardItemUri) {
 
 			return result.data.total;
 		},
+		enabled: !!item,
 		staleTime: 60 * 1000,
 	});
 }
@@ -171,38 +178,48 @@ export interface ItemSocialStats {
 	isInUserDeck: boolean;
 	deckCount: number;
 	isDeckCountLoading: boolean;
+	/** Comment count for cards/decks, reply count for comments/replies */
+	commentOrReplyCount: number;
+	isCommentOrReplyCountLoading: boolean;
 }
 
 /**
- * Combined hook for item social stats (saves + likes + deck count for cards)
+ * Combined hook for item social stats (saves + likes + deck count for cards + comment/reply count)
+ * For comments/replies, save-related stats are disabled and "comment count" shows reply count instead.
  */
-export function useItemSocialStats<T extends SocialItemType>(
-	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
-	itemType: T,
-): ItemSocialStats {
+export function useItemSocialStats(item: SocialItem): ItemSocialStats {
 	const { session } = useAuth();
 
-	const savedQuery = useQuery(
-		userSavedItemQueryOptions(itemUri, session?.info.sub, itemType),
-	);
-	const saveCountQuery = useQuery(itemSaveCountQueryOptions(itemUri, itemType));
+	// Extract narrowed items (undefined if not applicable type)
+	const saveableItem = isSaveable(item) ? item : undefined;
+	const cardItem = item.type === "card" ? item : undefined;
+	const isCommentOrReply = item.type === "comment" || item.type === "reply";
 
+	// Like queries apply to all item types
 	const likedQuery = useQuery(
-		userLikedItemQueryOptions(itemUri, session?.info.sub, itemType),
+		userLikedItemQueryOptions(item, session?.info.sub),
 	);
-	const likeCountQuery = useQuery(itemLikeCountQueryOptions(itemUri, itemType));
+	const likeCountQuery = useQuery(itemLikeCountQueryOptions(item));
 
-	// Deck queries only apply to cards
-	const userDeckQuery = useQuery({
-		...userDeckContainsCardQueryOptions(
-			itemUri as CardItemUri,
-			session?.info.sub,
-		),
-		enabled: itemType === "card" && !!session,
-	});
-	const deckCountQuery = useQuery({
-		...cardDeckCountQueryOptions(itemUri as CardItemUri),
-		enabled: itemType === "card",
+	// Save queries only apply to cards and decks (auto-disabled when undefined)
+	const savedQuery = useQuery(
+		userSavedItemQueryOptions(saveableItem, session?.info.sub),
+	);
+	const saveCountQuery = useQuery(itemSaveCountQueryOptions(saveableItem));
+
+	// Deck queries only apply to cards (auto-disabled when undefined)
+	const userDeckQuery = useQuery(
+		userDeckContainsCardQueryOptions(cardItem, session?.info.sub),
+	);
+	const deckCountQuery = useQuery(cardDeckCountQueryOptions(cardItem));
+
+	// Comment count for cards/decks, reply count for comments/replies
+	const commentCountQuery = useQuery(
+		itemCommentCountQueryOptions(saveableItem),
+	);
+	const replyCountQuery = useQuery({
+		...directReplyCountQueryOptions(getSocialItemUri(item)),
+		enabled: isCommentOrReply,
 	});
 
 	return {
@@ -214,7 +231,13 @@ export function useItemSocialStats<T extends SocialItemType>(
 		isLikeLoading: likedQuery.isLoading || likeCountQuery.isLoading,
 		isInUserDeck: userDeckQuery.data ?? false,
 		deckCount: deckCountQuery.data ?? 0,
-		isDeckCountLoading: itemType === "card" && deckCountQuery.isLoading,
+		isDeckCountLoading: item.type === "card" && deckCountQuery.isLoading,
+		commentOrReplyCount: isCommentOrReply
+			? (replyCountQuery.data ?? 0)
+			: (commentCountQuery.data ?? 0),
+		isCommentOrReplyCountLoading: isCommentOrReply
+			? replyCountQuery.isLoading
+			: commentCountQuery.isLoading,
 	};
 }
 
@@ -241,17 +264,19 @@ export function getConstellationQueryKeys(
 // ============================================================================
 
 function getLikePathForItemType(itemType: SocialItemType): string {
+	// Cards use oracleUri path, everything else (decks, comments, replies) uses record URI path
 	return itemType === "card" ? LIKE_CARD_PATH : LIKE_RECORD_PATH;
 }
 
 /**
- * Query options for checking if current user has liked an item
+ * Query options for checking if current user has liked an item.
+ * Works for all social item types.
  */
-export function userLikedItemQueryOptions<T extends SocialItemType>(
-	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
+export function userLikedItemQueryOptions(
+	item: SocialItem,
 	userDid: Did | undefined,
-	itemType: T,
 ) {
+	const itemUri = getSocialItemUri(item);
 	return queryOptions({
 		queryKey: ["constellation", "userLiked", itemUri, userDid] as const,
 		queryFn: async (): Promise<boolean> => {
@@ -259,7 +284,7 @@ export function userLikedItemQueryOptions<T extends SocialItemType>(
 
 			const result = await getBacklinks({
 				subject: itemUri,
-				source: buildSource(LIKE_NSID, getLikePathForItemType(itemType)),
+				source: buildSource(LIKE_NSID, getLikePathForItemType(item.type)),
 				did: userDid,
 				limit: 1,
 			});
@@ -276,19 +301,18 @@ export function userLikedItemQueryOptions<T extends SocialItemType>(
 }
 
 /**
- * Query options for getting total like count for an item
+ * Query options for getting total like count for an item.
+ * Works for all social item types.
  */
-export function itemLikeCountQueryOptions<T extends SocialItemType>(
-	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
-	itemType: T,
-) {
+export function itemLikeCountQueryOptions(item: SocialItem) {
+	const itemUri = getSocialItemUri(item);
 	return queryOptions({
 		queryKey: ["constellation", "likeCount", itemUri] as const,
 		queryFn: async (): Promise<number> => {
 			const result = await getLinksCount({
 				target: itemUri,
 				collection: LIKE_NSID,
-				path: getLikePathForItemType(itemType),
+				path: getLikePathForItemType(item.type),
 			});
 
 			if (!result.success) {
@@ -306,18 +330,18 @@ export function itemLikeCountQueryOptions<T extends SocialItemType>(
 // ============================================================================
 
 /**
- * Infinite query for users who liked an item
+ * Infinite query for users who liked an item.
+ * Works for all social item types. Auto-disables when item is undefined.
  */
-export function itemLikersQueryOptions<T extends SocialItemType>(
-	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
-	itemType: T,
-) {
+export function itemLikersQueryOptions(item: SocialItem | undefined) {
+	const itemUri = item ? getSocialItemUri(item) : undefined;
 	return infiniteQueryOptions({
 		queryKey: ["constellation", "likers", itemUri] as const,
 		queryFn: async ({ pageParam }) => {
+			if (!item || !itemUri) throw new Error("No item");
 			const result = await getBacklinks({
 				subject: itemUri,
-				source: buildSource(LIKE_NSID, getLikePathForItemType(itemType)),
+				source: buildSource(LIKE_NSID, getLikePathForItemType(item.type)),
 				limit: 25,
 				cursor: pageParam,
 			});
@@ -326,23 +350,27 @@ export function itemLikersQueryOptions<T extends SocialItemType>(
 		},
 		initialPageParam: undefined as string | undefined,
 		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+		enabled: !!item,
 		staleTime: 60 * 1000,
 	});
 }
 
 /**
- * Infinite query for lists that saved an item
+ * Infinite query for lists that saved an item (only for saveable items: cards/decks).
+ * Auto-disables when item is undefined.
  */
-export function itemSaversQueryOptions<T extends SocialItemType>(
-	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
-	itemType: T,
-) {
+export function itemSaversQueryOptions(item: SaveableItem | undefined) {
+	const itemUri = item ? getSocialItemUri(item) : undefined;
 	return infiniteQueryOptions({
 		queryKey: ["constellation", "savers", itemUri] as const,
 		queryFn: async ({ pageParam }) => {
+			if (!item || !itemUri) throw new Error("No item");
 			const result = await getBacklinks({
 				subject: itemUri,
-				source: buildSource(COLLECTION_LIST_NSID, getPathForItemType(itemType)),
+				source: buildSource(
+					COLLECTION_LIST_NSID,
+					getPathForItemType(item.type),
+				),
 				limit: 25,
 				cursor: pageParam,
 			});
@@ -351,17 +379,21 @@ export function itemSaversQueryOptions<T extends SocialItemType>(
 		},
 		initialPageParam: undefined as string | undefined,
 		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+		enabled: !!item,
 		staleTime: 60 * 1000,
 	});
 }
 
 /**
- * Infinite query for decks containing a card
+ * Infinite query for decks containing a card.
+ * Auto-disables when item is undefined.
  */
-export function cardDeckBacklinksQueryOptions(itemUri: CardItemUri) {
+export function cardDeckBacklinksQueryOptions(item: CardItem | undefined) {
+	const itemUri = item ? getSocialItemUri(item) : undefined;
 	return infiniteQueryOptions({
 		queryKey: ["constellation", "deckBacklinks", itemUri] as const,
 		queryFn: async ({ pageParam }) => {
+			if (!itemUri) throw new Error("No item");
 			const result = await getBacklinks({
 				subject: itemUri,
 				source: buildSource(DECK_LIST_NSID, DECK_LIST_CARD_PATH),
@@ -373,6 +405,7 @@ export function cardDeckBacklinksQueryOptions(itemUri: CardItemUri) {
 		},
 		initialPageParam: undefined as string | undefined,
 		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+		enabled: !!item,
 		staleTime: 60 * 1000,
 	});
 }
@@ -385,18 +418,17 @@ export function cardDeckBacklinksQueryOptions(itemUri: CardItemUri) {
  * Prefetch social stats for an item (card or deck).
  * Use in route loaders to warm the cache before render.
  */
-export function prefetchSocialStats<T extends SocialItemType>(
+export function prefetchSocialStats(
 	queryClient: QueryClient,
-	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
-	itemType: T,
+	item: SaveableItem,
 ) {
+	const cardItem = item.type === "card" ? item : undefined;
 	return Promise.all([
-		queryClient.prefetchQuery(itemSaveCountQueryOptions(itemUri, itemType)),
-		queryClient.prefetchQuery(itemLikeCountQueryOptions(itemUri, itemType)),
-		itemType === "card"
-			? queryClient.prefetchQuery(
-					cardDeckCountQueryOptions(itemUri as CardItemUri),
-				)
+		queryClient.prefetchQuery(itemSaveCountQueryOptions(item)),
+		queryClient.prefetchQuery(itemLikeCountQueryOptions(item)),
+		queryClient.prefetchQuery(itemCommentCountQueryOptions(item)),
+		cardItem
+			? queryClient.prefetchQuery(cardDeckCountQueryOptions(cardItem))
 			: null,
 	] as const);
 }
@@ -405,20 +437,22 @@ export function prefetchSocialStats<T extends SocialItemType>(
 // Comment Queries
 // ============================================================================
 
-function getCommentPathForItemType(itemType: SocialItemType): string {
+function getCommentPathForItemType(itemType: SaveableItemType): string {
 	return itemType === "card" ? COMMENT_CARD_PATH : COMMENT_RECORD_PATH;
 }
 
 /**
- * Query options for getting top-level comment count for an item
+ * Query options for getting top-level comment count for an item.
+ * Auto-disables when item is undefined.
  */
-export function itemCommentCountQueryOptions<T extends SocialItemType>(
-	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
-	itemType: T,
-) {
+export function itemCommentCountQueryOptions(item: SaveableItem | undefined) {
+	const itemUri = item ? getSocialItemUri(item) : undefined;
+	const itemType = item?.type;
 	return queryOptions({
 		queryKey: ["constellation", "commentCount", itemUri] as const,
 		queryFn: async (): Promise<number> => {
+			if (!itemUri || !itemType) return 0;
+
 			const result = await getLinksCount({
 				target: itemUri,
 				collection: COMMENT_NSID,
@@ -431,23 +465,24 @@ export function itemCommentCountQueryOptions<T extends SocialItemType>(
 
 			return result.data.total;
 		},
+		enabled: !!item,
 		staleTime: 60 * 1000,
 	});
 }
 
 /**
- * Infinite query for top-level comments on an item (card or deck/collection)
+ * Infinite query for top-level comments on an item (card or deck/collection).
+ * Auto-disables when item is undefined.
  */
-export function itemCommentsQueryOptions<T extends SocialItemType>(
-	itemUri: T extends "card" ? CardItemUri : DeckItemUri,
-	itemType: T,
-) {
+export function itemCommentsQueryOptions(item: SaveableItem | undefined) {
+	const itemUri = item ? getSocialItemUri(item) : undefined;
 	return infiniteQueryOptions({
 		queryKey: ["constellation", "comments", itemUri] as const,
 		queryFn: async ({ pageParam }) => {
+			if (!item || !itemUri) throw new Error("No item");
 			const result = await getBacklinks({
 				subject: itemUri,
-				source: buildSource(COMMENT_NSID, getCommentPathForItemType(itemType)),
+				source: buildSource(COMMENT_NSID, getCommentPathForItemType(item.type)),
 				limit: 25,
 				cursor: pageParam,
 			});
@@ -456,6 +491,7 @@ export function itemCommentsQueryOptions<T extends SocialItemType>(
 		},
 		initialPageParam: undefined as string | undefined,
 		getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+		enabled: !!item,
 		staleTime: 60 * 1000,
 	});
 }

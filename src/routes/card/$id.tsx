@@ -22,6 +22,7 @@ import type {
 } from "@/lib/scryfall-types";
 import {
 	asOracleId,
+	asScryfallId,
 	isScryfallId,
 	toOracleUri,
 	toScryfallUri,
@@ -56,8 +57,11 @@ export const Route = createFileRoute("/card/$id")({
 		// Chain social stats off card (needs oracle_id), runs parallel with volatile
 		const socialPromise = cardPromise.then((card) => {
 			if (!card?.oracle_id) return;
-			const oracleUri = toOracleUri(asOracleId(card.oracle_id));
-			return prefetchSocialStats(context.queryClient, oracleUri, "card");
+			return prefetchSocialStats(context.queryClient, {
+				type: "card",
+				scryfallId: asScryfallId(params.id),
+				oracleId: asOracleId(card.oracle_id),
+			});
 		});
 
 		const [card] = await Promise.all([
@@ -461,11 +465,14 @@ function CardDetailPage() {
 										$type: "com.deckbelcher.social.comment#cardSubject",
 										ref: {
 											oracleUri: toOracleUri(asOracleId(card.oracle_id)),
-											scryfallUri: toScryfallUri(id),
+											scryfallUri: toScryfallUri(asScryfallId(id)),
 										},
 									}}
-									subjectUri={toOracleUri(asOracleId(card.oracle_id))}
-									itemType="card"
+									item={{
+										type: "card",
+										scryfallId: asScryfallId(id),
+										oracleId: asOracleId(card.oracle_id),
+									}}
 									title={`Comments on ${card.name}`}
 								/>
 							</div>

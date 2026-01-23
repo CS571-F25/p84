@@ -32,7 +32,6 @@ import {
 	type ListItem,
 	removeCardFromList,
 	removeDeckFromList,
-	type SaveItem,
 } from "./collection-list-types";
 import {
 	type BacklinksResponse,
@@ -54,6 +53,7 @@ import {
 	toOracleUri,
 	toScryfallUri,
 } from "./scryfall-types";
+import type { SaveableItem } from "./social-item-types";
 import { useAuth } from "./useAuth";
 import { useMutationWithToast } from "./useMutationWithToast";
 
@@ -153,7 +153,7 @@ export const listUserCollectionListsQueryOptions = (did: Did) =>
 
 interface CreateListParams {
 	name: string;
-	initialItem?: SaveItem;
+	initialItem?: SaveableItem;
 }
 
 /**
@@ -338,7 +338,7 @@ export function useDeleteCollectionListMutation(rkey: Rkey) {
 
 interface ToggleListItemParams {
 	list: CollectionList;
-	item: SaveItem;
+	item: SaveableItem;
 	itemName?: string;
 }
 

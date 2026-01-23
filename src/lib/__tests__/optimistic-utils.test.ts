@@ -326,14 +326,17 @@ describe("optimistic-utils", () => {
 			expect(result?.pages[0].records.length).toBe(3);
 		});
 
-		it("seeds cache if empty", async () => {
+		it("does not seed cache when empty (lets query fetch real data)", async () => {
+			// If we seed empty cache with just the new user, opening the modal
+			// shows only them instead of fetching the real list of likers.
+			// The count is updated separately via optimisticCount, so button shows
+			// correct count. Cache stays empty so modal fetches fresh on open.
 			await optimisticBacklinks(queryClient, key, "add", record)();
 
 			const result = queryClient.getQueryData<{ pages: BacklinksResponse[] }>(
 				key,
 			);
-			expect(result?.pages[0].total).toBe(1);
-			expect(result?.pages[0].records).toEqual([record]);
+			expect(result).toBeUndefined();
 		});
 
 		it("removes record from first page by did", async () => {

@@ -24,7 +24,6 @@ import {
 	isDeckItem,
 	type ListCardItem,
 	type ListDeckItem,
-	type SaveItem,
 } from "@/lib/collection-list-types";
 import { getDeckQueryOptions } from "@/lib/deck-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
@@ -32,6 +31,7 @@ import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import { documentToPlainText } from "@/lib/richtext-convert";
 import { getImageUri } from "@/lib/scryfall-utils";
+import type { SaveableItem } from "@/lib/social-item-types";
 import { useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/profile/$did/list/$rkey/")({
@@ -120,7 +120,7 @@ function ListDetailPage() {
 	}
 
 	const handleRemoveCard = (item: ListCardItem) => {
-		const saveItem: SaveItem = {
+		const saveItem: SaveableItem = {
 			type: "card",
 			scryfallId: item.scryfallId,
 			oracleId: item.oracleId,
@@ -129,7 +129,7 @@ function ListDetailPage() {
 	};
 
 	const handleRemoveDeck = (item: ListDeckItem) => {
-		const saveItem: SaveItem = {
+		const saveItem: SaveableItem = {
 			type: "deck",
 			uri: item.ref.uri,
 			cid: item.ref.cid,
