@@ -17,9 +17,9 @@ interface ManaCurveChartProps {
 
 const COLORS = {
 	permanent: "var(--color-cyan-500)",
-	spell: "var(--color-violet-500)",
+	spell: "var(--color-amber-500)",
 	permanentHover: "var(--color-cyan-600)",
-	spellHover: "var(--color-violet-600)",
+	spellHover: "var(--color-amber-600)",
 };
 
 export function ManaCurveChart({
@@ -38,8 +38,8 @@ export function ManaCurveChart({
 		selection.type === type;
 
 	return (
-		<div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
-			<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+		<div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-gray-200 dark:border-zinc-600">
+			<h3 className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-4">
 				Mana Curve
 			</h3>
 			<div className="h-48">
@@ -114,7 +114,7 @@ export function ManaCurveChart({
 						className="w-3 h-3 rounded"
 						style={{ backgroundColor: COLORS.permanent }}
 					/>
-					<span className="text-xs text-gray-600 dark:text-gray-400">
+					<span className="text-xs text-gray-600 dark:text-zinc-300">
 						Permanents
 					</span>
 				</div>
@@ -123,7 +123,7 @@ export function ManaCurveChart({
 						className="w-3 h-3 rounded"
 						style={{ backgroundColor: COLORS.spell }}
 					/>
-					<span className="text-xs text-gray-600 dark:text-gray-400">
+					<span className="text-xs text-gray-600 dark:text-zinc-300">
 						Spells
 					</span>
 				</div>

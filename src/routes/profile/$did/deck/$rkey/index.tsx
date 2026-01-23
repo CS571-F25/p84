@@ -634,7 +634,7 @@ function DeckEditorInner({
 	);
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900">
+		<div className="min-h-screen bg-white dark:bg-zinc-900">
 			{/* Deck name and format */}
 			<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 pt-8 pb-4 space-y-4">
 				<DeckHeader
@@ -659,7 +659,7 @@ function DeckEditorInner({
 			</div>
 
 			{/* Sticky header with search */}
-			<div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
+			<div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-700 shadow-sm">
 				<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 py-3 flex items-center justify-between gap-4">
 					<div className="flex items-center gap-2">
 						<DeckActionsMenu

@@ -36,7 +36,7 @@ const nodes: Record<string, NodeSpec> = {
 				"blockquote",
 				{
 					class:
-						"border-l-4 border-gray-300 dark:border-slate-600 pl-4 my-2 text-gray-600 dark:text-gray-400 italic",
+						"border-l-4 border-gray-300 dark:border-zinc-600 pl-4 my-2 text-gray-600 dark:text-zinc-300 italic",
 				},
 				0,
 			];
@@ -47,7 +47,7 @@ const nodes: Record<string, NodeSpec> = {
 		group: "block",
 		parseDOM: [{ tag: "hr" }],
 		toDOM() {
-			return ["hr", { class: "my-4 border-gray-300 dark:border-slate-600" }];
+			return ["hr", { class: "my-4 border-gray-300 dark:border-zinc-600" }];
 		},
 	},
 
@@ -99,12 +99,12 @@ const nodes: Record<string, NodeSpec> = {
 				"pre",
 				{
 					class:
-						"bg-gray-100 dark:bg-slate-800 rounded-lg p-3 my-2 overflow-x-auto",
+						"bg-gray-100 dark:bg-zinc-800 rounded-lg p-3 my-2 overflow-x-auto",
 					...(node.attrs.params ? { "data-params": node.attrs.params } : {}),
 				},
 				[
 					"code",
-					{ class: "font-mono text-sm text-gray-800 dark:text-gray-200" },
+					{ class: "font-mono text-sm text-gray-800 dark:text-zinc-200" },
 					0,
 				],
 			];
@@ -367,7 +367,7 @@ const marks: Record<string, MarkSpec> = {
 				"code",
 				{
 					class:
-						"bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-gray-200 px-1 py-0.5 rounded font-mono text-sm",
+						"bg-gray-100 dark:bg-zinc-700 text-gray-800 dark:text-zinc-200 px-1 py-0.5 rounded font-mono text-sm",
 				},
 			];
 		},

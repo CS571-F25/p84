@@ -3,7 +3,7 @@ import { CardSymbol } from "./CardSymbol";
 
 function Code({ children }: { children: React.ReactNode }) {
 	return (
-		<code className="font-mono text-sm bg-gray-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-gray-800 dark:text-gray-200">
+		<code className="font-mono text-sm bg-gray-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded text-gray-800 dark:text-zinc-200">
 			{children}
 		</code>
 	);
@@ -14,7 +14,7 @@ function Q({ q }: { q: string }) {
 		<Link
 			to="/cards"
 			search={{ q, sort: undefined, sort2: undefined }}
-			className="font-mono text-sm bg-gray-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-cyan-700 dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors"
+			className="font-mono text-sm bg-gray-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded text-cyan-700 dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors"
 		>
 			{q}
 		</Link>
@@ -32,7 +32,7 @@ function MainCard({
 }) {
 	return (
 		<div
-			className={`bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-lg p-4 ${className}`}
+			className={`bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-600 rounded-lg p-4 ${className}`}
 		>
 			<h3 className="font-semibold text-gray-900 dark:text-white mb-2">
 				{title}
@@ -53,9 +53,9 @@ function SecondaryCard({
 }) {
 	return (
 		<div
-			className={`bg-gray-50/50 dark:bg-slate-800/30 border border-gray-200/50 dark:border-slate-700/50 rounded-lg p-3 ${className}`}
+			className={`bg-gray-50/50 dark:bg-zinc-800/30 border border-gray-200/50 dark:border-zinc-600/50 rounded-lg p-3 ${className}`}
 		>
-			<h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+			<h4 className="text-sm font-medium text-gray-500 dark:text-zinc-300 mb-2">
 				{title}
 			</h4>
 			{children}
@@ -73,7 +73,7 @@ export function SearchPrimer() {
 	return (
 		<div className="space-y-4">
 			{/* Intro blurb */}
-			<div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+			<div className="text-sm text-gray-600 dark:text-zinc-300 space-y-1">
 				<p>
 					Type anything to search by name—we'll find close matches even with
 					typos.
@@ -87,7 +87,7 @@ export function SearchPrimer() {
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 				{/* Fields with examples */}
 				<MainCard title="Filter by...">
-					<ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+					<ul className="space-y-1 text-sm text-gray-600 dark:text-zinc-300">
 						<li>
 							<Q q="t:vampire" /> type
 						</li>
@@ -120,7 +120,7 @@ export function SearchPrimer() {
 
 				{/* Operators */}
 				<MainCard title="Comparisons">
-					<ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+					<ul className="space-y-1 text-sm text-gray-600 dark:text-zinc-300">
 						<li>
 							<Q q="manavalue<3" /> less than
 						</li>
@@ -141,7 +141,7 @@ export function SearchPrimer() {
 
 				{/* Colors - clearer framing */}
 				<MainCard title="Colors" className="sm:row-span-2 lg:row-span-1">
-					<div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+					<div className="space-y-3 text-sm text-gray-600 dark:text-zinc-300">
 						{/* Color codes */}
 						<div className="flex flex-wrap gap-x-3 gap-y-1">
 							<span>
@@ -166,7 +166,7 @@ export function SearchPrimer() {
 
 						{/* Card's colors */}
 						<div>
-							<p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide mb-1">
+							<p className="text-gray-500 dark:text-zinc-300 text-xs uppercase tracking-wide mb-1">
 								Card's colors
 							</p>
 							<p>
@@ -179,7 +179,7 @@ export function SearchPrimer() {
 
 						{/* Color identity for commander */}
 						<div>
-							<p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide mb-1">
+							<p className="text-gray-500 dark:text-zinc-300 text-xs uppercase tracking-wide mb-1">
 								For commander decks
 							</p>
 							<p>
@@ -199,7 +199,7 @@ export function SearchPrimer() {
 
 				{/* Combining */}
 				<MainCard title="Combining Filters">
-					<ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+					<ul className="space-y-1 text-sm text-gray-600 dark:text-zinc-300">
 						<li>
 							<Q q="t:goblin r:rare" /> both (AND)
 						</li>

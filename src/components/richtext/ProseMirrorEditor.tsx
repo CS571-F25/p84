@@ -247,7 +247,7 @@ export function ProseMirrorEditor({
 			},
 			attributes: {
 				class:
-					"focus:outline-none min-h-[8rem] p-3 text-gray-900 dark:text-gray-100",
+					"focus:outline-none min-h-[8rem] p-3 text-gray-900 dark:text-zinc-100",
 				"data-placeholder": initialPlaceholderRef.current,
 			},
 		});
@@ -262,7 +262,7 @@ export function ProseMirrorEditor({
 
 	return (
 		<div ref={wrapperRef} className={`relative ${className ?? ""}`}>
-			<div className="prosemirror-editor border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 overflow-hidden">
+			<div className="prosemirror-editor border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 overflow-hidden">
 				{showToolbar && <Toolbar view={viewRef.current} />}
 				<div ref={containerRef} />
 			</div>

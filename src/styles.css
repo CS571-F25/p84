@@ -65,12 +65,12 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 html {
-	@apply bg-white dark:bg-slate-900;
+	@apply bg-white dark:bg-zinc-900;
 	color-scheme: light;
 }
 
 body {
-	@apply m-0 bg-white dark:bg-slate-900 font-sans;
+	@apply m-0 bg-white dark:bg-zinc-900 font-sans;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -85,7 +85,7 @@ code,
 .dark {
   color-scheme: dark;
   /* Firefox scrollbar */
-  scrollbar-color: var(--color-gray-600) var(--color-gray-800);
+  scrollbar-color: var(--color-zinc-600) var(--color-zinc-800);
 }
 
 .dark ::-webkit-scrollbar {
@@ -94,17 +94,17 @@ code,
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: var(--color-gray-800);
+  background: var(--color-zinc-800);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: var(--color-gray-600);
+  background: var(--color-zinc-600);
   border-radius: 6px;
-  border: 2px solid var(--color-gray-800);
+  border: 2px solid var(--color-zinc-800);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gray-500);
+  background: var(--color-zinc-500);
 }
 
 /* Hide scrollbar utility */
@@ -141,7 +141,7 @@ code,
 }
 
 .dark .prosemirror-editor .ProseMirror p.is-editor-empty:first-child::before {
-  color: var(--color-gray-500);
+  color: var(--color-zinc-500);
 }
 
 /* Empty editor placeholder using data attribute */
@@ -153,5 +153,5 @@ code,
 }
 
 .dark .prosemirror-editor .ProseMirror:has(> p:only-child:empty)::before {
-  color: var(--color-gray-500);
+  color: var(--color-zinc-500);
 }

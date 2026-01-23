@@ -43,10 +43,10 @@ function LikeRow({ did }: { did: Did }) {
 		<Link
 			to="/profile/$did"
 			params={{ did }}
-			className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-900 dark:text-gray-100"
+			className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg text-gray-900 dark:text-zinc-100"
 		>
 			{isLoading ? (
-				<span className="inline-block w-24 h-4 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+				<span className="inline-block w-24 h-4 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse" />
 			) : (
 				<span>@{handle ?? did.slice(0, 20)}</span>
 			)}
@@ -94,9 +94,9 @@ function DeckRow({ did, rkey }: { did: Did; rkey: Rkey }) {
 
 export function RowSkeleton() {
 	return (
-		<div className="p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg">
-			<div className="h-5 w-32 bg-gray-200 dark:bg-slate-700 rounded animate-pulse mb-2" />
-			<div className="h-4 w-48 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+		<div className="p-4 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-lg">
+			<div className="h-5 w-32 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse mb-2" />
+			<div className="h-4 w-48 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse" />
 		</div>
 	);
 }

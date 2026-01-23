@@ -287,7 +287,7 @@ function BulkEditPage() {
 	}, [textLines, resolvedMap, errorMap, parsedByRaw, savedCardIds]);
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900">
+		<div className="min-h-screen bg-white dark:bg-zinc-900">
 			<div className="max-w-6xl mx-auto px-6 py-8">
 				<div className="mb-6">
 					<Link
@@ -300,13 +300,13 @@ function BulkEditPage() {
 					<h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
 						Bulk Edit: {deck.name}
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400 mt-1">
+					<p className="text-gray-600 dark:text-zinc-300 mt-1">
 						Edit cards in text format. One card per line.
 					</p>
 				</div>
 
 				{/* Section tabs */}
-				<div className="flex gap-1 mb-4 border-b border-gray-200 dark:border-slate-700">
+				<div className="flex gap-1 mb-4 border-b border-gray-200 dark:border-zinc-600">
 					{SECTIONS.map((section) => {
 						const isActive = activeSection === section.value;
 						const isDisabled = isDirty && !isActive;
@@ -320,8 +320,8 @@ function BulkEditPage() {
 									isActive
 										? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
 										: isDisabled
-											? "text-gray-400 dark:text-gray-600 cursor-not-allowed"
-											: "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+											? "text-gray-400 dark:text-zinc-600 cursor-not-allowed"
+											: "text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white"
 								}`}
 							>
 								{section.label}
@@ -339,9 +339,9 @@ function BulkEditPage() {
 				</div>
 
 				{/* Format hint */}
-				<div className="mb-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg text-sm text-gray-600 dark:text-gray-400">
+				<div className="mb-4 p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg text-sm text-gray-600 dark:text-zinc-300">
 					<strong>Format:</strong>{" "}
-					<code className="bg-gray-200 dark:bg-slate-700 px-1 rounded">
+					<code className="bg-gray-200 dark:bg-zinc-700 px-1 rounded">
 						&lt;quantity&gt; &lt;card name&gt; (SET) &lt;collector#&gt; #tag1
 						#tag2
 					</code>
@@ -352,7 +352,7 @@ function BulkEditPage() {
 				</div>
 
 				{/* Editor container */}
-				<div className="overflow-auto max-h-96 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800">
+				<div className="overflow-auto max-h-96 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800">
 					<div className="flex">
 						<textarea
 							value={text}
@@ -362,7 +362,7 @@ function BulkEditPage() {
 							}}
 							disabled={!isOwner || isSaving}
 							wrap="off"
-							className="flex-1 p-4 font-mono text-sm leading-[1.5] resize-none overflow-x-auto overflow-y-hidden bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none disabled:opacity-50 [font-variant-ligatures:none]"
+							className="flex-1 p-4 font-mono text-sm leading-[1.5] resize-none overflow-x-auto overflow-y-hidden bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none disabled:opacity-50 [font-variant-ligatures:none]"
 							style={{
 								height: `calc(${Math.max(textLines.length, 10)} * 1.5em + 2rem)`,
 							}}
@@ -373,7 +373,7 @@ function BulkEditPage() {
 				</div>
 
 				{/* Stats */}
-				<div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+				<div className="mt-2 text-sm text-gray-500 dark:text-zinc-300">
 					{lineCount} {lineCount === 1 ? "card" : "cards"}, {cardCount} total
 				</div>
 
@@ -416,7 +416,7 @@ function BulkEditPage() {
 							type="button"
 							onClick={handleReset}
 							disabled={isSaving || !isDirty}
-							className="px-4 py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
+							className="px-4 py-2 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
 						>
 							Reset
 						</button>

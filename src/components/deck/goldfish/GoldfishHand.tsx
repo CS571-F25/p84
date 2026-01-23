@@ -27,11 +27,11 @@ export function GoldfishHand({
 			className={`flex gap-2 overflow-x-auto p-2 min-h-[11rem] rounded-lg border-2 border-dashed transition-colors ${
 				isOver
 					? "border-blue-500 bg-blue-500/10"
-					: "border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50"
+					: "border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800/50"
 			}`}
 		>
 			{cards.length === 0 ? (
-				<div className="flex items-center justify-center w-full text-gray-400 dark:text-gray-500 text-sm">
+				<div className="flex items-center justify-center w-full text-gray-400 dark:text-zinc-400 text-sm">
 					Hand is empty
 				</div>
 			) : (

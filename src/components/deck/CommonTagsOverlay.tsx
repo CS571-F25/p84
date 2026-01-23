@@ -100,14 +100,14 @@ function DroppableTagButton({ tag }: DroppableTagButtonProps) {
 			)}
 
 			{/* Background */}
-			<div className="absolute inset-0 bg-white/90 dark:bg-slate-800/90 rounded" />
+			<div className="absolute inset-0 bg-white/90 dark:bg-zinc-800/90 rounded" />
 
 			{/* Content */}
 			<div className="relative flex items-center justify-between gap-2">
 				<span className="truncate text-gray-900 dark:text-white">
 					{tag.tagName}
 				</span>
-				<span className="text-xs opacity-70 flex-shrink-0 text-gray-600 dark:text-gray-400">
+				<span className="text-xs opacity-70 flex-shrink-0 text-gray-600 dark:text-zinc-300">
 					{tag.count}
 				</span>
 			</div>

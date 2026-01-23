@@ -210,7 +210,7 @@ function CardDetailPage() {
 
 	if (!isValidId) {
 		return (
-			<div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center">
+			<div className="min-h-screen bg-white dark:bg-zinc-900 flex items-center justify-center">
 				<p className="text-red-600 dark:text-red-400 text-lg">
 					Invalid card ID format
 				</p>
@@ -220,10 +220,10 @@ function CardDetailPage() {
 
 	if (cardLoading) {
 		return (
-			<div className="min-h-screen bg-white dark:bg-slate-900">
+			<div className="min-h-screen bg-white dark:bg-zinc-900">
 				<div className="max-w-7xl mx-auto px-6 py-8">
 					<div className="flex items-center justify-center py-20">
-						<p className="text-gray-600 dark:text-gray-400 text-lg">
+						<p className="text-gray-600 dark:text-zinc-300 text-lg">
 							Loading card...
 						</p>
 					</div>
@@ -234,7 +234,7 @@ function CardDetailPage() {
 
 	if (!card) {
 		return (
-			<div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center">
+			<div className="min-h-screen bg-white dark:bg-zinc-900 flex items-center justify-center">
 				<p className="text-red-600 dark:text-red-400 text-lg">Card not found</p>
 			</div>
 		);
@@ -252,10 +252,10 @@ function CardDetailPage() {
 		.sort((a, b) => (b.released_at ?? "").localeCompare(a.released_at ?? ""));
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900">
+		<div className="min-h-screen bg-white dark:bg-zinc-900">
 			<div className="max-w-7xl mx-auto px-6 py-8">
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-					<div className="sticky top-0 z-10 bg-white dark:bg-slate-900 py-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:top-8 flex justify-center lg:justify-end">
+					<div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 py-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:top-8 flex justify-center lg:justify-end">
 						<CardImage
 							card={displayCard}
 							size="large"
@@ -267,7 +267,7 @@ function CardDetailPage() {
 						{getAllFaces(card).map((face, idx) => (
 							<div key={face.name}>
 								{idx > 0 && (
-									<div className="border-t border-gray-300 dark:border-slate-600 mb-4" />
+									<div className="border-t border-gray-300 dark:border-zinc-600 mb-4" />
 								)}
 								<FaceInfo
 									face={face}
@@ -285,7 +285,7 @@ function CardDetailPage() {
 							}}
 						>
 							<div className="min-w-0">
-								<p className="text-gray-600 dark:text-gray-400">Set</p>
+								<p className="text-gray-600 dark:text-zinc-300">Set</p>
 								<p
 									className="text-gray-900 dark:text-white truncate"
 									title={
@@ -299,36 +299,36 @@ function CardDetailPage() {
 											{displayCard.set_name} ({displayCard.set?.toUpperCase()})
 										</>
 									) : (
-										<span className="text-gray-400 dark:text-gray-600">—</span>
+										<span className="text-gray-400 dark:text-zinc-600">—</span>
 									)}
 								</p>
 							</div>
 							<div className="min-w-0">
-								<p className="text-gray-600 dark:text-gray-400">Rarity</p>
+								<p className="text-gray-600 dark:text-zinc-300">Rarity</p>
 								<p className="text-gray-900 dark:text-white capitalize truncate">
 									{displayCard.rarity ?? (
-										<span className="text-gray-400 dark:text-gray-600">—</span>
+										<span className="text-gray-400 dark:text-zinc-600">—</span>
 									)}
 								</p>
 							</div>
 							<div className="min-w-0">
-								<p className="text-gray-600 dark:text-gray-400">Artist</p>
+								<p className="text-gray-600 dark:text-zinc-300">Artist</p>
 								<p
 									className="text-gray-900 dark:text-white truncate"
 									title={displayCard.artist}
 								>
 									{displayCard.artist ?? (
-										<span className="text-gray-400 dark:text-gray-600">—</span>
+										<span className="text-gray-400 dark:text-zinc-600">—</span>
 									)}
 								</p>
 							</div>
 							<div className="min-w-0">
-								<p className="text-gray-600 dark:text-gray-400">
+								<p className="text-gray-600 dark:text-zinc-300">
 									Collector Number
 								</p>
 								<p className="text-gray-900 dark:text-white truncate">
 									{displayCard.collector_number ?? (
-										<span className="text-gray-400 dark:text-gray-600">—</span>
+										<span className="text-gray-400 dark:text-zinc-600">—</span>
 									)}
 								</p>
 							</div>
@@ -337,13 +337,13 @@ function CardDetailPage() {
 						<div className="h-10 overflow-x-auto overflow-y-hidden">
 							{volatileLoading ? (
 								<div className="flex gap-3 items-center">
-									<span className="px-2.5 py-1 w-16 bg-gray-200 dark:bg-slate-700 rounded text-sm animate-pulse">
+									<span className="px-2.5 py-1 w-16 bg-gray-200 dark:bg-zinc-700 rounded text-sm animate-pulse">
 										&nbsp;
 									</span>
-									<span className="px-2.5 py-1 w-20 bg-gray-200 dark:bg-slate-700 rounded text-sm animate-pulse">
+									<span className="px-2.5 py-1 w-20 bg-gray-200 dark:bg-zinc-700 rounded text-sm animate-pulse">
 										&nbsp;
 									</span>
-									<span className="px-2.5 py-1 w-24 bg-gray-200 dark:bg-slate-700 rounded text-sm animate-pulse">
+									<span className="px-2.5 py-1 w-24 bg-gray-200 dark:bg-zinc-700 rounded text-sm animate-pulse">
 										&nbsp;
 									</span>
 								</div>
@@ -355,7 +355,7 @@ function CardDetailPage() {
 									volatileData.edhrecRank) ? (
 								<div className="flex gap-3 items-center">
 									{volatileData.edhrecRank && (
-										<span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded text-sm whitespace-nowrap">
+										<span className="px-2.5 py-1 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded text-sm whitespace-nowrap">
 											#{volatileData.edhrecRank.toLocaleString()} EDHREC
 										</span>
 									)}
@@ -401,13 +401,13 @@ function CardDetailPage() {
 								<h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
 									Printings
 								</h2>
-								<div className="max-h-96 overflow-y-auto border border-gray-300 dark:border-slate-700 rounded-lg p-3 bg-gray-50 dark:bg-slate-800/50">
+								<div className="max-h-96 overflow-y-auto border border-gray-300 dark:border-zinc-600 rounded-lg p-3 bg-gray-50 dark:bg-zinc-800/50">
 									<div className="flex flex-wrap gap-2">
 										{Array.from({ length: 8 }).map((_, i) => (
 											<div
 												// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
 												key={i}
-												className="h-8 w-32 bg-gray-300 dark:bg-slate-700 rounded animate-pulse"
+												className="h-8 w-32 bg-gray-300 dark:bg-zinc-700 rounded animate-pulse"
 											/>
 										))}
 									</div>
@@ -420,7 +420,7 @@ function CardDetailPage() {
 								</h2>
 								<div
 									ref={printingsContainerRef}
-									className="max-h-96 overflow-y-auto border border-gray-300 dark:border-slate-700 rounded-lg p-3 bg-gray-50 dark:bg-slate-800/50"
+									className="max-h-96 overflow-y-auto border border-gray-300 dark:border-zinc-600 rounded-lg p-3 bg-gray-50 dark:bg-zinc-800/50"
 								>
 									<div className="flex flex-wrap gap-2">
 										{allPrintings.map((printing) => (
@@ -435,8 +435,8 @@ function CardDetailPage() {
 												onMouseLeave={() => setHoveredPrintingId(null)}
 												className={`px-3 py-1.5 text-sm rounded transition-colors whitespace-nowrap ${
 													printing.id === id
-														? "bg-cyan-500 text-white font-medium"
-														: "bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-slate-600"
+														? "bg-cyan-400 text-gray-900 font-medium"
+														: "bg-gray-200 dark:bg-zinc-700 text-gray-900 dark:text-zinc-200 hover:bg-gray-300 dark:hover:bg-zinc-600"
 												}`}
 											>
 												{printing.set_name}
@@ -455,7 +455,7 @@ function CardDetailPage() {
 						{card.legalities && <LegalityTable legalities={card.legalities} />}
 
 						{card.oracle_id && (
-							<div className="border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
+							<div className="border border-gray-200 dark:border-zinc-600 rounded-lg overflow-hidden">
 								<CommentsPanel
 									subject={{
 										$type: "com.deckbelcher.social.comment#cardSubject",
@@ -510,7 +510,7 @@ function FaceInfo({ face, primary = false, cardId, oracleId }: FaceInfoProps) {
 				<div className="flex items-center justify-between gap-3">
 					{face.type_line && (
 						<p
-							className={`text-gray-600 dark:text-gray-400 ${primary ? "text-lg" : ""}`}
+							className={`text-gray-600 dark:text-zinc-300 ${primary ? "text-lg" : ""}`}
 						>
 							{face.type_line}
 						</p>
@@ -525,16 +525,16 @@ function FaceInfo({ face, primary = false, cardId, oracleId }: FaceInfoProps) {
 			</div>
 
 			{face.oracle_text && (
-				<div className="bg-gray-100 dark:bg-slate-800 rounded-lg p-4 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100">
+				<div className="bg-gray-100 dark:bg-zinc-800 rounded-lg p-4 border border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-zinc-100">
 					<OracleText text={face.oracle_text} />
 				</div>
 			)}
 
 			{hasStats && (
-				<div className="flex gap-4 text-gray-700 dark:text-gray-300">
+				<div className="flex gap-4 text-gray-700 dark:text-zinc-300">
 					{face.power && face.toughness && (
 						<span>
-							<span className="text-gray-600 dark:text-gray-400">P/T:</span>{" "}
+							<span className="text-gray-600 dark:text-zinc-300">P/T:</span>{" "}
 							<span className="font-semibold">
 								{face.power}/{face.toughness}
 							</span>
@@ -542,13 +542,13 @@ function FaceInfo({ face, primary = false, cardId, oracleId }: FaceInfoProps) {
 					)}
 					{face.loyalty && (
 						<span>
-							<span className="text-gray-600 dark:text-gray-400">Loyalty:</span>{" "}
+							<span className="text-gray-600 dark:text-zinc-300">Loyalty:</span>{" "}
 							<span className="font-semibold">{face.loyalty}</span>
 						</span>
 					)}
 					{face.defense && (
 						<span>
-							<span className="text-gray-600 dark:text-gray-400">Defense:</span>{" "}
+							<span className="text-gray-600 dark:text-zinc-300">Defense:</span>{" "}
 							<span className="font-semibold">{face.defense}</span>
 						</span>
 					)}
@@ -571,7 +571,7 @@ function LegalityTable({ legalities }: LegalityTableProps) {
 			<div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
 				{FORMAT_GROUPS.map((group) => (
 					<div key={group.label}>
-						<h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+						<h3 className="text-sm font-medium text-gray-500 dark:text-zinc-300 mb-1.5">
 							{group.label}
 						</h3>
 						<div className="space-y-1">
@@ -582,7 +582,7 @@ function LegalityTable({ legalities }: LegalityTableProps) {
 										key={format.value}
 										className="flex items-center justify-between text-sm"
 									>
-										<span className="text-gray-700 dark:text-gray-300">
+										<span className="text-gray-700 dark:text-zinc-300">
 											{format.label}
 										</span>
 										<LegalityBadge legality={legality} />
@@ -605,7 +605,7 @@ function LegalityBadge({ legality }: { legality: string }) {
 			"bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300",
 		banned: "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300",
 		not_legal:
-			"bg-gray-100 dark:bg-slate-700/50 text-gray-500 dark:text-gray-500",
+			"bg-gray-100 dark:bg-zinc-700/50 text-gray-500 dark:text-zinc-400",
 	};
 
 	const labels: Record<string, string> = {

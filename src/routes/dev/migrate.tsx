@@ -320,13 +320,13 @@ function MigratePage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900 p-8">
+		<div className="min-h-screen bg-white dark:bg-zinc-900 p-8">
 			<div className="max-w-4xl mx-auto space-y-6">
 				<div>
 					<h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
 						Record Migration
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400">
+					<p className="text-gray-600 dark:text-zinc-300">
 						Migrate old format records (scryfallId) to new format (cardRef with
 						scryfallUri + oracleUri).
 					</p>
@@ -336,7 +336,7 @@ function MigratePage() {
 					<div className="space-y-2">
 						<label
 							htmlFor={inputId}
-							className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+							className="block text-sm font-medium text-gray-700 dark:text-zinc-300"
 						>
 							Old Format (paste JSON)
 						</label>
@@ -344,7 +344,7 @@ function MigratePage() {
 							id={inputId}
 							value={input}
 							onChange={(e) => setInput(e.target.value)}
-							className="w-full h-96 p-3 font-mono text-xs bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-gray-900 dark:text-gray-100"
+							className="w-full h-96 p-3 font-mono text-xs bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-gray-900 dark:text-zinc-100"
 							placeholder='{"$type": "com.deckbelcher.deck.list", ...}'
 						/>
 					</div>
@@ -352,7 +352,7 @@ function MigratePage() {
 					<div className="space-y-2">
 						<label
 							htmlFor={outputId}
-							className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+							className="block text-sm font-medium text-gray-700 dark:text-zinc-300"
 						>
 							New Format (output)
 						</label>
@@ -360,7 +360,7 @@ function MigratePage() {
 							id={outputId}
 							value={output}
 							readOnly
-							className="w-full h-96 p-3 font-mono text-xs bg-gray-100 dark:bg-slate-800/50 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-gray-100"
+							className="w-full h-96 p-3 font-mono text-xs bg-gray-100 dark:bg-zinc-800/50 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-zinc-100"
 							placeholder="Migrated output will appear here..."
 						/>
 					</div>
@@ -397,23 +397,23 @@ function MigratePage() {
 				)}
 
 				<details className="text-sm">
-					<summary className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium">
+					<summary className="cursor-pointer text-gray-600 dark:text-zinc-300 hover:text-gray-800 dark:hover:text-zinc-200 font-medium">
 						Migration Details
 					</summary>
-					<div className="mt-2 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg text-gray-700 dark:text-gray-300 space-y-2">
+					<div className="mt-2 p-4 bg-gray-50 dark:bg-zinc-800 rounded-lg text-gray-700 dark:text-zinc-300 space-y-2">
 						<p>
 							<strong>Old format:</strong>{" "}
-							<code className="text-xs bg-gray-200 dark:bg-slate-700 px-1 rounded">
+							<code className="text-xs bg-gray-200 dark:bg-zinc-700 px-1 rounded">
 								scryfallId: "uuid"
 							</code>
 						</p>
 						<p>
 							<strong>New format:</strong>{" "}
-							<code className="text-xs bg-gray-200 dark:bg-slate-700 px-1 rounded">
+							<code className="text-xs bg-gray-200 dark:bg-zinc-700 px-1 rounded">
 								{`ref: { scryfallUri: "scry:uuid", oracleUri: "oracle:uuid" }`}
 							</code>
 						</p>
-						<p className="text-xs text-gray-500 dark:text-gray-400">
+						<p className="text-xs text-gray-500 dark:text-zinc-300">
 							Supports both com.deckbelcher.deck.list and
 							com.deckbelcher.collection.list records.
 						</p>

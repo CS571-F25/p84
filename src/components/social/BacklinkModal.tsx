@@ -134,10 +134,10 @@ export function BacklinkModal({
 					role="dialog"
 					aria-modal="true"
 					aria-labelledby={titleId}
-					className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl max-w-xl w-full pointer-events-auto border border-gray-300 dark:border-slate-700 flex flex-col h-[70vh]"
+					className="bg-white dark:bg-zinc-900 rounded-lg shadow-2xl max-w-xl w-full pointer-events-auto border border-gray-300 dark:border-zinc-600 flex flex-col h-[70vh]"
 				>
 					{/* Header */}
-					<div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-800 flex-shrink-0">
+					<div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-zinc-700 flex-shrink-0">
 						<div className="flex items-center gap-3">
 							<div className={`p-2 ${config.iconBg} rounded-full`}>
 								<Icon className={`w-5 h-5 ${config.iconColor}`} />
@@ -149,7 +149,7 @@ export function BacklinkModal({
 								>
 									{config.title}
 								</h2>
-								<p className="text-sm text-gray-500 dark:text-gray-400">
+								<p className="text-sm text-gray-500 dark:text-zinc-300">
 									{total.toLocaleString()}{" "}
 									{total === 1
 										? type === "likes"
@@ -168,10 +168,10 @@ export function BacklinkModal({
 						<button
 							type="button"
 							onClick={onClose}
-							className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+							className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
 							aria-label="Close"
 						>
-							<X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+							<X className="w-5 h-5 text-gray-500 dark:text-zinc-300" />
 						</button>
 					</div>
 
@@ -185,7 +185,7 @@ export function BacklinkModal({
 								))}
 							</div>
 						) : allRecords.length === 0 ? (
-							<p className="text-gray-600 dark:text-gray-400 text-center py-4">
+							<p className="text-gray-600 dark:text-zinc-300 text-center py-4">
 								No {type} yet
 							</p>
 						) : (

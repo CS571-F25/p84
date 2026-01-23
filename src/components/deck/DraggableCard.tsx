@@ -71,7 +71,7 @@ export function DraggableCard({
 			{...attributes}
 			{...(disabled ? {} : listeners)}
 			type="button"
-			className="group relative rounded px-2 py-1 w-full text-left md:touch-none bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700"
+			className="group relative rounded px-2 py-1 w-full text-left md:touch-none bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700"
 			style={{
 				opacity: isDragging ? 0.5 : 1,
 				cursor: disabled ? "pointer" : isDragging ? "grabbing" : "grab",
@@ -94,10 +94,10 @@ export function DraggableCard({
 		>
 			<div
 				ref={highlightRef}
-				className="absolute inset-0 rounded bg-amber-100 dark:bg-slate-700 opacity-0 pointer-events-none"
+				className="absolute inset-0 rounded bg-amber-100 dark:bg-zinc-700 opacity-0 pointer-events-none"
 			/>
 			<div className="flex items-baseline gap-2">
-				<span className="text-gray-600 dark:text-gray-400 font-mono text-xs w-4 text-right flex-shrink-0">
+				<span className="text-gray-600 dark:text-zinc-300 font-mono text-xs w-4 text-right flex-shrink-0">
 					{card.quantity}
 				</span>
 				<span className="text-gray-900 dark:text-white text-sm truncate flex-1 min-w-0 motion-safe:transition-[font-variation-settings] motion-safe:duration-200 motion-safe:ease-out [font-variation-settings:'wght'_400] motion-safe:group-hover:[font-variation-settings:'wght'_500]">
@@ -118,7 +118,7 @@ export function DraggableCard({
 					{primaryFace?.mana_cost ? (
 						<ManaCost cost={primaryFace.mana_cost} size="small" />
 					) : isLoading ? (
-						<div className="h-5 w-12 bg-gray-300 dark:bg-slate-700 rounded animate-pulse" />
+						<div className="h-5 w-12 bg-gray-300 dark:bg-zinc-700 rounded animate-pulse" />
 					) : null}
 				</div>
 			</div>

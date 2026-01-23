@@ -51,8 +51,8 @@ export function ManaBreakdown({
 		selection.type === type;
 
 	return (
-		<div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 col-span-full xl:col-span-2">
-			<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+		<div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-gray-200 dark:border-zinc-600 col-span-full xl:col-span-2">
+			<h3 className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-4">
 				Mana Breakdown
 			</h3>
 
@@ -82,8 +82,8 @@ export function ManaBreakdown({
 
 			{/* Land Production section */}
 			{totalLands > 0 && (
-				<div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700">
-					<div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+				<div className="mt-4 pt-3 border-t border-gray-200 dark:border-zinc-600">
+					<div className="text-xs font-medium text-gray-500 dark:text-zinc-300 mb-2">
 						Land Production ({totalLands} lands)
 					</div>
 					<div
@@ -113,21 +113,21 @@ export function ManaBreakdown({
 			)}
 
 			{/* Legend */}
-			<div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+			<div className="mt-4 pt-3 border-t border-gray-200 dark:border-zinc-600 flex flex-wrap items-center justify-between gap-2">
 				<div className="flex gap-3 text-xs">
 					<span
 						className="flex items-center gap-1 cursor-help"
 						title="Untapped lands, fast mana rocks, shocklands (pay life = your choice)"
 					>
 						<span className="w-2 h-2 rounded-full bg-emerald-500" />
-						<span className="text-gray-600 dark:text-gray-400">Immediate</span>
+						<span className="text-gray-600 dark:text-zinc-300">Immediate</span>
 					</span>
 					<span
 						className="flex items-center gap-1 cursor-help"
 						title="Check lands, fast lands, battle lands - may enter tapped based on game state"
 					>
 						<span className="w-2 h-2 rounded-full bg-sky-500" />
-						<span className="text-gray-600 dark:text-gray-400">
+						<span className="text-gray-600 dark:text-zinc-300">
 							Conditional
 						</span>
 					</span>
@@ -136,19 +136,19 @@ export function ManaBreakdown({
 						title="Tap lands, mana dorks (summoning sickness)"
 					>
 						<span className="w-2 h-2 rounded-full bg-rose-500" />
-						<span className="text-gray-600 dark:text-gray-400">Delayed</span>
+						<span className="text-gray-600 dark:text-zinc-300">Delayed</span>
 					</span>
 					<span
 						className="flex items-center gap-1 cursor-help"
 						title="Bouncelands - enter tapped and return a land"
 					>
-						<span className="w-2 h-2 rounded-full bg-violet-500" />
-						<span className="text-gray-600 dark:text-gray-400">Bounce</span>
+						<span className="w-2 h-2 rounded-full bg-cyan-500" />
+						<span className="text-gray-600 dark:text-zinc-300">Bounce</span>
 					</span>
 				</div>
 				{totalSources > 0 && (
 					<div
-						className="text-xs text-gray-600 dark:text-gray-400 cursor-help"
+						className="text-xs text-gray-600 dark:text-zinc-300 cursor-help"
 						title={`${totalImmediate} of ${totalSources} sources can produce mana the turn they enter`}
 					>
 						{immediatePercent}% of sources produce mana immediately
@@ -206,7 +206,7 @@ function ManaColumn({
 					isSelected("symbol")
 						? "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30"
 						: hasSymbols
-							? "hover:bg-gray-100 dark:hover:bg-slate-800"
+							? "hover:bg-gray-100 dark:hover:bg-zinc-800"
 							: "cursor-default"
 				}`}
 			>
@@ -226,7 +226,7 @@ function ManaColumn({
 				{Math.round(data.symbolPercent)}%
 			</div>
 			<div
-				className="text-xs text-gray-500 dark:text-gray-400 cursor-help"
+				className="text-xs text-gray-500 dark:text-zinc-300 cursor-help"
 				title={`${data.symbolCount} ${colorName.toLowerCase()} mana symbols in card costs`}
 			>
 				{data.symbolCount} pips
@@ -237,7 +237,7 @@ function ManaColumn({
 			{sourceCount > 0 && (
 				<div className="w-full mt-2">
 					<div
-						className="flex h-3 rounded-md overflow-hidden bg-gray-200 dark:bg-slate-700 cursor-help"
+						className="flex h-3 rounded-md overflow-hidden bg-gray-200 dark:bg-zinc-700 cursor-help"
 						title={`${sourceCount} sources produce ${colorName.toLowerCase()} mana (${Math.round((sourceCount / totalSources) * 100)}% of all sources)`}
 					>
 						{data.immediateSourceCount > 0 && (
@@ -282,7 +282,7 @@ function ManaColumn({
 						{data.bounceSourceCount > 0 && (
 							<button
 								type="button"
-								className={`bg-violet-500 transition-opacity ${
+								className={`bg-cyan-500 transition-opacity ${
 									isSelected("bounce")
 										? "opacity-100"
 										: "opacity-80 hover:opacity-100"
@@ -294,7 +294,7 @@ function ManaColumn({
 						)}
 					</div>
 					<div
-						className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1 cursor-help"
+						className="text-xs text-gray-500 dark:text-zinc-300 text-center mt-1 cursor-help"
 						title={`${sourceCount} cards produce ${colorName.toLowerCase()} mana`}
 					>
 						{sourceCount} sources
@@ -349,7 +349,7 @@ function LandBar({
 			{/* Coverage bar - mana colored */}
 			<button
 				type="button"
-				className={`relative w-full h-4 rounded overflow-hidden bg-gray-200 dark:bg-slate-700 transition-opacity ${
+				className={`relative w-full h-4 rounded overflow-hidden bg-gray-200 dark:bg-zinc-700 transition-opacity ${
 					isSelected ? "ring-2 ring-blue-500" : "hover:opacity-90"
 				}`}
 				onClick={onSelect}
@@ -359,7 +359,7 @@ function LandBar({
 					className={`h-full ${MANA_BAR_COLORS[data.color]}`}
 					style={{ width: `${data.landSourcePercent}%` }}
 				/>
-				<span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300">
+				<span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-zinc-300">
 					{Math.round(data.landSourcePercent)}%
 				</span>
 			</button>
@@ -367,7 +367,7 @@ function LandBar({
 			{/* Tempo bar - smaller, shows quality of those lands */}
 			{landCount > 0 && (
 				<div
-					className="w-full h-1.5 rounded-full overflow-hidden bg-gray-200 dark:bg-slate-700 flex cursor-help"
+					className="w-full h-1.5 rounded-full overflow-hidden bg-gray-200 dark:bg-zinc-700 flex cursor-help"
 					title={`Land tempo: ${data.landImmediateCount} immediate, ${data.landConditionalCount} conditional, ${data.landDelayedCount} delayed, ${data.landBounceCount} bounce`}
 				>
 					{data.landImmediateCount > 0 && (
@@ -390,7 +390,7 @@ function LandBar({
 					)}
 					{data.landBounceCount > 0 && (
 						<div
-							className="h-full bg-violet-500"
+							className="h-full bg-cyan-500"
 							style={{ width: `${bouncePercent}%` }}
 						/>
 					)}
@@ -398,7 +398,7 @@ function LandBar({
 			)}
 
 			<div
-				className="text-xs text-gray-500 dark:text-gray-400 text-center cursor-help"
+				className="text-xs text-gray-500 dark:text-zinc-300 text-center cursor-help"
 				title={`${Math.round(data.landProductionPercent)}% of your lands' total mana production is ${colorName.toLowerCase()}`}
 			>
 				{Math.round(data.landProductionPercent)}% of symbols on lands

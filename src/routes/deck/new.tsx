@@ -53,13 +53,13 @@ function FormatInfoCard({ format }: { format: string }) {
 	// Cube gets special treatment
 	if (info.isCube) {
 		return (
-			<div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+			<div className="bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-xl p-6">
 				<div className="flex items-baseline justify-between gap-4 mb-4">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-white">
 						{displayName}
 					</h3>
 					{info.tagline && (
-						<span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+						<span className="text-sm text-gray-500 dark:text-zinc-300 whitespace-nowrap">
 							{info.tagline}
 						</span>
 					)}
@@ -80,7 +80,7 @@ function FormatInfoCard({ format }: { format: string }) {
 					</span>
 				</div>
 
-				<p className="text-sm text-gray-600 dark:text-gray-400">
+				<p className="text-sm text-gray-600 dark:text-zinc-300">
 					Set your own rules for deck size, card pool, and restrictions.
 				</p>
 			</div>
@@ -88,13 +88,13 @@ function FormatInfoCard({ format }: { format: string }) {
 	}
 
 	return (
-		<div className="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+		<div className="bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-xl p-6">
 			<div className="flex items-baseline justify-between gap-4 mb-4">
 				<h3 className="text-lg font-semibold text-gray-900 dark:text-white">
 					{displayName}
 				</h3>
 				{info.tagline && (
-					<span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+					<span className="text-sm text-gray-500 dark:text-zinc-300 whitespace-nowrap">
 						{info.tagline}
 					</span>
 				)}
@@ -126,14 +126,14 @@ function FormatInfoCard({ format }: { format: string }) {
 				)}
 
 				{info.hasSideboard && (
-					<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 text-sm font-medium rounded-full">
+					<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-zinc-700/50 text-slate-600 dark:text-zinc-300 text-sm font-medium rounded-full">
 						15-card sideboard
 					</span>
 				)}
 			</div>
 
 			{info.commanderType && (
-				<p className="text-sm text-gray-600 dark:text-gray-400">
+				<p className="text-sm text-gray-600 dark:text-zinc-300">
 					{getCommanderHint(info.commanderType)}
 				</p>
 			)}
@@ -163,13 +163,13 @@ function NewDeckPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900">
+		<div className="min-h-screen bg-white dark:bg-zinc-900">
 			<div className="max-w-xl mx-auto px-6 py-16">
 				<div className="text-center mb-10">
 					<h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
 						New Deck
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400">
+					<p className="text-gray-600 dark:text-zinc-300">
 						Choose a format and give your deck a name
 					</p>
 				</div>
@@ -178,7 +178,7 @@ function NewDeckPage() {
 					<div>
 						<label
 							htmlFor={nameId}
-							className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+							className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2"
 						>
 							Deck Name
 						</label>
@@ -189,14 +189,14 @@ function NewDeckPage() {
 							onChange={(e) => setName(e.target.value)}
 							placeholder="Untitled Deck"
 							autoComplete="off"
-							className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
+							className="w-full px-4 py-3 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
 						/>
 					</div>
 
 					<div>
 						<label
 							htmlFor={formatId}
-							className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+							className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2"
 						>
 							Format
 						</label>
@@ -204,7 +204,7 @@ function NewDeckPage() {
 							id={formatId}
 							value={format}
 							onChange={(e) => setFormat(e.target.value)}
-							className="w-full px-4 py-3 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
+							className="w-full px-4 py-3 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
 						>
 							{FORMAT_GROUPS.map((group) => (
 								<optgroup key={group.label} label={group.label}>
@@ -224,14 +224,14 @@ function NewDeckPage() {
 						<button
 							type="submit"
 							disabled={mutation.isPending || !name.trim()}
-							className="flex-1 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+							className="flex-1 px-6 py-3 bg-cyan-400 hover:bg-cyan-300 disabled:bg-gray-400 dark:disabled:bg-zinc-600 disabled:cursor-not-allowed text-gray-900 font-medium rounded-lg transition-colors"
 						>
 							{mutation.isPending ? "Creating..." : "Create Deck"}
 						</button>
 						<button
 							type="button"
 							onClick={() => navigate({ to: "/" })}
-							className="px-6 py-3 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
+							className="px-6 py-3 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
 						>
 							Cancel
 						</button>

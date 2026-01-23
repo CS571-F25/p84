@@ -78,12 +78,12 @@ export function CommentForm({
 			/>
 			<div className="flex items-center justify-end gap-2">
 				{isPending && (
-					<span className="text-sm text-gray-500 dark:text-gray-400">
+					<span className="text-sm text-gray-500 dark:text-zinc-300">
 						Saving...
 					</span>
 				)}
 				{!isPending && isEditMode && isDirty && (
-					<span className="text-sm text-gray-500 dark:text-gray-400">
+					<span className="text-sm text-gray-500 dark:text-zinc-300">
 						Unsaved changes
 					</span>
 				)}
@@ -92,7 +92,7 @@ export function CommentForm({
 						type="button"
 						onClick={onCancel}
 						disabled={isPending}
-						className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 disabled:opacity-50"
+						className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 disabled:opacity-50"
 					>
 						Cancel
 					</button>
@@ -103,7 +103,7 @@ export function CommentForm({
 					disabled={!hasContent || isPending}
 					className={`px-3 py-1.5 text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed ${
 						isEditMode
-							? "bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300"
+							? "bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300"
 							: "bg-blue-600 hover:bg-blue-700 text-white"
 					}`}
 				>

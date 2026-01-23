@@ -42,21 +42,21 @@ export function GoldfishSidebar({
 	});
 
 	return (
-		<div className="w-48 flex flex-col gap-3 p-2 bg-gray-100 dark:bg-slate-900 rounded-lg overflow-y-auto overflow-x-hidden">
+		<div className="w-48 flex flex-col gap-3 p-2 bg-gray-100 dark:bg-zinc-900 rounded-lg overflow-y-auto overflow-x-hidden">
 			{/* Library */}
 			<div
 				ref={setLibraryRef}
 				className={`rounded-lg border-2 border-dashed p-2 transition-colors ${
 					isOverLibrary
 						? "border-green-500 bg-green-500/10"
-						: "border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50"
+						: "border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800/50"
 				}`}
 			>
 				<div className="flex items-center justify-between mb-2">
-					<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+					<span className="text-sm font-medium text-gray-700 dark:text-zinc-300">
 						Library ({library.length})
 					</span>
-					<span className="text-xs text-gray-500 dark:text-gray-400">
+					<span className="text-xs text-gray-500 dark:text-zinc-300">
 						D to draw
 					</span>
 				</div>
@@ -69,7 +69,7 @@ export function GoldfishSidebar({
 						fromLibrary
 					/>
 				) : (
-					<div className="h-40 aspect-[5/7] rounded-[4.75%/3.5%] border-2 border-dashed border-gray-300 dark:border-slate-600" />
+					<div className="h-40 aspect-[5/7] rounded-[4.75%/3.5%] border-2 border-dashed border-gray-300 dark:border-zinc-600" />
 				)}
 			</div>
 
@@ -96,22 +96,22 @@ export function GoldfishSidebar({
 			{/* Player Stats */}
 			<div className="space-y-2">
 				{/* Life */}
-				<div className="flex items-center justify-between p-2 rounded bg-gray-50 dark:bg-slate-800">
+				<div className="flex items-center justify-between p-2 rounded bg-gray-50 dark:bg-zinc-800">
 					<button
 						type="button"
 						onClick={() => onAdjustLife(-1)}
-						className="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700"
+						className="p-1 rounded hover:bg-gray-200 dark:hover:bg-zinc-700"
 						aria-label="Decrease life"
 					>
 						<Minus className="w-4 h-4" />
 					</button>
-					<span className="text-lg font-bold text-gray-700 dark:text-gray-200">
+					<span className="text-lg font-bold text-gray-700 dark:text-zinc-200">
 						{player.life}
 					</span>
 					<button
 						type="button"
 						onClick={() => onAdjustLife(1)}
-						className="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700"
+						className="p-1 rounded hover:bg-gray-200 dark:hover:bg-zinc-700"
 						aria-label="Increase life"
 					>
 						<Plus className="w-4 h-4" />
@@ -119,11 +119,11 @@ export function GoldfishSidebar({
 				</div>
 
 				{/* Poison */}
-				<div className="flex items-center justify-between p-2 rounded bg-gray-50 dark:bg-slate-800">
+				<div className="flex items-center justify-between p-2 rounded bg-gray-50 dark:bg-zinc-800">
 					<button
 						type="button"
 						onClick={() => onAdjustPoison(-1)}
-						className="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700"
+						className="p-1 rounded hover:bg-gray-200 dark:hover:bg-zinc-700"
 						aria-label="Decrease poison"
 					>
 						<Minus className="w-4 h-4" />
@@ -135,7 +135,7 @@ export function GoldfishSidebar({
 					<button
 						type="button"
 						onClick={() => onAdjustPoison(1)}
-						className="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700"
+						className="p-1 rounded hover:bg-gray-200 dark:hover:bg-zinc-700"
 						aria-label="Increase poison"
 					>
 						<Plus className="w-4 h-4" />
@@ -156,7 +156,7 @@ export function GoldfishSidebar({
 				<button
 					type="button"
 					onClick={onMulligan}
-					className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-slate-600"
+					className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-200 hover:bg-gray-300 dark:hover:bg-zinc-600"
 				>
 					<RefreshCw className="w-4 h-4" />
 					Mulligan
@@ -171,7 +171,7 @@ export function GoldfishSidebar({
 			</div>
 
 			{/* Keyboard hints */}
-			<div className="text-xs text-gray-400 dark:text-gray-500 space-y-1">
+			<div className="text-xs text-gray-400 dark:text-zinc-400 space-y-1">
 				<p>T/Space: tap • F: flip</p>
 				<p>G: graveyard • E: exile</p>
 				<p>H: hand • B: play</p>

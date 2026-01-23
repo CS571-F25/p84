@@ -27,11 +27,11 @@ export const GoldfishBattlefield = forwardRef<
 				className={`isolate relative w-full h-full rounded-lg border-2 border-dashed transition-colors ${
 					isOver
 						? "border-green-500 bg-green-500/10"
-						: "border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50"
+						: "border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800/50"
 				}`}
 			>
 				{cards.length === 0 && (
-					<div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm pointer-events-none">
+					<div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-zinc-400 text-sm pointer-events-none">
 						Battlefield
 					</div>
 				)}

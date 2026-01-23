@@ -37,7 +37,7 @@ export default function UserMenu() {
 			<button
 				type="button"
 				onClick={() => setIsOpen(!isOpen)}
-				className="flex items-center gap-2 px-3 py-2 bg-gray-700 dark:bg-gray-800 rounded-lg hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors"
+				className="flex items-center gap-2 px-3 py-2 bg-gray-700 dark:bg-zinc-800 rounded-lg hover:bg-gray-600 dark:hover:bg-zinc-700 transition-colors"
 				aria-label="User menu"
 				aria-expanded={isOpen}
 			>
@@ -54,12 +54,12 @@ export default function UserMenu() {
 			</button>
 
 			{isOpen && (
-				<div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
+				<div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden z-50">
 					<Link
 						to="/profile/$did"
 						params={{ did: session.info.sub }}
 						onClick={() => setIsOpen(false)}
-						className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm"
+						className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors text-gray-900 dark:text-white text-sm"
 					>
 						<User size={16} />
 						<span>View Profile</span>
@@ -70,7 +70,7 @@ export default function UserMenu() {
 							signOut();
 							setIsOpen(false);
 						}}
-						className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm"
+						className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors text-gray-900 dark:text-white text-sm"
 					>
 						<LogOut size={16} />
 						<span>Sign Out</span>

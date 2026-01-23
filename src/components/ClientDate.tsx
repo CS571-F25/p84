@@ -43,7 +43,7 @@ export function ClientDate({
 		return (
 			<span className={className}>
 				<span
-					className="inline-block align-middle bg-gray-200 dark:bg-slate-700 rounded animate-pulse"
+					className="inline-block align-middle bg-gray-200 dark:bg-zinc-700 rounded animate-pulse"
 					style={{ width: "5.5em", height: "0.75em" }}
 				/>
 			</span>

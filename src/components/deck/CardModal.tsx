@@ -117,10 +117,10 @@ export function CardModal({
 					role="dialog"
 					aria-modal="true"
 					aria-labelledby={titleId}
-					className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl max-w-md w-full pointer-events-auto border border-gray-300 dark:border-slate-700"
+					className="bg-white dark:bg-zinc-900 rounded-lg shadow-2xl max-w-md w-full pointer-events-auto border border-gray-300 dark:border-zinc-600"
 				>
 					{/* Header */}
-					<div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-slate-800">
+					<div className="flex items-start justify-between p-6 border-b border-gray-200 dark:border-zinc-700">
 						<div className="flex-1 min-w-0">
 							{primaryFace ? (
 								<>
@@ -138,7 +138,7 @@ export function CardModal({
 										)}
 									</div>
 									{primaryFace.type_line && (
-										<div className="text-sm text-gray-600 dark:text-gray-400">
+										<div className="text-sm text-gray-600 dark:text-zinc-300">
 											{primaryFace.type_line}
 										</div>
 									)}
@@ -156,7 +156,7 @@ export function CardModal({
 							type="button"
 							onClick={onClose}
 							aria-label="Close"
-							className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors ml-4"
+							className="text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors ml-4"
 						>
 							<X className="w-6 h-6" />
 						</button>
@@ -179,7 +179,7 @@ export function CardModal({
 
 						{/* Quantity */}
 						<div>
-							<div className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+							<div className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
 								Quantity
 							</div>
 							<div className="flex items-center gap-3">
@@ -187,9 +187,9 @@ export function CardModal({
 									type="button"
 									onClick={() => handleQuantityChange(quantity - 1)}
 									disabled={readOnly || quantity <= 1}
-									className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+									className="p-2 rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>
-									<Minus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+									<Minus className="w-4 h-4 text-gray-700 dark:text-zinc-300" />
 								</button>
 								<input
 									type="number"
@@ -201,29 +201,29 @@ export function CardModal({
 										)
 									}
 									disabled={readOnly}
-									className="w-20 px-3 py-2 text-center bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+									className="w-20 px-3 py-2 text-center bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
 								/>
 								<button
 									type="button"
 									onClick={() => handleQuantityChange(quantity + 1)}
 									disabled={readOnly}
-									className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+									className="p-2 rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>
-									<Plus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+									<Plus className="w-4 h-4 text-gray-700 dark:text-zinc-300" />
 								</button>
 							</div>
 						</div>
 
 						{/* Section */}
 						<div>
-							<div className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+							<div className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
 								Section
 							</div>
 							<select
 								value={card.section}
 								onChange={(e) => onMoveToSection(e.target.value as Section)}
 								disabled={readOnly}
-								className="w-full px-4 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+								className="w-full px-4 py-2 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
 							>
 								<option value="commander">Commander</option>
 								<option value="mainboard">Mainboard</option>
@@ -234,7 +234,7 @@ export function CardModal({
 
 						{/* Tags */}
 						<div>
-							<div className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+							<div className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
 								Tags
 							</div>
 							<div className="mb-2">
@@ -266,7 +266,7 @@ export function CardModal({
 					</div>
 
 					{/* Footer */}
-					<div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-slate-800">
+					<div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-zinc-700">
 						<button
 							type="button"
 							onClick={handleDelete}
@@ -279,7 +279,7 @@ export function CardModal({
 						<button
 							type="button"
 							onClick={onClose}
-							className="px-6 py-2 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white rounded-lg transition-colors"
+							className="px-6 py-2 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 text-gray-900 dark:text-white rounded-lg transition-colors"
 						>
 							Close
 						</button>

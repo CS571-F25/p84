@@ -88,13 +88,13 @@ function ProseMirrorDemo() {
 	}, [savedDoc]);
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900 p-8">
+		<div className="min-h-screen bg-white dark:bg-zinc-900 p-8">
 			<div className="max-w-3xl mx-auto space-y-8">
 				<div>
 					<h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
 						ProseMirror Editor Demo
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400">
+					<p className="text-gray-600 dark:text-zinc-300">
 						Testing the new WYSIWYG editor. Use toolbar buttons or markdown
 						shortcuts.
 					</p>
@@ -116,42 +116,42 @@ function ProseMirrorDemo() {
 					<h2 className="text-lg font-semibold text-gray-900 dark:text-white">
 						Read-only View
 					</h2>
-					<div className="p-4 border border-gray-200 dark:border-slate-700 rounded-lg bg-gray-50 dark:bg-slate-800/50">
+					<div className="p-4 border border-gray-200 dark:border-zinc-600 rounded-lg bg-gray-50 dark:bg-zinc-800/50">
 						<RichtextSection document={savedDoc} readOnly />
 					</div>
 				</div>
 
 				{lastSaved && (
-					<p className="text-sm text-gray-500 dark:text-gray-400">
+					<p className="text-sm text-gray-500 dark:text-zinc-300">
 						Last saved: {lastSaved}
 					</p>
 				)}
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<details className="text-sm" open>
-						<summary className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium">
+						<summary className="cursor-pointer text-gray-600 dark:text-zinc-300 hover:text-gray-800 dark:hover:text-zinc-200 font-medium">
 							Lexicon (storage format)
 						</summary>
-						<pre className="mt-2 p-4 bg-gray-100 dark:bg-slate-800 rounded overflow-auto text-xs max-h-96">
+						<pre className="mt-2 p-4 bg-gray-100 dark:bg-zinc-800 rounded overflow-auto text-xs max-h-96">
 							{JSON.stringify(savedDoc, null, 2)}
 						</pre>
 					</details>
 
 					<details className="text-sm" open>
-						<summary className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium">
+						<summary className="cursor-pointer text-gray-600 dark:text-zinc-300 hover:text-gray-800 dark:hover:text-zinc-200 font-medium">
 							Tree (ProseMirror)
 						</summary>
-						<pre className="mt-2 p-4 bg-gray-100 dark:bg-slate-800 rounded overflow-auto text-xs max-h-96">
+						<pre className="mt-2 p-4 bg-gray-100 dark:bg-zinc-800 rounded overflow-auto text-xs max-h-96">
 							{JSON.stringify(pmTreeDoc, null, 2)}
 						</pre>
 					</details>
 				</div>
 
 				<details className="text-sm">
-					<summary className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium">
+					<summary className="cursor-pointer text-gray-600 dark:text-zinc-300 hover:text-gray-800 dark:hover:text-zinc-200 font-medium">
 						Roundtrip (lexicon → tree → lexicon)
 					</summary>
-					<pre className="mt-2 p-4 bg-gray-100 dark:bg-slate-800 rounded overflow-auto text-xs max-h-96">
+					<pre className="mt-2 p-4 bg-gray-100 dark:bg-zinc-800 rounded overflow-auto text-xs max-h-96">
 						{JSON.stringify(roundtrippedDoc, null, 2)}
 					</pre>
 					{roundtrippedDoc && savedDoc && (

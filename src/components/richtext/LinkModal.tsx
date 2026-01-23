@@ -71,7 +71,7 @@ export function LinkModal({
 				onClick={onClose}
 				aria-label="Close modal"
 			/>
-			<div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl p-4 w-full max-w-md mx-4">
+			<div className="relative bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-4 w-full max-w-md mx-4">
 				<div className="flex items-center justify-between mb-4">
 					<h3
 						id={`${id}-title`}
@@ -82,7 +82,7 @@ export function LinkModal({
 					<button
 						type="button"
 						onClick={onClose}
-						className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-500 dark:text-gray-400"
+						className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-500 dark:text-zinc-300"
 					>
 						<X className="w-5 h-5" />
 					</button>
@@ -92,7 +92,7 @@ export function LinkModal({
 					<div>
 						<label
 							htmlFor={urlId}
-							className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+							className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
 						>
 							URL
 						</label>
@@ -103,7 +103,7 @@ export function LinkModal({
 							value={url}
 							onChange={(e) => setUrl(e.target.value)}
 							placeholder="example.com"
-							className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
 						/>
 					</div>
 
@@ -111,7 +111,7 @@ export function LinkModal({
 						<div>
 							<label
 								htmlFor={textId}
-								className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+								className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
 							>
 								Link Text
 							</label>
@@ -121,7 +121,7 @@ export function LinkModal({
 								value={text}
 								onChange={(e) => setText(e.target.value)}
 								placeholder="Display text (optional)"
-								className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
 							/>
 						</div>
 					)}
@@ -130,7 +130,7 @@ export function LinkModal({
 						<button
 							type="button"
 							onClick={onClose}
-							className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md"
+							className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-md"
 						>
 							Cancel
 						</button>

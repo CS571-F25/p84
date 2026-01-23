@@ -60,7 +60,7 @@ function ListsTab() {
 							type="button"
 							onClick={() => createListMutation.mutate({ name: "New List" })}
 							disabled={createListMutation.isPending}
-							className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-600/50 text-white font-medium rounded-lg transition-colors"
+							className="flex items-center gap-2 px-4 py-2 bg-cyan-400 hover:bg-cyan-300 disabled:bg-cyan-400/50 text-gray-900 font-medium rounded-lg transition-colors"
 						>
 							<Plus className="w-4 h-4" />
 							New List
@@ -69,12 +69,12 @@ function ListsTab() {
 				</div>
 
 				{isLoading ? (
-					<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
-						<p className="text-gray-600 dark:text-gray-400">Loading lists...</p>
+					<div className="text-center py-8 bg-gray-50 dark:bg-zinc-800 rounded-lg">
+						<p className="text-gray-600 dark:text-zinc-300">Loading lists...</p>
 					</div>
 				) : lists.length === 0 ? (
-					<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
-						<p className="text-gray-600 dark:text-gray-400">
+					<div className="text-center py-8 bg-gray-50 dark:bg-zinc-800 rounded-lg">
+						<p className="text-gray-600 dark:text-zinc-300">
 							{isOwner ? "No lists yet" : "No lists"}
 						</p>
 					</div>

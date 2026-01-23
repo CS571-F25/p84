@@ -134,8 +134,8 @@ function SignIn() {
 	}
 
 	return (
-		<div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 px-4 py-8">
-			<div className="max-w-md w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg p-8">
+		<div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-zinc-900 px-4 py-8">
+			<div className="max-w-md w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg p-8">
 				<div className="flex items-center justify-center mb-6">
 					<div className="p-3 bg-cyan-600 rounded-full">
 						<LogIn size={32} className="text-white" />
@@ -144,14 +144,14 @@ function SignIn() {
 				<h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-2 font-display">
 					Sign In
 				</h1>
-				<p className="text-gray-600 dark:text-gray-400 text-center mb-8">
+				<p className="text-gray-600 dark:text-zinc-300 text-center mb-8">
 					Sign in with an Atmosphere account to continue
 				</p>
 
 				<form onSubmit={handleSubmit}>
 					<label
 						htmlFor={handleId}
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+						className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2"
 					>
 						Handle
 					</label>
@@ -168,7 +168,7 @@ function SignIn() {
 							onFocus={() => setIsFocused(true)}
 							onKeyDown={handleKeyDown}
 							placeholder="alice.bsky.social"
-							className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed"
 							disabled={isLoading}
 							required
 							role="combobox"
@@ -185,7 +185,7 @@ function SignIn() {
 								id={listboxId}
 								role="listbox"
 								aria-labelledby={handleId}
-								className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+								className="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg max-h-60 overflow-y-auto"
 							>
 								{results.map((result, index) => (
 									<button
@@ -198,7 +198,7 @@ function SignIn() {
 										role="option"
 										aria-selected={index === selectedIndex}
 										onClick={() => selectResult(result.handle)}
-										className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+										className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors ${
 											index === selectedIndex
 												? "bg-cyan-100 dark:bg-cyan-900/30"
 												: ""
@@ -211,7 +211,7 @@ function SignIn() {
 												className="w-10 h-10 rounded-full"
 											/>
 										) : (
-											<div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600" />
+											<div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-zinc-600" />
 										)}
 										<div className="flex-1 min-w-0">
 											{result.displayName && (
@@ -219,7 +219,7 @@ function SignIn() {
 													{result.displayName}
 												</div>
 											)}
-											<div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+											<div className="text-sm text-gray-600 dark:text-zinc-300 truncate">
 												@{result.handle}
 											</div>
 										</div>
@@ -240,11 +240,11 @@ function SignIn() {
 					<button
 						type="submit"
 						disabled={isLoading}
-						className="w-full px-4 py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium text-lg flex items-center justify-center gap-2"
+						className="w-full px-4 py-3 bg-cyan-400 hover:bg-cyan-300 disabled:bg-gray-400 disabled:cursor-not-allowed text-gray-900 rounded-lg transition-colors font-medium text-lg flex items-center justify-center gap-2"
 					>
 						{isLoading ? (
 							<>
-								<div className="inline-block h-5 w-5 animate-spin rounded-full border-3 border-solid border-white border-r-transparent" />
+								<div className="inline-block h-5 w-5 animate-spin rounded-full border-3 border-solid border-gray-900 border-r-transparent" />
 								<span>Signing in...</span>
 							</>
 						) : (
@@ -253,7 +253,7 @@ function SignIn() {
 					</button>
 				</form>
 
-				<p className="mt-6 text-center text-gray-600 dark:text-gray-400">
+				<p className="mt-6 text-center text-gray-600 dark:text-zinc-300">
 					Don't have an account?{" "}
 					<Link
 						to="/signup"

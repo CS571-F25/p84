@@ -123,7 +123,7 @@ export function CommentItem({
 
 	if (isError || !record) {
 		return (
-			<div className="py-3 text-sm text-gray-400 dark:text-gray-500 italic">
+			<div className="py-3 text-sm text-gray-400 dark:text-zinc-400 italic">
 				[Failed to load {type}]
 			</div>
 		);
@@ -137,24 +137,24 @@ export function CommentItem({
 						<Link
 							to="/profile/$did"
 							params={{ did }}
-							className="font-medium text-gray-900 dark:text-gray-100 hover:underline"
+							className="font-medium text-gray-900 dark:text-zinc-100 hover:underline"
 						>
 							@{handle ?? did.slice(0, 16)}
 						</Link>
-						<span className="text-gray-400 dark:text-gray-500">·</span>
+						<span className="text-gray-400 dark:text-zinc-400">·</span>
 						<ClientDate
 							dateString={record.createdAt}
 							format="relative"
-							className="text-gray-500 dark:text-gray-400"
+							className="text-gray-500 dark:text-zinc-300"
 						/>
 						{record.updatedAt && record.updatedAt !== record.createdAt && (
-							<span className="text-gray-400 dark:text-gray-500 text-xs">
+							<span className="text-gray-400 dark:text-zinc-400 text-xs">
 								(edited)
 							</span>
 						)}
 					</div>
 
-					<div className="mt-1 text-gray-800 dark:text-gray-200">
+					<div className="mt-1 text-gray-800 dark:text-zinc-200">
 						<RichtextRenderer doc={record.content} />
 					</div>
 
@@ -163,14 +163,14 @@ export function CommentItem({
 							<button
 								type="button"
 								onClick={() => setShowReplyForm(!showReplyForm)}
-								className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+								className="flex items-center gap-1 text-sm text-gray-500 dark:text-zinc-300 hover:text-gray-700 dark:hover:text-zinc-200"
 							>
 								<MessageSquare className="w-4 h-4" />
 								{replyCount > 0 && <span>{replyCount}</span>}
 							</button>
 						) : (
 							replyCount > 0 && (
-								<span className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+								<span className="flex items-center gap-1 text-sm text-gray-500 dark:text-zinc-300">
 									<MessageSquare className="w-4 h-4" />
 									<span>{replyCount}</span>
 								</span>
@@ -187,7 +187,7 @@ export function CommentItem({
 										deleteCommentMutation.isPending ||
 										deleteReplyMutation.isPending
 									}
-									className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+									className="flex items-center gap-1 text-sm text-gray-500 dark:text-zinc-300 hover:text-red-600 dark:hover:text-red-400"
 								>
 									<Trash2 className="w-4 h-4" />
 								</button>
@@ -217,12 +217,12 @@ function CommentSkeleton() {
 			<div className="flex items-start gap-3">
 				<div className="flex-1">
 					<div className="flex items-center gap-2">
-						<div className="h-4 w-24 bg-gray-200 dark:bg-slate-700 rounded motion-safe:animate-pulse" />
-						<div className="h-4 w-16 bg-gray-200 dark:bg-slate-700 rounded motion-safe:animate-pulse" />
+						<div className="h-4 w-24 bg-gray-200 dark:bg-zinc-700 rounded motion-safe:animate-pulse" />
+						<div className="h-4 w-16 bg-gray-200 dark:bg-zinc-700 rounded motion-safe:animate-pulse" />
 					</div>
 					<div className="mt-2 space-y-2">
-						<div className="h-4 w-full bg-gray-200 dark:bg-slate-700 rounded motion-safe:animate-pulse" />
-						<div className="h-4 w-3/4 bg-gray-200 dark:bg-slate-700 rounded motion-safe:animate-pulse" />
+						<div className="h-4 w-full bg-gray-200 dark:bg-zinc-700 rounded motion-safe:animate-pulse" />
+						<div className="h-4 w-3/4 bg-gray-200 dark:bg-zinc-700 rounded motion-safe:animate-pulse" />
 					</div>
 				</div>
 			</div>

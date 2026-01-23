@@ -85,7 +85,7 @@ export function CardImage({
 			<img
 				src={getImageUri(card.id, size, face)}
 				alt={card.name}
-				className={`${baseClassName} bg-gray-200 dark:bg-slate-700`}
+				className={`${baseClassName} bg-gray-200 dark:bg-zinc-700`}
 				style={{ backgroundImage: PLACEHOLDER_STRIPES }}
 				loading="lazy"
 			/>
@@ -108,7 +108,7 @@ export function CardImage({
 					<img
 						src={getImageUri(card.id, size, "front")}
 						alt={card.name}
-						className={`${baseClassName} bg-gray-200 dark:bg-slate-700`}
+						className={`${baseClassName} bg-gray-200 dark:bg-zinc-700`}
 						loading="lazy"
 						style={{
 							backfaceVisibility: "hidden",
@@ -118,7 +118,7 @@ export function CardImage({
 					<img
 						src={getImageUri(card.id, size, "back")}
 						alt={`${card.name} (back)`}
-						className={`${baseClassName} bg-gray-200 dark:bg-slate-700 absolute inset-0`}
+						className={`${baseClassName} bg-gray-200 dark:bg-zinc-700 absolute inset-0`}
 						loading="lazy"
 						style={{
 							backfaceVisibility: "hidden",
@@ -131,7 +131,7 @@ export function CardImage({
 				<img
 					src={getImageUri(card.id, size, face)}
 					alt={card.name}
-					className={`${baseClassName} bg-gray-200 dark:bg-slate-700 motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out`}
+					className={`${baseClassName} bg-gray-200 dark:bg-zinc-700 motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out`}
 					loading="lazy"
 					style={{
 						backgroundImage: PLACEHOLDER_STRIPES,
@@ -162,7 +162,7 @@ export function CardImage({
 export function CardSkeleton() {
 	return (
 		<div
-			className="aspect-[5/7] rounded-[4.75%/3.5%] bg-gray-200 dark:bg-slate-700 animate-pulse"
+			className="aspect-[5/7] rounded-[4.75%/3.5%] bg-gray-200 dark:bg-zinc-700 animate-pulse"
 			style={{ backgroundImage: PLACEHOLDER_STRIPES }}
 		/>
 	);
@@ -191,7 +191,7 @@ export function CardThumbnail({ card, href, onClick }: CardThumbnailProps) {
 						{card.name}
 					</p>
 					{card.set_name && (
-						<p className="text-gray-200 dark:text-gray-300 text-xs mt-1">
+						<p className="text-gray-200 dark:text-zinc-300 text-xs mt-1">
 							{card.set_name}
 						</p>
 					)}

@@ -16,7 +16,7 @@ export function CardDragOverlay({ draggedCardId }: CardDragOverlayProps) {
 	return (
 		<DragOverlay>
 			{draggedCardId && cardData ? (
-				<div className="bg-gray-100 dark:bg-slate-800 rounded px-2 py-1 shadow-lg opacity-90 cursor-grabbing">
+				<div className="bg-gray-100 dark:bg-zinc-800 rounded px-2 py-1 shadow-lg opacity-90 cursor-grabbing">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-900 dark:text-white text-sm font-medium">
 							{cardData.name}

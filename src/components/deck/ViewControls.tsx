@@ -37,7 +37,7 @@ export function ViewControls({
 			<div className="flex items-center gap-1.5">
 				<label
 					htmlFor={groupById}
-					className="text-xs font-medium text-gray-600 dark:text-gray-400"
+					className="text-xs font-medium text-gray-600 dark:text-zinc-300"
 				>
 					Group:
 				</label>
@@ -45,7 +45,7 @@ export function ViewControls({
 					id={groupById}
 					value={groupBy}
 					onChange={(e) => onGroupByChange(e.target.value as GroupBy)}
-					className="min-w-32 cursor-pointer rounded bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 py-1 px-2 text-sm text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+					className="min-w-32 cursor-pointer rounded bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 py-1 px-2 text-sm text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-zinc-700 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
 				>
 					{GROUP_BY_OPTIONS.map((option) => (
 						<option key={option.value} value={option.value}>
@@ -58,7 +58,7 @@ export function ViewControls({
 			<div className="flex items-center gap-1.5">
 				<label
 					htmlFor={sortById}
-					className="text-xs font-medium text-gray-600 dark:text-gray-400"
+					className="text-xs font-medium text-gray-600 dark:text-zinc-300"
 				>
 					Sort:
 				</label>
@@ -66,7 +66,7 @@ export function ViewControls({
 					id={sortById}
 					value={sortBy}
 					onChange={(e) => onSortByChange(e.target.value as SortBy)}
-					className="min-w-28 cursor-pointer rounded bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 py-1 px-2 text-sm text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+					className="min-w-28 cursor-pointer rounded bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 py-1 px-2 text-sm text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-zinc-700 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
 				>
 					{SORT_BY_OPTIONS.map((option) => (
 						<option key={option.value} value={option.value}>

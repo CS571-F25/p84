@@ -71,7 +71,7 @@ export function Toolbar({ view }: ToolbarProps) {
 		// Render placeholder to reserve space and prevent layout shift
 		// Height matches: p-2 (8px*2) + button p-1.5 (6px*2) + icon h-4 (16px) = 44px
 		return (
-			<div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 min-h-11" />
+			<div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800/50 min-h-11" />
 		);
 	}
 
@@ -251,7 +251,7 @@ export function Toolbar({ view }: ToolbarProps) {
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-300 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50">
+			<div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800/50">
 				{/* History */}
 				<ToolbarButton onClick={runUndo} active={false} title="Undo (Cmd+Z)">
 					<Undo className="w-4 h-4" />
@@ -377,7 +377,7 @@ export function Toolbar({ view }: ToolbarProps) {
 }
 
 function ToolbarDivider() {
-	return <div className="w-px h-5 bg-gray-300 dark:bg-slate-600 mx-1" />;
+	return <div className="w-px h-5 bg-gray-300 dark:bg-zinc-600 mx-1" />;
 }
 
 interface ToolbarButtonProps {
@@ -401,7 +401,7 @@ function ToolbarButton({
 			className={`p-1.5 rounded transition-colors ${
 				active
 					? "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"
-					: "hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400"
+					: "hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-600 dark:text-zinc-300"
 			}`}
 		>
 			{children}

@@ -116,7 +116,7 @@ function DragPreview({ instance }: { instance: CardInstance }) {
 				<img
 					src={imageSrc}
 					alt="Dragging card"
-					className="h-40 aspect-[5/7] rounded-[4.75%/3.5%] bg-gray-200 dark:bg-slate-700 shadow-2xl"
+					className="h-40 aspect-[5/7] rounded-[4.75%/3.5%] bg-gray-200 dark:bg-zinc-700 shadow-2xl"
 					style={{ backgroundImage: PLACEHOLDER_STRIPES }}
 					draggable={false}
 				/>

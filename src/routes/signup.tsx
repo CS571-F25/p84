@@ -47,8 +47,8 @@ function SignUp() {
 	}
 
 	return (
-		<div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 px-4 py-8">
-			<div className="max-w-md w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg p-8">
+		<div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-zinc-900 px-4 py-8">
+			<div className="max-w-md w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg p-8">
 				<div className="flex items-center justify-center mb-6">
 					<div className="p-3 bg-emerald-600 rounded-full">
 						<UserPlus size={32} className="text-white" />
@@ -57,7 +57,7 @@ function SignUp() {
 				<h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-2 font-display">
 					Create Account
 				</h1>
-				<p className="text-gray-600 dark:text-gray-400 text-center mb-6">
+				<p className="text-gray-600 dark:text-zinc-300 text-center mb-6">
 					New to the Atmosphere? Create an account on a PDS host.
 				</p>
 
@@ -67,7 +67,7 @@ function SignUp() {
 						className={`block mb-4 p-4 rounded-lg border-2 cursor-pointer transition-colors ${
 							selectedPds === DEFAULT_PDS_HOST.url
 								? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
-								: "border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+								: "border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-800"
 						}`}
 					>
 						<div className="flex items-center gap-3">
@@ -86,7 +86,7 @@ function SignUp() {
 								<div className="font-medium text-gray-900 dark:text-white">
 									{DEFAULT_PDS_HOST.name}
 								</div>
-								<div className="text-sm text-gray-600 dark:text-gray-400">
+								<div className="text-sm text-gray-600 dark:text-zinc-300">
 									{DEFAULT_PDS_HOST.description}
 								</div>
 							</div>
@@ -94,11 +94,11 @@ function SignUp() {
 					</label>
 
 					{/* Other hosts - collapsible */}
-					<div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-4">
+					<div className="border-t border-gray-200 dark:border-zinc-600 pt-4 mb-4">
 						<button
 							type="button"
 							onClick={() => setShowOtherHosts(!showOtherHosts)}
-							className="w-full flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+							className="w-full flex items-center justify-between text-sm text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white"
 						>
 							<span>Other hosting options</span>
 							<ChevronDown
@@ -115,7 +115,7 @@ function SignUp() {
 										className={`block p-3 rounded-lg border cursor-pointer transition-colors ${
 											selectedPds === host.url
 												? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
-												: "border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+												: "border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-800"
 										}`}
 									>
 										<div className="flex items-center gap-3">
@@ -134,7 +134,7 @@ function SignUp() {
 												<div className="font-medium text-gray-900 dark:text-white">
 													{host.name}
 												</div>
-												<div className="text-sm text-gray-600 dark:text-gray-400">
+												<div className="text-sm text-gray-600 dark:text-zinc-300">
 													{host.description}
 												</div>
 											</div>
@@ -145,7 +145,7 @@ function SignUp() {
 									className={`block p-3 rounded-lg border cursor-pointer transition-colors ${
 										selectedPds === "custom"
 											? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
-											: "border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+											: "border-gray-300 dark:border-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-800"
 									}`}
 								>
 									<div className="flex items-center gap-3">
@@ -164,7 +164,7 @@ function SignUp() {
 											<div className="font-medium text-gray-900 dark:text-white">
 												Other...
 											</div>
-											<div className="text-sm text-gray-600 dark:text-gray-400">
+											<div className="text-sm text-gray-600 dark:text-zinc-300">
 												Enter a custom PDS URL
 											</div>
 										</div>
@@ -175,7 +175,7 @@ function SignUp() {
 									<div className="ml-6 mt-2">
 										<label
 											htmlFor={customPdsId}
-											className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+											className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2"
 										>
 											PDS URL
 										</label>
@@ -185,7 +185,7 @@ function SignUp() {
 											value={customPdsUrl}
 											onChange={(e) => setCustomPdsUrl(e.target.value)}
 											placeholder="https://pds.example.com"
-											className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
+											className="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
 											required
 										/>
 									</div>
@@ -196,14 +196,14 @@ function SignUp() {
 
 					{/* Acknowledgment checkbox for hosts with policy links */}
 					{needsAcknowledgment && (
-						<label className="flex items-start gap-3 mb-4 p-3 bg-amber-50 dark:bg-slate-800 border border-amber-200 dark:border-amber-700/50 rounded-lg cursor-pointer">
+						<label className="flex items-start gap-3 mb-4 p-3 bg-amber-50 dark:bg-zinc-800 border border-amber-200 dark:border-amber-700/50 rounded-lg cursor-pointer">
 							<input
 								type="checkbox"
 								checked={acknowledgedPolicy}
 								onChange={(e) => setAcknowledgedPolicy(e.target.checked)}
 								className="mt-0.5 text-amber-600 focus:ring-amber-500"
 							/>
-							<span className="text-sm text-gray-700 dark:text-gray-300">
+							<span className="text-sm text-gray-700 dark:text-zinc-300">
 								I've read the{" "}
 								<a
 									href={selectedHost?.learnMoreUrl}
@@ -242,15 +242,15 @@ function SignUp() {
 				</form>
 
 				{selectedHost && selectedPds !== "custom" && (
-					<div className="mt-4 p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg">
-						<div className="text-sm text-gray-600 dark:text-gray-400">
+					<div className="mt-4 p-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-lg">
+						<div className="text-sm text-gray-600 dark:text-zinc-300">
 							Available handles on {selectedHost.name}:
 						</div>
 						<div className="mt-1.5 flex flex-wrap gap-1">
 							{selectedHost.handles.map((handle) => (
 								<span
 									key={handle}
-									className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full"
+									className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded-full"
 								>
 									.{handle}
 								</span>
@@ -267,7 +267,7 @@ function SignUp() {
 						size={16}
 						className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5"
 					/>
-					<p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+					<p className="text-sm text-gray-700 dark:text-zinc-300 leading-relaxed">
 						Each host has its own policies and backup systems. Your data lives
 						on the host you choose, but you can migrate later.
 						{selectedHost &&
@@ -302,7 +302,7 @@ function SignUp() {
 					</p>
 				</div>
 
-				<p className="mt-6 text-center text-gray-600 dark:text-gray-400">
+				<p className="mt-6 text-center text-gray-600 dark:text-zinc-300">
 					Already have an account?{" "}
 					<Link
 						to="/signin"

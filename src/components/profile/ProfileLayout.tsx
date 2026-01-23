@@ -62,7 +62,7 @@ export function ProfileLayout({ did, children }: ProfileLayoutProps) {
 	const isOwner = session?.info.sub === did;
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900">
+		<div className="min-h-screen bg-white dark:bg-zinc-900">
 			<div className="max-w-7xl mx-auto px-6 py-16">
 				{/* Profile Header */}
 				<ProfileHeader
@@ -76,19 +76,19 @@ export function ProfileLayout({ did, children }: ProfileLayoutProps) {
 				/>
 
 				{/* Tab Navigation */}
-				<nav className="flex border-b border-gray-200 dark:border-slate-700 mb-6">
+				<nav className="flex border-b border-gray-200 dark:border-zinc-600 mb-6">
 					<Link
 						to="/profile/$did"
 						params={{ did }}
 						activeOptions={{ exact: true }}
-						className="px-4 py-2 font-medium text-sm border-b-2 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 border-transparent hover:border-gray-300 dark:hover:border-gray-600 [&.active]:border-cyan-500 [&.active]:text-cyan-600 dark:[&.active]:text-cyan-400"
+						className="px-4 py-2 font-medium text-sm border-b-2 transition-colors text-gray-500 dark:text-zinc-300 hover:text-gray-700 dark:hover:text-zinc-300 border-transparent hover:border-gray-300 dark:hover:border-zinc-600 [&.active]:border-cyan-500 [&.active]:text-cyan-600 dark:[&.active]:text-cyan-400"
 					>
 						Decks
 					</Link>
 					<Link
 						to="/profile/$did/lists"
 						params={{ did }}
-						className="px-4 py-2 font-medium text-sm border-b-2 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 border-transparent hover:border-gray-300 dark:hover:border-gray-600 [&.active]:border-cyan-500 [&.active]:text-cyan-600 dark:[&.active]:text-cyan-400"
+						className="px-4 py-2 font-medium text-sm border-b-2 transition-colors text-gray-500 dark:text-zinc-300 hover:text-gray-700 dark:hover:text-zinc-300 border-transparent hover:border-gray-300 dark:hover:border-zinc-600 [&.active]:border-cyan-500 [&.active]:text-cyan-600 dark:[&.active]:text-cyan-400"
 					>
 						Lists
 					</Link>

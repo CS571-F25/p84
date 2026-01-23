@@ -152,7 +152,7 @@ function ExportPage() {
 	const lineCount = exportText.split("\n").filter((l) => l.trim()).length;
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900">
+		<div className="min-h-screen bg-white dark:bg-zinc-900">
 			<div className="max-w-4xl mx-auto px-6 py-8">
 				<div className="mb-6">
 					<Link
@@ -165,14 +165,14 @@ function ExportPage() {
 					<h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
 						Export: {deck.name}
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400 mt-1">
+					<p className="text-gray-600 dark:text-zinc-300 mt-1">
 						Export your deck to various formats for use in other tools.
 					</p>
 				</div>
 
 				{/* Format selector */}
 				<div className="mb-6">
-					<span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+					<span className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
 						Format
 					</span>
 					<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -187,7 +187,7 @@ function ExportPage() {
 									className={`px-3 py-2 text-sm rounded-lg border transition-colors text-left ${
 										format === f
 											? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-											: "border-gray-300 dark:border-slate-700 hover:border-gray-400 dark:hover:border-slate-600 text-gray-700 dark:text-gray-300"
+											: "border-gray-300 dark:border-zinc-600 hover:border-gray-400 dark:hover:border-slate-600 text-gray-700 dark:text-zinc-300"
 									}`}
 								>
 									<div className="font-medium">{meta.label}</div>
@@ -201,12 +201,12 @@ function ExportPage() {
 				{/* Options */}
 				<div className="mb-6 space-y-2">
 					{getCardsInSection(deck, "maybeboard").length > 0 && (
-						<label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+						<label className="flex items-center gap-2 text-sm text-gray-700 dark:text-zinc-300 cursor-pointer">
 							<input
 								type="checkbox"
 								checked={includeMaybeboard}
 								onChange={(e) => setIncludeMaybeboard(e.target.checked)}
-								className="rounded border-gray-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
+								className="rounded border-gray-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500"
 							/>
 							Include maybeboard (
 							{getCardsInSection(deck, "maybeboard").reduce(
@@ -219,8 +219,8 @@ function ExportPage() {
 					<label
 						className={`flex items-center gap-2 text-sm ${
 							formatOptions.tags
-								? "text-gray-700 dark:text-gray-300 cursor-pointer"
-								: "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+								? "text-gray-700 dark:text-zinc-300 cursor-pointer"
+								: "text-gray-400 dark:text-zinc-600 cursor-not-allowed"
 						}`}
 					>
 						<input
@@ -228,15 +228,15 @@ function ExportPage() {
 							checked={formatOptions.tags && includeTags}
 							onChange={(e) => setIncludeTags(e.target.checked)}
 							disabled={!formatOptions.tags}
-							className="rounded border-gray-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+							className="rounded border-gray-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
 						/>
 						Include tags
 					</label>
 					<label
 						className={`flex items-center gap-2 text-sm ${
 							formatOptions.setcodes
-								? "text-gray-700 dark:text-gray-300 cursor-pointer"
-								: "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+								? "text-gray-700 dark:text-zinc-300 cursor-pointer"
+								: "text-gray-400 dark:text-zinc-600 cursor-not-allowed"
 						}`}
 					>
 						<input
@@ -244,7 +244,7 @@ function ExportPage() {
 							checked={formatOptions.setcodes && includeSetCodes}
 							onChange={(e) => setIncludeSetCodes(e.target.checked)}
 							disabled={!formatOptions.setcodes}
-							className="rounded border-gray-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+							className="rounded border-gray-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
 						/>
 						Include set codes
 					</label>
@@ -253,7 +253,7 @@ function ExportPage() {
 				{/* Preview */}
 				<div className="mb-4">
 					<div className="flex items-center justify-between mb-2">
-						<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+						<span className="text-sm font-medium text-gray-700 dark:text-zinc-300">
 							Preview ({lineCount} lines)
 						</span>
 						<div className="flex gap-2">
@@ -268,14 +268,14 @@ function ExportPage() {
 							<button
 								type="button"
 								onClick={handleDownload}
-								className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white rounded-lg transition-colors"
+								className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 text-gray-900 dark:text-white rounded-lg transition-colors"
 							>
 								<Download size={14} />
 								Download
 							</button>
 						</div>
 					</div>
-					<pre className="p-4 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg overflow-x-auto text-sm font-mono text-gray-900 dark:text-gray-100 max-h-[60vh] overflow-y-auto whitespace-pre">
+					<pre className="p-4 bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg overflow-x-auto text-sm font-mono text-gray-900 dark:text-zinc-100 max-h-[60vh] overflow-y-auto whitespace-pre">
 						{exportText}
 					</pre>
 				</div>

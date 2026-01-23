@@ -71,15 +71,15 @@ export function CommentsPanel({
 	);
 
 	return (
-		<div className={`flex flex-col ${maxHeight} bg-white dark:bg-slate-900`}>
-			<div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700">
+		<div className={`flex flex-col ${maxHeight} bg-white dark:bg-zinc-900`}>
+			<div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-zinc-600">
 				<div className="flex items-center gap-2">
-					<MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-					<h2 className="font-semibold text-gray-900 dark:text-gray-100">
+					<MessageSquare className="w-5 h-5 text-gray-600 dark:text-zinc-300" />
+					<h2 className="font-semibold text-gray-900 dark:text-zinc-100">
 						{title}
 					</h2>
 					{count > 0 && (
-						<span className="text-sm text-gray-500 dark:text-gray-400">
+						<span className="text-sm text-gray-500 dark:text-zinc-300">
 							({count})
 						</span>
 					)}
@@ -88,7 +88,7 @@ export function CommentsPanel({
 					<button
 						type="button"
 						onClick={onClose}
-						className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400"
+						className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-zinc-300"
 					>
 						<X className="w-5 h-5" />
 					</button>
@@ -97,19 +97,19 @@ export function CommentsPanel({
 
 			<div className="flex-1 overflow-y-auto px-4">
 				{commentsQuery.isLoading && (
-					<div className="py-8 text-center text-gray-500 dark:text-gray-400">
+					<div className="py-8 text-center text-gray-500 dark:text-zinc-300">
 						Loading comments...
 					</div>
 				)}
 
 				{!commentsQuery.isLoading && comments.length === 0 && (
-					<div className="py-8 text-center text-gray-500 dark:text-gray-400">
+					<div className="py-8 text-center text-gray-500 dark:text-zinc-300">
 						No comments yet. Be the first to comment!
 					</div>
 				)}
 
 				{comments.length > 0 && (
-					<div className="divide-y divide-gray-100 dark:divide-slate-800">
+					<div className="divide-y divide-gray-100 dark:divide-zinc-800">
 						{comments.map((comment) => (
 							<CommentThread
 								key={`${comment.did}/${comment.rkey}`}
@@ -138,7 +138,7 @@ export function CommentsPanel({
 			</div>
 
 			{session && (
-				<div className="border-t border-gray-200 dark:border-slate-700 px-4 py-2">
+				<div className="border-t border-gray-200 dark:border-zinc-600 px-4 py-2">
 					{showForm ? (
 						<CommentForm
 							onSubmit={handleSubmit}
@@ -151,7 +151,7 @@ export function CommentsPanel({
 						<button
 							type="button"
 							onClick={() => setShowForm(true)}
-							className="w-full text-left px-3 py-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-800 rounded-md hover:bg-gray-100 dark:hover:bg-slate-700"
+							className="w-full text-left px-3 py-2 text-sm text-gray-500 dark:text-zinc-300 bg-gray-50 dark:bg-zinc-800 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-700"
 						>
 							Write a comment...
 						</button>
@@ -160,7 +160,7 @@ export function CommentsPanel({
 			)}
 
 			{!session && (
-				<div className="border-t border-gray-200 dark:border-slate-700 px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">
+				<div className="border-t border-gray-200 dark:border-zinc-600 px-4 py-3 text-center text-sm text-gray-500 dark:text-zinc-300">
 					Sign in to comment
 				</div>
 			)}

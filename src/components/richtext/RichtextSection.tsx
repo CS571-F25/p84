@@ -94,7 +94,7 @@ export function RichtextSection({
 					availableTags={availableTags}
 				/>
 				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+					<div className="flex items-center gap-2 text-sm text-gray-500 dark:text-zinc-300">
 						{isSaving && <span>Saving...</span>}
 						{!isSaving && isDirty && <span>Unsaved changes</span>}
 						{!isSaving && !isDirty && hasContent && <span>Saved</span>}
@@ -102,7 +102,7 @@ export function RichtextSection({
 					<button
 						type="button"
 						onClick={() => setIsEditing(false)}
-						className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300"
+						className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300"
 					>
 						Done
 					</button>
@@ -120,7 +120,7 @@ export function RichtextSection({
 			<button
 				type="button"
 				onClick={() => setIsEditing(true)}
-				className="text-sm text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 italic"
+				className="text-sm text-gray-400 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 italic"
 			>
 				{emptyText}
 			</button>
@@ -142,12 +142,12 @@ export function RichtextSection({
 				>
 					<RichtextRenderer
 						doc={document}
-						className="text-gray-700 dark:text-gray-300"
+						className="text-gray-700 dark:text-zinc-300"
 					/>
 				</div>
 
 				{needsTruncation && !isExpanded && (
-					<div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white dark:from-slate-900 to-transparent pointer-events-none" />
+					<div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white dark:from-zinc-900 to-transparent pointer-events-none" />
 				)}
 			</div>
 
@@ -156,7 +156,7 @@ export function RichtextSection({
 					<button
 						type="button"
 						onClick={() => setIsExpanded(!isExpanded)}
-						className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium rounded-md bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300"
+						className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium rounded-md bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300"
 					>
 						{isExpanded ? (
 							<>
@@ -175,7 +175,7 @@ export function RichtextSection({
 					<button
 						type="button"
 						onClick={() => setIsEditing(true)}
-						className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium rounded-md bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300"
+						className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium rounded-md bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300"
 					>
 						<Pencil className="w-4 h-4" />
 						Edit

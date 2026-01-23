@@ -343,7 +343,7 @@ function CardsPage() {
 	const firstPage = firstPageQuery.data;
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900">
+		<div className="min-h-screen bg-white dark:bg-zinc-900">
 			<div className="max-w-7xl w-full mx-auto px-6 pt-8 pb-4">
 				<div className="mb-4 flex flex-col gap-2">
 					<div className="flex items-center justify-between gap-2">
@@ -360,7 +360,7 @@ function CardsPage() {
 											replace: true,
 										})
 									}
-									className="appearance-none h-9 w-9 sm:w-auto pl-2 sm:pl-3 pr-2 sm:pr-8 py-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-transparent sm:text-gray-900 dark:sm:text-white text-sm focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+									className="appearance-none h-9 w-9 sm:w-auto pl-2 sm:pl-3 pr-2 sm:pr-8 py-1.5 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-transparent sm:text-gray-900 dark:sm:text-white text-sm focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
 								>
 									{SORT_OPTIONS.map((opt) => (
 										<option key={opt.value} value={opt.value}>
@@ -383,7 +383,7 @@ function CardsPage() {
 											replace: true,
 										})
 									}
-									className="appearance-none h-9 w-9 sm:w-auto pl-2 sm:pl-3 pr-2 sm:pr-8 py-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-transparent sm:text-gray-900 dark:sm:text-white text-sm focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+									className="appearance-none h-9 w-9 sm:w-auto pl-2 sm:pl-3 pr-2 sm:pr-8 py-1.5 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-transparent sm:text-gray-900 dark:sm:text-white text-sm focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer"
 								>
 									<option value="">then...</option>
 									{SORT_OPTIONS.filter(
@@ -427,7 +427,7 @@ function CardsPage() {
 						<div className="text-sm mt-2 space-y-1">
 							{firstPage?.description && (
 								<p
-									className={`text-gray-500 dark:text-gray-400 ${isDebouncing ? "opacity-50" : ""}`}
+									className={`text-gray-500 dark:text-zinc-300 ${isDebouncing ? "opacity-50" : ""}`}
 								>
 									<OracleText text={firstPage.description} />
 								</p>

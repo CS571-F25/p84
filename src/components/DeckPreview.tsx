@@ -129,34 +129,34 @@ export function DeckPreview({
 		<Link
 			to="/profile/$did/deck/$rkey"
 			params={{ did, rkey: asRkey(rkey) }}
-			className="group flex items-start gap-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 motion-safe:hover:shadow-lg transition-colors motion-safe:transition-shadow"
+			className="group flex items-start gap-4 p-4 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 motion-safe:hover:shadow-lg transition-colors motion-safe:transition-shadow"
 		>
 			<CardSpread cardIds={previewCardIds} />
 
 			<div className="flex-1 min-w-0">
 				{showHandle &&
 					(handle ? (
-						<p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+						<p className="text-sm text-gray-600 dark:text-zinc-300 truncate">
 							@{handle}
 						</p>
 					) : (
-						<div className="h-5 w-24 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+						<div className="h-5 w-24 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse" />
 					))}
 
 				<h2 className="text-lg font-bold text-gray-900 dark:text-white truncate font-display">
 					{deck.name}
 				</h2>
 				{deck.format && (
-					<p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+					<p className="text-sm text-gray-600 dark:text-zinc-300 truncate">
 						{formatDisplayName(deck.format)}
 					</p>
 				)}
 				{sectionString && (
-					<p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+					<p className="text-sm text-gray-600 dark:text-zinc-300 truncate">
 						{sectionString}
 					</p>
 				)}
-				<p className="text-sm text-gray-500 dark:text-gray-500">
+				<p className="text-sm text-gray-500 dark:text-zinc-400">
 					Updated <ClientDate dateString={dateString} />
 				</p>
 			</div>

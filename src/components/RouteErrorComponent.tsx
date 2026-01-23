@@ -32,7 +32,7 @@ export function RouteErrorComponent({
 	};
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center p-6">
+		<div className="min-h-screen bg-white dark:bg-zinc-900 flex items-center justify-center p-6">
 			<div className="max-w-4xl w-full">
 				<div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
 					<div className="flex items-start gap-4">
@@ -62,7 +62,7 @@ export function RouteErrorComponent({
 								<button
 									type="button"
 									onClick={copyErrorDetails}
-									className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
+									className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
 								>
 									{copied ? (
 										<Check className="w-4 h-4" />
@@ -73,7 +73,7 @@ export function RouteErrorComponent({
 								</button>
 								<Link
 									to="/"
-									className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
+									className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
 								>
 									<Home className="w-4 h-4" />
 									Go home

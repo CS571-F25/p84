@@ -113,8 +113,8 @@ function ListDetailPage() {
 
 	if (isLoading || !list) {
 		return (
-			<div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center">
-				<p className="text-gray-600 dark:text-gray-400">Loading list...</p>
+			<div className="min-h-screen bg-white dark:bg-zinc-900 flex items-center justify-center">
+				<p className="text-gray-600 dark:text-zinc-300">Loading list...</p>
 			</div>
 		);
 	}
@@ -168,7 +168,7 @@ function ListDetailPage() {
 	const dateString = list.updatedAt ?? list.createdAt;
 
 	return (
-		<div className="min-h-screen bg-white dark:bg-slate-900">
+		<div className="min-h-screen bg-white dark:bg-zinc-900">
 			<div className="max-w-4xl mx-auto px-6 py-8">
 				<div className="flex items-start justify-between gap-4 mb-2">
 					<div className="flex-1 min-w-0">
@@ -202,7 +202,7 @@ function ListDetailPage() {
 					)}
 				</div>
 
-				<p className="text-sm text-gray-500 dark:text-gray-500 mb-1">
+				<p className="text-sm text-gray-500 dark:text-zinc-400 mb-1">
 					{handle ? (
 						<>
 							by{" "}
@@ -215,10 +215,10 @@ function ListDetailPage() {
 							</Link>
 						</>
 					) : (
-						<span className="inline-block h-4 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse align-middle" />
+						<span className="inline-block h-4 w-20 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse align-middle" />
 					)}
 				</p>
-				<p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
+				<p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">
 					Updated <ClientDate dateString={dateString} />
 				</p>
 
@@ -235,7 +235,7 @@ function ListDetailPage() {
 				</div>
 
 				{list.items.length === 0 ? (
-					<p className="text-gray-600 dark:text-gray-400 text-center py-12">
+					<p className="text-gray-600 dark:text-zinc-300 text-center py-12">
 						This list is empty.
 					</p>
 				) : (
@@ -274,11 +274,11 @@ function CardListItem({ item, onRemove }: CardListItemProps) {
 
 	if (isLoading || !card) {
 		return (
-			<div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg animate-pulse">
-				<div className="w-16 h-22 bg-gray-300 dark:bg-slate-700 rounded" />
+			<div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-lg animate-pulse">
+				<div className="w-16 h-22 bg-gray-300 dark:bg-zinc-700 rounded" />
 				<div className="flex-1">
-					<div className="h-5 w-32 bg-gray-300 dark:bg-slate-700 rounded mb-2" />
-					<div className="h-4 w-24 bg-gray-200 dark:bg-slate-600 rounded" />
+					<div className="h-5 w-32 bg-gray-300 dark:bg-zinc-700 rounded mb-2" />
+					<div className="h-4 w-24 bg-gray-200 dark:bg-zinc-600 rounded" />
 				</div>
 			</div>
 		);
@@ -289,7 +289,7 @@ function CardListItem({ item, onRemove }: CardListItemProps) {
 			<Link
 				to="/card/$id"
 				params={{ id: item.scryfallId }}
-				className="group flex-1 flex items-start gap-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 motion-safe:hover:shadow-lg transition-colors motion-safe:transition-shadow"
+				className="group flex-1 flex items-start gap-4 p-4 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 motion-safe:hover:shadow-lg transition-colors motion-safe:transition-shadow"
 			>
 				<CardImage
 					card={{ id: item.scryfallId, name: card.name }}
@@ -309,14 +309,14 @@ function CardListItem({ item, onRemove }: CardListItemProps) {
 							/>
 						)}
 					</div>
-					<div className="flex items-center justify-between gap-3 text-xs text-gray-600 dark:text-gray-300">
+					<div className="flex items-center justify-between gap-3 text-xs text-gray-600 dark:text-zinc-300">
 						<span className="truncate">{card.type_line}</span>
 						{card.set && (
 							<SetSymbol setCode={card.set} rarity={card.rarity} size="small" />
 						)}
 					</div>
 					{getPrimaryFace(card).oracle_text && (
-						<p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-3 leading-tight">
+						<p className="text-xs text-gray-500 dark:text-zinc-300 line-clamp-3 leading-tight">
 							<OracleText
 								text={getPrimaryFace(card).oracle_text ?? ""}
 								symbolSize="text"
@@ -356,9 +356,9 @@ function DeckListItem({ item, onRemove }: DeckListItemProps) {
 
 	if (isError || !data) {
 		return (
-			<div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg opacity-50">
+			<div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-lg opacity-50">
 				<div className="flex-1">
-					<p className="text-gray-600 dark:text-gray-400">
+					<p className="text-gray-600 dark:text-zinc-300">
 						Deck no longer exists
 					</p>
 				</div>

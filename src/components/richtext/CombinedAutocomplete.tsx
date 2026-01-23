@@ -141,12 +141,12 @@ export function MentionPopupContent({
 }: MentionPopupContentProps) {
 	return (
 		<div
-			className="absolute z-50 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-lg py-1 w-56"
+			className="absolute z-50 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg py-1 w-56"
 			style={{ top: position.top, left: position.left }}
 			role="listbox"
 		>
 			{options.length === 0 ? (
-				<div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+				<div className="px-3 py-2 text-sm text-gray-500 dark:text-zinc-300">
 					No matches
 				</div>
 			) : (
@@ -159,7 +159,7 @@ export function MentionPopupContent({
 						className={`w-full px-3 py-2 text-left text-sm ${
 							i === selectedIndex
 								? "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-900 dark:text-cyan-100"
-								: "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-700"
+								: "text-gray-900 dark:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-700"
 						}`}
 						onMouseEnter={() => onSelectIndex(i)}
 						onMouseDown={(e) => {
@@ -192,12 +192,12 @@ export function CardPopupContent({
 }: CardPopupContentProps) {
 	return (
 		<div
-			className="absolute z-50 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-lg py-1 w-64 max-h-64 overflow-y-auto"
+			className="absolute z-50 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg py-1 w-64 max-h-64 overflow-y-auto"
 			style={{ top: position.top, left: position.left }}
 			role="listbox"
 		>
 			{options.length === 0 ? (
-				<div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+				<div className="px-3 py-2 text-sm text-gray-500 dark:text-zinc-300">
 					No cards found
 				</div>
 			) : (
@@ -210,7 +210,7 @@ export function CardPopupContent({
 						className={`w-full px-3 py-2 text-left text-sm ${
 							i === selectedIndex
 								? "bg-sky-50 dark:bg-sky-900/30 text-sky-900 dark:text-sky-100"
-								: "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-700"
+								: "text-gray-900 dark:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-700"
 						}`}
 						onMouseEnter={() => onSelectIndex(i)}
 						onMouseDown={(e) => {
@@ -243,12 +243,12 @@ export function TagPopupContent({
 }: TagPopupContentProps) {
 	return (
 		<div
-			className="absolute z-50 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-lg py-1 w-56 max-h-64 overflow-y-auto"
+			className="absolute z-50 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg py-1 w-56 max-h-64 overflow-y-auto"
 			style={{ top: position.top, left: position.left }}
 			role="listbox"
 		>
 			{options.length === 0 ? (
-				<div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+				<div className="px-3 py-2 text-sm text-gray-500 dark:text-zinc-300">
 					No tags found
 				</div>
 			) : (
@@ -261,7 +261,7 @@ export function TagPopupContent({
 						className={`w-full px-3 py-2 text-left text-sm ${
 							i === selectedIndex
 								? "bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100"
-								: "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-700"
+								: "text-gray-900 dark:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-700"
 						}`}
 						onMouseEnter={() => onSelectIndex(i)}
 						onMouseDown={(e) => {

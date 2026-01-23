@@ -69,7 +69,7 @@ export function DeckHeader({
 					value={format || ""}
 					onChange={(e) => onFormatChange(e.target.value)}
 					disabled={readOnly}
-					className="px-4 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					className="px-4 py-2 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					<option value="">No Format</option>
 					{FORMAT_GROUPS.map((group) => (

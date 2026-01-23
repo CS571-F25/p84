@@ -212,7 +212,7 @@ export function CardSearchAutocomplete({
 				<div className="flex items-center gap-2 flex-shrink-0">
 					<label
 						htmlFor={toggleId}
-						className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap"
+						className="text-sm text-gray-700 dark:text-zinc-300 whitespace-nowrap"
 					>
 						Legal only
 					</label>
@@ -224,8 +224,8 @@ export function CardSearchAutocomplete({
 						onClick={() => setLegalityFilterEnabled(!legalityFilterEnabled)}
 						className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
 							legalityFilterEnabled
-								? "bg-blue-500 dark:bg-blue-600"
-								: "bg-gray-300 dark:bg-gray-600"
+								? "bg-cyan-600"
+								: "bg-gray-300 dark:bg-zinc-600"
 						}`}
 					>
 						<span
@@ -250,12 +250,12 @@ export function CardSearchAutocomplete({
 						}
 					}}
 					placeholder="Search for a card..."
-					className="w-full px-4 py-2 pr-10 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+					className="w-full px-4 py-2 pr-10 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:focus:ring-cyan-400"
 				/>
 
 				{isFetching && debouncedSearch.trim().length > 0 && (
 					<div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-						<div className="w-5 h-5 border-2 border-gray-300 dark:border-slate-600 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin" />
+						<div className="w-5 h-5 border-2 border-gray-300 dark:border-zinc-600 border-t-cyan-500 dark:border-t-cyan-400 rounded-full animate-spin" />
 					</div>
 				)}
 
@@ -264,7 +264,7 @@ export function CardSearchAutocomplete({
 						ref={dropdownRef}
 						onMouseLeave={handleMouseLeaveDropdown}
 						role="listbox"
-						className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg max-h-96 overflow-y-auto top-full"
+						className="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg max-h-96 overflow-y-auto top-full"
 					>
 						{hasResults ? (
 							<div className="py-1">
@@ -288,8 +288,8 @@ export function CardSearchAutocomplete({
 											onClick={() => handleCardSelect(card)}
 											className={`w-full px-3 py-1.5 text-left cursor-pointer transition-colors ${
 												index === selectedIndex
-													? "bg-blue-100 dark:bg-blue-900/30"
-													: "hover:bg-gray-100 dark:hover:bg-slate-800"
+													? "bg-cyan-100 dark:bg-cyan-900/50"
+													: "hover:bg-gray-100 dark:hover:bg-zinc-800"
 											}`}
 										>
 											<div className="flex items-center justify-between gap-2">
@@ -307,7 +307,7 @@ export function CardSearchAutocomplete({
 								})}
 							</div>
 						) : (
-							<div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+							<div className="px-4 py-8 text-center text-gray-500 dark:text-zinc-300">
 								No results found
 							</div>
 						)}

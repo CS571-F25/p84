@@ -81,19 +81,19 @@ export function DeckSection({
 	}, [sortedGroupNames, groupedCards, cardMap, sortBy]);
 
 	return (
-		<div className="mb-8 pb-8 border-b border-gray-200 dark:border-slate-800 last:border-b-0 last:pb-0">
+		<div className="mb-8 pb-8 border-b border-gray-200 dark:border-zinc-700 last:border-b-0 last:pb-0">
 			<DroppableSection section={section} isDragging={isDragging}>
 				<DroppableSectionHeader>
 					<h2 className="text-xl font-bold text-gray-900 dark:text-white">
 						{sectionNames[section]}
 					</h2>
-					<span className="text-sm text-gray-600 dark:text-gray-400">
+					<span className="text-sm text-gray-600 dark:text-zinc-300">
 						{totalQuantity} {totalQuantity === 1 ? "card" : "cards"}
 					</span>
 				</DroppableSectionHeader>
 				{cards.length === 0 ? (
-					<div className="bg-gray-100 dark:bg-slate-800 rounded-lg p-6 border-2 border-dashed border-gray-300 dark:border-slate-700">
-						<p className="text-gray-500 dark:text-gray-400 text-center">
+					<div className="bg-gray-100 dark:bg-zinc-800 rounded-lg p-6 border-2 border-dashed border-gray-300 dark:border-zinc-600">
+						<p className="text-gray-500 dark:text-zinc-300 text-center">
 							No cards in {sectionNames[section].toLowerCase()}
 						</p>
 					</div>
@@ -168,7 +168,7 @@ export function DeckSection({
 									enabled={groupedCards.get(groupName)?.forTag ?? false}
 									isDragging={isDragging}
 								>
-									<div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+									<div className="text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1">
 										{groupName} ({groupQuantity})
 									</div>
 									<div className="space-y-1">

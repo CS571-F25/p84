@@ -34,7 +34,7 @@ export function ListActionsMenu({ listName, rkey }: ListActionsMenuProps) {
 			<button
 				type="button"
 				onClick={() => setIsOpen(!isOpen)}
-				className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+				className="p-2 text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
 				aria-label="List actions"
 				aria-expanded={isOpen}
 			>
@@ -42,7 +42,7 @@ export function ListActionsMenu({ listName, rkey }: ListActionsMenuProps) {
 			</button>
 
 			{isOpen && (
-				<div className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
+				<div className="absolute left-0 mt-2 w-48 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden z-50">
 					<button
 						type="button"
 						onClick={() => {

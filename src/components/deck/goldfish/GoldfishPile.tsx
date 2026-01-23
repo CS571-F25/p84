@@ -35,13 +35,13 @@ export function GoldfishPile({
 			className={`rounded-lg border-2 border-dashed transition-colors ${
 				isOver
 					? "border-purple-500 bg-purple-500/10"
-					: "border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50"
+					: "border-gray-300 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800/50"
 			}`}
 		>
 			<button
 				type="button"
 				onClick={() => setExpanded(!expanded)}
-				className="w-full flex items-center justify-between p-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-t-lg"
+				className="w-full flex items-center justify-between p-2 text-sm font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-t-lg"
 			>
 				<span>
 					{label} ({cards.length})

@@ -86,15 +86,17 @@ Tailwind CSS v4 is integrated via `@tailwindcss/vite` plugin. Global styles in `
 
 **Dark Mode Support:**
 - All components and pages must support both light and dark mode
-- Use Tailwind's `dark:` variant for dark mode styles (e.g., `bg-white dark:bg-slate-900`)
 - Theme is managed by `ThemeProvider` in `src/lib/useTheme.tsx`
 - Dark mode configuration: `@custom-variant dark (&:where(.dark, .dark *))` in `src/styles.css`
-- Common patterns:
-  - Backgrounds: `bg-white dark:bg-slate-900` (page), `bg-gray-100 dark:bg-slate-800` (panels)
-  - Primary text: `text-gray-900 dark:text-white`
-  - Secondary text: `text-gray-600 dark:text-gray-400`
-  - Borders: `border-gray-300 dark:border-slate-700`
-  - Interactive elements: `hover:bg-gray-100 dark:hover:bg-gray-800`
+- **See `.claude/DARK_MODE.md` for the full style guide**
+- Key patterns:
+  - Backgrounds: `bg-white dark:bg-zinc-900` (page), `bg-gray-50 dark:bg-zinc-800` (panels)
+  - Primary text: `text-gray-900 dark:text-zinc-100`
+  - Secondary text: `text-gray-600 dark:text-zinc-300` (AAA contrast)
+  - Borders: `border-gray-200 dark:border-zinc-600` (visible)
+  - Accent color: `cyan-*` (e.g., `text-cyan-600 dark:text-cyan-400`)
+  - Focus rings: `focus:ring-cyan-500 dark:focus:ring-cyan-400`
+- **DO NOT use**: `slate-*` for dark mode (it's blue-tinted)
 
 **Reduced Motion Support:**
 - Respect `prefers-reduced-motion` for decorative and dramatic animations

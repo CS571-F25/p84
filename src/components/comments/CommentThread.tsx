@@ -45,7 +45,7 @@ export function CommentThread({
 	return (
 		<div
 			className={
-				depth > 0 ? "pl-4 border-l border-gray-200 dark:border-slate-700" : ""
+				depth > 0 ? "pl-4 border-l border-gray-200 dark:border-zinc-600" : ""
 			}
 		>
 			<CommentItem

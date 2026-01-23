@@ -104,7 +104,7 @@ export function DeckActionsMenu({
 			<button
 				type="button"
 				onClick={() => setIsOpen(!isOpen)}
-				className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+				className="p-2 text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
 				aria-label="Deck actions"
 				aria-expanded={isOpen}
 			>
@@ -112,11 +112,11 @@ export function DeckActionsMenu({
 			</button>
 
 			{isOpen && (
-				<div className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
+				<div className="absolute left-0 mt-2 w-48 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden z-50">
 					<Link
 						to="/profile/$did/deck/$rkey/play"
 						params={{ did, rkey }}
-						className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm flex items-center gap-2"
+						className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors text-gray-900 dark:text-white text-sm flex items-center gap-2"
 						onClick={() => setIsOpen(false)}
 					>
 						<Play size={14} />
@@ -125,7 +125,7 @@ export function DeckActionsMenu({
 					<Link
 						to="/profile/$did/deck/$rkey/export"
 						params={{ did, rkey }}
-						className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm flex items-center gap-2"
+						className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors text-gray-900 dark:text-white text-sm flex items-center gap-2"
 						onClick={() => setIsOpen(false)}
 					>
 						<Download size={14} />
@@ -133,22 +133,22 @@ export function DeckActionsMenu({
 					</Link>
 					{!readOnly && (
 						<>
-							<div className="border-t border-gray-200 dark:border-gray-700" />
+							<div className="border-t border-gray-200 dark:border-zinc-600" />
 							<button
 								type="button"
 								onClick={handleSetAllToCheapest}
-								className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm"
+								className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors text-gray-900 dark:text-white text-sm"
 							>
 								Set all to cheapest
 							</button>
 							<button
 								type="button"
 								onClick={handleSetAllToBest}
-								className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white text-sm"
+								className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors text-gray-900 dark:text-white text-sm"
 							>
 								Set all to best
 							</button>
-							<div className="border-t border-gray-200 dark:border-gray-700" />
+							<div className="border-t border-gray-200 dark:border-zinc-600" />
 							<button
 								type="button"
 								onClick={() => {

@@ -188,7 +188,7 @@ function DecksContent({
 						<select
 							value={search.sort ?? "updated-desc"}
 							onChange={handleSortChange}
-							className="px-4 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500"
+							className="px-4 py-2 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500"
 						>
 							{SORT_OPTIONS.map((opt) => (
 								<option key={opt.value} value={opt.value}>
@@ -201,7 +201,7 @@ function DecksContent({
 							<select
 								value={search.format ?? ""}
 								onChange={handleFormatChange}
-								className="px-4 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500"
+								className="px-4 py-2 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500"
 							>
 								<option value="">All Formats</option>
 								{availableFormats.map((format) => (
@@ -216,7 +216,7 @@ function DecksContent({
 				{isOwner && (
 					<Link
 						to="/deck/new"
-						className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors"
+						className="flex items-center gap-2 px-4 py-2 bg-cyan-400 hover:bg-cyan-300 text-gray-900 font-medium rounded-lg transition-colors"
 					>
 						<Plus className="w-4 h-4" />
 						New Deck
@@ -225,28 +225,28 @@ function DecksContent({
 			</div>
 
 			{isLoading ? (
-				<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
-					<p className="text-gray-600 dark:text-gray-400">
+				<div className="text-center py-8 bg-gray-50 dark:bg-zinc-800 rounded-lg">
+					<p className="text-gray-600 dark:text-zinc-300">
 						Loading decklists...
 					</p>
 				</div>
 			) : decks.length === 0 ? (
-				<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
-					<p className="text-gray-600 dark:text-gray-400 mb-4">
+				<div className="text-center py-8 bg-gray-50 dark:bg-zinc-800 rounded-lg">
+					<p className="text-gray-600 dark:text-zinc-300 mb-4">
 						{isOwner ? "No decklists yet" : "No decklists"}
 					</p>
 					{isOwner && (
 						<Link
 							to="/deck/new"
-							className="inline-block px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors"
+							className="inline-block px-6 py-3 bg-cyan-400 hover:bg-cyan-300 text-gray-900 font-medium rounded-lg transition-colors"
 						>
 							Create Your First Deck
 						</Link>
 					)}
 				</div>
 			) : filteredAndSorted.length === 0 ? (
-				<div className="text-center py-8 bg-gray-50 dark:bg-slate-800 rounded-lg">
-					<p className="text-gray-600 dark:text-gray-400 mb-4">
+				<div className="text-center py-8 bg-gray-50 dark:bg-zinc-800 rounded-lg">
+					<p className="text-gray-600 dark:text-zinc-300 mb-4">
 						No decks match your filters
 					</p>
 					{hasActiveFilters && (

@@ -20,7 +20,7 @@ const SIZE_CLASSES = {
 };
 
 const RARITY_CLASSES: Record<string, string> = {
-	common: "text-rarity-common dark:text-gray-400",
+	common: "text-rarity-common dark:text-zinc-300",
 	uncommon: "text-rarity-uncommon",
 	rare: "text-rarity-rare",
 	mythic: "text-rarity-mythic",

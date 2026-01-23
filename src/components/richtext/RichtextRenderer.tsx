@@ -81,8 +81,8 @@ const BlockRenderer = memo(function BlockRenderer({
 
 		case "com.deckbelcher.richtext#codeBlock":
 			return (
-				<pre className="bg-gray-100 dark:bg-slate-800 rounded-lg p-3 my-2 overflow-x-auto">
-					<code className="font-mono text-sm text-gray-800 dark:text-gray-200">
+				<pre className="bg-gray-100 dark:bg-zinc-800 rounded-lg p-3 my-2 overflow-x-auto">
+					<code className="font-mono text-sm text-gray-800 dark:text-zinc-200">
 						{block.text}
 					</code>
 				</pre>
@@ -112,7 +112,7 @@ const BlockRenderer = memo(function BlockRenderer({
 			);
 
 		case "com.deckbelcher.richtext#horizontalRuleBlock":
-			return <hr className="my-4 border-gray-300 dark:border-slate-600" />;
+			return <hr className="my-4 border-gray-300 dark:border-zinc-600" />;
 
 		default: {
 			const para = block as ParagraphBlock;
@@ -257,7 +257,7 @@ function applyFeature(
 
 		case "com.deckbelcher.richtext.facet#code":
 			return (
-				<code className="bg-gray-100 dark:bg-slate-800 px-1 rounded font-mono text-sm">
+				<code className="bg-gray-100 dark:bg-zinc-800 px-1 rounded font-mono text-sm">
 					{content}
 				</code>
 			);

@@ -118,10 +118,10 @@ export function SaveToListDialog({
 					role="dialog"
 					aria-modal="true"
 					aria-labelledby={titleId}
-					className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl max-w-md w-full pointer-events-auto border border-gray-300 dark:border-slate-700"
+					className="bg-white dark:bg-zinc-900 rounded-lg shadow-2xl max-w-md w-full pointer-events-auto border border-gray-300 dark:border-zinc-600"
 				>
 					{/* Header */}
-					<div className="flex items-center gap-3 p-6 border-b border-gray-200 dark:border-slate-800">
+					<div className="flex items-center gap-3 p-6 border-b border-gray-200 dark:border-zinc-700">
 						<div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full">
 							<Bookmark className="w-5 h-5 text-blue-600 dark:text-blue-400" />
 						</div>
@@ -140,7 +140,7 @@ export function SaveToListDialog({
 								<Loader2 className="w-6 h-6 animate-spin text-gray-400" />
 							</div>
 						) : lists.length === 0 ? (
-							<p className="text-gray-600 dark:text-gray-400 text-center py-4">
+							<p className="text-gray-600 dark:text-zinc-300 text-center py-4">
 								You don't have any lists yet. Create one below!
 							</p>
 						) : (
@@ -162,7 +162,7 @@ export function SaveToListDialog({
 						{/* Create new list */}
 						<form
 							onSubmit={handleCreateList}
-							className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-slate-800"
+							className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-zinc-700"
 						>
 							<input
 								id={inputId}
@@ -171,7 +171,7 @@ export function SaveToListDialog({
 								onChange={(e) => setNewListName(e.target.value)}
 								disabled={createMutation.isPending}
 								placeholder="New list name..."
-								className="flex-1 px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+								className="flex-1 px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
 							/>
 							<button
 								type="submit"
@@ -192,7 +192,7 @@ export function SaveToListDialog({
 						<button
 							type="button"
 							onClick={onClose}
-							className="px-4 py-2 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white rounded-lg transition-colors"
+							className="px-4 py-2 bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 text-gray-900 dark:text-white rounded-lg transition-colors"
 						>
 							Done
 						</button>
@@ -243,7 +243,7 @@ function ListRow({
 			className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
 				isSaved
 					? "bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30"
-					: "bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700"
+					: "bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700"
 			}`}
 		>
 			<span
@@ -252,7 +252,7 @@ function ListRow({
 				{list.name}
 			</span>
 			<span
-				className={`text-sm ${isSaved ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}
+				className={`text-sm ${isSaved ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-zinc-300"}`}
 			>
 				{toggleMutation.isPending ? (
 					<Loader2 className="w-4 h-4 animate-spin" />

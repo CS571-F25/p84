@@ -24,7 +24,7 @@ interface BulkEditPreviewProps {
 
 export function BulkEditPreview({ lines }: BulkEditPreviewProps) {
 	return (
-		<div className="flex-1 p-4 border-l border-gray-200 dark:border-slate-700">
+		<div className="flex-1 p-4 border-l border-gray-200 dark:border-zinc-600">
 			{lines.map((line) => (
 				<PreviewRow key={line.lineKey} line={line} />
 			))}
@@ -43,7 +43,7 @@ function PreviewRow({ line }: { line: PreviewLine }) {
 		case "pending":
 			return (
 				<div className={ROW_CLASS}>
-					<span className="text-gray-400 dark:text-gray-500 italic truncate">
+					<span className="text-gray-400 dark:text-zinc-400 italic truncate">
 						{line.name}...
 					</span>
 				</div>
@@ -76,14 +76,14 @@ function ResolvedCardRow({
 		? "bg-amber-50 dark:bg-amber-900/40 hover:bg-amber-100 dark:hover:bg-amber-900/50"
 		: line.isNew
 			? "bg-green-50 dark:bg-green-900/40 hover:bg-green-100 dark:hover:bg-green-900/50"
-			: "hover:bg-gray-100 dark:hover:bg-slate-800";
+			: "hover:bg-gray-100 dark:hover:bg-zinc-800";
 
 	return (
 		<div
 			className={`${ROW_CLASS} flex items-center gap-2 cursor-default rounded px-1 -mx-1 ${bgClass}`}
 			{...hoverProps}
 		>
-			<span className="text-gray-600 dark:text-gray-400 text-xs w-4 text-right flex-shrink-0">
+			<span className="text-gray-600 dark:text-zinc-300 text-xs w-4 text-right flex-shrink-0">
 				{line.quantity}
 			</span>
 			<span className="text-gray-900 dark:text-white truncate flex-1 min-w-0">

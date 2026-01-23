@@ -77,10 +77,10 @@ export const HighlightedSearchInput = forwardRef<
 
 	return (
 		<div
-			className={`relative flex items-center rounded-lg border transition-colors bg-gray-100 dark:bg-slate-800 ${
+			className={`relative flex items-center rounded-lg border transition-colors bg-gray-100 dark:bg-zinc-800 ${
 				hasError
 					? "border-red-500"
-					: "border-gray-300 dark:border-slate-700 focus-within:border-cyan-500"
+					: "border-gray-300 dark:border-zinc-600 focus-within:border-cyan-500"
 			} ${className}`}
 		>
 			{/* Search icon - fixed, doesn't scroll */}

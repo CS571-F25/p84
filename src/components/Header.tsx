@@ -19,12 +19,12 @@ export default function Header() {
 
 	return (
 		<>
-			<header className="p-2 sm:p-4 flex items-center bg-gray-800 dark:bg-gray-900 text-white shadow-lg">
+			<header className="p-2 sm:p-4 flex items-center bg-zinc-800 dark:bg-zinc-950 text-white shadow-lg">
 				<div className="flex items-center">
 					<button
 						type="button"
 						onClick={() => setIsOpen(true)}
-						className="p-2 hover:bg-gray-700 dark:hover:bg-gray-800 rounded-lg transition-colors"
+						className="p-2 hover:bg-zinc-700 dark:hover:bg-zinc-800 rounded-lg transition-colors"
 						aria-label="Open menu"
 					>
 						<Menu size={24} />
@@ -43,7 +43,7 @@ export default function Header() {
 					<Link
 						to="/cards"
 						search={{ q: "", sort: undefined, sort2: undefined }}
-						className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors text-white text-sm font-medium"
+						className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-cyan-400 hover:bg-cyan-300 rounded-lg transition-colors text-gray-900 text-sm font-medium"
 					>
 						<Search size={18} />
 						<span className="hidden sm:inline">Search Cards</span>
@@ -52,7 +52,7 @@ export default function Header() {
 
 				<div className="flex items-center gap-2">
 					{isLoading ? (
-						<div className="flex items-center gap-2 px-3 py-2 bg-gray-700 dark:bg-gray-800 rounded-lg animate-pulse">
+						<div className="flex items-center gap-2 px-3 py-2 bg-zinc-700 dark:bg-zinc-800 rounded-lg animate-pulse">
 							<LogIn size={16} className="invisible" />
 							<span className="text-sm font-medium invisible">Sign In</span>
 						</div>
@@ -62,7 +62,7 @@ export default function Header() {
 						<Link
 							to="/signin"
 							onClick={handleSignInClick}
-							className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
+							className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-cyan-400 hover:bg-cyan-300 text-gray-900 rounded-lg transition-colors"
 						>
 							<LogIn size={16} />
 							<span className="text-sm font-medium hidden sm:inline">
@@ -73,7 +73,7 @@ export default function Header() {
 					<button
 						type="button"
 						onClick={toggleTheme}
-						className="p-2 hover:bg-gray-700 dark:hover:bg-gray-800 rounded-lg transition-colors"
+						className="p-2 hover:bg-zinc-700 dark:hover:bg-zinc-800 rounded-lg transition-colors"
 						aria-label="Toggle theme"
 					>
 						{theme === "dark" ? (
@@ -97,16 +97,16 @@ export default function Header() {
 			)}
 
 			<aside
-				className={`fixed top-0 left-0 h-full w-80 bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+				className={`fixed top-0 left-0 h-full w-80 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
 					isOpen ? "translate-x-0" : "-translate-x-full"
 				}`}
 			>
-				<div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+				<div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-600">
 					<h2 className="text-xl font-bold">Navigation</h2>
 					<button
 						type="button"
 						onClick={() => setIsOpen(false)}
-						className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+						className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
 						aria-label="Close menu"
 					>
 						<X size={24} />
@@ -119,10 +119,10 @@ export default function Header() {
 						onClick={() => setIsOpen(false)}
 						className="flex items-center gap-3 p-3 rounded-lg transition-colors mb-2"
 						inactiveProps={{
-							className: "hover:bg-gray-100 dark:hover:bg-gray-800",
+							className: "hover:bg-gray-100 dark:hover:bg-zinc-800",
 						}}
 						activeProps={{
-							className: "bg-cyan-600 hover:bg-cyan-700 text-white",
+							className: "bg-cyan-700 hover:bg-cyan-600 text-white",
 						}}
 					>
 						<Home size={20} />
@@ -135,10 +135,10 @@ export default function Header() {
 						onClick={() => setIsOpen(false)}
 						className="flex items-center gap-3 p-3 rounded-lg transition-colors mb-2"
 						inactiveProps={{
-							className: "hover:bg-gray-100 dark:hover:bg-gray-800",
+							className: "hover:bg-gray-100 dark:hover:bg-zinc-800",
 						}}
 						activeProps={{
-							className: "bg-cyan-600 hover:bg-cyan-700 text-white",
+							className: "bg-cyan-700 hover:bg-cyan-600 text-white",
 						}}
 					>
 						<Library size={20} />

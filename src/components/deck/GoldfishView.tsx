@@ -86,7 +86,7 @@ export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
 	if (cards.length === 0) return null;
 
 	return (
-		<div className="mt-8 pt-8 border-t border-gray-200 dark:border-slate-700">
+		<div className="mt-8 pt-8 border-t border-gray-200 dark:border-zinc-600">
 			<SeedEmbed />
 			<div className="flex items-center justify-between mb-4">
 				<h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -96,7 +96,7 @@ export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
 					<button
 						type="button"
 						onClick={newHand}
-						className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700"
+						className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700"
 					>
 						New Hand
 					</button>

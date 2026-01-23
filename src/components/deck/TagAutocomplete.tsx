@@ -97,13 +97,13 @@ export function TagAutocomplete({
 					onBlur={handleBlur}
 					placeholder={placeholder}
 					disabled={disabled}
-					className="flex-1 px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+					className="flex-1 px-3 py-2 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				/>
 				<button
 					type="button"
 					onClick={() => handleAdd(value)}
 					disabled={disabled}
-					className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+					className="px-4 py-2 bg-cyan-400 hover:bg-cyan-300 disabled:bg-gray-400 disabled:cursor-not-allowed text-gray-900 rounded-lg transition-colors"
 				>
 					Add
 				</button>
@@ -113,7 +113,7 @@ export function TagAutocomplete({
 				<div
 					id={listboxId}
 					role="listbox"
-					className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+					className="absolute z-10 mt-1 w-full bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-lg max-h-48 overflow-y-auto"
 				>
 					{filtered.map((tag, i) => (
 						<div
@@ -129,7 +129,7 @@ export function TagAutocomplete({
 							className={`px-3 py-2 text-sm cursor-pointer ${
 								i === selectedIndex
 									? "bg-cyan-100 dark:bg-cyan-900 text-cyan-900 dark:text-cyan-100"
-									: "text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700"
+									: "text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-700"
 							}`}
 						>
 							{tag}

@@ -24,12 +24,12 @@ export function DeckStats({ stats, selection, onSelect }: DeckStatsProps) {
 
 	if (isLoading) {
 		return (
-			<div className="mt-8 pt-8 border-t border-gray-200 dark:border-slate-700">
+			<div className="mt-8 pt-8 border-t border-gray-200 dark:border-zinc-600">
 				<h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
 					Statistics
 				</h2>
-				<div className="flex items-center justify-center h-48 bg-gray-100 dark:bg-slate-800 rounded-lg">
-					<div className="text-gray-500 dark:text-gray-400">
+				<div className="flex items-center justify-center h-48 bg-gray-100 dark:bg-zinc-800 rounded-lg">
+					<div className="text-gray-500 dark:text-zinc-300">
 						Loading statistics...
 					</div>
 				</div>
@@ -49,7 +49,7 @@ export function DeckStats({ stats, selection, onSelect }: DeckStatsProps) {
 	}
 
 	return (
-		<div className="mt-8 pt-8 border-t border-gray-200 dark:border-slate-700">
+		<div className="mt-8 pt-8 border-t border-gray-200 dark:border-zinc-600">
 			<h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
 				Statistics
 			</h2>

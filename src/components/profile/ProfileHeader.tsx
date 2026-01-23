@@ -97,7 +97,7 @@ export function ProfileHeader({
 							href={handleUrl}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="text-gray-400 hover:text-cyan-500 dark:text-gray-500 dark:hover:text-cyan-400 transition-colors"
+							className="text-gray-400 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-cyan-400 transition-colors"
 							title={`Visit ${handleUrl}`}
 						>
 							<ExternalLink className="w-6 h-6" />
@@ -109,7 +109,7 @@ export function ProfileHeader({
 				<div>
 					<label
 						htmlFor={pronounsId}
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+						className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
 					>
 						Pronouns
 					</label>
@@ -126,13 +126,13 @@ export function ProfileHeader({
 						}}
 						placeholder="e.g. she/her, they/them"
 						maxLength={64}
-						className="px-3 py-2 w-full max-w-xs bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500"
+						className="px-3 py-2 w-full max-w-xs bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500"
 					/>
 				</div>
 
 				{/* Bio editor */}
 				<div>
-					<span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+					<span className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
 						Bio
 					</span>
 					<ProseMirrorEditor
@@ -144,7 +144,7 @@ export function ProfileHeader({
 
 				{/* Save status and done button */}
 				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+					<div className="flex items-center gap-2 text-sm text-gray-500 dark:text-zinc-300">
 						{isSaving && <span>Saving...</span>}
 						{!isSaving && isDirty && <span>Unsaved changes</span>}
 						{!isSaving && !isDirty && hasContent && <span>Saved</span>}
@@ -152,7 +152,7 @@ export function ProfileHeader({
 					<button
 						type="button"
 						onClick={handleDone}
-						className="px-4 py-2 text-sm font-medium rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white"
+						className="px-4 py-2 text-sm font-medium rounded-lg bg-cyan-400 hover:bg-cyan-300 text-gray-900"
 					>
 						Done
 					</button>
@@ -176,7 +176,7 @@ export function ProfileHeader({
 						href={handleUrl}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="text-gray-400 hover:text-cyan-500 dark:text-gray-500 dark:hover:text-cyan-400 transition-colors"
+						className="text-gray-400 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-cyan-400 transition-colors"
 						title={`Visit ${handleUrl}`}
 					>
 						<ExternalLink className="w-6 h-6" />
@@ -185,7 +185,7 @@ export function ProfileHeader({
 			</div>
 			{/* Pronouns */}
 			{profile?.pronouns && (
-				<p className="text-sm text-gray-500 dark:text-gray-400">
+				<p className="text-sm text-gray-500 dark:text-zinc-300">
 					{profile.pronouns}
 				</p>
 			)}
@@ -194,7 +194,7 @@ export function ProfileHeader({
 			{hasContent && profile?.bio && (
 				<RichtextRenderer
 					doc={profile.bio}
-					className="text-gray-700 dark:text-gray-300"
+					className="text-gray-700 dark:text-zinc-300"
 				/>
 			)}
 
@@ -203,7 +203,7 @@ export function ProfileHeader({
 				<button
 					type="button"
 					onClick={handleStartEdit}
-					className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300"
+					className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300"
 				>
 					<Pencil className="w-4 h-4" />
 					{hasContent || profile?.pronouns ? "Edit profile" : "Add bio"}

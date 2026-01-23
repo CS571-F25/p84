@@ -100,9 +100,9 @@ function OAuthCallback() {
 				};
 
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900 p-4">
+			<div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900 p-4">
 				<div
-					className={`max-w-md w-full bg-white dark:bg-slate-800 ${colorClasses.border} rounded-lg shadow-lg overflow-hidden`}
+					className={`max-w-md w-full bg-white dark:bg-zinc-800 ${colorClasses.border} rounded-lg shadow-lg overflow-hidden`}
 				>
 					<div
 						className={`${colorClasses.headerBg} border-b ${colorClasses.headerBorder} p-6`}
@@ -112,21 +112,21 @@ function OAuthCallback() {
 						</h1>
 					</div>
 					<div className="p-6">
-						<p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
+						<p className="text-gray-700 dark:text-zinc-300 mb-6 leading-relaxed">
 							{error}
 						</p>
 						<div className="flex gap-3">
 							<button
 								type="button"
 								onClick={() => navigate({ to: "/signin" })}
-								className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-medium"
+								className="flex-1 px-4 py-2 bg-cyan-400 hover:bg-cyan-300 text-gray-900 rounded-lg transition-colors font-medium"
 							>
 								Try Again
 							</button>
 							<button
 								type="button"
 								onClick={() => navigate({ to: "/" })}
-								className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-colors font-medium"
+								className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-900 dark:text-white rounded-lg transition-colors font-medium"
 							>
 								Return Home
 							</button>
@@ -138,7 +138,7 @@ function OAuthCallback() {
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900">
+		<div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-900">
 			<div className="text-center">
 				<div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-cyan-600 border-r-transparent mb-4" />
 				<p className="text-gray-900 dark:text-white text-lg">

@@ -65,7 +65,8 @@
       "Bash(curl:*)",
       "Bash(npm run build:lexicons:*)",
       "Bash(npm run lexicons:lint:*)",
-      "Bash(npm run lexicons:all:*)"
+      "Bash(npm run lexicons:all:*)",
+      "Bash(goat lex:*)"
     ],
     "deny": [],
     "ask": []

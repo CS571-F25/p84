@@ -77,7 +77,7 @@ export function SocialStats({
 	const statBase = "flex items-center gap-1 p-2 rounded-lg";
 	const buttonBase = `${statBase} transition-colors ${
 		session
-			? "hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+			? "hover:bg-gray-100 dark:hover:bg-zinc-800 cursor-pointer"
 			: "cursor-default opacity-75"
 	}`;
 
@@ -99,7 +99,7 @@ export function SocialStats({
 						className={`w-5 h-5 ${
 							isLikedByUser
 								? "text-rose-400 dark:text-red-400"
-								: "text-gray-600 dark:text-gray-400"
+								: "text-gray-600 dark:text-zinc-300"
 						}`}
 						fill={isLikedByUser ? "currentColor" : "none"}
 					/>
@@ -112,7 +112,7 @@ export function SocialStats({
 						className={`text-sm tabular-nums px-1 py-2 rounded ${isLikeLoading ? "opacity-50" : ""} ${
 							isLikedByUser
 								? "text-rose-400 dark:text-red-400"
-								: "text-gray-600 dark:text-gray-400"
+								: "text-gray-600 dark:text-zinc-300"
 						} ${likeCount > 0 ? "hover:underline cursor-pointer" : "cursor-default"}`}
 						title={likeCount > 0 ? "See who liked this" : undefined}
 					>
@@ -141,7 +141,7 @@ export function SocialStats({
 						className={`w-5 h-5 ${
 							isSavedByUser
 								? "text-blue-500 dark:text-blue-400"
-								: "text-gray-600 dark:text-gray-400"
+								: "text-gray-600 dark:text-zinc-300"
 						}`}
 						fill={isSavedByUser ? "currentColor" : "none"}
 					/>
@@ -154,7 +154,7 @@ export function SocialStats({
 						className={`text-sm tabular-nums px-1 py-2 rounded ${isSaveLoading ? "opacity-50" : ""} ${
 							isSavedByUser
 								? "text-blue-500 dark:text-blue-400"
-								: "text-gray-600 dark:text-gray-400"
+								: "text-gray-600 dark:text-zinc-300"
 						} ${saveCount > 0 ? "hover:underline cursor-pointer" : "cursor-default"}`}
 						title={saveCount > 0 ? "See lists with this item" : undefined}
 					>
@@ -170,7 +170,7 @@ export function SocialStats({
 						className={`${statBase} ${
 							isInUserDeck
 								? "text-purple-500 dark:text-purple-400"
-								: "text-gray-600 dark:text-gray-400"
+								: "text-gray-600 dark:text-zinc-300"
 						}`}
 						title={isInUserDeck ? "In your deck" : "Decks containing this card"}
 					>
@@ -186,7 +186,7 @@ export function SocialStats({
 						className={`text-sm tabular-nums px-1 py-2 rounded ${isDeckCountLoading ? "opacity-50" : ""} ${
 							isInUserDeck
 								? "text-purple-500 dark:text-purple-400"
-								: "text-gray-600 dark:text-gray-400"
+								: "text-gray-600 dark:text-zinc-300"
 						} ${deckCount > 0 ? "hover:underline cursor-pointer" : "cursor-default"}`}
 						title={deckCount > 0 ? "See decks with this card" : undefined}
 					>
@@ -201,7 +201,7 @@ export function SocialStats({
 					<button
 						type="button"
 						onClick={onCommentClick}
-						className={`${statBase} text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors`}
+						className={`${statBase} text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors`}
 						aria-label="Comments"
 						title="Comments"
 					>
@@ -209,7 +209,7 @@ export function SocialStats({
 					</button>
 					{showCount && !hideCommentCount && (
 						<span
-							className={`text-sm tabular-nums px-1 py-2 text-gray-600 dark:text-gray-400 ${commentCountQuery.isLoading ? "opacity-50" : ""}`}
+							className={`text-sm tabular-nums px-1 py-2 text-gray-600 dark:text-zinc-300 ${commentCountQuery.isLoading ? "opacity-50" : ""}`}
 						>
 							{commentCount}
 						</span>

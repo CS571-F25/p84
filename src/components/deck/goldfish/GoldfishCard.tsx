@@ -60,7 +60,7 @@ export function GoldfishCard({
 				<img
 					src={imageSrc}
 					alt={card?.name ?? "Card"}
-					className={`rounded-[4.75%/3.5%] bg-gray-200 dark:bg-slate-700 ${sizeClass} aspect-[5/7]`}
+					className={`rounded-[4.75%/3.5%] bg-gray-200 dark:bg-zinc-700 ${sizeClass} aspect-[5/7]`}
 					style={{ backgroundImage: PLACEHOLDER_STRIPES }}
 					draggable={false}
 					loading="lazy"

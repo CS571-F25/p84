@@ -64,7 +64,7 @@ export function ValidationBadge({ result }: ValidationBadgeProps) {
 			</button>
 
 			{isOpen && (
-				<div className="absolute top-full left-0 mt-1 w-[28rem] max-h-[32rem] overflow-y-auto bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 z-50">
+				<div className="absolute top-full left-0 mt-1 w-[28rem] max-h-[32rem] overflow-y-auto bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-gray-200 dark:border-zinc-600 z-50">
 					<div className="p-3 space-y-3">
 						{errors.length > 0 && (
 							<ViolationGroup
@@ -121,11 +121,11 @@ function ViolationItem({ violation }: { violation: Violation }) {
 	const ruleText = rule?.ruleText;
 
 	return (
-		<li className="text-sm text-gray-600 dark:text-gray-400">
+		<li className="text-sm text-gray-600 dark:text-zinc-300">
 			<button
 				type="button"
 				onClick={() => ruleText && setIsExpanded(!isExpanded)}
-				className={`flex items-start gap-1 text-left w-full ${ruleText ? "cursor-pointer hover:text-gray-900 dark:hover:text-gray-200" : "cursor-default"}`}
+				className={`flex items-start gap-1 text-left w-full ${ruleText ? "cursor-pointer hover:text-gray-900 dark:hover:text-zinc-200" : "cursor-default"}`}
 			>
 				{ruleText ? (
 					<ChevronRight
@@ -135,14 +135,14 @@ function ViolationItem({ violation }: { violation: Violation }) {
 					<span className="w-4" />
 				)}
 				<span>
-					<span className="font-mono text-xs text-gray-400 dark:text-gray-500 mr-1.5">
+					<span className="font-mono text-xs text-gray-400 dark:text-zinc-400 mr-1.5">
 						[{violation.rule}]
 					</span>
 					{violation.message}
 				</span>
 			</button>
 			{isExpanded && ruleText && (
-				<div className="ml-5 mt-1.5 pl-3 border-l-2 border-gray-200 dark:border-slate-600 text-xs text-gray-500 dark:text-gray-400 italic">
+				<div className="ml-5 mt-1.5 pl-3 border-l-2 border-gray-200 dark:border-zinc-600 text-xs text-gray-500 dark:text-zinc-300 italic">
 					{ruleText}
 				</div>
 			)}

@@ -58,8 +58,8 @@ function PlaytestPage() {
 
 	if (!cardMap) {
 		return (
-			<div className="h-screen flex items-center justify-center bg-white dark:bg-slate-950">
-				<span className="text-gray-500 dark:text-gray-400">
+			<div className="h-screen flex items-center justify-center bg-white dark:bg-zinc-950">
+				<span className="text-gray-500 dark:text-zinc-300">
 					Loading cards...
 				</span>
 			</div>
@@ -67,12 +67,12 @@ function PlaytestPage() {
 	}
 
 	return (
-		<div className="h-screen flex flex-col bg-white dark:bg-slate-950">
-			<header className="flex items-center gap-4 px-4 py-2 border-b border-gray-200 dark:border-slate-800">
+		<div className="h-screen flex flex-col bg-white dark:bg-zinc-950">
+			<header className="flex items-center gap-4 px-4 py-2 border-b border-gray-200 dark:border-zinc-700">
 				<Link
 					to="/profile/$did/deck/$rkey"
 					params={{ did, rkey }}
-					className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+					className="flex items-center gap-2 text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white"
 				>
 					<ArrowLeft className="w-4 h-4" />
 					Back to Editor

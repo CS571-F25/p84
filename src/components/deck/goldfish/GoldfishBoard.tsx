@@ -113,7 +113,7 @@ export function GoldfishBoard({
 	return (
 		<GoldfishDragDropProvider onDragEnd={handleDragEnd}>
 			<SeedEmbed />
-			<div className="flex h-full gap-4 p-4 bg-white dark:bg-slate-950">
+			<div className="flex h-full gap-4 p-4 bg-white dark:bg-zinc-950">
 				{/* Left: Card Preview */}
 				<div className="w-64 flex-shrink-0">
 					{hoveredCardData && !hoveredCard?.isFaceDown ? (
@@ -126,7 +126,7 @@ export function GoldfishBoard({
 							}
 						/>
 					) : (
-						<div className="w-full aspect-[5/7] rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
+						<div className="w-full aspect-[5/7] rounded-lg bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-400 dark:text-zinc-400 text-sm">
 							{hoveredCard?.isFaceDown ? "Face down" : "Hover a card"}
 						</div>
 					)}

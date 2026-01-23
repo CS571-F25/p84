@@ -10,7 +10,7 @@ interface SubtypesPieChartProps {
 
 const COLORS = [
 	"var(--color-cyan-500)",
-	"var(--color-violet-500)",
+	"var(--color-cyan-500)",
 	"var(--color-amber-500)",
 	"var(--color-emerald-500)",
 	"var(--color-rose-500)",
@@ -40,11 +40,11 @@ export function SubtypesPieChart({
 
 	if (data.length === 0) {
 		return (
-			<div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
-				<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+			<div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-gray-200 dark:border-zinc-600">
+				<h3 className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-4">
 					Subtypes
 				</h3>
-				<div className="h-48 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
+				<div className="h-48 flex items-center justify-center text-gray-500 dark:text-zinc-300 text-sm">
 					No subtypes
 				</div>
 			</div>
@@ -52,8 +52,8 @@ export function SubtypesPieChart({
 	}
 
 	return (
-		<div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
-			<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+		<div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-gray-200 dark:border-zinc-600">
+			<h3 className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-4">
 				Subtypes
 			</h3>
 			<div className="h-48 flex">
@@ -99,10 +99,10 @@ export function SubtypesPieChart({
 								className="w-2 h-2 rounded-full flex-shrink-0"
 								style={{ backgroundColor: getSubtypeColor(entry.type, index) }}
 							/>
-							<span className="text-xs text-gray-600 dark:text-gray-400 truncate">
+							<span className="text-xs text-gray-600 dark:text-zinc-300 truncate">
 								{entry.type}
 							</span>
-							<span className="text-xs text-gray-500 dark:text-gray-500 ml-auto">
+							<span className="text-xs text-gray-500 dark:text-zinc-400 ml-auto">
 								{Math.round((entry.count / total) * 100)}%
 							</span>
 						</button>

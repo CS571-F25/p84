@@ -53,7 +53,7 @@ export function DroppableTagGroup({
 							<div className="absolute inset-0 bg-cyan-500/20 dark:bg-cyan-600/30 rounded-lg z-10" />
 							{/* Label */}
 							<div className="absolute inset-0 flex items-center justify-center z-20">
-								<div className="bg-cyan-500 dark:bg-cyan-700 text-white px-3 py-2 rounded-lg text-sm font-semibold shadow-lg">
+								<div className="bg-cyan-400 text-gray-900 px-3 py-2 rounded-lg text-sm font-semibold shadow-lg">
 									Drop to add "{tagName}"
 								</div>
 							</div>
