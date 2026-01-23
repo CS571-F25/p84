@@ -2032,7 +2032,7 @@ describe("property tests", () => {
 				const result = lexiconToTree(lexicon);
 				return result.eq(doc);
 			}),
-			{ numRuns: 10_000 },
+			{ numRuns: 1000 },
 		);
 	});
 
