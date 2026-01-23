@@ -19,7 +19,7 @@ escaped=${escaped:1:-1}
 cat <<EOF
 {
     "decision": "block",
-    "reason": "${escaped}\n\n[Stop Hook] Typecheck failed. Assess whether these errors are related to changes you made this session - if not, mention them to the user and stop."
+    "reason": "${escaped}\n\n[Stop Hook] Typecheck failed. If errors are from your changes, fix them. If unrelated (might be caused by another instance of Claude Code), mention them and stop. If you already asked the user a question that determines how to fix this, wait for their answer."
 }
 EOF
 exit 2
