@@ -112,6 +112,7 @@ export function addCardToDeck(
 	oracleId: OracleId,
 	section: Section,
 	quantity = 1,
+	tags: string[] = [],
 ): Deck {
 	const existingCard = findCardInSection(deck, scryfallId, section);
 
@@ -129,10 +130,7 @@ export function addCardToDeck(
 
 	return {
 		...deck,
-		cards: [
-			...deck.cards,
-			{ scryfallId, oracleId, quantity, section, tags: [] },
-		],
+		cards: [...deck.cards, { scryfallId, oracleId, quantity, section, tags }],
 		updatedAt: new Date().toISOString(),
 	};
 }

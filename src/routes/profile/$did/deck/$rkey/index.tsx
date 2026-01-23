@@ -2,7 +2,7 @@ import type { Did } from "@atcute/lexicons";
 import { type DragEndEvent, useDndMonitor } from "@dnd-kit/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
 import { CardDragOverlay } from "@/components/deck/CardDragOverlay";
@@ -147,6 +147,10 @@ function DeckEditorPage() {
 	);
 	const deck = deckRecord.deck;
 
+	// Ref to always have fresh deck state (avoids stale closures in toast callbacks)
+	const deckRef = useRef(deck);
+	deckRef.current = deck;
+
 	const [groupBy, setGroupBy] = usePersistedState<GroupBy>(
 		"deckbelcher:viewConfig:groupBy",
 		"typeAndTags",
@@ -205,11 +209,15 @@ function DeckEditorPage() {
 	);
 
 	// Helper to update deck via mutation
-	const updateDeck = async (updater: (prev: Deck) => Deck) => {
-		if (!isOwner) return;
-		const updated = updater(deck);
-		await mutation.mutateAsync(updated);
-	};
+	// Uses deckRef to avoid stale closures in async callbacks (e.g., toast undo)
+	const updateDeck = useCallback(
+		async (updater: (prev: Deck) => Deck) => {
+			if (!isOwner) return;
+			const updated = updater(deckRef.current);
+			await mutation.mutateAsync(updated);
+		},
+		[isOwner, mutation],
+	);
 
 	// Highlight cards that were changed - clear after paint so it can trigger again
 	const handleCardsChanged = (changedIds: Set<ScryfallId>) => {
@@ -288,14 +296,21 @@ function DeckEditorPage() {
 				// Update to success with undo action
 				toast.success("Card removed from deck", {
 					id: toastId,
+					duration: 10000,
 					action: {
 						label: "Undo",
 						onClick: () => {
 							toast.promise(
-								updateDeck((prev) => ({
-									...prev,
-									cards: [...prev.cards, cardToDelete],
-								})),
+								updateDeck((prev) =>
+									addCardToDeck(
+										prev,
+										cardToDelete.scryfallId,
+										cardToDelete.oracleId,
+										cardToDelete.section as Section,
+										cardToDelete.quantity,
+										cardToDelete.tags ?? [],
+									),
+								),
 								{
 									loading: "Undoing...",
 									success: "Card restored",
@@ -381,15 +396,21 @@ function DeckEditorPage() {
 					if (cardToDelete) {
 						toast.success("Card removed from deck", {
 							id: toastId,
+							duration: 10000,
 							action: {
 								label: "Undo",
 								onClick: () => {
-									// Re-insert the exact card that was deleted
 									toast.promise(
-										updateDeck((prev) => ({
-											...prev,
-											cards: [...prev.cards, cardToDelete],
-										})),
+										updateDeck((prev) =>
+											addCardToDeck(
+												prev,
+												cardToDelete.scryfallId,
+												cardToDelete.oracleId,
+												cardToDelete.section as Section,
+												cardToDelete.quantity,
+												cardToDelete.tags ?? [],
+											),
+										),
 										{
 											loading: "Undoing...",
 											success: "Card restored",

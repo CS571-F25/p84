@@ -8,11 +8,6 @@ This file tracks discovered issues, refactoring opportunities, and feature ideas
 
 ## Bugs
 
-### Delete undo adds N+1 copies
-- **Location**: Deck editor undo logic
-- **Issue**: Undoing a card deletion adds N+1 of the card as independent copies instead of restoring the original single entry
-- **Repro**: Delete a card with qty 4, undo, observe 5 separate entries
-
 ### Bare regex for name search doesn't work
 - **Location**: `src/lib/search/parser.ts`, `parseNameExpr()`
 - **Issue**: `/goblin.*king/i` syntax is parsed but not matched correctly for bare name searches (works in field values like `o:/regex/`)
@@ -73,6 +68,13 @@ This file tracks discovered issues, refactoring opportunities, and feature ideas
 ## Refactoring (Technical Debt)
 
 ### High Priority
+
+#### Deck editor: Replace ref with reducer pattern
+- **Location**: `src/routes/profile/$did/deck/$rkey/index.tsx`
+- **Issue**: Currently uses `deckRef` to avoid stale closures in toast undo callbacks. This is a band-aid fix.
+- **Better approach**: Use `useReducer` for local deck state with explicit actions (`ADD_CARD`, `REMOVE_CARD`, etc.)
+- **Benefits**: Natural fit for undo/redo (action history), integrates well with Immer, clearer mental model
+- **Effort**: Medium
 
 #### Reduce computeManaSymbolsVsSources complexity
 - **Location**: `src/lib/deck-stats.ts:327-502` (176 lines)
