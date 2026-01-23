@@ -1,0 +1,26 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/multikey/v1",
+    "https://w3id.org/security/suites/secp256k1-2019/v1"
+  ],
+  "id": "did:web:deckbelcher.com",
+  "alsoKnownAs": [
+    "at://deckbelcher.com"
+  ],
+  "verificationMethod": [
+    {
+      "id": "did:web:deckbelcher.com#atproto",
+      "type": "Multikey",
+      "controller": "did:web:deckbelcher.com",
+      "publicKeyMultibase": "zQ3shWLd8zo2uDUGeqeuHgyMJnTwpDLBVLRipr5vxNZ2pCswQ"
+    }
+  ],
+  "service": [
+    {
+      "id": "#atproto_pds",
+      "type": "AtprotoPersonalDataServer",
+      "serviceEndpoint": "https://atproto.systems"
+    }
+  ]
+}

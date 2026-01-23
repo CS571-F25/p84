@@ -1,3 +1,7 @@
+# AT Protocol well-known files need CORS for cross-origin discovery
+/.well-known/*
+  Access-Control-Allow-Origin: *
+
 # Fonts - static assets, rarely change (1 year)
 /fonts/recursive/*
   Cache-Control: public, max-age=31536000, immutable
