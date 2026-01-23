@@ -17,9 +17,24 @@ interface OldDeckCard {
 	tags?: string[];
 }
 
+interface NewDeckCard {
+	ref: CardRef;
+	quantity: number;
+	section: string;
+	tags?: string[];
+}
+
+type DeckCard = OldDeckCard | NewDeckCard;
+
 interface OldCollectionCardItem {
 	$type: "com.deckbelcher.collection.list#cardItem";
 	scryfallId: string;
+	addedAt: string;
+}
+
+interface NewCollectionCardItem {
+	$type: "com.deckbelcher.collection.list#cardItem";
+	ref: CardRef;
 	addedAt: string;
 }
 
@@ -29,14 +44,24 @@ interface OldCollectionDeckItem {
 	addedAt: string;
 }
 
-type OldCollectionItem = OldCollectionCardItem | OldCollectionDeckItem;
+interface NewCollectionDeckItem {
+	$type: "com.deckbelcher.collection.list#deckItem";
+	ref: { uri: string; cid: string };
+	addedAt: string;
+}
+
+type CollectionItem =
+	| OldCollectionCardItem
+	| NewCollectionCardItem
+	| OldCollectionDeckItem
+	| NewCollectionDeckItem;
 
 interface OldDeckList {
 	$type: "com.deckbelcher.deck.list";
 	name: string;
 	format?: string;
 	primer?: unknown;
-	cards: OldDeckCard[];
+	cards: DeckCard[];
 	createdAt: string;
 	updatedAt?: string;
 }
@@ -45,7 +70,7 @@ interface OldCollectionList {
 	$type: "com.deckbelcher.collection.list";
 	name: string;
 	description?: unknown;
-	items: OldCollectionItem[];
+	items: CollectionItem[];
 	createdAt: string;
 	updatedAt?: string;
 }
@@ -74,8 +99,21 @@ interface OldBlock {
 }
 
 interface OldDocument {
+	$type?: string;
 	content: OldBlock[];
 }
+
+interface PrimerUri {
+	$type: "com.deckbelcher.deck.list#primerUri";
+	uri: string;
+}
+
+interface PrimerRef {
+	$type: "com.deckbelcher.deck.list#primerRef";
+	ref: { uri: string; cid: string };
+}
+
+type Primer = OldDocument | PrimerUri | PrimerRef;
 
 interface MigrationResult {
 	success: boolean;
@@ -132,12 +170,44 @@ async function migrateRecord(record: OldRecord): Promise<MigrationResult> {
 			}),
 		);
 
-		return { content: newContent };
+		return { $type: "com.deckbelcher.richtext#document", content: newContent };
+	}
+
+	async function migratePrimer(
+		primer: Primer | undefined,
+	): Promise<Primer | undefined> {
+		if (!primer) return undefined;
+
+		// uri and ref primers pass through unchanged
+		if (
+			"uri" in primer &&
+			primer.$type === "com.deckbelcher.deck.list#primerUri"
+		) {
+			return primer;
+		}
+		if (
+			"ref" in primer &&
+			primer.$type === "com.deckbelcher.deck.list#primerRef"
+		) {
+			return primer;
+		}
+
+		// embedded document - migrate and add $type
+		if ("content" in primer) {
+			return migrateDocument(primer);
+		}
+
+		return undefined;
 	}
 
 	if (record.$type === "com.deckbelcher.deck.list") {
 		const newCards = await Promise.all(
 			record.cards.map(async (card) => {
+				// Already migrated - pass through
+				if ("ref" in card) {
+					return card;
+				}
+				// Old format - migrate
 				const ref = await buildCardRef(card.scryfallId);
 				if (!ref) return null;
 				return {
@@ -153,7 +223,7 @@ async function migrateRecord(record: OldRecord): Promise<MigrationResult> {
 			return { success: false, errors };
 		}
 
-		const newPrimer = await migrateDocument(record.primer as OldDocument);
+		const newPrimer = await migratePrimer(record.primer as Primer);
 
 		return {
 			success: true,
@@ -173,9 +243,15 @@ async function migrateRecord(record: OldRecord): Promise<MigrationResult> {
 	if (record.$type === "com.deckbelcher.collection.list") {
 		const newItems = await Promise.all(
 			record.items.map(async (item) => {
+				// Deck items pass through (already have ref or old deckUri)
 				if (item.$type === "com.deckbelcher.collection.list#deckItem") {
 					return item;
 				}
+				// Already migrated card item - pass through
+				if ("ref" in item) {
+					return item;
+				}
+				// Old format card item - migrate
 				const ref = await buildCardRef(item.scryfallId);
 				if (!ref) return null;
 				return {
