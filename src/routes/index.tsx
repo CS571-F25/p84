@@ -110,7 +110,7 @@ function App() {
 							href="https://ufos.microcosm.blue"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="text-cyan-600 dark:text-cyan-400 hover:underline"
+							className="text-cyan-600 dark:text-cyan-400 underline"
 						>
 							UFOs
 						</a>
@@ -125,7 +125,7 @@ function App() {
 							href="https://atproto.com"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="text-cyan-600 dark:text-cyan-400 hover:underline"
+							className="text-cyan-600 dark:text-cyan-400 underline"
 						>
 							atproto
 						</a>{" "}
@@ -134,7 +134,7 @@ function App() {
 							href="https://deer.social/profile/did:plc:jx4g6baqkwdlonylsetvpu7c"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="text-cyan-600 dark:text-cyan-400 hover:underline"
+							className="text-cyan-600 dark:text-cyan-400 underline"
 						>
 							@aviva.gay
 						</a>{" "}
@@ -143,7 +143,7 @@ function App() {
 							href="https://forsythpeak.com/"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="text-cyan-600 dark:text-cyan-400 hover:underline"
+							className="text-cyan-600 dark:text-cyan-400 underline"
 						>
 							forsyth peak llc
 						</a>

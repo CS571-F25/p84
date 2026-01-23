@@ -14,7 +14,7 @@ function Q({ q }: { q: string }) {
 		<Link
 			to="/cards"
 			search={{ q, sort: undefined, sort2: undefined }}
-			className="font-mono text-sm bg-gray-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded text-cyan-700 dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors"
+			className="font-mono text-sm bg-gray-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded text-cyan-800 dark:text-cyan-300 underline decoration-cyan-800/30 dark:decoration-cyan-300/30 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 hover:decoration-cyan-800 dark:hover:decoration-cyan-300 transition-colors"
 		>
 			{q}
 		</Link>
@@ -34,9 +34,9 @@ function MainCard({
 		<div
 			className={`bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-600 rounded-lg p-4 ${className}`}
 		>
-			<h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+			<h2 className="font-semibold text-gray-900 dark:text-white mb-2">
 				{title}
-			</h3>
+			</h2>
 			{children}
 		</div>
 	);
@@ -55,9 +55,9 @@ function SecondaryCard({
 		<div
 			className={`bg-gray-50/50 dark:bg-zinc-800/30 border border-gray-200/50 dark:border-zinc-600/50 rounded-lg p-3 ${className}`}
 		>
-			<h4 className="text-sm font-medium text-gray-500 dark:text-zinc-300 mb-2">
+			<h3 className="text-sm font-medium text-gray-500 dark:text-zinc-300 mb-2">
 				{title}
-			</h4>
+			</h3>
 			{children}
 		</div>
 	);

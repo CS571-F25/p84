@@ -56,7 +56,7 @@ function MetadataDisplay() {
 				href="https://scryfall.com"
 				target="_blank"
 				rel="noopener noreferrer"
-				className="text-cyan-600 dark:text-cyan-400 hover:underline"
+				className="text-cyan-600 dark:text-cyan-400 underline"
 			>
 				Scryfall
 			</a>
@@ -353,6 +353,7 @@ function CardsPage() {
 						<div className="flex gap-2">
 							<div className="relative">
 								<select
+									aria-label="Sort by"
 									value={primarySort.value}
 									onChange={(e) =>
 										navigate({
@@ -373,6 +374,7 @@ function CardsPage() {
 							</div>
 							<div className="relative">
 								<select
+									aria-label="Then sort by"
 									value={secondarySort?.value ?? ""}
 									onChange={(e) =>
 										navigate({

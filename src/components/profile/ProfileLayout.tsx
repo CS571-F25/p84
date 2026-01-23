@@ -81,14 +81,14 @@ export function ProfileLayout({ did, children }: ProfileLayoutProps) {
 						to="/profile/$did"
 						params={{ did }}
 						activeOptions={{ exact: true }}
-						className="px-4 py-2 font-medium text-sm border-b-2 transition-colors text-gray-500 dark:text-zinc-300 hover:text-gray-700 dark:hover:text-zinc-300 border-transparent hover:border-gray-300 dark:hover:border-zinc-600 [&.active]:border-cyan-500 [&.active]:text-cyan-600 dark:[&.active]:text-cyan-400"
+						className="px-4 py-2 font-medium text-sm border-b-2 transition-colors text-gray-500 dark:text-zinc-300 hover:text-gray-700 dark:hover:text-zinc-300 border-transparent hover:border-gray-300 dark:hover:border-zinc-600 [&.active]:border-cyan-500 [&.active]:text-cyan-700 dark:[&.active]:text-cyan-400"
 					>
 						Decks
 					</Link>
 					<Link
 						to="/profile/$did/lists"
 						params={{ did }}
-						className="px-4 py-2 font-medium text-sm border-b-2 transition-colors text-gray-500 dark:text-zinc-300 hover:text-gray-700 dark:hover:text-zinc-300 border-transparent hover:border-gray-300 dark:hover:border-zinc-600 [&.active]:border-cyan-500 [&.active]:text-cyan-600 dark:[&.active]:text-cyan-400"
+						className="px-4 py-2 font-medium text-sm border-b-2 transition-colors text-gray-500 dark:text-zinc-300 hover:text-gray-700 dark:hover:text-zinc-300 border-transparent hover:border-gray-300 dark:hover:border-zinc-600 [&.active]:border-cyan-500 [&.active]:text-cyan-700 dark:[&.active]:text-cyan-400"
 					>
 						Lists
 					</Link>

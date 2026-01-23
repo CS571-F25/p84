@@ -186,6 +186,7 @@ function DecksContent({
 				{decks.length > 0 && (
 					<div className="flex flex-wrap gap-4">
 						<select
+							aria-label="Sort decks by"
 							value={search.sort ?? "updated-desc"}
 							onChange={handleSortChange}
 							className="px-4 py-2 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500"
@@ -199,6 +200,7 @@ function DecksContent({
 
 						{availableFormats.length > 0 && (
 							<select
+								aria-label="Filter by format"
 								value={search.format ?? ""}
 								onChange={handleFormatChange}
 								className="px-4 py-2 bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-cyan-500"

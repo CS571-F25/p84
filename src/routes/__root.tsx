@@ -134,7 +134,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						<HoverCardPreviewProvider>
 							<WorkerStatusIndicator />
 							<Header />
-							{children}
+							<main>{children}</main>
 							<Suspense>
 								<DevTools />
 							</Suspense>

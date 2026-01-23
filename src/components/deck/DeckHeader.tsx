@@ -66,6 +66,7 @@ export function DeckHeader({
 				)}
 
 				<select
+					aria-label="Deck format"
 					value={format || ""}
 					onChange={(e) => onFormatChange(e.target.value)}
 					disabled={readOnly}

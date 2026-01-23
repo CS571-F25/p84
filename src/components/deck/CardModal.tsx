@@ -35,6 +35,7 @@ export function CardModal({
 	const [tags, setTags] = useState<string[]>(card.tags ?? []);
 
 	const titleId = useId();
+	const sectionId = useId();
 
 	const { data: cardData } = useQuery(getCardByIdQueryOptions(card.scryfallId));
 	const primaryFace = cardData ? getPrimaryFace(cardData) : null;
@@ -216,10 +217,14 @@ export function CardModal({
 
 						{/* Section */}
 						<div>
-							<div className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+							<label
+								htmlFor={sectionId}
+								className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2"
+							>
 								Section
-							</div>
+							</label>
 							<select
+								id={sectionId}
 								value={card.section}
 								onChange={(e) => onMoveToSection(e.target.value as Section)}
 								disabled={readOnly}
