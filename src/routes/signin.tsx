@@ -156,9 +156,13 @@ function SignIn() {
 						Handle
 					</label>
 					<div className="relative mb-6">
+						{/* name="atproto-account" enables cross-domain handle autocomplete
+						    https://retr0.id/stuff/autocomplete/ */}
 						<input
 							ref={inputRef}
 							id={handleId}
+							name="atproto-account"
+							autoComplete="username"
 							type="text"
 							value={handle}
 							onChange={(e) => {
