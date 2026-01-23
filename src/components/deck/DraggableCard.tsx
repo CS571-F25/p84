@@ -104,7 +104,10 @@ export function DraggableCard({
 					{primaryFace ? primaryFace.name : isLoading ? "" : "Unknown Card"}
 				</span>
 				{violations && violations.length > 0 && (
-					<span title={violations.map((v) => v.message).join("\n")}>
+					<span
+						title={violations.map((v) => v.message).join("\n")}
+						className="self-center"
+					>
 						<AlertTriangle
 							className={`w-4 h-4 flex-shrink-0 ${
 								violations.some((v) => v.severity === "error")

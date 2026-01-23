@@ -20,6 +20,8 @@ Inspired by Discord and Linear's approach:
 
 ## Design Principles
 
+**Why we target AAA, not just AA**: Most sites target WCAG AA (4.5:1). We go higher because deck building happens at 2am, zoomed out to 50%, on variable monitors, scanning long card lists. Higher contrast means faster scanning and less eye strain. Legibility is a feature.
+
 **60-30-10 rule**: 60% background, 30% secondary/text, 10% accent. Don't overuse the accent color.
 
 **Text contrast for AAA (7.0+)**:
