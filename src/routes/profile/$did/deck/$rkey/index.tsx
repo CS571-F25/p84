@@ -36,8 +36,10 @@ import {
 	addCardToDeck,
 	type DeckCard,
 	getCardsInSection,
+	getEmbeddedPrimer,
 	moveCardToSection,
 	removeCardFromDeck,
+	toEmbeddedPrimer,
 	updateCardQuantity,
 	updateCardTags,
 } from "@/lib/deck-types";
@@ -102,8 +104,9 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 		const ogTitle = format ? `${deck.name} (${format})` : deck.name;
 
 		const cardCount = deck.cards.reduce((sum, c) => sum + c.quantity, 0);
-		const primerText = deck.primer
-			? documentToPlainText(deck.primer)
+		const embeddedPrimer = getEmbeddedPrimer(deck.primer);
+		const primerText = embeddedPrimer
+			? documentToPlainText(embeddedPrimer)
 			: undefined;
 		const description = primerText
 			? `${primerText.slice(0, 150)}${primerText.length > 150 ? "..." : ""}`
@@ -198,7 +201,7 @@ function DeckEditorPage() {
 	const handlePrimerSave = useCallback(
 		(doc: Document) => {
 			if (!isOwner) return;
-			mutation.mutate({ ...deck, primer: doc });
+			mutation.mutate({ ...deck, primer: toEmbeddedPrimer(doc) });
 		},
 		[isOwner, mutation, deck],
 	);
@@ -478,7 +481,7 @@ function DeckEditorPage() {
 				updateDeck={updateDeck}
 				highlightedCards={highlightedCards}
 				handleCardsChanged={handleCardsChanged}
-				primer={deck.primer}
+				primer={getEmbeddedPrimer(deck.primer)}
 				onPrimerSave={handlePrimerSave}
 				isSaving={mutation.isPending}
 			/>

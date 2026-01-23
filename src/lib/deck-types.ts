@@ -33,6 +33,25 @@ export type Deck = Omit<ComDeckbelcherDeckList.Main, "cards"> & {
 	cards: DeckCard[];
 };
 
+/** Primer can be embedded document, external URI, or reference to another record */
+export type Primer = Deck["primer"];
+
+import type { Document } from "./lexicons/types/com/deckbelcher/richtext";
+
+const EMBEDDED_PRIMER_TYPE = "com.deckbelcher.richtext#document" as const;
+
+/** Extract embedded document from primer union, if present */
+export function getEmbeddedPrimer(primer: Primer): Document | undefined {
+	if (!primer) return undefined;
+	if (primer.$type === EMBEDDED_PRIMER_TYPE) return primer;
+	return undefined;
+}
+
+/** Wrap a document as an embedded primer for saving */
+export function toEmbeddedPrimer(doc: Document): Primer {
+	return { ...doc, $type: EMBEDDED_PRIMER_TYPE };
+}
+
 /**
  * View configuration for deck display
  */

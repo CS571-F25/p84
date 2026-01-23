@@ -36,7 +36,7 @@ const metadata = JSON.parse(readFileSync(CLIENT_METADATA_PATH, "utf-8"));
 metadata.scope = scope;
 writeFileSync(
 	CLIENT_METADATA_PATH,
-	JSON.stringify(metadata, null, "\t") + "\n",
+	`${JSON.stringify(metadata, null, "\t")}\n`,
 );
 
 console.log("Updated", CLIENT_METADATA_PATH);

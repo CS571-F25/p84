@@ -19,7 +19,7 @@ namespace com.deckbelcher.deck.list {
     format?: string;
 
     /** Deck primer with strategy, combos, and card choices. */
-    primer?: com.deckbelcher.richtext.Document;
+    primer?: Primer;
 
     /** Array of cards in the decklist. */
     @required
@@ -31,6 +31,30 @@ namespace com.deckbelcher.deck.list {
 
     /** Timestamp when the decklist was last updated. */
     updatedAt?: datetime;
+  }
+
+  /** Primer content - inline, external URI, or linked record. */
+  @inline
+  union Primer {
+    embedded: com.deckbelcher.richtext.Document,
+    uri: PrimerUri,
+    ref: PrimerRef,
+    unknown,
+  }
+
+  /** External primer content. Typically a URL, but any valid URI scheme. */
+  model PrimerUri {
+    @required
+    @format("uri")
+    @maxLength(10000)
+    @maxGraphemes(1000)
+    uri: string;
+  }
+
+  /** Primer in a separate ATProto record. For use with any longform writing lexicon. */
+  model PrimerRef {
+    @required
+    ref: com.atproto.repo.strongRef.Main;
   }
 
   /** A tag annotation for a card. */

@@ -21,8 +21,12 @@
             "description": "Format of the deck (e.g., \"commander\", \"cube\", \"pauper\")."
           },
           "primer": {
-            "type": "ref",
-            "ref": "com.deckbelcher.richtext#document",
+            "type": "union",
+            "refs": [
+              "com.deckbelcher.richtext#document",
+              "#primerUri",
+              "#primerRef"
+            ],
             "description": "Deck primer with strategy, combos, and card choices."
           },
           "cards": {
@@ -51,6 +55,33 @@
         ]
       },
       "description": "A Magic: The Gathering decklist."
+    },
+    "primerUri": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "maxLength": 10000,
+          "maxGraphemes": 1000
+        }
+      },
+      "description": "External primer content. Typically a URL, but any valid URI scheme.",
+      "required": [
+        "uri"
+      ]
+    },
+    "primerRef": {
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "ref",
+          "ref": "com.atproto.repo.strongRef"
+        }
+      },
+      "description": "Primer in a separate ATProto record. For use with any longform writing lexicon.",
+      "required": [
+        "ref"
+      ]
     },
     "card": {
       "type": "object",

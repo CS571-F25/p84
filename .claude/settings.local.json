@@ -64,7 +64,8 @@
       "Bash(npm run screenshot:wireframe:*)",
       "Bash(curl:*)",
       "Bash(npm run build:lexicons:*)",
-      "Bash(npm run lexicons:lint:*)"
+      "Bash(npm run lexicons:lint:*)",
+      "Bash(npm run lexicons:all:*)"
     ],
     "deny": [],
     "ask": []
