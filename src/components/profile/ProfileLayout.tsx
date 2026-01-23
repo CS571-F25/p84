@@ -76,7 +76,10 @@ export function ProfileLayout({ did, children }: ProfileLayoutProps) {
 				/>
 
 				{/* Tab Navigation */}
-				<nav className="flex border-b border-gray-200 dark:border-zinc-600 mb-6">
+				<nav
+					aria-label="Profile sections"
+					className="flex border-b border-gray-200 dark:border-zinc-600 mb-6"
+				>
 					<Link
 						to="/profile/$did"
 						params={{ did }}

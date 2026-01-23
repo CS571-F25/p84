@@ -111,11 +111,17 @@ export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
 				</div>
 			</div>
 
-			<div ref={containerRef} className="flex gap-2 overflow-x-auto pb-2">
+			<section
+				ref={containerRef}
+				aria-label="Sample hand"
+				// biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable region needs keyboard access per axe-core
+				tabIndex={0}
+				className="flex gap-2 overflow-x-auto pb-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 rounded"
+			>
 				{state.hand.map((card) => (
+					// biome-ignore lint/a11y/noStaticElementInteractions: hover is for visual preview only
 					<div
 						key={card.instanceId}
-						role="img"
 						className="flex-shrink-0"
 						onMouseEnter={() => onCardHover?.(card.cardId)}
 						onMouseLeave={() => onCardHover?.(null)}
@@ -127,7 +133,7 @@ export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
 						/>
 					</div>
 				))}
-			</div>
+			</section>
 		</div>
 	);
 }
