@@ -33,8 +33,8 @@ function App() {
 	const { session } = useAuth();
 
 	return (
-		<div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-slate-50 to-white dark:from-zinc-900 dark:to-zinc-950">
-			<div className="max-w-5xl mx-auto px-6 py-16 md:py-24">
+		<div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-slate-50 to-white dark:from-zinc-900 dark:to-zinc-950 overflow-x-hidden">
+			<div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 md:py-24">
 				<div className="text-center mb-16">
 					<h1 className="inline-block text-5xl md:text-6xl font-medium text-gray-900 dark:text-white mb-4 tracking-tight font-display [font-variation-settings:'WONK'_1,'SOFT'_70,'opsz'_72] motion-safe:hover:[font-variation-settings:'WONK'_1,'SOFT'_100,'opsz'_25] motion-safe:transition-[font-variation-settings] motion-safe:duration-500 ease-in-out cursor-default">
 						deck belcher dot com
