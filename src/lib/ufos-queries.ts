@@ -7,11 +7,7 @@ import { safeParse } from "@atcute/lexicons/validations";
 import { queryOptions } from "@tanstack/react-query";
 import type { Result } from "./atproto-client";
 import { transformListRecord } from "./collection-list-queries";
-import {
-	COLLECTION_LIST_NSID,
-	DECK_LIST_NSID,
-	MICROCOSM_USER_AGENT,
-} from "./constellation-client";
+import { COLLECTION_LIST_NSID, DECK_LIST_NSID } from "./constellation-client";
 import { transformDeckRecord } from "./deck-queries";
 import {
 	ComDeckbelcherCollectionList,
@@ -41,12 +37,7 @@ async function fetchRecentRecords(
 		url.searchParams.set("collection", collectionParam);
 		url.searchParams.set("limit", String(limit));
 
-		const response = await fetch(url.toString(), {
-			headers: {
-				Accept: "application/json",
-				"User-Agent": MICROCOSM_USER_AGENT,
-			},
-		});
+		const response = await fetch(url.toString());
 
 		if (!response.ok) {
 			return {
