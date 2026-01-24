@@ -139,7 +139,7 @@ function App() {
 							UFOs
 						</a>
 					</p>
-					<ActivityFeed limit={9} />
+					<ActivityFeed limit={18} />
 				</div>
 
 				<div className="mt-16 text-center">
