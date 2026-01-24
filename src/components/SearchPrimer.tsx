@@ -14,7 +14,7 @@ function Q({ q }: { q: string }) {
 		<Link
 			to="/cards"
 			search={{ q, sort: undefined, sort2: undefined }}
-			className="font-mono text-sm bg-gray-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded text-cyan-800 dark:text-cyan-300 underline decoration-cyan-800/30 dark:decoration-cyan-300/30 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 hover:decoration-cyan-800 dark:hover:decoration-cyan-300 transition-colors"
+			className="font-mono text-sm bg-gray-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded text-cyan-800 dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors"
 		>
 			{q}
 		</Link>
