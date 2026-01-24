@@ -11,6 +11,8 @@ describe("hasSearchOperators", () => {
 		["fire-breathing", "hyphenated names"],
 		["The Ur-Dragon", "proper card name with hyphens"],
 		["bolt And shock", "mixed case AND"],
+		["Fire // Ice", "split card name with double slashes"],
+		["Wear // Tear", "another split card"],
 	])("`%s` → false (%s)", (query) => {
 		expect(hasSearchOperators(query)).toBe(false);
 	});
@@ -45,6 +47,11 @@ describe("hasSearchOperators", () => {
 		["(red", "opening paren"],
 		["red)", "closing paren"],
 		["(red OR blue)", "grouped expression"],
+		// Regex patterns
+		["/goblin/", "bare regex"],
+		["/goblin.*king/i", "regex with flags"],
+		["/^Lightning/", "regex with anchor"],
+		["o:/deals? \\d+ damage/", "regex in field value"],
 	])("`%s` → true (%s)", (query) => {
 		expect(hasSearchOperators(query)).toBe(true);
 	});

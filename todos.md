@@ -8,11 +8,6 @@ This file tracks discovered issues, refactoring opportunities, and feature ideas
 
 ## Bugs
 
-### Bare regex for name search doesn't work
-- **Location**: `src/lib/search/parser.ts`, `parseNameExpr()`
-- **Issue**: `/goblin.*king/i` syntax is parsed but not matched correctly for bare name searches (works in field values like `o:/regex/`)
-- **Why it matters**: Documented in grammar but broken
-
 ### Flaky property test for OR parsing
 - **Location**: `src/lib/search/__tests__/parser.test.ts:276` ("parses OR combinations")
 - **Issue**: fast-check property test occasionally finds edge cases that fail parsing

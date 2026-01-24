@@ -25,6 +25,7 @@ const EXACT_MATCH = /(^|[\s(])!/;
 const NEGATION = /(^|[\s(])-\w/;
 const QUOTES = /"/;
 const PARENS = /[()]/;
+const REGEX_LITERAL = /(?:^|\s)\/.+\//;
 
 /**
  * Check if a query string contains search operators that indicate
@@ -37,6 +38,7 @@ const PARENS = /[()]/;
  * - "-blue" (negation)
  * - '"Lightning Bolt"' (quoted)
  * - "(red OR blue)" (grouping)
+ * - "/goblin.*king/" (regex pattern)
  *
  * Returns false for simple name searches like:
  * - "lightning bolt"
@@ -50,6 +52,7 @@ export function hasSearchOperators(query: string): boolean {
 		EXACT_MATCH.test(query) ||
 		NEGATION.test(query) ||
 		QUOTES.test(query) ||
-		PARENS.test(query)
+		PARENS.test(query) ||
+		REGEX_LITERAL.test(query)
 	);
 }

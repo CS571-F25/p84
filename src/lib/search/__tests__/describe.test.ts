@@ -22,6 +22,15 @@ describe("describeQuery", () => {
 	});
 
 	it.each([
+		["/goblin/", "name matches /goblin/"],
+		["/goblin.*king/i", "name matches /goblin.*king/"],
+		["/^Lightning/", "name matches /^Lightning/"],
+		["/^bolt$/m", "name matches /^bolt$/m"],
+	])("bare regex name search: `%s` → %s", (query, expected) => {
+		expect(desc(query)).toBe(expected);
+	});
+
+	it.each([
 		["t:creature", 'type includes "creature"'],
 		["o:flying", 'oracle text includes "flying"'],
 		["kw:trample", 'keyword includes "trample"'],

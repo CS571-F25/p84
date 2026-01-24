@@ -179,6 +179,11 @@ function formatColors(colors: Set<string>): string {
 	return sorted.map((c) => `{${c}}`).join("");
 }
 
+function formatRegex(pattern: RegExp, source: string): string {
+	const flags = pattern.flags.replace("i", "");
+	return `/${source}/${flags}`;
+}
+
 function describeValue(value: FieldValue, quoted = true): string {
 	switch (value.kind) {
 		case "string":
@@ -187,11 +192,8 @@ function describeValue(value: FieldValue, quoted = true): string {
 				: value.value.toLowerCase();
 		case "number":
 			return String(value.value);
-		case "regex": {
-			// Filter out 'i' since case-insensitive is the default
-			const flags = value.pattern.flags.replace("i", "");
-			return `/${value.source}/${flags}`;
-		}
+		case "regex":
+			return formatRegex(value.pattern, value.source);
 		case "colors":
 			return formatColors(value.colors);
 	}
@@ -272,6 +274,9 @@ function describeField(node: FieldNode): string {
 export function describeQuery(node: SearchNode): string {
 	switch (node.type) {
 		case "NAME":
+			if (node.pattern) {
+				return `name matches ${formatRegex(node.pattern, node.value)}`;
+			}
 			return `name includes "${node.value.toLowerCase()}"`;
 
 		case "EXACT_NAME":
