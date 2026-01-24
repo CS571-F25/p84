@@ -13,10 +13,8 @@ namespace com.deckbelcher.deck.list {
     @maxLength(1280)
     name: string;
 
-    /** Format of the deck (e.g., "commander", "cube", "pauper"). */
-    @maxGraphemes(32)
-    @maxLength(320)
-    format?: string;
+    /** Format of the deck. */
+    format?: Format;
 
     /** Deck primer with strategy, combos, and card choices. */
     primer?: Primer;
@@ -55,6 +53,43 @@ namespace com.deckbelcher.deck.list {
   model PrimerRef {
     @required
     ref: com.atproto.repo.strongRef.Main;
+  }
+
+  /** Game format for a deck. */
+  @maxGraphemes(32)
+  @maxLength(320)
+  union Format {
+    // Constructed
+    "standard",
+    "pioneer",
+    "modern",
+    "legacy",
+    "vintage",
+    "pauper",
+    // Commander
+    "commander",
+    "duel",
+    "paupercommander",
+    "predh",
+    "oathbreaker",
+    // Brawl
+    "brawl",
+    "standardbrawl",
+    // Arena
+    "historic",
+    "timeless",
+    "alchemy",
+    "gladiator",
+    // Retro
+    "premodern",
+    "oldschool",
+    // Limited
+    "draft",
+    // Other
+    "penny",
+    "cube",
+    "kitchentable",
+    string,
   }
 
   /** A tag annotation for a card. */

@@ -44,6 +44,38 @@ const _cardSchema = /*#__PURE__*/ v.object({
     ),
   ),
 });
+const _formatSchema = /*#__PURE__*/ v.constrain(
+  /*#__PURE__*/ v.string<
+    | "alchemy"
+    | "brawl"
+    | "commander"
+    | "cube"
+    | "draft"
+    | "duel"
+    | "gladiator"
+    | "historic"
+    | "kitchentable"
+    | "legacy"
+    | "modern"
+    | "oathbreaker"
+    | "oldschool"
+    | "pauper"
+    | "paupercommander"
+    | "penny"
+    | "pioneer"
+    | "predh"
+    | "premodern"
+    | "standard"
+    | "standardbrawl"
+    | "timeless"
+    | "vintage"
+    | (string & {})
+  >(),
+  [
+    /*#__PURE__*/ v.stringLength(0, 320),
+    /*#__PURE__*/ v.stringGraphemes(0, 32),
+  ],
+);
 const _mainSchema = /*#__PURE__*/ v.record(
   /*#__PURE__*/ v.tidString(),
   /*#__PURE__*/ v.object({
@@ -59,16 +91,11 @@ const _mainSchema = /*#__PURE__*/ v.record(
      */
     createdAt: /*#__PURE__*/ v.datetimeString(),
     /**
-     * Format of the deck (e.g., "commander", "cube", "pauper").
-     * @maxLength 320
-     * @maxGraphemes 32
+     * Format of the deck.
      */
-    format: /*#__PURE__*/ v.optional(
-      /*#__PURE__*/ v.constrain(/*#__PURE__*/ v.string(), [
-        /*#__PURE__*/ v.stringLength(0, 320),
-        /*#__PURE__*/ v.stringGraphemes(0, 32),
-      ]),
-    ),
+    get format() {
+      return /*#__PURE__*/ v.optional(formatSchema);
+    },
     /**
      * Name of the decklist.
      * @maxLength 1280
@@ -128,24 +155,28 @@ const _sectionSchema = /*#__PURE__*/ v.constrain(
 );
 
 type card$schematype = typeof _cardSchema;
+type format$schematype = typeof _formatSchema;
 type main$schematype = typeof _mainSchema;
 type primerRef$schematype = typeof _primerRefSchema;
 type primerUri$schematype = typeof _primerUriSchema;
 type section$schematype = typeof _sectionSchema;
 
 export interface cardSchema extends card$schematype {}
+export interface formatSchema extends format$schematype {}
 export interface mainSchema extends main$schematype {}
 export interface primerRefSchema extends primerRef$schematype {}
 export interface primerUriSchema extends primerUri$schematype {}
 export interface sectionSchema extends section$schematype {}
 
 export const cardSchema = _cardSchema as cardSchema;
+export const formatSchema = _formatSchema as formatSchema;
 export const mainSchema = _mainSchema as mainSchema;
 export const primerRefSchema = _primerRefSchema as primerRefSchema;
 export const primerUriSchema = _primerUriSchema as primerUriSchema;
 export const sectionSchema = _sectionSchema as sectionSchema;
 
 export interface Card extends v.InferInput<typeof cardSchema> {}
+export type Format = v.InferInput<typeof formatSchema>;
 export interface Main extends v.InferInput<typeof mainSchema> {}
 export interface PrimerRef extends v.InferInput<typeof primerRefSchema> {}
 export interface PrimerUri extends v.InferInput<typeof primerUriSchema> {}

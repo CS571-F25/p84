@@ -26,8 +26,12 @@ export const cardLegalityRule: Rule<"cardLegality"> = {
 	description: "Card must be legal in format",
 	validate(ctx: ValidationContext): Violation[] {
 		const { deck, cardLookup, config } = ctx;
-		const violations: Violation[] = [];
 		const field = config.legalityField;
+
+		// Formats without a legality field (draft, kitchentable) skip this check
+		if (!field) return [];
+
+		const violations: Violation[] = [];
 
 		// For PDH, commanders are validated by commanderUncommon rule instead
 		const skipCommanderLegality = field === "paupercommander";
@@ -74,8 +78,12 @@ export const bannedRule: Rule<"banned"> = {
 	description: "Card is banned in format",
 	validate(ctx: ValidationContext): Violation[] {
 		const { deck, cardLookup, config } = ctx;
-		const violations: Violation[] = [];
 		const field = config.legalityField;
+
+		// Formats without a legality field (draft, kitchentable) skip this check
+		if (!field) return [];
+
+		const violations: Violation[] = [];
 
 		for (const entry of deck.cards) {
 			if (entry.section === "maybeboard") continue;
@@ -118,9 +126,12 @@ export const restrictedRule: Rule<"restricted"> = {
 	description: "Restricted cards limited to 1 copy",
 	validate(ctx: ValidationContext): Violation[] {
 		const { deck, oracleLookup, config } = ctx;
-		const violations: Violation[] = [];
 		const field = config.legalityField;
 
+		// Formats without a legality field (draft, kitchentable) skip this check
+		if (!field) return [];
+
+		const violations: Violation[] = [];
 		const oracleCounts = new Map<OracleId, number>();
 
 		for (const entry of deck.cards) {

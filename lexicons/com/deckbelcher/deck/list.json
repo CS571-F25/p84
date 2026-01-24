@@ -15,10 +15,9 @@
             "description": "Name of the decklist."
           },
           "format": {
-            "type": "string",
-            "maxLength": 320,
-            "maxGraphemes": 32,
-            "description": "Format of the deck (e.g., \"commander\", \"cube\", \"pauper\")."
+            "type": "ref",
+            "ref": "#format",
+            "description": "Format of the deck."
           },
           "primer": {
             "type": "union",
@@ -119,6 +118,37 @@
         "quantity",
         "section"
       ]
+    },
+    "format": {
+      "type": "string",
+      "knownValues": [
+        "standard",
+        "pioneer",
+        "modern",
+        "legacy",
+        "vintage",
+        "pauper",
+        "commander",
+        "duel",
+        "paupercommander",
+        "predh",
+        "oathbreaker",
+        "brawl",
+        "standardbrawl",
+        "historic",
+        "timeless",
+        "alchemy",
+        "gladiator",
+        "premodern",
+        "oldschool",
+        "draft",
+        "penny",
+        "cube",
+        "kitchentable"
+      ],
+      "maxLength": 320,
+      "maxGraphemes": 32,
+      "description": "Game format for a deck."
     },
     "section": {
       "type": "string",

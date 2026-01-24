@@ -68,7 +68,7 @@ export interface ValidationContext {
  * Per-format configuration parameters
  */
 export interface FormatConfig {
-	legalityField: string;
+	legalityField?: string;
 	minDeckSize?: number;
 	deckSize?: number;
 	sideboardSize?: number;

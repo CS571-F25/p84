@@ -145,6 +145,18 @@ export const PRESETS = {
 		rules: SIXTY_CARD_RULES,
 		config: { legalityField: "penny", minDeckSize: 60, sideboardSize: 15 },
 	},
+
+	// Limited
+	draft: {
+		rules: ["deckSizeMin"] as const,
+		config: { minDeckSize: 40 },
+	},
+
+	// Casual
+	kitchentable: {
+		rules: [] as const,
+		config: {},
+	},
 } as const satisfies Record<string, Preset<RuleId>>;
 
 export type FormatId = keyof typeof PRESETS;

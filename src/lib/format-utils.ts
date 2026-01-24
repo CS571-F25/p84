@@ -56,9 +56,15 @@ const FORMAT_TAGLINES: Record<string, string> = {
 	premodern: "1995–2003 cards",
 	oldschool: "1993–1994 cards",
 
+	// Limited
+	draft: "40-card · Drafted cards + basic lands",
+
 	// Other
 	penny: "Budget · Rotating cheapest",
 	cube: "Draft · Custom card pool",
+
+	// Casual
+	kitchentable: "Anything goes",
 };
 
 /**
@@ -171,10 +177,15 @@ export const FORMAT_GROUPS: FormatGroup[] = [
 		],
 	},
 	{
+		label: "Limited",
+		formats: [{ value: "draft", label: "Draft" }],
+	},
+	{
 		label: "Other",
 		formats: [
 			{ value: "penny", label: "Penny Dreadful" },
 			{ value: "cube", label: "Cube" },
+			{ value: "kitchentable", label: "Kitchen Table" },
 		],
 	},
 ];
