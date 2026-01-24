@@ -1,301 +1,149 @@
-Welcome to your new TanStack app! 
+# deck belcher
 
-# Getting Started
+**[deckbelcher.com](https://deckbelcher.com)**
 
-To run this application:
+deckbelcher is a social decklist builder, built on top of atproto.
 
-```bash
-npm install
-npm run dev
+If you've ever used a tool like moxfield, archidekt, tappedout, deckstats... this aims to replace it.
+
+You can see the lexicons [here](./lexicons/) which are derived from typespec [here](./typelex/).
+
+Perhaps the most interesting non-atproto thing here is the local card search engine. Card data is loaded into a SharedWorker in the background ([here](./src/workers/cards.worker.ts)) and queried and cached in the site with tanstack query. During SSR, binary search of a map of sorted UUIDs -> chunk id + text range allows loading and parsing a minimal amount of JSON (parsing all JSON is extremely slow and won't fit in the CF workers memory limit) to preload these queries. This creates a rather seamless experience, and I find you can't tell that the magic trick is happening unless you look for it. Chunks are content hashed and sorted, so updates usually only require refetching a couple chunks. Volatile data like pricing is split into its own chunk, otherwise chunk caching is essentially moot.
+
+```
+getCardById("abc-123")
+        │
+        ▼
+┌───────────────────┐
+│   card LRU cache  │──hit──▶ return Card
+│    (10k cards)    │
+└───────────────────┘
+        │ miss
+        ▼
+┌───────────────────┐
+│ cards-byteindex   │  binary search sorted UUIDs
+│      .bin         │  25 bytes/record: UUID(16) + chunk(1) + offset(4) + len(4)
+└───────────────────┘
+        │
+        ▼
+   { chunk: 42, offset: 81920, len: 2048 }
+        │
+        ▼
+┌───────────────────┐
+│  chunk LRU cache  │──hit──▶ use cached chunk text
+│   (12 chunks)     │
+└───────────────────┘
+        │ miss
+        ▼
+   fetch cards/cards-042-a1b2c3.json
+        │
+        ▼
+   chunkText.slice(81920, 81920 + 2048)
+        │
+        ▼
+   JSON.parse ──▶ cache ──▶ return Card
 ```
 
-# Building For Production
+On the client, a [SharedWorker](https://caniuse.com/sharedworkers) (or regular Worker on Android) loads everything into memory at startup:
 
-To build this application for production:
-
-```bash
-npm run build
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SharedWorker init                        │
+└─────────────────────────────────────────────────────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        ▼                   ▼                   ▼
+   fetch chunk 0       fetch chunk 1  ...  fetch chunk N     (parallel)
+        │                   │                   │
+        └───────────────────┼───────────────────┘
+                            ▼
+              merge into cards: Record<id, Card>
+                            │
+              ┌─────────────┼─────────────────┐
+              ▼             ▼                 ▼
+       build id index   build oracle    build MiniSearch
+       Map<id, Card>    → printings     fuzzy index
+                            │
+                            ▼
+                   ~115k cards in memory
+                   ready for queries
 ```
 
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
-
-```bash
-npm run test
+```
+searchCards("lightning bolt")
+        │
+        ▼
+┌───────────────────────────────────────┐
+│           main thread                 │
+│  TanStack Query ──▶ Comlink RPC call  │
+└───────────────────────────────────────┘
+        │ postMessage
+        ▼
+┌───────────────────────────────────────┐
+│         SharedWorker                  │
+│                                       │
+│  MiniSearch.search("lightning bolt")  │
+│         │                             │
+│         ▼                             │
+│  filter by restrictions (format, CI)  │
+│         │                             │
+│         ▼                             │
+│  return Card[]                        │
+└───────────────────────────────────────┘
+        │ postMessage
+        ▼
+   results hydrated in UI
 ```
 
-## Styling
+Together, the two paths look like this:
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-
-## Linting & Formatting
-
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
-
-```bash
-npm run lint
-npm run format
-npm run check
+```
+                     ┌────────────────────────────────┐
+                     │       public/data/cards/       │
+                     │ ┌────────────────────────────┐ │
+                     │ │ cards-000-xxx.json         │ │
+                     │ │ cards-001-xxx.json         │ │
+                     │ │ ...                        │ │
+                     │ │ cards-NNN-xxx.json         │ │
+                     │ ├────────────────────────────┤ │
+                     │ │ cards-byteindex.bin        │ │
+                     │ │ indexes.json               │ │
+                     │ │ volatile.bin               │ │
+                     │ └────────────────────────────┘ │
+                     └────────────────────────────────┘
+                            │                 │
+            ┌───────────────┘                 └───────────────┐
+            │ SSR: binary search                              │ client: load all
+            │ + byte slice                                    │ into worker
+            ▼                                                 ▼
+┌─────────────────────────┐                     ┌─────────────────────────┐
+│     CF Worker (SSR)     │                     │   SharedWorker/Worker   │
+│                         │                     │                         │
+│ byteindex lookup O(logn)│                     │ ~115k cards in RAM      │
+│ parse single card       │                     │ MiniSearch index        │
+│ LRU cache (cards+chunks)│                     │ scryfall syntax engine  │
+└─────────────────────────┘                     └─────────────────────────┘
+            │                                                 │
+            └───────────────────────┬─────────────────────────┘
+                                    ▼
+                      TanStack Query cache unifies both
+                      (SSR preloads, client hydrates)
 ```
 
+Once you have all the data in memory, a lot of things get easy. For example, we are able to do [MiniSearch](https://github.com/lucaong/minisearch) powered fuzzy search over cards in near real time, and implement a scryfall query engine and run it over the cards in memory. We can show a virtualized list of all results, and only copy the details for cards across the IPC barrier when they are on screen. A user on 3G can add cards to their decklist or check the language of a card, without enduring the latency of their connection, as long as they had the chunks cached. High latency 4G connections are much more tolerable. Total data over the wire is ~140mb, which is both a lot (sooo much text) and only a little (most sites, including this one, show cards via images, which quickly add up to exceed this amount).
 
+Even though card data lives locally, we still rely on scryfall for their card CDN. This project is only possible because they are so generous with their data export. You can see the script that processes it [here](./scripts/download-scryfall.ts).
 
-## Routing
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
+## Further Reading
 
-### Adding A Route
+More detailed docs live in `.claude/` although they were written (by claude) to help claude keep track of the finer details of these systems:
 
-To add a new route to your application just add another a new file in the `./src/routes` directory.
+- [CARD_DATA.md](./.claude/CARD_DATA.md) - card data pipeline and provider architecture
+- [SEARCH.md](./.claude/SEARCH.md) - scryfall-like query engine (lexer → parser → matcher)
+- [ATPROTO.md](./.claude/ATPROTO.md) - AT Protocol integration, PDS writes, Slingshot reads
+- [DECK_VALIDATION.md](./.claude/DECK_VALIDATION.md) - format rules with MTG comprehensive rules citations
+- [DECK_FORMATS.md](./.claude/DECK_FORMATS.md) - import/export format comparison (Arena, Moxfield, MTGO, etc.)
 
-TanStack will automatically generate the content of the route file for you.
+## Beware!
 
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you use the `<Outlet />` component.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-
-import { Link } from "@tanstack/react-router";
-
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
-})
-```
-
-The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/people",
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json() as Promise<{
-      results: {
-        name: string;
-      }[];
-    }>;
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData();
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    );
-  },
-});
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-### React-Query
-
-React-Query is an excellent addition or alternative to route loading and integrating it into you application is a breeze.
-
-First add your dependencies:
-
-```bash
-npm install @tanstack/react-query @tanstack/react-query-devtools
-```
-
-Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
-
-```tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-// ...
-
-const queryClient = new QueryClient();
-
-// ...
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
-}
-```
-
-You can also add TanStack Query Devtools to the root route (optional).
-
-```tsx
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
-const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ReactQueryDevtools buttonPosition="top-right" />
-      <TanStackRouterDevtools />
-    </>
-  ),
-});
-```
-
-Now you can use `useQuery` to fetch your data.
-
-```tsx
-import { useQuery } from "@tanstack/react-query";
-
-import "./App.css";
-
-function App() {
-  const { data } = useQuery({
-    queryKey: ["people"],
-    queryFn: () =>
-      fetch("https://swapi.dev/api/people")
-        .then((res) => res.json())
-        .then((data) => data.results as { name: string }[]),
-    initialData: [],
-  });
-
-  return (
-    <div>
-      <ul>
-        {data.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export default App;
-```
-
-You can find out everything you need to know on how to use React-Query in the [React-Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
-
-## State Management
-
-Another common requirement for React applications is state management. There are many options for state management in React. TanStack Store provides a great starting point for your project.
-
-First you need to add TanStack Store as a dependency:
-
-```bash
-npm install @tanstack/store
-```
-
-Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-function App() {
-  const count = useStore(countStore);
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-    </div>
-  );
-}
-
-export default App;
-```
-
-One of the many nice features of TanStack Store is the ability to derive state from other state. That derived state will update when the base state updates.
-
-Let's check this out by doubling the count using derived state.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store, Derived } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-const doubledStore = new Derived({
-  fn: () => countStore.state * 2,
-  deps: [countStore],
-});
-doubledStore.mount();
-
-function App() {
-  const count = useStore(countStore);
-  const doubledCount = useStore(doubledStore);
-
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-      <div>Doubled - {doubledCount}</div>
-    </div>
-  );
-}
-
-export default App;
-```
-
-We use the `Derived` class to create a new store that is derived from another store. The `Derived` class has a `mount` method that will start the derived store updating.
-
-Once we've created the derived store we can use it in the `App` component just like we would any other store using the `useStore` hook.
-
-You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
+While I have reviewed all the code, the *entirety* of the code in this repo was written by claude. I wrote *most of* the prose, like this README (I hate being made to read someone else's LLM output, and I try not to be a hypocrite). I feel that using claude to write this allowed me to take on developer QOL, powerful UX, and extensive testing that I would not have otherwise--but I also feel it's worth being upfront that the workflow here was iterative reviews with claude, feature by feature, rather than by hand.
