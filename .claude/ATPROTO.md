@@ -18,9 +18,11 @@ DeckBelcher uses AT Protocol for decentralized data storage. Decks are stored in
 
 | File | Purpose |
 |------|---------|
-| `src/lib/atproto-client.ts` | CRUD operations for deck records |
-| `src/lib/identity.ts` | Handle ↔ DID resolution |
+| `src/lib/atproto-client.ts` | CRUD operations for all record types |
+| `src/lib/identity.ts` | Handle/DID → MiniDoc resolution (via Slingshot) |
+| `src/lib/did-to-handle.ts` | DID document resolution (via @atcute) |
 | `src/lib/useAuth.tsx` | OAuth context and session management |
+| `src/lib/oauth-config.ts` | OAuth client configuration |
 | `src/lib/lexicons/` | Generated TypeScript types from lexicons |
 | `typelex/*.tsp` | TypeSpec lexicon definitions |
 
@@ -49,7 +51,7 @@ All ATProto operations use `Result<T, E>` instead of throwing:
 ```typescript
 type Result<T, E = Error> =
   | { success: true; data: T }
-  | { success: false; error: E };
+  | { success: false; error: E; status?: number };
 
 // Usage
 const result = await getDeckRecord(did, rkey);
@@ -57,6 +59,7 @@ if (result.success) {
   console.log(result.data.value.name);
 } else {
   console.error(result.error.message);
+  // result.status contains HTTP status if available
 }
 ```
 
@@ -104,23 +107,78 @@ const result = await listUserDecks(pdsUrl, did);
 // Returns: { records: DeckRecordResponse[], cursor?: string }
 ```
 
-## Identity Resolution
+### Collection Lists
 
-Located in `src/lib/identity.ts`.
+Same pattern as decks:
 
 ```typescript
-import { resolveHandle, resolveDid, getPdsUrl } from "@/lib/identity";
+import {
+  getCollectionListRecord,
+  createCollectionListRecord,
+  updateCollectionListRecord,
+  listUserCollectionLists,
+  deleteCollectionListRecord,
+} from "@/lib/atproto-client";
+```
+
+### Comments & Replies
+
+```typescript
+import {
+  getCommentRecord,
+  createCommentRecord,
+  updateCommentRecord,
+  deleteCommentRecord,
+} from "@/lib/atproto-client";
+
+// Replies have the same CRUD pattern
+import {
+  getReplyRecord,
+  createReplyRecord,
+  updateReplyRecord,
+  deleteReplyRecord,
+} from "@/lib/atproto-client";
+```
+
+### Likes
+
+Likes use deterministic rkeys (hashed from subject ref) and `upsertRecord`:
+
+```typescript
+import { createLikeRecord, deleteLikeRecord } from "@/lib/atproto-client";
+
+// Creates or updates - idempotent for same subject
+await createLikeRecord(agent, { ref: atUri, cid });
+await deleteLikeRecord(agent, { ref: atUri, cid });
+```
+
+## Identity Resolution
+
+Located in `src/lib/identity.ts`. Uses Slingshot's cached identity resolver.
+
+```typescript
+import { resolveMiniDoc, resolveHandleToDid, getPdsForDid } from "@/lib/identity";
+
+// Handle or DID → full identity info
+const doc = await resolveMiniDoc("alice.bsky.social");
+// { did, handle, pds, signing_key }
 
 // Handle → DID
-const did = await resolveHandle("alice.bsky.social");
+const did = await resolveHandleToDid("alice.bsky.social");
 // did:plc:abc123...
 
-// DID → Handle (from DID document)
-const handle = await resolveHandleFromDid(did);
-
 // DID → PDS URL
-const pds = await getPdsUrl(did);
+const pds = await getPdsForDid(did);
 // https://bsky.social
+```
+
+For DID → Handle resolution, use `didDocumentQueryOptions` from `src/lib/did-to-handle.ts`:
+
+```typescript
+import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
+
+const { data: didDoc } = useQuery(didDocumentQueryOptions(did));
+const handle = extractHandle(didDoc);
 ```
 
 ## OAuth Flow
@@ -146,9 +204,14 @@ Lexicons define the schema for deck records. See `.claude/TYPELEX.md` for TypeSp
 
 **Current lexicons:**
 - `com.deckbelcher.actor.profile` - User profile
-- `com.deckbelcher.deck.list` - Deck/decklist record
-- `com.deckbelcher.social.like` - Likes on decks
+- `com.deckbelcher.deck.list` - Deck record
+- `com.deckbelcher.collection.list` - Collection list record (wishlists, trade binders, etc.)
+- `com.deckbelcher.social.like` - Likes on decks/lists
+- `com.deckbelcher.social.comment` - Comments on decks/lists
+- `com.deckbelcher.social.reply` - Replies to comments
+- `com.deckbelcher.richtext` - Rich text with facets
 - `com.deckbelcher.richtext.facet` - Rich text facets (card mentions)
+- `com.deckbelcher.defs` - Shared definitions
 
 **Generating types:**
 ```bash
@@ -197,4 +260,4 @@ const mutation = useMutationWithToast({
 
 - **Slingshot URL:** `https://slingshot.microcosm.blue` (hardcoded in atproto-client.ts)
 - **Collection:** `com.deckbelcher.deck.list` (the NSID for deck records)
-- **Record format:** See `typelex/deck.tsp` for canonical schema
+- **Record format:** See `typelex/deck-list.tsp` for canonical schema

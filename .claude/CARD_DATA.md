@@ -103,7 +103,7 @@ Optimized for SSR—doesn't load full dataset into memory.
 The worker handles:
 - Loading chunked card data
 - Building search indexes
-- Fuzzy search (fuse.js)
+- Fuzzy search (MiniSearch)
 - Syntax search (parser + matcher)
 - Volatile data loading
 

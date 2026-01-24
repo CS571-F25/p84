@@ -84,11 +84,11 @@ interface ValidationResult {
 
 ## Available Rules
 
-| Rule ID | MTG Citation | Description |
-|---------|--------------|-------------|
+| Rule ID | Citation | Description |
+|---------|----------|-------------|
 | `cardLegality` | 100.2a | Card must be legal in format |
-| `banned` | 100.6a | Card is banned in format |
-| `restricted` | 100.6b | Restricted to 1 copy (Vintage) |
+| `banned` | MTR | Card is banned in format |
+| `restricted` | MTR | Restricted to 1 copy (Vintage) |
 | `singleton` | 903.5b | Max 1 copy (Commander variants) |
 | `playset` | 100.2a | Max 4 copies (60-card formats) |
 | `deckSizeMin` | 100.2a | Minimum deck size |
@@ -96,11 +96,11 @@ interface ValidationResult {
 | `sideboardSize` | 100.4a | Max sideboard cards |
 | `colorIdentity` | 903.4 | Cards must match commander colors |
 | `commanderRequired` | 903.3 | At least 1 commander |
-| `commanderPartner` | 702.124 | Valid partner pairing if 2 commanders |
+| `commanderPartner` | 702.124a | Valid partner pairing if 2 commanders |
 | `commanderLegendary` | 903.3 | Commander must be legendary creature/vehicle/spacecraft |
-| `commanderUncommon` | 903.3 | Commander must be uncommon creature (PDH) |
-| `commanderPlaneswalker` | 903.3 | Commander must be planeswalker (Oathbreaker) |
-| `signatureSpell` | 903.3 | Oathbreaker signature spell requirement |
+| `commanderUncommon` | PDH | Commander must be uncommon creature (PDH) |
+| `commanderPlaneswalker` | 906.3 | Commander must be planeswalker (Oathbreaker) |
+| `signatureSpell` | 906.4 | Oathbreaker signature spell requirement |
 
 ## Format Presets
 

@@ -7,13 +7,15 @@ Multi-format deck import/export library in `src/lib/deck-formats/`.
 | Format | Quantity | Set Syntax | Sections | Tags | Notes |
 |--------|----------|------------|----------|------|-------|
 | **Arena** | `4 Name` | `(SET) 123` | `Deck`, `Sideboard`, `Commander`, `Companion` | - | Blank lines between sections |
-| **MTGO** | `4 Name` | - (name only) | Blank line or `Sideboard:` | - | Simplest format |
+| **MTGO** | `4 Name` | - (name only) | Blank line, `Sideboard:`, or `SB:` | - | Simplest format |
 | **Moxfield** | `4 Name` | `(SET) 123` | Per-section editing | `#tag #!global` | Also `*F*` foil, `*A*` alter |
-| **TappedOut** | `4x Name` | - | `SB:` prefix, `#Category` | Categories = tags | Note the `x` suffix |
-| **Deckstats** | `4 Name` | - | `//Sideboard`, `SB:` prefix | - | Section comments |
+| **TappedOut** | `4x Name` | `(SET) 123` | `SB:` prefix, `#Category` | Categories = tags | Note the `x` suffix |
+| **Deckstats** | `4 Name` | - | `//Sideboard`, `SB:`, `# !Commander` | - | Section comments |
 | **XMage** | `4 Name` | `[SET:123]` before name | Same as MTGO | - | Brackets before name |
-| **Archidekt** | `1x Name` | `(set) 123` | `[Commander]`, `[Sideboard]` inline | `[Category]` | Lowercase sets, inline markers |
+| **Archidekt** | `1x Name` | `(set) 123` | `[Commander]`, `[Sideboard]`, `[Maybeboard]` inline; `# Section` headers | `[Category]` | Lowercase sets |
 | **MTGGoldfish** | `4 Name` | `<123> [SET]` after name | Blank line | - | Angle brackets for collector# |
+
+**Note:** The `SB:` prefix for inline sideboard cards is accepted by most parsers regardless of format.
 
 ## Detection Priority
 
