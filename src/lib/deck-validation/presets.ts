@@ -88,23 +88,26 @@ export const PRESETS = {
 		config: { legalityField: "legacy", deckSize: 60 },
 	},
 
-	// Brawl variants (60-card singleton)
+	// Brawl variants (singleton with commander)
 	brawl: {
 		rules: [
 			"cardLegality",
 			"banned",
 			"singleton",
+			"colorIdentity",
 			"deckSizeExact",
 			"commanderRequired",
+			"commanderPartner",
 			"commanderLegendary",
 		] as const,
-		config: { legalityField: "brawl", deckSize: 60 },
+		config: { legalityField: "brawl", deckSize: 100 },
 	},
 	standardbrawl: {
 		rules: [
 			"cardLegality",
 			"banned",
 			"singleton",
+			"colorIdentity",
 			"deckSizeExact",
 			"commanderRequired",
 			"commanderLegendary",
