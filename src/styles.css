@@ -75,6 +75,16 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
+/*
+ * Firefox doesn't map font-style:italic to Recursive's slnt axis correctly,
+ * even though the relevant bug (bugzilla 1611997) is supposedly fixed.
+ * We force the slnt axis directly as a workaround.
+ */
+em, i, .italic {
+	font-style: italic;
+	font-variation-settings: "slnt" -15;
+}
+
 code,
 .font-mono {
 	font-family: var(--font-mono);
