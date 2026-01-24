@@ -76,14 +76,16 @@ export function CardSearchAutocomplete({
 		isDropdownOpen && debouncedSearch.trim().length > 0 && !isFetching && data;
 
 	// Auto-preview top result when search changes and results load
-	if (
-		debouncedSearch !== prevSearchRef.current &&
-		displayCards.length > 0 &&
-		debouncedSearch.trim().length > 0
-	) {
-		prevSearchRef.current = debouncedSearch;
-		onCardHover?.(displayCards[0].id);
-	}
+	useEffect(() => {
+		if (
+			debouncedSearch !== prevSearchRef.current &&
+			displayCards.length > 0 &&
+			debouncedSearch.trim().length > 0
+		) {
+			prevSearchRef.current = debouncedSearch;
+			onCardHover?.(displayCards[0].id);
+		}
+	}, [debouncedSearch, displayCards, onCardHover]);
 
 	useEffect(() => {
 		setIsDropdownOpen(inputValue.trim().length > 0);

@@ -2,7 +2,7 @@ import type { Did } from "@atcute/lexicons";
 import { type DragEndEvent, useDndMonitor } from "@dnd-kit/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
 import { CommentsPanel } from "@/components/comments/CommentsPanel";
@@ -222,11 +222,19 @@ function DeckEditorPage() {
 		[isOwner, mutation],
 	);
 
-	// Highlight cards that were changed - clear after paint so it can trigger again
+	// Highlight cards that were changed
 	const handleCardsChanged = (changedIds: Set<ScryfallId>) => {
 		setHighlightedCards(changedIds);
-		requestAnimationFrame(() => setHighlightedCards(new Set()));
 	};
+
+	// TODO: This timeout is a hack - ideally use animation IDs instead of boolean highlights
+	// Clear highlights after a delay so child animation effects have fired
+	useEffect(() => {
+		if (highlightedCards.size > 0) {
+			const id = setTimeout(() => setHighlightedCards(new Set()), 100);
+			return () => clearTimeout(id);
+		}
+	}, [highlightedCards]);
 
 	const handleCardHover = (cardId: ScryfallId | null) => {
 		// Only update preview if we have a card (persistence - don't clear on null)
