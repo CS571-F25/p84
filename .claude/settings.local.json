@@ -68,7 +68,8 @@
       "Bash(npm run lexicons:all:*)",
       "Bash(goat lex:*)",
       "Bash(npm run test:a11y:*)",
-      "Bash(git grep:*)"
+      "Bash(git grep:*)",
+      "WebFetch(domain:mtg.fandom.com)"
     ],
     "deny": [],
     "ask": []

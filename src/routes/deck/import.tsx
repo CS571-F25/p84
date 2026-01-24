@@ -203,6 +203,7 @@ function ImportDeckPage() {
 						: [],
 				(oracleId) => provider.getPrintingsByOracleId(oracleId),
 				(id) => provider.getCardById(id),
+				{ format: debouncedParsed.format },
 			);
 
 			if (cancelled) return;

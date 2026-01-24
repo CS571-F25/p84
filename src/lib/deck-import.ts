@@ -10,7 +10,13 @@
  * 1 Sol Ring
  */
 
+import type { DeckFormat } from "./deck-formats/types";
 import type { Card, OracleId, ScryfallId } from "./scryfall-types";
+import {
+	arenaCodeToScryfall,
+	expandAlchemyYearCode,
+	normalizeSetCodeForSearch,
+} from "./set-symbols";
 
 export interface ParsedCardLine {
 	quantity: number;
@@ -139,6 +145,11 @@ export function formatCardLine(
 	return parts.join(" ");
 }
 
+export interface ResolveOptions {
+	/** Deck format for set code normalization (arena/mtgo use full mapping) */
+	format?: DeckFormat;
+}
+
 /**
  * Resolve parsed cards to Scryfall IDs
  *
@@ -150,6 +161,7 @@ export async function resolveCards(
 	lookupByName: (name: string) => Promise<Card[]>,
 	getPrintings: (oracleId: OracleId) => Promise<ScryfallId[]>,
 	getCardById: (id: ScryfallId) => Promise<Card | undefined>,
+	options?: ResolveOptions,
 ): Promise<ImportResult> {
 	const resolved: ResolvedCard[] = [];
 	const errors: ImportError[] = [];
@@ -184,15 +196,37 @@ export async function resolveCards(
 				const printings = await getPrintings(baseCard.oracle_id);
 				let found = false;
 
+				// Check if this is an Alchemy year code (Y22, Y23, etc.)
+				// These expand to multiple Scryfall set codes
+				const alchemyYearSets = expandAlchemyYearCode(line.setCode);
+
+				// Normalize arena/mtgo set codes to scryfall codes (e.g., "dar" → "dom")
+				// Use full mapping for arena/mtgo formats, safe mapping for others
+				const useFullMapping =
+					options?.format === "arena" || options?.format === "mtgo";
+				const normalizedSetCode = useFullMapping
+					? arenaCodeToScryfall(line.setCode)
+					: normalizeSetCodeForSearch(line.setCode);
+
 				for (const printingId of printings) {
 					const printing = await getCardById(printingId);
 					if (!printing) continue;
 
+					// For Y-codes, check if printing is in any of the year's sets
+					// Otherwise, check exact match against normalized code
 					const setMatches =
-						printing.set?.toUpperCase() === line.setCode.toUpperCase();
-					const collectorMatches =
-						!line.collectorNumber ||
-						printing.collector_number === line.collectorNumber;
+						alchemyYearSets && printing.set
+							? alchemyYearSets.includes(printing.set)
+							: printing.set === normalizedSetCode;
+
+					// For alchemy cards, Arena exports "170" but Scryfall has "A-170"
+					// Try both the raw collector number and with "A-" prefix
+					let collectorMatches = !line.collectorNumber;
+					if (line.collectorNumber && !collectorMatches) {
+						collectorMatches =
+							printing.collector_number === line.collectorNumber ||
+							printing.collector_number === `A-${line.collectorNumber}`;
+					}
 
 					if (setMatches && collectorMatches) {
 						finalId = printingId;

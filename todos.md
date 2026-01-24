@@ -8,6 +8,12 @@ This file tracks discovered issues, refactoring opportunities, and feature ideas
 
 ## Bugs
 
+### Scryfall: Missing block_code on recent Alchemy sets
+- **Sets affected**: ydsk, ydft, ytdm, yeoe (all have `block_code: null`)
+- **Workaround**: We parse `icon_svg_uri` which correctly shows y25.svg
+- **Report to**: Scryfall (Discord or GitHub)
+- **Note**: block_code is documented and works for older sets (ymid has y22, etc.)
+
 ### Flaky property test for OR parsing
 - **Location**: `src/lib/search/__tests__/parser.test.ts:276` ("parses OR combinations")
 - **Issue**: fast-check property test occasionally finds edge cases that fail parsing
