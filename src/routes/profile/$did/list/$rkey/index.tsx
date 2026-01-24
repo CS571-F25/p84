@@ -9,6 +9,7 @@ import { ClientDate } from "@/components/ClientDate";
 import { CommentsPanel } from "@/components/comments/CommentsPanel";
 import { DeckPreview } from "@/components/DeckPreview";
 import { Drawer } from "@/components/Drawer";
+import { HandleLink } from "@/components/HandleLink";
 import { ListActionsMenu } from "@/components/list/ListActionsMenu";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
@@ -30,7 +31,6 @@ import {
 } from "@/lib/collection-list-types";
 import { COLLECTION_LIST_NSID } from "@/lib/constellation-client";
 import { getDeckQueryOptions } from "@/lib/deck-queries";
-import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import { documentToPlainText } from "@/lib/richtext-convert";
@@ -111,8 +111,6 @@ function ListDetailPage() {
 		getCollectionListQueryOptions(did as Did, asRkey(rkey)),
 	);
 	const list = data?.value;
-	const { data: didDocument } = useQuery(didDocumentQueryOptions(did as Did));
-	const handle = extractHandle(didDocument ?? null);
 
 	const mutation = useUpdateCollectionListMutation(did as Did, asRkey(rkey));
 	const toggleMutation = useToggleListItemMutation(did as Did, asRkey(rkey));
@@ -217,20 +215,7 @@ function ListDetailPage() {
 				</div>
 
 				<p className="text-sm text-gray-500 dark:text-zinc-400 mb-1">
-					{handle ? (
-						<>
-							by{" "}
-							<Link
-								to="/profile/$did"
-								params={{ did }}
-								className="hover:text-cyan-600 dark:hover:text-cyan-400"
-							>
-								@{handle}
-							</Link>
-						</>
-					) : (
-						<span className="inline-block h-4 w-20 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse align-middle" />
-					)}
+					<HandleLink did={did as Did} prefix="by" />
 				</p>
 				<div className="flex items-center justify-between mb-4">
 					<p className="text-sm text-gray-500 dark:text-zinc-400">

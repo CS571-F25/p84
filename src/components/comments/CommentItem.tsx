@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { ClientDate } from "@/components/ClientDate";
+import { HandleLink } from "@/components/HandleLink";
 import { RichtextRenderer } from "@/components/richtext/RichtextRenderer";
 import { SocialStats } from "@/components/social/SocialStats";
 import { type AtUri, asRkey } from "@/lib/atproto-client";
@@ -15,7 +15,6 @@ import {
 	useDeleteReplyMutation,
 } from "@/lib/comment-queries";
 import type { BacklinkRecord } from "@/lib/constellation-client";
-import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import type {
 	CommentUri,
@@ -63,9 +62,6 @@ export function CommentItem({
 		...getReplyQueryOptions(did, rkey),
 		enabled: type === "reply",
 	});
-
-	const { data: didDoc } = useQuery(didDocumentQueryOptions(did));
-	const handle = extractHandle(didDoc ?? null);
 
 	const isLoading =
 		type === "comment" ? commentQuery.isLoading : replyQuery.isLoading;
@@ -141,13 +137,10 @@ export function CommentItem({
 			<div className="flex items-start gap-3">
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-2 text-sm">
-						<Link
-							to="/profile/$did"
-							params={{ did }}
+						<HandleLink
+							did={did}
 							className="font-medium text-gray-900 dark:text-zinc-100 hover:underline"
-						>
-							@{handle ?? did.slice(0, 16)}
-						</Link>
+						/>
 						<span className="text-gray-400 dark:text-zinc-400">·</span>
 						<ClientDate
 							dateString={record.createdAt}

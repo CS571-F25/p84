@@ -1,13 +1,13 @@
 import type { Did } from "@atcute/lexicons";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { CardSpread } from "@/components/CardSpread";
 import { ClientDate } from "@/components/ClientDate";
+import { HandleLink } from "@/components/HandleLink";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
 import { getPreviewCardIds } from "@/lib/deck-preview-utils";
 import type { Deck } from "@/lib/deck-types";
-import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import { formatDisplayName } from "@/lib/format-utils";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import type { ScryfallId } from "@/lib/scryfall-types";
@@ -64,12 +64,6 @@ export function DeckPreview({
 	showHandle = false,
 	showCounts = true,
 }: DeckPreviewProps) {
-	const { data: didDocument } = useQuery({
-		...didDocumentQueryOptions(did),
-		enabled: showHandle,
-	});
-	const handle = showHandle ? extractHandle(didDocument ?? null) : null;
-
 	const sectionString = showCounts
 		? formatSectionCounts(getSectionCounts(deck.cards))
 		: "";
@@ -134,14 +128,11 @@ export function DeckPreview({
 			<CardSpread cardIds={previewCardIds} />
 
 			<div className="flex-1 min-w-0">
-				{showHandle &&
-					(handle ? (
-						<p className="text-sm text-gray-600 dark:text-zinc-300 truncate">
-							@{handle}
-						</p>
-					) : (
-						<div className="h-5 w-24 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse" />
-					))}
+				{showHandle && (
+					<p className="text-sm text-gray-600 dark:text-zinc-300 truncate">
+						<HandleLink did={did} link={false} />
+					</p>
+				)}
 
 				<h2 className="text-lg font-bold text-gray-900 dark:text-white truncate font-display">
 					{deck.name}

@@ -14,11 +14,11 @@ import { CardSearchAutocomplete } from "@/components/deck/CardSearchAutocomplete
 import { CommonTagsOverlay } from "@/components/deck/CommonTagsOverlay";
 import { DeckActionsMenu } from "@/components/deck/DeckActionsMenu";
 import { DeckHeader } from "@/components/deck/DeckHeader";
+import { DeckSampleView } from "@/components/deck/DeckSampleView";
 import { DeckSection } from "@/components/deck/DeckSection";
 import { DeckStats } from "@/components/deck/DeckStats";
 import { DragDropProvider } from "@/components/deck/DragDropProvider";
 import type { DragData } from "@/components/deck/DraggableCard";
-import { GoldfishView } from "@/components/deck/GoldfishView";
 import { StatsCardList } from "@/components/deck/stats/StatsCardList";
 import { TrashDropZone } from "@/components/deck/TrashDropZone";
 import { ValidationBadge } from "@/components/deck/ValidationBadge";
@@ -45,7 +45,7 @@ import {
 	updateCardQuantity,
 	updateCardTags,
 } from "@/lib/deck-types";
-import { formatDisplayName } from "@/lib/format-utils";
+import { formatDisplayName, getFormatInfo } from "@/lib/format-utils";
 import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import { documentToPlainText } from "@/lib/richtext-convert";
@@ -670,13 +670,14 @@ function DeckEditorInner({
 	return (
 		<div className="min-h-screen bg-white dark:bg-zinc-900">
 			{/* Deck name and format */}
-			<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 pt-8 pb-4 space-y-4">
+			<div className="max-w-7xl 2xl:max-w-[96rem] mx-auto px-6 pt-8 pb-4">
 				<DeckHeader
 					name={deck.name}
 					format={deck.format}
 					onNameChange={handleNameChange}
 					onFormatChange={handleFormatChange}
 					readOnly={!isOwner}
+					did={did as Did}
 				/>
 				<ErrorBoundary fallback={null}>
 					<TagClickContext.Provider value={{ onTagClick: handleTagClick }}>
@@ -835,12 +836,13 @@ function DeckEditorInner({
 							onSelect={setStatsSelection}
 						/>
 
-						<GoldfishView
+						<DeckSampleView
 							cards={[
 								...getCardsInSection(deck, "commander"),
 								...getCardsInSection(deck, "mainboard"),
 							]}
 							onCardHover={handleCardHover}
+							isCube={deck.format ? getFormatInfo(deck.format).isCube : false}
 						/>
 					</div>
 				</div>

@@ -4,9 +4,10 @@ import type { ScryfallId } from "@/lib/scryfall-types";
 import { seededShuffle, useSeededRandom } from "@/lib/useSeededRandom";
 import { CardImage } from "../CardImage";
 
-interface GoldfishViewProps {
+interface DeckSampleViewProps {
 	cards: DeckCard[];
 	onCardHover?: (cardId: ScryfallId | null) => void;
+	isCube?: boolean;
 }
 
 interface CardInstance {
@@ -19,21 +20,30 @@ interface DeckState {
 	library: CardInstance[];
 }
 
-function dealHand(
+const HAND_SIZE = 7;
+const PACK_SIZE = 15;
+
+function dealCards(
 	deck: CardInstance[],
 	rng: () => number,
-	handSize = 7,
+	size: number,
 ): DeckState {
 	const shuffled = seededShuffle(deck, rng);
 	return {
-		hand: shuffled.slice(0, handSize),
-		library: shuffled.slice(handSize),
+		hand: shuffled.slice(0, size),
+		library: shuffled.slice(size),
 	};
 }
 
-export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
+export function DeckSampleView({
+	cards,
+	onCardHover,
+	isCube = false,
+}: DeckSampleViewProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const { rng, SeedEmbed } = useSeededRandom();
+
+	const dealSize = isCube ? PACK_SIZE : HAND_SIZE;
 
 	const fullDeck = useMemo(() => {
 		const deck: CardInstance[] = [];
@@ -46,11 +56,11 @@ export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
 		return deck;
 	}, [cards]);
 
-	const [state, setState] = useState(() => dealHand(fullDeck, rng));
+	const [state, setState] = useState(() => dealCards(fullDeck, rng, dealSize));
 
-	const newHand = useCallback(() => {
-		setState(dealHand(fullDeck, rng));
-	}, [fullDeck, rng]);
+	const deal = useCallback(() => {
+		setState(dealCards(fullDeck, rng, dealSize));
+	}, [fullDeck, rng, dealSize]);
 
 	const shouldScrollRef = useRef(false);
 
@@ -90,30 +100,32 @@ export function GoldfishView({ cards, onCardHover }: GoldfishViewProps) {
 			<SeedEmbed />
 			<div className="flex items-center justify-between mb-4">
 				<h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-					Goldfish
+					{isCube ? "Sample Pack" : "Sample Hand"}
 				</h2>
 				<div className="flex gap-2">
 					<button
 						type="button"
-						onClick={newHand}
+						onClick={deal}
 						className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700"
 					>
-						New Hand
+						{isCube ? "New Pack" : "New Hand"}
 					</button>
-					<button
-						type="button"
-						onClick={draw}
-						disabled={state.library.length === 0}
-						className="px-3 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						Draw ({state.library.length})
-					</button>
+					{!isCube && (
+						<button
+							type="button"
+							onClick={draw}
+							disabled={state.library.length === 0}
+							className="px-3 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							Draw ({state.library.length})
+						</button>
+					)}
 				</div>
 			</div>
 
 			<section
 				ref={containerRef}
-				aria-label="Sample hand"
+				aria-label={isCube ? "Sample pack" : "Sample hand"}
 				// biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable region needs keyboard access per axe-core
 				tabIndex={0}
 				className="flex gap-2 overflow-x-auto pb-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 rounded"

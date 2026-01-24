@@ -165,4 +165,4 @@ The deck page intentionally uses low-contrast text (gray-500 on zinc-900) for ma
 - **select-name**: Added aria-labels to all dropdowns
 - **heading-order**: Fixed SearchPrimer to use h2/h3 instead of h3/h4
 - **landmark-unique**: Added aria-label to Profile page nav
-- **scrollable-region-focusable**: Added tabIndex to GoldfishView scroll area
+- **scrollable-region-focusable**: Added tabIndex to DeckSampleView scroll area

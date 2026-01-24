@@ -1,4 +1,6 @@
+import type { Did } from "@atcute/lexicons";
 import { useState } from "react";
+import { HandleLink } from "@/components/HandleLink";
 import { FORMAT_GROUPS } from "@/lib/format-utils";
 
 interface DeckHeaderProps {
@@ -7,6 +9,8 @@ interface DeckHeaderProps {
 	onNameChange: (name: string) => void;
 	onFormatChange: (format: string) => void;
 	readOnly?: boolean;
+	/** Owner DID - when provided, shows "by @handle" under the title */
+	did?: Did;
 }
 
 export function DeckHeader({
@@ -15,6 +19,7 @@ export function DeckHeader({
 	onNameChange,
 	onFormatChange,
 	readOnly = false,
+	did,
 }: DeckHeaderProps) {
 	const [isEditingName, setIsEditingName] = useState(false);
 	const [editedName, setEditedName] = useState(name);
@@ -40,7 +45,7 @@ export function DeckHeader({
 	};
 
 	return (
-		<div className="mb-6 space-y-4">
+		<div className="mb-4">
 			<div className="flex flex-wrap items-center gap-4">
 				{isEditingName ? (
 					<input
@@ -84,6 +89,11 @@ export function DeckHeader({
 					))}
 				</select>
 			</div>
+			{did && (
+				<p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
+					<HandleLink did={did} prefix="by" />
+				</p>
+			)}
 		</div>
 	);
 }

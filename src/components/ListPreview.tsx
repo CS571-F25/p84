@@ -1,15 +1,14 @@
 import type { Did } from "@atcute/lexicons";
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { CardSpread } from "@/components/CardSpread";
 import { ClientDate } from "@/components/ClientDate";
+import { HandleLink } from "@/components/HandleLink";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
 import {
 	type CollectionList,
 	isCardItem,
 	isDeckItem,
 } from "@/lib/collection-list-types";
-import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 
 export interface ListPreviewProps {
 	did: Did;
@@ -47,12 +46,6 @@ export function ListPreview({
 	list,
 	showHandle = false,
 }: ListPreviewProps) {
-	const { data: didDocument } = useQuery({
-		...didDocumentQueryOptions(did),
-		enabled: showHandle,
-	});
-	const handle = showHandle ? extractHandle(didDocument ?? null) : null;
-
 	const dateString = list.updatedAt ?? list.createdAt;
 	const itemSummary = getItemSummary(list);
 	const cardIds = getCardIds(list);
@@ -66,14 +59,11 @@ export function ListPreview({
 			<CardSpread cardIds={cardIds} />
 
 			<div className="flex-1 min-w-0">
-				{showHandle &&
-					(handle ? (
-						<p className="text-sm text-gray-600 dark:text-zinc-300 truncate">
-							@{handle}
-						</p>
-					) : (
-						<div className="h-5 w-24 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse" />
-					))}
+				{showHandle && (
+					<p className="text-sm text-gray-600 dark:text-zinc-300 truncate">
+						<HandleLink did={did} link={false} />
+					</p>
+				)}
 
 				<h2 className="text-lg font-bold text-gray-900 dark:text-white truncate font-display">
 					{list.name}
