@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Box, Layers, ScrollText, Sparkles, Sword, User } from "lucide-react";
 import { useId, useState } from "react";
 import { useCreateDeckMutation } from "@/lib/deck-queries";
@@ -12,7 +12,16 @@ import {
 export const Route = createFileRoute("/deck/new")({
 	component: NewDeckPage,
 	head: () => ({
-		meta: [{ title: "New Deck | DeckBelcher" }],
+		meta: [
+			{ title: "new deck | deck belcher" },
+			{ property: "og:title", content: "new deck | deck belcher" },
+			{ property: "og:image", content: "/logo512-maskable.png" },
+			{ property: "og:image:width", content: "512" },
+			{ property: "og:image:height", content: "512" },
+			{ name: "twitter:card", content: "summary" },
+			{ name: "twitter:title", content: "new deck | deck belcher" },
+			{ name: "twitter:image", content: "/logo512-maskable.png" },
+		],
 	}),
 });
 
@@ -235,6 +244,19 @@ function NewDeckPage() {
 						>
 							Cancel
 						</button>
+					</div>
+
+					<div className="text-center pt-4 border-t border-gray-200 dark:border-zinc-700 mt-4">
+						<span className="text-gray-500 dark:text-zinc-400 text-sm">
+							Have a deck list?{" "}
+							<Link
+								to="/deck/import"
+								search={{ format }}
+								className="text-cyan-600 dark:text-cyan-400 hover:underline"
+							>
+								Import it
+							</Link>
+						</span>
 					</div>
 				</form>
 			</div>

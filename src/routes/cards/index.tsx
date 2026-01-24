@@ -30,7 +30,26 @@ export const Route = createFileRoute("/cards/")({
 		};
 	},
 	head: () => ({
-		meta: [{ title: "Cards | DeckBelcher" }],
+		meta: [
+			{ title: "cards | deck belcher" },
+			{
+				name: "description",
+				content:
+					"Browse and search Magic: The Gathering cards with Scryfall syntax.",
+			},
+			{ property: "og:title", content: "cards | deck belcher" },
+			{
+				property: "og:description",
+				content:
+					"Browse and search Magic: The Gathering cards with Scryfall syntax.",
+			},
+			{ property: "og:image", content: "/logo512-maskable.png" },
+			{ property: "og:image:width", content: "512" },
+			{ property: "og:image:height", content: "512" },
+			{ name: "twitter:card", content: "summary" },
+			{ name: "twitter:title", content: "cards | deck belcher" },
+			{ name: "twitter:image", content: "/logo512-maskable.png" },
+		],
 	}),
 });
 

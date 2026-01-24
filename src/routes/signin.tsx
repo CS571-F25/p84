@@ -8,7 +8,16 @@ import { RETURN_TO_KEY, useAuth } from "@/lib/useAuth";
 export const Route = createFileRoute("/signin")({
 	component: SignIn,
 	head: () => ({
-		meta: [{ title: "Sign In | DeckBelcher" }],
+		meta: [
+			{ title: "sign in | deck belcher" },
+			{ property: "og:title", content: "sign in | deck belcher" },
+			{ property: "og:image", content: "/logo512-maskable.png" },
+			{ property: "og:image:width", content: "512" },
+			{ property: "og:image:height", content: "512" },
+			{ name: "twitter:card", content: "summary" },
+			{ name: "twitter:title", content: "sign in | deck belcher" },
+			{ name: "twitter:image", content: "/logo512-maskable.png" },
+		],
 	}),
 });
 

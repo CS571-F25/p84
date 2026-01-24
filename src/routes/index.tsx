@@ -3,7 +3,31 @@ import { Plus, Search, User } from "lucide-react";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { useAuth } from "@/lib/useAuth";
 
-export const Route = createFileRoute("/")({ component: App });
+export const Route = createFileRoute("/")({
+	component: App,
+	head: () => ({
+		meta: [
+			{ title: "deck belcher" },
+			{
+				name: "description",
+				content:
+					"Organize, build, and share Magic: The Gathering decks on the Atmosphere.",
+			},
+			{ property: "og:title", content: "deck belcher" },
+			{
+				property: "og:description",
+				content:
+					"Organize, build, and share Magic: The Gathering decks on the Atmosphere.",
+			},
+			{ property: "og:image", content: "/logo512-maskable.png" },
+			{ property: "og:image:width", content: "512" },
+			{ property: "og:image:height", content: "512" },
+			{ name: "twitter:card", content: "summary" },
+			{ name: "twitter:title", content: "deck belcher" },
+			{ name: "twitter:image", content: "/logo512-maskable.png" },
+		],
+	}),
+});
 
 function App() {
 	const { session } = useAuth();
