@@ -41,24 +41,27 @@ export function HandleLink({
 	// Error or no handle found - fall back to DID
 	const displayText = handle ? `@${handle}` : did;
 
-	const content = (
-		<>
-			{prefixText}
-			{displayText}
-		</>
-	);
-
 	if (link) {
 		return (
-			<Link
-				to="/profile/$did"
-				params={{ did }}
-				className={className ?? "hover:text-cyan-600 dark:hover:text-cyan-400"}
-			>
-				{content}
-			</Link>
+			<>
+				{prefixText}
+				<Link
+					to="/profile/$did"
+					params={{ did }}
+					className={
+						className ?? "hover:text-cyan-600 dark:hover:text-cyan-400"
+					}
+				>
+					{displayText}
+				</Link>
+			</>
 		);
 	}
 
-	return <span className={className}>{content}</span>;
+	return (
+		<span className={className}>
+			{prefixText}
+			{displayText}
+		</span>
+	);
 }
