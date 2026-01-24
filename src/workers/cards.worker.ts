@@ -9,6 +9,7 @@ import * as Comlink from "comlink";
 import MiniSearch from "minisearch";
 import { CARD_CHUNKS, CARD_INDEXES, CARD_VOLATILE } from "../lib/card-manifest";
 import { LRUCache } from "../lib/lru-cache";
+import { stripDiacritics } from "../lib/normalize-text";
 import type {
 	CardDataOutput,
 	ManaColor,
@@ -304,9 +305,23 @@ class CardsWorker implements CardsWorkerAPI {
 
 		// Build fuzzy search index
 		console.log("[CardsWorker] Building search index...");
+
+		// MiniSearch's default tokenizer splits on /[\n\r\p{Z}\p{P}]+/u (Unicode
+		// separators and punctuation), which strips "&" from card names like
+		// "Minsc & Boo". We use a negated version of the same pattern but carve out
+		// "&" so processTerm can normalize it to "and". This is uglier than a
+		// positive match like /[\p{L}\p{N}\p{M}]+|&/gu but correct by construction
+		// (guaranteed to match exactly what the default tokenizer would, plus &).
+		const SEARCH_TOKEN = /&|[^\n\r\p{Z}\p{P}]+/gu;
+
 		this.searchIndex = new MiniSearch<Card>({
 			fields: ["name"],
 			storeFields: ["id", "oracle_id", "name"],
+			tokenize: (text) => text.match(SEARCH_TOKEN) ?? [],
+			processTerm: (term) => {
+				if (term === "&") return "and";
+				return stripDiacritics(term).toLowerCase();
+			},
 			searchOptions: {
 				prefix: true, // "bol" matches "bolt"
 				fuzzy: 0.3, // ~2 char tolerance

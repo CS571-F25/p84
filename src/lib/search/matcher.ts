@@ -4,6 +4,7 @@
  * Compiles a SearchNode AST into a function that tests cards.
  */
 
+import { stripDiacritics } from "../normalize-text";
 import { type CardPredicate, compileField } from "./fields";
 import type { CompileError, Result, SearchNode } from "./types";
 import { ok } from "./types";
@@ -82,6 +83,13 @@ function compileNot(child: SearchNode): Result<CardPredicate, CompileError> {
 }
 
 /**
+ * Normalize text for name comparison (lowercase + strip diacritics)
+ */
+function normalizeName(text: string): string {
+	return stripDiacritics(text).toLowerCase();
+}
+
+/**
  * Compile name search - substring or regex match
  */
 function compileName(value: string, pattern: RegExp | null): CardPredicate {
@@ -101,16 +109,16 @@ function compileName(value: string, pattern: RegExp | null): CardPredicate {
 		};
 	}
 
-	// Substring match (case-insensitive)
-	const lower = value.toLowerCase();
+	// Substring match (case-insensitive, diacritic-insensitive)
+	const normalized = normalizeName(value);
 	return (card) => {
 		// Match against main name
-		if (card.name.toLowerCase().includes(lower)) return true;
+		if (normalizeName(card.name).includes(normalized)) return true;
 
 		// Match against card face names for multi-face cards
 		if (card.card_faces) {
 			for (const face of card.card_faces) {
-				if (face.name.toLowerCase().includes(lower)) return true;
+				if (normalizeName(face.name).includes(normalized)) return true;
 			}
 		}
 
@@ -122,15 +130,15 @@ function compileName(value: string, pattern: RegExp | null): CardPredicate {
  * Compile exact name match
  */
 function compileExactName(value: string): CardPredicate {
-	const lower = value.toLowerCase();
+	const normalized = normalizeName(value);
 	return (card) => {
 		// Match against main name exactly
-		if (card.name.toLowerCase() === lower) return true;
+		if (normalizeName(card.name) === normalized) return true;
 
 		// Match against card face names for multi-face cards
 		if (card.card_faces) {
 			for (const face of card.card_faces) {
-				if (face.name.toLowerCase() === lower) return true;
+				if (normalizeName(face.name) === normalized) return true;
 			}
 		}
 

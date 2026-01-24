@@ -56,6 +56,42 @@ describe("Scryfall search integration", () => {
 				expect(result.value.match(bolt)).toBe(true);
 			}
 		});
+
+		it("matches names with diacritics using ASCII equivalents", async () => {
+			const nazgul = await cards.get("Nazgûl");
+
+			// Should match without the diacritic
+			const withoutDiacritic = search("nazgul");
+			expect(withoutDiacritic.ok).toBe(true);
+			if (withoutDiacritic.ok) {
+				expect(withoutDiacritic.value.match(nazgul)).toBe(true);
+			}
+
+			// Should also match with the diacritic
+			const withDiacritic = search("nazgûl");
+			expect(withDiacritic.ok).toBe(true);
+			if (withDiacritic.ok) {
+				expect(withDiacritic.value.match(nazgul)).toBe(true);
+			}
+		});
+
+		it("exact name match works with diacritics", async () => {
+			const nazgul = await cards.get("Nazgûl");
+
+			// ASCII equivalent should match exactly
+			const ascii = search('!"Nazgul"');
+			expect(ascii.ok).toBe(true);
+			if (ascii.ok) {
+				expect(ascii.value.match(nazgul)).toBe(true);
+			}
+
+			// With diacritic should also match
+			const diacritic = search('!"Nazgûl"');
+			expect(diacritic.ok).toBe(true);
+			if (diacritic.ok) {
+				expect(diacritic.value.match(nazgul)).toBe(true);
+			}
+		});
 	});
 
 	describe("type matching", () => {
