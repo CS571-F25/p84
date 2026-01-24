@@ -5,6 +5,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
+import { CommentsPanel } from "@/components/comments/CommentsPanel";
+import { Drawer } from "@/components/Drawer";
 import { CardDragOverlay } from "@/components/deck/CardDragOverlay";
 import { CardModal } from "@/components/deck/CardModal";
 import { CardPreviewPane } from "@/components/deck/CardPreviewPane";
@@ -49,6 +51,7 @@ import { getCardByIdQueryOptions } from "@/lib/queries";
 import { documentToPlainText } from "@/lib/richtext-convert";
 import type { ScryfallId } from "@/lib/scryfall-types";
 import { getImageUri } from "@/lib/scryfall-utils";
+import type { DeckItemUri } from "@/lib/social-item-types";
 import { getSelectedCards, type StatsSelection } from "@/lib/stats-selection";
 import { useAuth } from "@/lib/useAuth";
 import { useDeckStats } from "@/lib/useDeckStats";
@@ -63,7 +66,7 @@ export const Route = createFileRoute("/profile/$did/deck/$rkey/")({
 		);
 
 		const deckUri =
-			`at://${params.did}/${DECK_LIST_NSID}/${params.rkey}` as const;
+			`at://${params.did}/${DECK_LIST_NSID}/${params.rkey}` as DeckItemUri;
 
 		// Prefetch cards and social stats in parallel
 		const cardIds = deck.cards.map((card) => card.scryfallId);
@@ -606,6 +609,10 @@ function DeckEditorInner({
 		},
 	});
 
+	const [isCommentsDrawerOpen, setIsCommentsDrawerOpen] = useState(false);
+
+	const deckUri = `at://${did}/${DECK_LIST_NSID}/${rkey}` as DeckItemUri;
+
 	const scrollToTagGroup = useCallback(
 		(tag: string) => {
 			const el = document.querySelector(
@@ -692,10 +699,11 @@ function DeckEditorInner({
 						<SocialStats
 							item={{
 								type: "deck",
-								uri: `at://${did}/com.deckbelcher.deck.list/${rkey}`,
+								uri: deckUri,
 								cid: deckCid,
 							}}
 							itemName={deck.name}
+							onCommentClick={() => setIsCommentsDrawerOpen(true)}
 						/>
 						<ValidationBadge result={validation} />
 						{isOwner && (
@@ -847,6 +855,26 @@ function DeckEditorInner({
 
 			{/* Drag overlay */}
 			<CardDragOverlay draggedCardId={draggedCardId} />
+
+			{/* Comments drawer */}
+			<Drawer
+				isOpen={isCommentsDrawerOpen}
+				onClose={() => setIsCommentsDrawerOpen(false)}
+				size="lg"
+				aria-label={`Comments on ${deck.name}`}
+			>
+				<CommentsPanel
+					subject={{
+						$type: "com.deckbelcher.social.comment#recordSubject",
+						ref: { uri: deckUri, cid: deckCid },
+					}}
+					item={{ type: "deck", uri: deckUri, cid: deckCid }}
+					title={`Comments on ${deck.name}`}
+					onClose={() => setIsCommentsDrawerOpen(false)}
+					availableTags={allTags}
+					maxHeight="max-h-screen"
+				/>
+			</Drawer>
 		</div>
 	);
 }

@@ -55,21 +55,19 @@ function LikeRow({ did }: { did: Did }) {
 }
 
 function SaveRow({ did, rkey }: { did: Did; rkey: Rkey }) {
-	const {
-		data: list,
-		isLoading,
-		isError,
-	} = useQuery(getCollectionListQueryOptions(did, rkey));
+	const { data, isLoading, isError } = useQuery(
+		getCollectionListQueryOptions(did, rkey),
+	);
 
 	if (isLoading) {
 		return <RowSkeleton />;
 	}
 
-	if (isError || !list) {
+	if (isError || !data) {
 		return null;
 	}
 
-	return <ListPreview did={did} rkey={rkey} list={list} showHandle />;
+	return <ListPreview did={did} rkey={rkey} list={data.value} showHandle />;
 }
 
 function DeckRow({ did, rkey }: { did: Did; rkey: Rkey }) {

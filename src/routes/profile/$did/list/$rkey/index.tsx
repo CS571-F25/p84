@@ -6,12 +6,15 @@ import { useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { CardImage } from "@/components/CardImage";
 import { ClientDate } from "@/components/ClientDate";
+import { CommentsPanel } from "@/components/comments/CommentsPanel";
 import { DeckPreview } from "@/components/DeckPreview";
+import { Drawer } from "@/components/Drawer";
 import { ListActionsMenu } from "@/components/list/ListActionsMenu";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
 import { RichtextSection } from "@/components/richtext/RichtextSection";
 import { SetSymbol } from "@/components/SetSymbol";
+import { SocialStats } from "@/components/social/SocialStats";
 import { asRkey, type Rkey } from "@/lib/atproto-client";
 import { getPrimaryFace } from "@/lib/card-faces";
 import {
@@ -25,13 +28,18 @@ import {
 	type ListCardItem,
 	type ListDeckItem,
 } from "@/lib/collection-list-types";
+import { COLLECTION_LIST_NSID } from "@/lib/constellation-client";
 import { getDeckQueryOptions } from "@/lib/deck-queries";
 import { didDocumentQueryOptions, extractHandle } from "@/lib/did-to-handle";
 import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
 import { getCardByIdQueryOptions } from "@/lib/queries";
 import { documentToPlainText } from "@/lib/richtext-convert";
 import { getImageUri } from "@/lib/scryfall-utils";
-import type { SaveableItem } from "@/lib/social-item-types";
+import type {
+	DeckItemUri,
+	ListItemUri,
+	SaveableItem,
+} from "@/lib/social-item-types";
 import { useAuth } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/profile/$did/list/$rkey/")({
@@ -42,10 +50,11 @@ export const Route = createFileRoute("/profile/$did/list/$rkey/")({
 		);
 		return list;
 	},
-	head: ({ loaderData: list }) => {
-		if (!list) {
+	head: ({ loaderData: listRecord }) => {
+		if (!listRecord) {
 			return { meta: [{ title: "List Not Found | DeckBelcher" }] };
 		}
+		const list = listRecord.value;
 
 		const title = `${list.name} | DeckBelcher`;
 		const cardCount = list.items.filter(isCardItem).length;
@@ -98,9 +107,10 @@ export const Route = createFileRoute("/profile/$did/list/$rkey/")({
 function ListDetailPage() {
 	const { did, rkey } = Route.useParams();
 	const { session } = useAuth();
-	const { data: list, isLoading } = useQuery(
+	const { data, isLoading } = useQuery(
 		getCollectionListQueryOptions(did as Did, asRkey(rkey)),
 	);
+	const list = data?.value;
 	const { data: didDocument } = useQuery(didDocumentQueryOptions(did as Did));
 	const handle = extractHandle(didDocument ?? null);
 
@@ -110,6 +120,10 @@ function ListDetailPage() {
 
 	const [isEditingName, setIsEditingName] = useState(false);
 	const [editedName, setEditedName] = useState("");
+	const [isCommentsDrawerOpen, setIsCommentsDrawerOpen] = useState(false);
+
+	const listUri = `at://${did}/${COLLECTION_LIST_NSID}/${rkey}` as ListItemUri;
+	const listCid = data?.cid ?? "";
 
 	if (isLoading || !list) {
 		return (
@@ -131,7 +145,7 @@ function ListDetailPage() {
 	const handleRemoveDeck = (item: ListDeckItem) => {
 		const saveItem: SaveableItem = {
 			type: "deck",
-			uri: item.ref.uri,
+			uri: item.ref.uri as DeckItemUri,
 			cid: item.ref.cid,
 		};
 		toggleMutation.mutate({ list, item: saveItem });
@@ -218,9 +232,16 @@ function ListDetailPage() {
 						<span className="inline-block h-4 w-20 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse align-middle" />
 					)}
 				</p>
-				<p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">
+				<p className="text-sm text-gray-500 dark:text-zinc-400 mb-2">
 					Updated <ClientDate dateString={dateString} />
 				</p>
+				<div className="mb-4">
+					<SocialStats
+						item={{ type: "list", uri: listUri, cid: listCid }}
+						itemName={list.name}
+						onCommentClick={() => setIsCommentsDrawerOpen(true)}
+					/>
+				</div>
 
 				<div className="mb-8">
 					<ErrorBoundary fallback={null}>
@@ -258,6 +279,24 @@ function ListDetailPage() {
 					</div>
 				)}
 			</div>
+
+			<Drawer
+				isOpen={isCommentsDrawerOpen}
+				onClose={() => setIsCommentsDrawerOpen(false)}
+				size="lg"
+				aria-label={`Comments on ${list.name}`}
+			>
+				<CommentsPanel
+					subject={{
+						$type: "com.deckbelcher.social.comment#recordSubject",
+						ref: { uri: listUri, cid: listCid },
+					}}
+					item={{ type: "list", uri: listUri, cid: listCid }}
+					title={`Comments on ${list.name}`}
+					onClose={() => setIsCommentsDrawerOpen(false)}
+					maxHeight="max-h-screen"
+				/>
+			</Drawer>
 		</div>
 	);
 }

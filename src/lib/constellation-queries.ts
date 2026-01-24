@@ -30,7 +30,9 @@ import {
 } from "./constellation-client";
 import {
 	type CardItem,
+	type CommentableItem,
 	getSocialItemUri,
+	isCommentable,
 	isSaveable,
 	type SaveableItem,
 	type SaveableItemType,
@@ -192,6 +194,7 @@ export function useItemSocialStats(item: SocialItem): ItemSocialStats {
 
 	// Extract narrowed items (undefined if not applicable type)
 	const saveableItem = isSaveable(item) ? item : undefined;
+	const commentableItem = isCommentable(item) ? item : undefined;
 	const cardItem = item.type === "card" ? item : undefined;
 	const isCommentOrReply = item.type === "comment" || item.type === "reply";
 
@@ -213,9 +216,9 @@ export function useItemSocialStats(item: SocialItem): ItemSocialStats {
 	);
 	const deckCountQuery = useQuery(cardDeckCountQueryOptions(cardItem));
 
-	// Comment count for cards/decks, reply count for comments/replies
+	// Comment count for cards/decks/lists, reply count for comments/replies
 	const commentCountQuery = useQuery(
-		itemCommentCountQueryOptions(saveableItem),
+		itemCommentCountQueryOptions(commentableItem),
 	);
 	const replyCountQuery = useQuery({
 		...directReplyCountQueryOptions(getSocialItemUri(item)),
@@ -437,7 +440,9 @@ export function prefetchSocialStats(
 // Comment Queries
 // ============================================================================
 
-function getCommentPathForItemType(itemType: SaveableItemType): string {
+type CommentableItemType = "card" | "deck" | "list";
+
+function getCommentPathForItemType(itemType: CommentableItemType): string {
 	return itemType === "card" ? COMMENT_CARD_PATH : COMMENT_RECORD_PATH;
 }
 
@@ -445,7 +450,9 @@ function getCommentPathForItemType(itemType: SaveableItemType): string {
  * Query options for getting top-level comment count for an item.
  * Auto-disables when item is undefined.
  */
-export function itemCommentCountQueryOptions(item: SaveableItem | undefined) {
+export function itemCommentCountQueryOptions(
+	item: CommentableItem | undefined,
+) {
 	const itemUri = item ? getSocialItemUri(item) : undefined;
 	const itemType = item?.type;
 	return queryOptions({
@@ -471,10 +478,10 @@ export function itemCommentCountQueryOptions(item: SaveableItem | undefined) {
 }
 
 /**
- * Infinite query for top-level comments on an item (card or deck/collection).
+ * Infinite query for top-level comments on an item (card, deck, or list).
  * Auto-disables when item is undefined.
  */
-export function itemCommentsQueryOptions(item: SaveableItem | undefined) {
+export function itemCommentsQueryOptions(item: CommentableItem | undefined) {
 	const itemUri = item ? getSocialItemUri(item) : undefined;
 	return infiniteQueryOptions({
 		queryKey: ["constellation", "comments", itemUri] as const,

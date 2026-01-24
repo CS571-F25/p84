@@ -8,7 +8,10 @@ import {
 } from "@/lib/constellation-queries";
 import type { ComDeckbelcherSocialComment } from "@/lib/lexicons/index";
 import type { Document } from "@/lib/lexicons/types/com/deckbelcher/richtext";
-import { getSocialItemUri, type SaveableItem } from "@/lib/social-item-types";
+import {
+	type CommentableItem,
+	getSocialItemUri,
+} from "@/lib/social-item-types";
 import { useAuth } from "@/lib/useAuth";
 import { CommentForm } from "./CommentForm";
 import { CommentThread } from "./CommentThread";
@@ -17,7 +20,7 @@ type CommentSubject = ComDeckbelcherSocialComment.Main["subject"];
 
 interface CommentsPanelProps {
 	subject: CommentSubject;
-	item: SaveableItem;
+	item: CommentableItem;
 	title?: string;
 	onClose?: () => void;
 	availableTags?: string[];

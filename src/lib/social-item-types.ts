@@ -12,7 +12,9 @@ import { toOracleUri } from "./scryfall-types";
  * - Decks/comments/replies use at://<did>/<collection>/<rkey> URIs
  */
 export type CardItemUri = OracleUri;
-export type DeckItemUri = `at://${string}`;
+export type DeckItemUri = `at://${string}/com.deckbelcher.deck.list/${string}`;
+export type ListItemUri =
+	`at://${string}/com.deckbelcher.collection.list/${string}`;
 export type CommentUri =
 	`at://${string}/com.deckbelcher.social.comment/${string}`;
 export type ReplyUri = `at://${string}/com.deckbelcher.social.reply/${string}`;
@@ -24,14 +26,23 @@ export type ReplyUri = `at://${string}/com.deckbelcher.social.reply/${string}`;
 export type SocialItem =
 	| { type: "card"; scryfallId: ScryfallId; oracleId: OracleId }
 	| { type: "deck"; uri: DeckItemUri; cid: string }
+	| { type: "list"; uri: ListItemUri; cid: string }
 	| { type: "comment"; uri: CommentUri; cid: string }
 	| { type: "reply"; uri: ReplyUri; cid: string };
 
 /**
  * SaveableItem - subset of SocialItem that can be saved to collection lists
- * Only cards and decks are saveable
+ * Only cards and decks are saveable (you don't save lists to lists)
  */
 export type SaveableItem = Extract<SocialItem, { type: "card" | "deck" }>;
+
+/**
+ * CommentableItem - items that can have comments (cards, decks, lists)
+ */
+export type CommentableItem = Extract<
+	SocialItem,
+	{ type: "card" | "deck" | "list" }
+>;
 
 /**
  * CardItem - narrowed to just cards (for deck-count queries, etc.)
@@ -43,6 +54,13 @@ export type CardItem = Extract<SocialItem, { type: "card" }>;
  */
 export function isSaveable(item: SocialItem): item is SaveableItem {
 	return item.type === "card" || item.type === "deck";
+}
+
+/**
+ * Type guard: checks if item can have comments
+ */
+export function isCommentable(item: SocialItem): item is CommentableItem {
+	return item.type === "card" || item.type === "deck" || item.type === "list";
 }
 
 /**
@@ -62,7 +80,12 @@ export type SocialItemType = SocialItem["type"];
 /**
  * URI type for any social item (for Constellation queries)
  */
-export type SocialItemUri = CardItemUri | DeckItemUri | CommentUri | ReplyUri;
+export type SocialItemUri =
+	| CardItemUri
+	| DeckItemUri
+	| ListItemUri
+	| CommentUri
+	| ReplyUri;
 
 /**
  * Saveable item types (can be saved to collection lists)
@@ -80,6 +103,9 @@ export function getSocialItemUri(
 	item: Extract<SocialItem, { type: "deck" }>,
 ): DeckItemUri;
 export function getSocialItemUri(
+	item: Extract<SocialItem, { type: "list" }>,
+): ListItemUri;
+export function getSocialItemUri(
 	item: Extract<SocialItem, { type: "comment" }>,
 ): CommentUri;
 export function getSocialItemUri(
@@ -92,6 +118,8 @@ export function getSocialItemUri(item: SocialItem): SocialItemUri {
 		case "card":
 			return toOracleUri(item.oracleId);
 		case "deck":
+			return item.uri;
+		case "list":
 			return item.uri;
 		case "comment":
 			return item.uri;
@@ -109,6 +137,8 @@ export function getItemTypeName(item: SocialItem): string {
 			return "Card";
 		case "deck":
 			return "Deck";
+		case "list":
+			return "List";
 		case "comment":
 			return "Comment";
 		case "reply":

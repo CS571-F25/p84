@@ -44,7 +44,8 @@ import {
 	optimisticBacklinks,
 	optimisticBoolean,
 	optimisticCount,
-	optimisticRecordWithIndex,
+	optimisticInfiniteRecord,
+	optimisticRecord,
 	runOptimistic,
 } from "./optimistic-utils";
 import {
@@ -53,7 +54,7 @@ import {
 	toOracleUri,
 	toScryfallUri,
 } from "./scryfall-types";
-import type { SaveableItem } from "./social-item-types";
+import { getSocialItemUri, type SaveableItem } from "./social-item-types";
 import { useAuth } from "./useAuth";
 import { useMutationWithToast } from "./useMutationWithToast";
 
@@ -97,27 +98,31 @@ export function transformListRecord(
 	};
 }
 
+export interface CollectionListRecord {
+	uri: string;
+	cid: string;
+	value: CollectionList;
+}
+
 /**
  * Query options for fetching a single collection list
  */
 export const getCollectionListQueryOptions = (did: Did, rkey: Rkey) =>
 	queryOptions({
 		queryKey: ["collection-list", did, rkey] as const,
-		queryFn: async (): Promise<CollectionList> => {
+		queryFn: async (): Promise<CollectionListRecord> => {
 			const result = await getCollectionListRecord(did, rkey);
 			if (!result.success) {
 				throw result.error;
 			}
-			return transformListRecord(result.data.value);
+			return {
+				uri: result.data.uri,
+				cid: result.data.cid,
+				value: transformListRecord(result.data.value),
+			};
 		},
 		staleTime: 30 * 1000,
 	});
-
-export interface CollectionListRecord {
-	uri: string;
-	cid: string;
-	value: CollectionList;
-}
 
 /**
  * Query options for listing all collection lists for a user
@@ -274,11 +279,15 @@ export function useUpdateCollectionListMutation(did: Did, rkey: Rkey) {
 		},
 		onMutate: async (newList) => {
 			const rollback = await runOptimistic([
-				optimisticRecordWithIndex<CollectionList>(
+				optimisticRecord<CollectionListRecord>(
 					queryClient,
 					["collection-list", did, rkey],
+					(old) => (old ? { ...old, value: newList } : undefined),
+				),
+				optimisticInfiniteRecord<CollectionList>(
+					queryClient,
 					["collection-lists", did],
-					rkey,
+					`/${rkey}`,
 					newList,
 				),
 			]);
@@ -418,19 +427,20 @@ export function useToggleListItemMutation(did: Did, rkey: Rkey) {
 					? addCardToList(list, item.scryfallId, item.oracleId)
 					: addDeckToList(list, item.uri, item.cid);
 
-			const itemUri =
-				item.type === "card"
-					? toOracleUri(item.oracleId)
-					: (item.uri as `at://${string}`);
+			const itemUri = getSocialItemUri(item);
 			const keys = getConstellationQueryKeys(itemUri, did);
 			const newSavedState = !isSaved;
 
 			const rollback = await runOptimistic([
-				optimisticRecordWithIndex<CollectionList>(
+				optimisticRecord<CollectionListRecord>(
 					queryClient,
 					["collection-list", did, rkey],
+					(old) => (old ? { ...old, value: updatedList } : undefined),
+				),
+				optimisticInfiniteRecord<CollectionList>(
+					queryClient,
 					["collection-lists", did],
-					rkey,
+					`/${rkey}`,
 					updatedList,
 				),
 				optimisticBoolean(queryClient, keys.userSaved, (qc) => {

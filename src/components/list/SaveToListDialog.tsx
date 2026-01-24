@@ -70,9 +70,7 @@ export function SaveToListDialog({
 		if (!newListName.trim()) return;
 
 		const itemUri =
-			item.type === "card"
-				? toOracleUri(item.oracleId)
-				: (item.uri as `at://${string}`);
+			item.type === "card" ? toOracleUri(item.oracleId) : item.uri;
 		const queryKeys = getConstellationQueryKeys(itemUri, userDid);
 
 		const previousSaved = queryClient.getQueryData<boolean>(
