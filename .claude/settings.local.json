@@ -67,7 +67,8 @@
       "Bash(npm run lexicons:lint:*)",
       "Bash(npm run lexicons:all:*)",
       "Bash(goat lex:*)",
-      "Bash(npm run test:a11y:*)"
+      "Bash(npm run test:a11y:*)",
+      "Bash(git grep:*)"
     ],
     "deny": [],
     "ask": []
