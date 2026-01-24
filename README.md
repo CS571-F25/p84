@@ -147,3 +147,30 @@ More detailed docs live in `.claude/` although they were written (by claude) to 
 ## Beware!
 
 While I have reviewed all the code, the *entirety* of the code in this repo was written by claude. I wrote *most of* the prose, like this README (I hate being made to read someone else's LLM output, and I try not to be a hypocrite). I feel that using claude to write this allowed me to take on developer QOL, powerful UX, and extensive testing that I would not have otherwise--but I also feel it's worth being upfront that the workflow here was iterative reviews with claude, feature by feature, rather than by hand.
+
+## Getting Started
+
+```bash
+# nix-direnv (recommended) auto-loads the shell when you cd in
+# https://github.com/nix-community/nix-direnv
+# the flake includes node 22, typespec, playwright, a patched goat, and LSPs
+direnv allow
+
+# or manually: nix develop
+
+# install deps + download scryfall data (~500MB, takes a minute)
+npm install
+
+# start dev server on 127.0.0.1:3000 (not localhost, for oauth)
+npm run dev
+```
+
+Other useful commands:
+
+```bash
+npm run test        # run tests
+npm run check       # lint + format
+npm run typecheck   # type check
+
+npm run lexicons:all   # recompile typespec → lexicons → typescript
+```
