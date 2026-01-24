@@ -46,12 +46,12 @@ function MetadataDisplay() {
 	}
 
 	return (
-		<span
-			className="text-gray-400 text-sm"
-			title={`Version: ${metadata.version}`}
-		>
+		<span className="text-gray-400 text-sm">
 			{metadata.cardCount.toLocaleString()} cards • updated{" "}
-			<ClientDate dateString={metadata.version} format="relative" /> from{" "}
+			<span title={`Version: ${metadata.version}`}>
+				<ClientDate dateString={metadata.version} format="relative" />
+			</span>{" "}
+			from{" "}
 			<a
 				href="https://scryfall.com"
 				target="_blank"
@@ -59,6 +59,15 @@ function MetadataDisplay() {
 				className="text-cyan-600 dark:text-cyan-400 underline"
 			>
 				Scryfall
+			</a>{" "}
+			• supports a subset of{" "}
+			<a
+				href="https://scryfall.com/docs/syntax"
+				target="_blank"
+				rel="noopener noreferrer"
+				className="text-cyan-600 dark:text-cyan-400 underline"
+			>
+				Scryfall syntax
 			</a>
 		</span>
 	);
