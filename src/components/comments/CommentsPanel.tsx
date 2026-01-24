@@ -52,18 +52,16 @@ export function CommentsPanel({
 	const handleSubmit = useCallback(
 		(content: Document) => {
 			if (!session) return;
-			createComment.mutate(
-				{
-					record: {
-						$type: "com.deckbelcher.social.comment",
-						subject,
-						content,
-						createdAt: new Date().toISOString(),
-					},
-					rkey: generateRkey(),
+			setShowForm(false);
+			createComment.mutate({
+				record: {
+					$type: "com.deckbelcher.social.comment",
+					subject,
+					content,
+					createdAt: new Date().toISOString(),
 				},
-				{ onSuccess: () => setShowForm(false) },
-			);
+				rkey: generateRkey(),
+			});
 		},
 		[createComment, session, subject],
 	);
