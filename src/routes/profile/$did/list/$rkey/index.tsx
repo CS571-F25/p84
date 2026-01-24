@@ -232,10 +232,10 @@ function ListDetailPage() {
 						<span className="inline-block h-4 w-20 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse align-middle" />
 					)}
 				</p>
-				<p className="text-sm text-gray-500 dark:text-zinc-400 mb-2">
-					Updated <ClientDate dateString={dateString} />
-				</p>
-				<div className="mb-4">
+				<div className="flex items-center justify-between mb-4">
+					<p className="text-sm text-gray-500 dark:text-zinc-400">
+						Updated <ClientDate dateString={dateString} />
+					</p>
 					<SocialStats
 						item={{ type: "list", uri: listUri, cid: listCid }}
 						itemName={list.name}
