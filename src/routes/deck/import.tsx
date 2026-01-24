@@ -11,7 +11,7 @@ import {
 import { useCardHover } from "@/components/HoverCardPreview";
 import { ManaCost } from "@/components/ManaCost";
 import { getCardDataProvider } from "@/lib/card-data-provider";
-import { getPrimaryFace } from "@/lib/card-faces";
+import { getAllFaces, getPrimaryFace } from "@/lib/card-faces";
 import {
 	DECK_FORMATS,
 	type DeckFormat,
@@ -22,7 +22,8 @@ import {
 import { type ResolvedCard, resolveCards } from "@/lib/deck-import";
 import { useCreateDeckMutation } from "@/lib/deck-queries";
 import type { Section } from "@/lib/deck-types";
-import { FORMAT_GROUPS } from "@/lib/format-utils";
+import { getPreset } from "@/lib/deck-validation/presets";
+import { FORMAT_GROUPS, getFormatInfo } from "@/lib/format-utils";
 import type { Card } from "@/lib/scryfall-types";
 import { useDebounce } from "@/lib/useDebounce";
 
@@ -68,17 +69,38 @@ const TAG_COLORS = [
 	"bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300",
 ];
 
-function hashString(str: string): number {
-	let hash = 0;
-	for (let i = 0; i < str.length; i++) {
-		hash = (hash << 5) - hash + str.charCodeAt(i);
-		hash |= 0;
+function buildTagColorMap(lines: ImportLine[]): Map<string, string> {
+	const map = new Map<string, string>();
+	let colorIndex = 0;
+	for (const line of lines) {
+		if (line.line.type === "resolved") {
+			for (const tag of line.line.tags) {
+				if (!map.has(tag)) {
+					map.set(tag, TAG_COLORS[colorIndex % TAG_COLORS.length]);
+					colorIndex++;
+				}
+			}
+		}
 	}
-	return Math.abs(hash);
+	return map;
 }
 
-function getTagColor(tag: string): string {
-	return TAG_COLORS[hashString(tag) % TAG_COLORS.length];
+/**
+ * Check if a parsed name matches the card (including individual face names).
+ * Returns true if the name is a valid way to refer to the card.
+ */
+function nameMatchesCard(parsedName: string, card: Card): boolean {
+	const lower = parsedName.toLowerCase();
+
+	// Exact match on full name
+	if (lower === card.name.toLowerCase()) return true;
+
+	// Match any face name (for DFCs like "Delver of Secrets // Insectile Aberration")
+	for (const face of getAllFaces(card)) {
+		if (lower === face.name.toLowerCase()) return true;
+	}
+
+	return false;
 }
 
 const SECTION_CHIPS: Record<
@@ -166,7 +188,13 @@ function ImportDeckPage() {
 
 		(async () => {
 			const provider = await getCardDataProvider();
-			const restrictions = gameFormat ? { format: gameFormat } : undefined;
+			// Use the legality field (e.g., oathbreaker uses legacy legality)
+			const legalityField = gameFormat
+				? getPreset(gameFormat)?.config.legalityField
+				: undefined;
+			const restrictions = legalityField
+				? { format: legalityField }
+				: undefined;
 			const result = await resolveCards(
 				allParsed,
 				async (name) =>
@@ -230,8 +258,7 @@ function ImportDeckPage() {
 
 			const resolved = resolvedMap.get(trimmed);
 			if (resolved) {
-				const isImperfect =
-					parsed.name.toLowerCase() !== resolved.cardData.name.toLowerCase();
+				const isImperfect = !nameMatchesCard(parsed.name, resolved.cardData);
 				return {
 					key,
 					line: {
@@ -250,18 +277,59 @@ function ImportDeckPage() {
 	}, [text, parsedDeck, resolvedMap, errorMap]);
 
 	// Stats
-	const totalCards = useMemo(() => {
-		let count = 0;
+	const { totalCards, warningCount } = useMemo(() => {
+		let total = 0;
+		let warnings = 0;
 		for (const line of previewLines) {
 			if (line.line.type === "resolved") {
-				count += line.line.quantity;
+				total += line.line.quantity;
+				if (line.line.isImperfect) warnings++;
 			}
 		}
-		return count;
+		return { totalCards: total, warningCount: warnings };
 	}, [previewLines]);
 
 	const errorCount = errorMap.size;
 	const hasErrors = errorCount > 0;
+	const hasWarnings = warningCount > 0;
+
+	// Format suggestion hint
+	const formatHint = useMemo(() => {
+		const formatInfo = getFormatInfo(gameFormat);
+		const hasCommander = parsedDeck.commander.length > 0;
+		const isCommanderFormat = formatInfo.commanderType !== null;
+
+		// Deck size from parsed deck (mainboard + commander)
+		const deckSize =
+			parsedDeck.mainboard.reduce((sum, c) => sum + c.quantity, 0) +
+			parsedDeck.commander.reduce((sum, c) => sum + c.quantity, 0);
+
+		// Has commander section but not a commander format
+		if (hasCommander && !isCommanderFormat) {
+			return "Deck has a commander — try a Commander format?";
+		}
+
+		// Size mismatch heuristics
+		const expectedSize =
+			formatInfo.deckSize === "variable" ? null : formatInfo.deckSize;
+		if (expectedSize && deckSize > 0) {
+			// ~100 cards but format expects 60
+			if (deckSize >= 90 && expectedSize === 60) {
+				return "Deck has ~100 cards — try Commander or Gladiator?";
+			}
+			// ~60 cards but format expects 100
+			if (deckSize >= 50 && deckSize <= 70 && expectedSize === 100) {
+				return "Deck has ~60 cards — try a 60-card format?";
+			}
+		}
+
+		// Cards not resolving
+		if (hasErrors) {
+			return "Some cards not found — try changing the format?";
+		}
+
+		return null;
+	}, [gameFormat, parsedDeck, hasErrors]);
 
 	const handleCreate = useCallback(() => {
 		if (!deckName.trim()) return;
@@ -305,7 +373,7 @@ function ImportDeckPage() {
 						Import Deck
 					</h1>
 					<p className="text-gray-600 dark:text-zinc-300 mt-1">
-						Paste a deck list from any major site. Format is auto-detected.
+						Paste a deck list from any major site. List syntax is auto-detected.
 					</p>
 				</div>
 
@@ -354,10 +422,10 @@ function ImportDeckPage() {
 					</div>
 				</div>
 
-				{/* Format detection badge */}
+				{/* Syntax detection badge */}
 				<div className="flex items-center gap-2 mb-4">
 					<span className="text-sm text-gray-600 dark:text-zinc-300">
-						Detected:
+						Syntax:
 					</span>
 					<FormatBadge
 						detected={detectedFormat}
@@ -368,6 +436,11 @@ function ImportDeckPage() {
 						<span className="flex items-center gap-1 text-sm text-gray-500 dark:text-zinc-400">
 							<Loader2 className="w-4 h-4 animate-spin" />
 							Resolving...
+						</span>
+					)}
+					{formatHint && !isResolving && (
+						<span className="ml-auto text-sm text-amber-600 dark:text-amber-400">
+							{formatHint}
 						</span>
 					)}
 				</div>
@@ -398,6 +471,11 @@ Sideboard
 				{/* Stats */}
 				<div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-zinc-300">
 					<span>{totalCards} cards</span>
+					{hasWarnings && (
+						<span className="text-amber-600 dark:text-amber-400">
+							{warningCount} {warningCount === 1 ? "warning" : "warnings"}
+						</span>
+					)}
 					{hasErrors && (
 						<span className="text-red-600 dark:text-red-400">
 							{errorCount} {errorCount === 1 ? "error" : "errors"}
@@ -471,10 +549,12 @@ interface ImportPreviewProps {
 }
 
 function ImportPreview({ lines }: ImportPreviewProps) {
+	const tagColors = useMemo(() => buildTagColorMap(lines), [lines]);
+
 	return (
 		<div className="flex-1 p-4 border-l border-gray-200 dark:border-zinc-600 overflow-hidden">
 			{lines.map((line) => (
-				<PreviewRow key={line.key} line={line.line} />
+				<PreviewRow key={line.key} line={line.line} tagColors={tagColors} />
 			))}
 		</div>
 	);
@@ -483,7 +563,13 @@ function ImportPreview({ lines }: ImportPreviewProps) {
 const ROW_CLASS =
 	"font-mono text-sm leading-[1.5] whitespace-nowrap [font-variant-ligatures:none] flex items-center gap-2";
 
-function PreviewRow({ line }: { line: ImportLineType }) {
+function PreviewRow({
+	line,
+	tagColors,
+}: {
+	line: ImportLineType;
+	tagColors: Map<string, string>;
+}) {
 	switch (line.type) {
 		case "empty":
 			return <div className={ROW_CLASS}>&nbsp;</div>;
@@ -516,14 +602,16 @@ function PreviewRow({ line }: { line: ImportLineType }) {
 			);
 
 		case "resolved":
-			return <ResolvedRow line={line} />;
+			return <ResolvedRow line={line} tagColors={tagColors} />;
 	}
 }
 
 function ResolvedRow({
 	line,
+	tagColors,
 }: {
 	line: Extract<ImportLineType, { type: "resolved" }>;
+	tagColors: Map<string, string>;
 }) {
 	const hoverProps = useCardHover(line.card.id);
 	const primaryFace = getPrimaryFace(line.card);
@@ -549,27 +637,25 @@ function ResolvedRow({
 			<span className="text-gray-900 dark:text-white truncate min-w-0">
 				{primaryFace?.name ?? "Unknown"}
 			</span>
-			<div className="flex-shrink-0 flex items-center">
+			{sectionChip && (
+				<span
+					className={`flex-shrink-0 px-1.5 py-0.5 text-xs font-medium rounded ${sectionChip.className}`}
+				>
+					{sectionChip.label}
+				</span>
+			)}
+			{line.tags.map((tag) => (
+				<span
+					key={tag}
+					className={`flex-shrink-0 px-1.5 py-0.5 text-xs font-medium rounded ${tagColors.get(tag) ?? TAG_COLORS[0]}`}
+				>
+					#{tag}
+				</span>
+			))}
+			<div className="flex-shrink-0 flex items-center ml-auto">
 				{primaryFace?.mana_cost && (
 					<ManaCost cost={primaryFace.mana_cost} size="small" />
 				)}
-			</div>
-			<div className="flex-shrink-0 flex items-center gap-1 overflow-hidden ml-auto">
-				{sectionChip && (
-					<span
-						className={`px-1.5 py-0.5 text-xs font-medium rounded ${sectionChip.className}`}
-					>
-						{sectionChip.label}
-					</span>
-				)}
-				{line.tags.map((tag) => (
-					<span
-						key={tag}
-						className={`px-1.5 py-0.5 text-xs font-medium rounded ${getTagColor(tag)}`}
-					>
-						#{tag}
-					</span>
-				))}
 			</div>
 		</div>
 	);
