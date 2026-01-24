@@ -88,7 +88,7 @@ describe("describeQuery", () => {
 
 	it.each([
 		["c:r", "color includes {R}"],
-		["id:bg", "color identity includes {B}{G}"],
+		["id:bg", "color identity is within {B}{G}"],
 		["id<=bg", "color identity is within {B}{G}"],
 		["id>=bg", "color identity includes at least {B}{G}"],
 		["id=wubrg", "color identity is exactly {W}{U}{B}{R}{G}"],

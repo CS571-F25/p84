@@ -180,18 +180,18 @@ export function SearchPrimer() {
 						{/* Color identity for commander */}
 						<div>
 							<p className="text-gray-500 dark:text-zinc-300 text-xs uppercase tracking-wide mb-1">
-								For commander decks
+								Color identity (for commander)
 							</p>
 							<p>
-								<Q q="id<=wu" /> goes in <Mana s="W" />
+								<Q q="id:wu" /> fits in <Mana s="W" />
 								<Mana s="U" /> decks
 							</p>
 							<p>
-								<Q q="id>=2 is:commander" /> 2+ color commanders
+								<Q q="id>=rg" /> has at least <Mana s="R" />
+								<Mana s="G" />
 							</p>
 							<p>
-								<Q q="id>=rw is:paupercommander" /> PEDH in <Mana s="R" />
-								<Mana s="W" />
+								<Q q="id>=2 is:commander" /> 2+ color commanders
 							</p>
 						</div>
 					</div>

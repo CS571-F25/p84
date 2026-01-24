@@ -90,7 +90,7 @@ export function compileField(
 		case "color":
 			return ok(compileColorField((c) => c.colors, operator, value));
 
-		case "identity":
+		case "identity": {
 			// Numeric comparison: id>1 means "more than 1 color in identity"
 			if (value.kind === "number") {
 				return ok(
@@ -101,7 +101,12 @@ export function compileField(
 					),
 				);
 			}
-			return ok(compileColorField((c) => c.color_identity, operator, value));
+			// For identity, default : means "subset" (<=) not "superset" (>=)
+			// This matches Scryfall's commander deckbuilding semantics:
+			// id:rg finds cards playable in a Gruul deck (identity within RG)
+			const identityOp = operator === ":" ? "<=" : operator;
+			return ok(compileColorField((c) => c.color_identity, identityOp, value));
+		}
 
 		// Mana fields
 		case "mana":

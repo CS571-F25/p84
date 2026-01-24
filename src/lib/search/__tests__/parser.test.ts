@@ -97,6 +97,14 @@ describe("parse", () => {
 			}
 		});
 
+		it("parses ci: as identity alias", () => {
+			const node = expectParse("ci:wubrg");
+			expect(node.type).toBe("FIELD");
+			if (node.type === "FIELD") {
+				expect(node.field).toBe("identity");
+			}
+		});
+
 		it("parses numeric fields", () => {
 			const node = expectParse("cmc>=3");
 			expect(node.type).toBe("FIELD");

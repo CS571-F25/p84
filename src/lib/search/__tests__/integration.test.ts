@@ -147,6 +147,27 @@ describe("Scryfall search integration", () => {
 			}
 		});
 
+		it("c: uses superset semantics (at least these colors)", async () => {
+			const bolt = await cards.get("Lightning Bolt"); // R
+			const bte = await cards.get("Burning-Tree Emissary"); // RG
+
+			// c:r means "at least red" - matches mono-R and multicolor with R
+			const atLeastRed = search("c:r");
+			expect(atLeastRed.ok).toBe(true);
+			if (atLeastRed.ok) {
+				expect(atLeastRed.value.match(bolt)).toBe(true); // R contains R
+				expect(atLeastRed.value.match(bte)).toBe(true); // RG contains R
+			}
+
+			// c:rg means "at least RG" - only matches cards with both
+			const atLeastGruul = search("c:rg");
+			expect(atLeastGruul.ok).toBe(true);
+			if (atLeastGruul.ok) {
+				expect(atLeastGruul.value.match(bolt)).toBe(false); // R doesn't contain G
+				expect(atLeastGruul.value.match(bte)).toBe(true); // RG contains RG
+			}
+		});
+
 		it("c: differs from id: (color vs color identity)", async () => {
 			const forest = await cards.get("Forest");
 
@@ -174,6 +195,38 @@ describe("Scryfall search integration", () => {
 	});
 
 	describe("color identity matching", () => {
+		it("id: uses subset semantics (commander deckbuilding)", async () => {
+			const bolt = await cards.get("Lightning Bolt"); // R
+			const elves = await cards.get("Llanowar Elves"); // G
+			const bte = await cards.get("Burning-Tree Emissary"); // RG
+
+			// id:rg means "identity fits in Gruul" (subset)
+			const gruul = search("id:rg");
+			expect(gruul.ok).toBe(true);
+			if (gruul.ok) {
+				expect(gruul.value.match(bolt)).toBe(true); // R fits in RG
+				expect(gruul.value.match(elves)).toBe(true); // G fits in RG
+				expect(gruul.value.match(bte)).toBe(true); // RG fits in RG
+			}
+
+			// id:r should NOT match BTE (RG doesn't fit in mono-R)
+			const monoRed = search("id:r");
+			expect(monoRed.ok).toBe(true);
+			if (monoRed.ok) {
+				expect(monoRed.value.match(bolt)).toBe(true); // R fits in R
+				expect(monoRed.value.match(bte)).toBe(false); // RG doesn't fit in R
+			}
+
+			// id>=rg means "identity contains at least RG" (superset)
+			const atLeastGruul = search("id>=rg");
+			expect(atLeastGruul.ok).toBe(true);
+			if (atLeastGruul.ok) {
+				expect(atLeastGruul.value.match(bolt)).toBe(false); // R doesn't contain G
+				expect(atLeastGruul.value.match(elves)).toBe(false); // G doesn't contain R
+				expect(atLeastGruul.value.match(bte)).toBe(true); // RG contains RG
+			}
+		});
+
 		it("id<= matches subset (commander deckbuilding)", async () => {
 			const bolt = await cards.get("Lightning Bolt");
 			const elves = await cards.get("Llanowar Elves");

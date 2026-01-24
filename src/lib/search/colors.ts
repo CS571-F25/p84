@@ -2,9 +2,11 @@
  * Color set comparison utilities for Scryfall search
  *
  * Scryfall uses set theory for color comparisons:
- * - : or >= means "superset of" (card has at least these colors)
+ * - For color (c:), : means "superset of" (card has at least these colors)
+ * - For identity (id:/ci:), : means "subset of" (card fits in this commander's deck)
+ * - >= means "superset of" (card has at least these colors)
  * - = means "exactly these colors"
- * - <= means "subset of" (card has at most these colors) - key for commander deckbuilding
+ * - <= means "subset of" (card has at most these colors)
  * - < means "strict subset"
  * - > means "strict superset"
  */

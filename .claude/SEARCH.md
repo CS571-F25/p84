@@ -153,13 +153,25 @@ Colors can be specified as:
 
 ### Color Operators
 
-Color comparisons use set theory:
-- `:` or `>=` - Card has at least these colors (superset)
+Color comparisons use set theory. **Important:** The default `:` operator behaves differently for color vs identity:
+
+**For `c:` (color):**
+- `:` or `>=` - Card has at least these colors (superset) - `c:rg` matches Gruul and 3+ color cards
 - `=` - Card has exactly these colors
-- `<=` - Card has at most these colors (subset) - useful for commander
+- `<=` - Card has at most these colors (subset)
 - `<` - Strict subset
 - `>` - Strict superset
 - `!=` - Not exactly these colors
+
+**For `id:`/`ci:` (color identity):**
+- `:` or `<=` - Card fits in a deck with this identity (subset) - `id:rg` matches mono-R, mono-G, and Gruul
+- `>=` - Card has at least this identity (superset) - `id>=rg` matches Gruul and 3+ color cards
+- `=` - Card has exactly this identity
+- `<` - Strict subset
+- `>` - Strict superset
+- `!=` - Not exactly this identity
+
+This matches Scryfall's behavior: `id:rg` finds cards playable in a Gruul commander deck.
 
 ### Identity Count Queries
 

@@ -136,6 +136,7 @@ export const FIELD_ALIASES: Record<string, FieldName> = {
 	// Colors
 	c: "color",
 	color: "color",
+	ci: "identity",
 	id: "identity",
 	identity: "identity",
 	// Mana

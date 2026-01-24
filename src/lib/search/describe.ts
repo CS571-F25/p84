@@ -66,6 +66,12 @@ const COLOR_OPERATOR_LABELS: Record<ComparisonOp, string> = {
 	">=": "includes at least",
 };
 
+// For identity, : means "is within" (subset) for commander deckbuilding
+const IDENTITY_OPERATOR_LABELS: Record<ComparisonOp, string> = {
+	...COLOR_OPERATOR_LABELS,
+	":": "is within",
+};
+
 const WUBRG_ORDER = ["W", "U", "B", "R", "G"];
 
 /**
@@ -201,7 +207,6 @@ function describeValue(value: FieldValue, quoted = true): string {
 
 function describeField(node: FieldNode): string {
 	const fieldLabel = FIELD_LABELS[node.field];
-	const isColorField = node.field === "color" || node.field === "identity";
 
 	// Special handling for identity count queries (id>1, id=2, etc.)
 	if (node.field === "identity" && node.value.kind === "number") {
@@ -243,7 +248,9 @@ function describeField(node: FieldNode): string {
 	// But regex always uses "includes" since it's a pattern match, not exact
 	// "in" field is special - the label already implies the relationship
 	let opLabel: string;
-	if (isColorField) {
+	if (node.field === "identity") {
+		opLabel = IDENTITY_OPERATOR_LABELS[node.operator];
+	} else if (node.field === "color") {
 		opLabel = COLOR_OPERATOR_LABELS[node.operator];
 	} else if (node.field === "in" && node.operator === ":") {
 		opLabel = "";
