@@ -5,7 +5,7 @@ import { getPrimaryFace } from "@/lib/card-faces";
 import { type Deck, getCommanderColorIdentity } from "@/lib/deck-types";
 import {
 	getCardByIdQueryOptions,
-	searchCardsQueryOptions,
+	unifiedSearchQueryOptions,
 } from "@/lib/queries";
 import type {
 	Card,
@@ -67,7 +67,7 @@ export function CardSearchAutocomplete({
 	}, [legalityFilterEnabled, format, deck, queryClient]);
 
 	const { data, isFetching } = useQuery(
-		searchCardsQueryOptions(debouncedSearch, restrictions, 20),
+		unifiedSearchQueryOptions(debouncedSearch, restrictions, 20),
 	);
 
 	const displayCards = data?.cards ?? [];
@@ -144,9 +144,9 @@ export function CardSearchAutocomplete({
 		const toastId = toast.loading(`searching for "${searchTerm}"...`);
 
 		queryClient
-			.fetchQuery(searchCardsQueryOptions(searchTerm, restrictions, 1))
+			.fetchQuery(unifiedSearchQueryOptions(searchTerm, restrictions, 1))
 			.then((result) => {
-				const topCard = result.cards[0];
+				const topCard = result.cards?.[0];
 				if (topCard) {
 					onCardSelect?.(topCard.id);
 					onCardHover?.(topCard.id);
@@ -250,7 +250,11 @@ export function CardSearchAutocomplete({
 						}
 					}}
 					placeholder="Search for a card..."
-					className="w-full px-4 py-2 pr-10 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:focus:ring-cyan-400"
+					className={`w-full px-4 py-2 pr-10 bg-white dark:bg-zinc-900 border rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 ${
+						data?.error
+							? "border-red-500 focus:ring-red-500 dark:focus:ring-red-400"
+							: "border-gray-300 dark:border-zinc-600 focus:ring-cyan-500 dark:focus:ring-cyan-400"
+					}`}
 				/>
 
 				{isFetching && debouncedSearch.trim().length > 0 && (
@@ -305,6 +309,10 @@ export function CardSearchAutocomplete({
 										</button>
 									);
 								})}
+							</div>
+						) : data?.error ? (
+							<div className="px-4 py-4 text-center text-red-600 dark:text-red-400 text-sm">
+								{data.error.message}
 							</div>
 						) : (
 							<div className="px-4 py-8 text-center text-gray-500 dark:text-zinc-300">
