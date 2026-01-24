@@ -193,6 +193,7 @@ Vite is configured to ignore large generated files in watch mode:
 - **Avoid unnecessary try/catch blocks** - Don't wrap code in try/catch without a specific reason. It's not defensive coding—it's noisy and masks real errors. If a function can return null/undefined, use that instead of throwing. Let exceptions bubble naturally unless you have a specific recovery strategy
 - **Check `typelex/*.tsp` for DeckBelcher data models** - When confused about deck structure or app schemas, read the `.tsp` files. For card data, see `src/lib/scryfall-types.ts`
 - **NEVER use `-f` flag with rm/git/etc without justification** - Force flags suppress errors and can hide problems. Use `rm -r` not `rm -rf`, let commands fail naturally
+- **Prefer type-safe refactors over backward compatibility** - Don't make parameters optional or accept looser types just to avoid updating call sites. If an API change improves type safety (e.g., making a previously-implicit parameter explicit and required), update all callers. The type system catching mistakes at compile time is worth more than avoiding a few edits
 - **ALWAYS run `npm run check` and `npm run typecheck` before considering work complete** - Verify linting, formatting, and types pass
 - **NEVER manually fix formatting issues** - Always use `npm run format -- --write` to apply formatting fixes automatically. Manual formatting edits are error-prone and waste time
 - `src/routeTree.gen.ts` is auto-generated - never edit manually

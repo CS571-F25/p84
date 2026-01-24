@@ -20,35 +20,72 @@ import type {
 	ParseOptions,
 } from "./types";
 
+interface ParseCardLineOptions {
+	/** Original raw line to store in result (before any marker stripping) */
+	raw: string;
+	/** Format hint for format-specific marker handling */
+	format?: string;
+}
+
+/**
+ * Strip format-specific markers from a card line.
+ *
+ * Removes visual markers that don't affect card identity:
+ * - *F*, *A* (Moxfield foil/alter)
+ * - (F) at end (MTGGoldfish foil)
+ * - ^...^ (Archidekt color markers)
+ * - <...> (MTGGoldfish variant markers)
+ * - [...] (Archidekt category markers, unless XMage/MTGGoldfish format)
+ */
+export function stripMarkers(line: string, format?: string): string {
+	let result = line;
+
+	// Strip *F* (foil) and *A* (alter) markers (Moxfield style)
+	result = result.replace(/\s*\*[FA]\*\s*/g, " ");
+
+	// Strip (F) foil marker at end (MTGGoldfish style)
+	result = result.replace(/\s*\(F\)\s*$/i, "");
+
+	// Strip ^Tag,#color^ markers (Archidekt)
+	result = result.replace(/\s*\^[^^]+\^\s*/g, " ");
+
+	// Strip <variant> markers (MTGGoldfish)
+	result = result.replace(/<[^>]+>/g, " ");
+
+	// Strip [...] category markers (Archidekt) - but not for XMage/MTGGoldfish
+	// which use brackets for set codes
+	if (format !== "xmage" && format !== "mtggoldfish") {
+		result = result.replace(/\s*\[[^\]]+\]/g, "");
+	}
+
+	// Normalize whitespace
+	return result.replace(/\s+/g, " ").trim();
+}
+
 /**
  * Parse a single line of card text.
  *
  * Handles all format variations for quantity, set code, and collector number.
  * Tries patterns in order of specificity - most distinctive first.
  */
-export function parseCardLine(line: string): ParsedCardLine | null {
-	let remaining = line.trim();
-	if (!remaining) {
+export function parseCardLine(
+	line: string,
+	options: ParseCardLineOptions,
+): ParsedCardLine | null {
+	const trimmedLine = line.trim();
+	if (!trimmedLine) {
 		return null;
 	}
 
-	// Strip *F* (foil) and *A* (alter) markers
-	remaining = remaining.replace(/\s*\*[FA]\*\s*/g, " ").trim();
-
-	// Strip ^Tag,#color^ markers (Archidekt)
-	remaining = remaining.replace(/\s*\^[^^]+\^\s*/g, " ").trim();
-
 	// Extract <collector#> from MTGGoldfish variant markers before stripping
 	let variantCollectorNumber: string | undefined;
-	const collectorInVariant = remaining.match(/<(\d+[a-z★†]?)>/i);
+	const collectorInVariant = trimmedLine.match(/<(\d+[a-z★†]?)>/i);
 	if (collectorInVariant) {
 		variantCollectorNumber = collectorInVariant[1];
 	}
-	// Strip <variant> markers (MTGGoldfish)
-	remaining = remaining
-		.replace(/<[^>]+>/g, " ")
-		.replace(/\s+/g, " ")
-		.trim();
+
+	// Strip format markers
+	let remaining = stripMarkers(trimmedLine, options.format);
 
 	// Extract tags (#tag #!global #multi word tag)
 	// Tags start at first # and go to end of line (after stripping other markers)
@@ -90,7 +127,7 @@ export function parseCardLine(line: string): ParsedCardLine | null {
 			setCode: xmageMatch[1].toUpperCase(),
 			collectorNumber: xmageMatch[2],
 			tags: [...new Set(tags)],
-			raw: line.trim(),
+			raw: options.raw,
 		};
 	}
 
@@ -103,7 +140,7 @@ export function parseCardLine(line: string): ParsedCardLine | null {
 			setCode: goldfishMatch[2].toUpperCase(),
 			collectorNumber: variantCollectorNumber,
 			tags: [...new Set(tags)],
-			raw: line.trim(),
+			raw: options.raw,
 		};
 	}
 
@@ -118,7 +155,7 @@ export function parseCardLine(line: string): ParsedCardLine | null {
 			setCode: arenaMatch[2].toUpperCase(),
 			collectorNumber: arenaMatch[3],
 			tags: [...new Set(tags)],
-			raw: line.trim(),
+			raw: options.raw,
 		};
 	}
 
@@ -136,7 +173,7 @@ export function parseCardLine(line: string): ParsedCardLine | null {
 		quantity,
 		name,
 		tags: [...new Set(tags)],
-		raw: line.trim(),
+		raw: options.raw,
 	};
 }
 
@@ -290,8 +327,8 @@ export function parseDeck(text: string, options?: ParseOptions): ParsedDeck {
 		}
 		sawBlankLine = false;
 
-		// Parse the card line
-		const parsed = parseCardLine(cardLine);
+		// Parse the card line (cardLine is cleaned by extractInlineSection, trimmed is original)
+		const parsed = parseCardLine(cardLine, { raw: trimmed, format });
 		if (parsed) {
 			// Merge tags: category header + inline tags + parsed tags
 			const allTags: string[] = [];

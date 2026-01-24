@@ -26,7 +26,7 @@ describe("roundtrip: format → parse", () => {
 			};
 
 			const formatted = formatCardLine(card, "moxfield");
-			const parsed = parseCardLine(formatted);
+			const parsed = parseCardLine(formatted, { raw: formatted });
 
 			expect(parsed).not.toBeNull();
 			expect(parsed?.quantity).toBe(card.quantity);
@@ -45,7 +45,7 @@ describe("roundtrip: format → parse", () => {
 			};
 
 			const formatted = formatCardLine(card, "moxfield");
-			const parsed = parseCardLine(formatted);
+			const parsed = parseCardLine(formatted, { raw: formatted });
 
 			expect(parsed).not.toBeNull();
 			expect(parsed?.name).toBe("Sol Ring");
@@ -66,7 +66,7 @@ describe("roundtrip: format → parse", () => {
 			};
 
 			const formatted = formatCardLine(card, "arena");
-			const parsed = parseCardLine(formatted);
+			const parsed = parseCardLine(formatted, { raw: formatted });
 
 			expect(parsed).not.toBeNull();
 			expect(parsed?.quantity).toBe(card.quantity);
@@ -90,7 +90,10 @@ describe("roundtrip: format → parse", () => {
 			};
 
 			const formatted = formatCardLine(card, "xmage");
-			const parsed = parseCardLine(formatted);
+			const parsed = parseCardLine(formatted, {
+				raw: formatted,
+				format: "xmage",
+			});
 
 			expect(parsed).not.toBeNull();
 			expect(parsed?.quantity).toBe(card.quantity);
@@ -195,7 +198,7 @@ describe("property-based tests", () => {
 		fc.assert(
 			fc.property(parsedCardArb, (card) => {
 				const formatted = formatCardLine(card, "moxfield");
-				const parsed = parseCardLine(formatted);
+				const parsed = parseCardLine(formatted, { raw: formatted });
 
 				expect(parsed).not.toBeNull();
 				expect(parsed?.quantity).toBe(card.quantity);
@@ -215,7 +218,7 @@ describe("property-based tests", () => {
 		fc.assert(
 			fc.property(parsedCardArb, (card) => {
 				const formatted = formatCardLine(card, "arena");
-				const parsed = parseCardLine(formatted);
+				const parsed = parseCardLine(formatted, { raw: formatted });
 
 				expect(parsed).not.toBeNull();
 				expect(parsed?.quantity).toBe(card.quantity);
@@ -237,7 +240,10 @@ describe("property-based tests", () => {
 				if (!card.setCode) return; // XMage needs set code for proper roundtrip
 
 				const formatted = formatCardLine(card, "xmage");
-				const parsed = parseCardLine(formatted);
+				const parsed = parseCardLine(formatted, {
+					raw: formatted,
+					format: "xmage",
+				});
 
 				expect(parsed).not.toBeNull();
 				expect(parsed?.quantity).toBe(card.quantity);
@@ -283,7 +289,9 @@ describe("property-based tests", () => {
 		fc.assert(
 			fc.property(parsedCardArb, (card) => {
 				const formatted = formatCardLine(card, "moxfield");
-				expect(() => parseCardLine(formatted)).not.toThrow();
+				expect(() =>
+					parseCardLine(formatted, { raw: formatted }),
+				).not.toThrow();
 			}),
 			{ numRuns: 200 },
 		);

@@ -26,7 +26,8 @@ export {
 	formatMoxfield,
 	formatMtgo,
 } from "./export";
-
+// Line matching (for previews)
+export { type MatchedLine, matchLinesToParsedCards } from "./match-lines";
 // Parsing
 export { parseCardLine, parseDeck } from "./parse";
 // Section utilities (for advanced use)

@@ -12,7 +12,8 @@ function readFixture(subdir: string, filename: string): string {
 describe("parseCardLine", () => {
 	describe("basic parsing", () => {
 		it("parses quantity and name", () => {
-			const result = parseCardLine("4 Lightning Bolt");
+			const line = "4 Lightning Bolt";
+			const result = parseCardLine(line, { raw: line });
 			expect(result).toEqual({
 				quantity: 4,
 				name: "Lightning Bolt",
@@ -22,7 +23,8 @@ describe("parseCardLine", () => {
 		});
 
 		it("defaults quantity to 1 when not specified", () => {
-			const result = parseCardLine("Sol Ring");
+			const line = "Sol Ring";
+			const result = parseCardLine(line, { raw: line });
 			expect(result).toEqual({
 				quantity: 1,
 				name: "Sol Ring",
@@ -32,61 +34,77 @@ describe("parseCardLine", () => {
 		});
 
 		it("returns null for empty lines", () => {
-			expect(parseCardLine("")).toBeNull();
-			expect(parseCardLine("   ")).toBeNull();
+			expect(parseCardLine("", { raw: "" })).toBeNull();
+			expect(parseCardLine("   ", { raw: "   " })).toBeNull();
 		});
 	});
 
 	describe("Arena format: (SET) number", () => {
 		it("parses set code in parentheses", () => {
-			const result = parseCardLine("1 Lightning Bolt (2XM)");
+			const line = "1 Lightning Bolt (2XM)";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.setCode).toBe("2XM");
 			expect(result?.name).toBe("Lightning Bolt");
 		});
 
 		it("parses set code and collector number", () => {
-			const result = parseCardLine("4 Lightning Bolt (2XM) 141");
+			const line = "4 Lightning Bolt (2XM) 141";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.setCode).toBe("2XM");
 			expect(result?.collectorNumber).toBe("141");
 		});
 
 		it("normalizes set code to uppercase", () => {
-			const result = parseCardLine("1 Lightning Bolt (2xm) 141");
+			const line = "1 Lightning Bolt (2xm) 141";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.setCode).toBe("2XM");
 		});
 	});
 
 	describe("MTGGoldfish format: [SET] after name", () => {
 		it("parses set code in square brackets", () => {
-			const result = parseCardLine("4 Lightning Bolt [2XM]");
+			const line = "4 Lightning Bolt [2XM]";
+			const result = parseCardLine(line, { raw: line, format: "mtggoldfish" });
 			expect(result?.setCode).toBe("2XM");
 			expect(result?.name).toBe("Lightning Bolt");
 		});
 
 		it("parses with <variant> marker", () => {
-			const result = parseCardLine("3 Enduring Curiosity <extended> [DSK]");
+			const line = "3 Enduring Curiosity <extended> [DSK]";
+			const result = parseCardLine(line, { raw: line, format: "mtggoldfish" });
 			expect(result?.setCode).toBe("DSK");
 			expect(result?.name).toBe("Enduring Curiosity");
 		});
 
 		it("parses collector number in angle brackets", () => {
-			const result = parseCardLine("4 Island <251> [THB]");
+			const line = "4 Island <251> [THB]";
+			const result = parseCardLine(line, { raw: line, format: "mtggoldfish" });
 			expect(result?.setCode).toBe("THB");
 			expect(result?.collectorNumber).toBe("251");
 			expect(result?.name).toBe("Island");
+		});
+
+		it("strips (F) foil marker at end", () => {
+			const line = "2 Cabal Therapy [EMA] (F)";
+			const result = parseCardLine(line, { raw: line, format: "mtggoldfish" });
+			expect(result?.setCode).toBe("EMA");
+			expect(result?.name).toBe("Cabal Therapy");
+			expect(result?.quantity).toBe(2);
 		});
 	});
 
 	describe("XMage format: [SET:num] before name", () => {
 		it("parses set and collector number before name", () => {
-			const result = parseCardLine("4 [2XM:141] Lightning Bolt");
+			const line = "4 [2XM:141] Lightning Bolt";
+			const result = parseCardLine(line, { raw: line, format: "xmage" });
 			expect(result?.setCode).toBe("2XM");
 			expect(result?.collectorNumber).toBe("141");
 			expect(result?.name).toBe("Lightning Bolt");
 		});
 
 		it("parses set without collector number", () => {
-			const result = parseCardLine("4 [ZEN] Misty Rainforest");
+			const line = "4 [ZEN] Misty Rainforest";
+			const result = parseCardLine(line, { raw: line, format: "xmage" });
 			expect(result?.setCode).toBe("ZEN");
 			expect(result?.collectorNumber).toBeUndefined();
 			expect(result?.name).toBe("Misty Rainforest");
@@ -95,13 +113,15 @@ describe("parseCardLine", () => {
 
 	describe("TappedOut format: Nx quantity", () => {
 		it("parses quantity with x suffix", () => {
-			const result = parseCardLine("4x Lightning Bolt");
+			const line = "4x Lightning Bolt";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.quantity).toBe(4);
 			expect(result?.name).toBe("Lightning Bolt");
 		});
 
 		it("parses with set code", () => {
-			const result = parseCardLine("3x Abundant Growth (ECC) 97");
+			const line = "3x Abundant Growth (ECC) 97";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.quantity).toBe(3);
 			expect(result?.setCode).toBe("ECC");
 			expect(result?.collectorNumber).toBe("97");
@@ -110,36 +130,41 @@ describe("parseCardLine", () => {
 
 	describe("Moxfield format: tags and foil markers", () => {
 		it("parses #tags", () => {
-			const result = parseCardLine("1 Sol Ring (CMM) 647 #ramp #staple");
+			const line = "1 Sol Ring (CMM) 647 #ramp #staple";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.tags).toEqual(["ramp", "staple"]);
 		});
 
 		it("strips *F* foil marker", () => {
-			const result = parseCardLine("1 Edgar Markov (C17) 36 *F*");
+			const line = "1 Edgar Markov (C17) 36 *F*";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.name).toBe("Edgar Markov");
 			expect(result?.setCode).toBe("C17");
 		});
 
 		it("strips *A* alter marker", () => {
-			const result = parseCardLine("1 Sol Ring (CMM) 647 *F* *A* #ramp");
+			const line = "1 Sol Ring (CMM) 647 *F* *A* #ramp";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.tags).toEqual(["ramp"]);
 		});
 
 		it("handles #! global tag prefix", () => {
-			const result = parseCardLine("1 Sol Ring #!staple #ramp");
+			const line = "1 Sol Ring #!staple #ramp";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.tags).toEqual(["staple", "ramp"]);
 		});
 
 		it("deduplicates tags after stripping #! prefix", () => {
-			// #!staple and #staple should collapse to single "staple"
-			const result = parseCardLine("1 Sol Ring #!staple #staple #ramp");
+			const line = "1 Sol Ring #!staple #staple #ramp";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.tags).toEqual(["staple", "ramp"]);
 		});
 	});
 
 	describe("Archidekt format: extras stripped", () => {
 		it("strips ^Tag^ color markers", () => {
-			const result = parseCardLine("1x Sol Ring (cmm) 647 ^Have,#37d67a^");
+			const line = "1x Sol Ring (cmm) 647 ^Have,#37d67a^";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.name).toBe("Sol Ring");
 			expect(result?.setCode).toBe("CMM");
 		});
@@ -147,15 +172,15 @@ describe("parseCardLine", () => {
 
 	describe("split cards", () => {
 		it("parses Fire // Ice", () => {
-			const result = parseCardLine("4 Fire // Ice (MH2) 290");
+			const line = "4 Fire // Ice (MH2) 290";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.name).toBe("Fire // Ice");
 			expect(result?.setCode).toBe("MH2");
 		});
 
 		it("parses adventure cards with /", () => {
-			const result = parseCardLine(
-				"1 Agadeem's Awakening / Agadeem, the Undercrypt (ZNR) 90",
-			);
+			const line = "1 Agadeem's Awakening / Agadeem, the Undercrypt (ZNR) 90";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.name).toBe(
 				"Agadeem's Awakening / Agadeem, the Undercrypt",
 			);
@@ -164,22 +189,26 @@ describe("parseCardLine", () => {
 
 	describe("special characters", () => {
 		it("parses cards with punctuation", () => {
-			const result = parseCardLine("1 Ach! Hans, Run!");
+			const line = "1 Ach! Hans, Run!";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.name).toBe("Ach! Hans, Run!");
 		});
 
 		it("parses cards with + in name", () => {
-			const result = parseCardLine("4 +2 Mace (AFR) 1");
+			const line = "4 +2 Mace (AFR) 1";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.name).toBe("+2 Mace");
 		});
 
 		it("parses special collector numbers", () => {
-			const result = parseCardLine("1 Lightning Bolt (STA) 62★");
+			const line = "1 Lightning Bolt (STA) 62★";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.collectorNumber).toBe("62★");
 		});
 
 		it("parses collector numbers with letters", () => {
-			const result = parseCardLine("1 Blazemire Verge (PDSK) 256p");
+			const line = "1 Blazemire Verge (PDSK) 256p";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.collectorNumber).toBe("256p");
 		});
 	});
@@ -487,25 +516,29 @@ Deck
 
 	describe("quantity edge cases", () => {
 		it("treats quantity 0 as skipping the line", () => {
-			const result = parseCardLine("0 Lightning Bolt");
+			const line = "0 Lightning Bolt";
+			const result = parseCardLine(line, { raw: line });
 			// quantity 0 should still parse but with qty clamped to 1
 			expect(result?.quantity).toBe(1);
 		});
 
 		it("handles leading zeros in quantity", () => {
-			const result = parseCardLine("04 Lightning Bolt");
+			const line = "04 Lightning Bolt";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.quantity).toBe(4);
 			expect(result?.name).toBe("Lightning Bolt");
 		});
 
 		it("handles very large quantities", () => {
-			const result = parseCardLine("9999 Relentless Rats");
+			const line = "9999 Relentless Rats";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.quantity).toBe(9999);
 			expect(result?.name).toBe("Relentless Rats");
 		});
 
 		it("defaults to 1 for non-numeric start", () => {
-			const result = parseCardLine("Lightning Bolt");
+			const line = "Lightning Bolt";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.quantity).toBe(1);
 		});
 	});
@@ -574,24 +607,28 @@ Sideboard
 
 	describe("collector number edge cases", () => {
 		it("parses collector numbers with letter suffixes", () => {
-			const result = parseCardLine("1 Night Soil (FEM) 71b");
+			const line = "1 Night Soil (FEM) 71b";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.collectorNumber).toBe("71b");
 			expect(result?.setCode).toBe("FEM");
 		});
 
 		it("parses promo set codes like PLST", () => {
-			const result = parseCardLine("1 Citanul Woodreaders (PLST) DDR-4");
+			const line = "1 Citanul Woodreaders (PLST) DDR-4";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.setCode).toBe("PLST");
 			expect(result?.collectorNumber).toBe("DDR-4");
 		});
 
 		it("parses star collector numbers", () => {
-			const result = parseCardLine("1 Lightning Bolt (STA) 62★");
+			const line = "1 Lightning Bolt (STA) 62★";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.collectorNumber).toBe("62★");
 		});
 
 		it("parses collector numbers with p suffix (promo)", () => {
-			const result = parseCardLine("1 Blazemire Verge (PDSK) 256p");
+			const line = "1 Blazemire Verge (PDSK) 256p";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.collectorNumber).toBe("256p");
 			expect(result?.setCode).toBe("PDSK");
 		});
@@ -599,18 +636,20 @@ Sideboard
 
 	describe("malformed input", () => {
 		it("returns null for lines that are just numbers", () => {
-			expect(parseCardLine("4")).toBeNull();
-			expect(parseCardLine("100")).toBeNull();
-			expect(parseCardLine("4x")).toBeNull();
+			expect(parseCardLine("4", { raw: "4" })).toBeNull();
+			expect(parseCardLine("100", { raw: "100" })).toBeNull();
+			expect(parseCardLine("4x", { raw: "4x" })).toBeNull();
 		});
 
 		it("handles lines with only whitespace", () => {
-			const result = parseCardLine("   ");
+			const line = "   ";
+			const result = parseCardLine(line, { raw: line });
 			expect(result).toBeNull();
 		});
 
 		it("handles tab characters", () => {
-			const result = parseCardLine("4\tLightning Bolt");
+			const line = "4\tLightning Bolt";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.quantity).toBe(4);
 			expect(result?.name).toBe("Lightning Bolt");
 		});
@@ -718,31 +757,33 @@ Sideboard
 
 	describe("card name edge cases", () => {
 		it("parses cards with commas in name", () => {
-			const result = parseCardLine("1 Ach! Hans, Run!");
+			const line = "1 Ach! Hans, Run!";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.name).toBe("Ach! Hans, Run!");
 		});
 
 		it("parses cards with apostrophes", () => {
-			const result = parseCardLine("1 Agadeem's Awakening (ZNR) 90");
+			const line = "1 Agadeem's Awakening (ZNR) 90";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.name).toBe("Agadeem's Awakening");
 		});
 
 		it("parses cards with + in name", () => {
-			const result = parseCardLine("4 +2 Mace (AFR) 1");
+			const line = "4 +2 Mace (AFR) 1";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.name).toBe("+2 Mace");
 		});
 
 		it("parses cards starting with numbers", () => {
-			// Real card: "1996 World Champion"
-			const result = parseCardLine("1 1996 World Champion");
+			const line = "1 1996 World Champion";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.quantity).toBe(1);
 			expect(result?.name).toBe("1996 World Champion");
 		});
 
 		it("handles very long card names", () => {
-			const result = parseCardLine(
-				"1 Asmoranomardicadaistinaculdacar (MH2) 186",
-			);
+			const line = "1 Asmoranomardicadaistinaculdacar (MH2) 186";
+			const result = parseCardLine(line, { raw: line });
 			expect(result?.name).toBe("Asmoranomardicadaistinaculdacar");
 			expect(result?.setCode).toBe("MH2");
 		});

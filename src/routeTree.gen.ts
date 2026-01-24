@@ -19,6 +19,7 @@ import { Route as OauthCallbackRouteImport } from './routes/oauth/callback'
 import { Route as DevPmDemoRouteImport } from './routes/dev/pm-demo'
 import { Route as DevMigrateRouteImport } from './routes/dev/migrate'
 import { Route as DeckNewRouteImport } from './routes/deck/new'
+import { Route as DeckImportRouteImport } from './routes/deck/import'
 import { Route as CardIdRouteImport } from './routes/card/$id'
 import { Route as ProfileDidIndexRouteImport } from './routes/profile/$did/index'
 import { Route as ProfileDidListsRouteImport } from './routes/profile/$did/lists'
@@ -80,6 +81,11 @@ const DeckNewRoute = DeckNewRouteImport.update({
   path: '/deck/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeckImportRoute = DeckImportRouteImport.update({
+  id: '/deck/import',
+  path: '/deck/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CardIdRoute = CardIdRouteImport.update({
   id: '/card/$id',
   path: '/card/$id',
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/card/$id': typeof CardIdRoute
+  '/deck/import': typeof DeckImportRoute
   '/deck/new': typeof DeckNewRoute
   '/dev/migrate': typeof DevMigrateRoute
   '/dev/pm-demo': typeof DevPmDemoRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/card/$id': typeof CardIdRoute
+  '/deck/import': typeof DeckImportRoute
   '/deck/new': typeof DeckNewRoute
   '/dev/migrate': typeof DevMigrateRoute
   '/dev/pm-demo': typeof DevPmDemoRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/card/$id': typeof CardIdRoute
+  '/deck/import': typeof DeckImportRoute
   '/deck/new': typeof DeckNewRoute
   '/dev/migrate': typeof DevMigrateRoute
   '/dev/pm-demo': typeof DevPmDemoRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/card/$id'
+    | '/deck/import'
     | '/deck/new'
     | '/dev/migrate'
     | '/dev/pm-demo'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/card/$id'
+    | '/deck/import'
     | '/deck/new'
     | '/dev/migrate'
     | '/dev/pm-demo'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/card/$id'
+    | '/deck/import'
     | '/deck/new'
     | '/dev/migrate'
     | '/dev/pm-demo'
@@ -271,6 +283,7 @@ export interface RootRouteChildren {
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   CardIdRoute: typeof CardIdRoute
+  DeckImportRoute: typeof DeckImportRoute
   DeckNewRoute: typeof DeckNewRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
   UHandleRoute: typeof UHandleRoute
@@ -351,6 +364,13 @@ declare module '@tanstack/react-router' {
       path: '/deck/new'
       fullPath: '/deck/new'
       preLoaderRoute: typeof DeckNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deck/import': {
+      id: '/deck/import'
+      path: '/deck/import'
+      fullPath: '/deck/import'
+      preLoaderRoute: typeof DeckImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/card/$id': {
@@ -474,6 +494,7 @@ const rootRouteChildren: RootRouteChildren = {
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   CardIdRoute: CardIdRoute,
+  DeckImportRoute: DeckImportRoute,
   DeckNewRoute: DeckNewRoute,
   OauthCallbackRoute: OauthCallbackRoute,
   UHandleRoute: UHandleRoute,

@@ -85,6 +85,12 @@ This file tracks discovered issues, refactoring opportunities, and feature ideas
 
 ### Medium Priority
 
+#### Bulk edit: use deck-formats parser and line matching
+- **Location**: `src/routes/profile/$did/deck/$rkey/bulk-edit.tsx`
+- **Issue**: Uses old `parseCardList` from deck-import.ts, and `parsedByRaw` map loses duplicate lines in preview
+- **Fix**: Switch to `parseDeck` from deck-formats, use `matchLinesToParsedCards` for preview line matching
+- **Effort**: Small (1-2 hours)
+
 #### Memoize regex patterns in getSourceTempo
 - **Location**: `src/lib/deck-stats.ts:148-225`
 - **Issue**: Regex patterns compiled on every function call, no memoization
