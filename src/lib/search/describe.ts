@@ -173,6 +173,10 @@ const IS_DESCRIPTIONS: Record<string, string> = {
 	gameday: "game day promos",
 	release: "release promos",
 	promopacks: "promo pack cards",
+
+	// Universes Beyond
+	ub: "Universes Beyond cards",
+	universesbeyond: "Universes Beyond cards",
 };
 
 function sortColors(colors: Set<string>): string[] {

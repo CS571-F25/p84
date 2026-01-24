@@ -689,7 +689,6 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 	partner: hasPartnerMechanic,
 	// Can be a Pauper Commander (PDH) - uncommon creature/vehicle/spacecraft in paper/MTGO
 	paupercommander: canBePauperCommander,
-	pdhcommander: canBePauperCommander,
 
 	// Type-based predicates
 	permanent: (card) => {
@@ -734,7 +733,6 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 	showcase: (card) => card.frame_effects?.includes("showcase") ?? false,
 	extendedart: (card) => card.frame_effects?.includes("extendedart") ?? false,
 	borderless: (card) => card.border_color === "borderless",
-	fullart: (card) => card.full_art === true,
 	inverted: (card) => card.frame_effects?.includes("inverted") ?? false,
 	colorshifted: (card) => card.frame_effects?.includes("colorshifted") ?? false,
 	retro: (card) => card.frame === "1997" || card.frame === "1993",
@@ -838,16 +836,6 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 			oracle.includes("enters tapped unless you control two or more basic")
 		);
 	},
-	battleland: (card) => {
-		const oracle = card.oracle_text?.toLowerCase() ?? "";
-		const types = card.type_line?.toLowerCase() ?? "";
-		const landTypes = ["plains", "island", "swamp", "mountain", "forest"];
-		const matchCount = landTypes.filter((t) => types.includes(t)).length;
-		return (
-			matchCount >= 2 &&
-			oracle.includes("enters tapped unless you control two or more basic")
-		);
-	},
 	scryland: (card) => {
 		const oracle = card.oracle_text ?? "";
 		// Pattern: "This land enters tapped.\nWhen this land enters, scry 1. (reminder text)\n{T}: Add {W} or {U}."
@@ -873,11 +861,6 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 		const pattern =
 			/^\{T\}, Pay 1 life: Add \{[WUBRG]\} or \{[WUBRG]\}\.\n\{1\}, \{T\}, Sacrifice this land: Draw a card\.$/i;
 		return pattern.test(oracle);
-	},
-	creatureland: (card) => {
-		const oracle = card.oracle_text?.toLowerCase() ?? "";
-		const types = card.type_line?.toLowerCase() ?? "";
-		return types.includes("land") && oracle.includes("becomes a");
 	},
 
 	// Card archetypes
@@ -1028,12 +1011,31 @@ const IS_PREDICATES: Record<string, CardPredicate> = {
 
 	// Hires/quality
 	hires: (card) => card.highres_image === true,
+
+	// Universes Beyond (promo_types or triangle security stamp)
+	ub: (card) =>
+		card.promo_types?.includes("universesbeyond") ||
+		card.security_stamp === "triangle",
+};
+
+/**
+ * Map of is: predicate aliases to canonical names
+ */
+export const IS_PREDICATE_ALIASES: Record<string, string> = {
+	universesbeyond: "ub",
+	battleland: "tangoland",
+	creatureland: "manland",
+	fullart: "full",
+	pdhcommander: "paupercommander",
 };
 
 /**
  * Set of valid is: predicate names (for autocomplete)
  */
-export const IS_PREDICATE_NAMES = new Set(Object.keys(IS_PREDICATES));
+export const IS_PREDICATE_NAMES = new Set([
+	...Object.keys(IS_PREDICATES),
+	...Object.keys(IS_PREDICATE_ALIASES),
+]);
 
 /**
  * Compile is: predicate
@@ -1046,7 +1048,9 @@ function compileIs(
 		return err({ message: "is: requires a text value", span });
 	}
 
-	const predicate = IS_PREDICATES[value.value.toLowerCase()];
+	const name = value.value.toLowerCase();
+	const canonical = IS_PREDICATE_ALIASES[name] ?? name;
+	const predicate = IS_PREDICATES[canonical];
 	if (!predicate) {
 		return err({
 			message: `'${value.value}' is not a valid is: predicate`,

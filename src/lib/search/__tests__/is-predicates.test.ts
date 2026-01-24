@@ -794,6 +794,109 @@ describe("is: predicate tests", () => {
 		});
 	});
 
+	describe("universes beyond predicates", () => {
+		it("is:ub matches cards with universesbeyond promo_type", () => {
+			const ubCard = { promo_types: ["universesbeyond"] } as Card;
+			const result = search("is:ub");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(ubCard)).toBe(true);
+			}
+		});
+
+		it("is:ub matches cards with triangle security stamp", () => {
+			const triangleCard = { security_stamp: "triangle" } as Card;
+			const result = search("is:ub");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(triangleCard)).toBe(true);
+			}
+		});
+
+		it("is:ub matches cards with both indicators", () => {
+			const bothCard = {
+				promo_types: ["universesbeyond"],
+				security_stamp: "triangle",
+			} as Card;
+			const result = search("is:ub");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(bothCard)).toBe(true);
+			}
+		});
+
+		it("is:ub does NOT match regular cards", () => {
+			const normalCard = {
+				security_stamp: "oval",
+				promo_types: [] as string[],
+			} as Card;
+			const result = search("is:ub");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(normalCard)).toBe(false);
+			}
+		});
+
+		it("is:ub does NOT match acorn stamp cards", () => {
+			const acornCard = { security_stamp: "acorn" } as Card;
+			const result = search("is:ub");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(acornCard)).toBe(false);
+			}
+		});
+
+		it("is:universesbeyond is alias for is:ub", () => {
+			const ubCard = { promo_types: ["universesbeyond"] } as Card;
+			const shortResult = search("is:ub");
+			const longResult = search("is:universesbeyond");
+			expect(shortResult.ok && longResult.ok).toBe(true);
+			if (shortResult.ok && longResult.ok) {
+				expect(shortResult.value.match(ubCard)).toBe(
+					longResult.value.match(ubCard),
+				);
+			}
+		});
+
+		it("not:ub excludes Universes Beyond cards", () => {
+			const ubCard = { promo_types: ["universesbeyond"] } as Card;
+			const normalCard = { security_stamp: "oval" } as Card;
+			const result = search("not:ub");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(ubCard)).toBe(false);
+				expect(result.value.match(normalCard)).toBe(true);
+			}
+		});
+
+		it("is:ub matches The Eleventh Doctor (Doctor Who - triangle stamp)", async () => {
+			const card = await cards.get("The Eleventh Doctor");
+			const result = search("is:ub");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(true);
+			}
+		});
+
+		it("is:ub matches Aang, Airbending Master (Avatar - promo_types, no triangle)", async () => {
+			const card = await cards.get("Aang, Airbending Master");
+			const result = search("is:ub");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(true);
+			}
+		});
+
+		it("is:ub does NOT match Lightning Bolt (regular Magic card)", async () => {
+			const card = await cards.get("Lightning Bolt");
+			const result = search("is:ub");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(false);
+			}
+		});
+	});
+
 	describe("paupercommander predicates", () => {
 		it("is:paupercommander matches uncommon creatures with paper printing", async () => {
 			const card = await cards.get("Crackling Drake");

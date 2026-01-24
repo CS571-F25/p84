@@ -111,6 +111,9 @@ name_expr  = EXACT_NAME | WORD | QUOTED | REGEX
 **Promo types:**
 - `is:buyabox`, `is:prerelease`, `is:fnm`, `is:gameday`, `is:release`, `is:datestamped`, `is:promopacks`
 
+**Product lines:**
+- `is:ub`, `is:universesbeyond` - Universes Beyond cards (crossover products like LotR, Warhammer, etc.)
+
 **Land types:** (derived from oracle text patterns)
 - `is:fetchland` - Fetch lands (search + pay life)
 - `is:shockland` - Shock lands (pay 2 life)
