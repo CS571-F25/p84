@@ -1,6 +1,7 @@
 {
-  "short_name": "TanStack App",
-  "name": "Create TanStack App Sample",
+  "short_name": "DeckBelcher",
+  "name": "DeckBelcher - MTG Deck Builder",
+  "description": "Build and share Magic: The Gathering decks on the AT Protocol",
   "icons": [
     {
       "src": "favicon.ico",
@@ -18,8 +19,8 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#0891b2",
   "background_color": "#ffffff"
 }

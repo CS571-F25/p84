@@ -65,6 +65,20 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		],
 		links: [
 			{
+				rel: "icon",
+				type: "image/svg+xml",
+				href: "/logo.svg",
+			},
+			{
+				rel: "icon",
+				type: "image/x-icon",
+				href: "/favicon.ico",
+			},
+			{
+				rel: "apple-touch-icon",
+				href: "/logo192.png",
+			},
+			{
 				rel: "preload",
 				href: "/fonts/recursive/Recursive-VF.woff2",
 				as: "font",
