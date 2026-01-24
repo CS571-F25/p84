@@ -315,10 +315,16 @@ function ImportDeckPage() {
 		if (expectedSize && deckSize > 0) {
 			// ~100 cards but format expects 60
 			if (deckSize >= 90 && expectedSize === 60) {
-				return "Deck has ~100 cards — try Commander or Gladiator?";
+				if (hasCommander) {
+					return "Deck has ~100 cards — try Commander or Brawl?";
+				}
+				return "Deck has ~100 cards — try Commander, Brawl, or Gladiator?";
 			}
 			// ~60 cards but format expects 100
 			if (deckSize >= 50 && deckSize <= 70 && expectedSize === 100) {
+				if (hasCommander) {
+					return "Deck has ~60 cards — try Oathbreaker or Standard Brawl?";
+				}
 				return "Deck has ~60 cards — try a 60-card format?";
 			}
 		}
