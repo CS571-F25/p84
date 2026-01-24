@@ -16,6 +16,7 @@ import {
 	PAGE_SIZE,
 	searchPageQueryOptions,
 } from "@/lib/queries";
+import { describeQuery, parse } from "@/lib/search";
 import type { Card, SortOption } from "@/lib/search-types";
 import { useDebounce } from "@/lib/useDebounce";
 
@@ -29,28 +30,38 @@ export const Route = createFileRoute("/cards/")({
 			sort2: (search.sort2 as string) || undefined,
 		};
 	},
-	head: () => ({
-		meta: [
-			{ title: "cards | deck belcher" },
-			{
-				name: "description",
-				content:
-					"Browse and search Magic: The Gathering cards with Scryfall syntax.",
-			},
-			{ property: "og:title", content: "cards | deck belcher" },
-			{
-				property: "og:description",
-				content:
-					"Browse and search Magic: The Gathering cards with Scryfall syntax.",
-			},
-			{ property: "og:image", content: "/logo512-maskable.png" },
-			{ property: "og:image:width", content: "512" },
-			{ property: "og:image:height", content: "512" },
-			{ name: "twitter:card", content: "summary" },
-			{ name: "twitter:title", content: "cards | deck belcher" },
-			{ name: "twitter:image", content: "/logo512-maskable.png" },
-		],
-	}),
+	head: ({ match }) => {
+		const q = match.search.q;
+		const defaultDescription =
+			"Browse and search Magic: The Gathering cards with Scryfall syntax.";
+
+		let description = defaultDescription;
+		let title = "cards | deck belcher";
+
+		if (q) {
+			const parseResult = parse(q);
+			if (parseResult.ok) {
+				description = describeQuery(parseResult.value);
+				title = `${q} | deck belcher`;
+			}
+		}
+
+		return {
+			meta: [
+				{ title },
+				{ name: "description", content: description },
+				{ property: "og:title", content: title },
+				{ property: "og:description", content: description },
+				{ property: "og:image", content: "/logo512-maskable.png" },
+				{ property: "og:image:width", content: "512" },
+				{ property: "og:image:height", content: "512" },
+				{ name: "twitter:card", content: "summary" },
+				{ name: "twitter:title", content: title },
+				{ name: "twitter:description", content: description },
+				{ name: "twitter:image", content: "/logo512-maskable.png" },
+			],
+		};
+	},
 });
 
 function MetadataDisplay() {
