@@ -9,6 +9,8 @@ import type { Result } from "./atproto-client";
 import { transformListRecord } from "./collection-list-queries";
 import { COLLECTION_LIST_NSID, DECK_LIST_NSID } from "./constellation-client";
 import { transformDeckRecord } from "./deck-queries";
+import type { Deck } from "./deck-types";
+import { getFormatConfig } from "./deck-validation/presets";
 import {
 	ComDeckbelcherCollectionList,
 	ComDeckbelcherDeckList,
@@ -21,6 +23,23 @@ import type {
 } from "./ufos-types";
 
 const UFOS_BASE = "https://ufos-api.microcosm.blue";
+
+const FALLBACK_MIN_CARDS = 10;
+const MIN_CARD_THRESHOLD_RATIO = 0.6;
+
+function countPlayableCards(deck: Deck): number {
+	return deck.cards
+		.filter((c) => c.section === "mainboard" || c.section === "commander")
+		.reduce((sum, c) => sum + c.quantity, 0);
+}
+
+function getMinCardThreshold(format?: string): number {
+	const config = format ? getFormatConfig(format) : undefined;
+	const targetSize = config?.deckSize ?? config?.minDeckSize;
+	return targetSize
+		? Math.floor(targetSize * MIN_CARD_THRESHOLD_RATIO)
+		: FALLBACK_MIN_CARDS;
+}
 
 /**
  * Fetch recent records from UFOs API
@@ -113,9 +132,10 @@ export const recentActivityQueryOptions = (limit = 10) =>
 	queryOptions({
 		queryKey: ["ufos", "recentActivity", limit] as const,
 		queryFn: async (): Promise<ActivityRecord[]> => {
+			const fetchLimit = Math.ceil(limit * 1.5);
 			const result = await fetchRecentRecords(
 				[DECK_LIST_NSID, COLLECTION_LIST_NSID],
-				limit,
+				fetchLimit,
 			);
 			if (!result.success) {
 				throw result.error;
@@ -123,7 +143,13 @@ export const recentActivityQueryOptions = (limit = 10) =>
 
 			return result.data
 				.map(transformActivityRecord)
-				.filter((r): r is ActivityRecord => r !== null);
+				.filter((r): r is ActivityRecord => r !== null)
+				.filter((r) => {
+					if (!isDeckRecord(r)) return true;
+					const threshold = getMinCardThreshold(r.record.format);
+					return countPlayableCards(r.record) >= threshold;
+				})
+				.slice(0, limit);
 		},
 		staleTime: 60 * 1000,
 		refetchOnWindowFocus: true,
