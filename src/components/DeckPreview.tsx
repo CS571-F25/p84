@@ -129,7 +129,7 @@ export function DeckPreview({
 		<Link
 			to="/profile/$did/deck/$rkey"
 			params={{ did, rkey: asRkey(rkey) }}
-			className="group flex items-start gap-4 p-4 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 motion-safe:hover:shadow-lg transition-colors motion-safe:transition-shadow"
+			className="group flex items-start gap-4 p-4 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600 rounded-lg hover:border-cyan-500 dark:hover:border-cyan-500 motion-safe:hover:shadow-lg transition-colors motion-safe:transition-shadow min-w-0"
 		>
 			<CardSpread cardIds={previewCardIds} />
 
