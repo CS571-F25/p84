@@ -1315,6 +1315,24 @@ export function expandAlchemyYearCode(code: string): readonly string[] | undefin
 	const lower = code.toLowerCase();
 	return ALCHEMY_YEAR_SETS[lower];
 }
+
+// Build set of all individual alchemy set codes for fast lookup
+const ALL_ALCHEMY_SETS = new Set(
+	Object.values(ALCHEMY_YEAR_SETS).flat(),
+);
+
+/**
+ * Check if a set code is an Alchemy set (Y-code or individual alchemy set)
+ *
+ * Used to detect alchemy decks for format suggestions.
+ */
+export function isAlchemySetCode(code: string): boolean {
+	const lower = code.toLowerCase();
+	// Check for Y-codes (y22, y23, etc.)
+	if (ALCHEMY_YEAR_SETS[lower]) return true;
+	// Check for individual alchemy sets (ymid, yneo, hbg, etc.)
+	return ALL_ALCHEMY_SETS.has(lower);
+}
 `;
 
 	const tsPath = join(__dirname, "../src/lib/set-symbols.ts");

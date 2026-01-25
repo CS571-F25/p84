@@ -23,8 +23,14 @@ import { type ResolvedCard, resolveCards } from "@/lib/deck-import";
 import { useCreateDeckMutation } from "@/lib/deck-queries";
 import type { Section } from "@/lib/deck-types";
 import { getPreset } from "@/lib/deck-validation/presets";
-import { FORMAT_GROUPS, getFormatInfo } from "@/lib/format-utils";
+import {
+	FORMAT_GROUPS,
+	formatSuggestionList,
+	getFormatInfo,
+	suggestFormats,
+} from "@/lib/format-utils";
 import type { Card } from "@/lib/scryfall-types";
+import { isAlchemySetCode } from "@/lib/set-symbols";
 import { useDebounce } from "@/lib/useDebounce";
 
 export const Route = createFileRoute("/deck/import")({
@@ -294,6 +300,23 @@ function ImportDeckPage() {
 	const hasErrors = errorCount > 0;
 	const hasWarnings = warningCount > 0;
 
+	// Check for alchemy cards (A- prefix or alchemy set codes) in errors
+	const hasAlchemyCards = useMemo(() => {
+		if (!hasErrors) return false;
+		const allParsed = [
+			...parsedDeck.commander,
+			...parsedDeck.mainboard,
+			...parsedDeck.sideboard,
+			...parsedDeck.maybeboard,
+		];
+		return allParsed.some(
+			(card) =>
+				errorMap.has(card.raw) &&
+				(card.name.startsWith("A-") ||
+					(card.setCode && isAlchemySetCode(card.setCode))),
+		);
+	}, [parsedDeck, errorMap, hasErrors]);
+
 	// Format suggestion hint
 	const formatHint = useMemo(() => {
 		const formatInfo = getFormatInfo(gameFormat);
@@ -305,38 +328,42 @@ function ImportDeckPage() {
 			parsedDeck.mainboard.reduce((sum, c) => sum + c.quantity, 0) +
 			parsedDeck.commander.reduce((sum, c) => sum + c.quantity, 0);
 
-		// Has commander section but not a commander format
-		if (hasCommander && !isCommanderFormat) {
-			return "Deck has a commander — try a Commander format?";
-		}
+		// Build a reason and get dynamic suggestions
+		let reason: string | null = null;
 
-		// Size mismatch heuristics
-		const expectedSize =
-			formatInfo.deckSize === "variable" ? null : formatInfo.deckSize;
-		if (expectedSize && deckSize > 0) {
-			// ~100 cards but format expects 60
-			if (deckSize >= 90 && expectedSize === 60) {
-				if (hasCommander) {
-					return "Deck has ~100 cards — try Commander or Brawl?";
+		if (hasAlchemyCards && !formatInfo.supportsAlchemy) {
+			reason = "Alchemy cards found";
+		} else if (hasCommander && !isCommanderFormat) {
+			reason = "Deck has a commander";
+		} else if (hasErrors) {
+			reason = "Some cards not found";
+		} else {
+			// Size mismatch heuristics
+			const expectedSize =
+				formatInfo.deckSize === "variable" ? null : formatInfo.deckSize;
+			if (expectedSize && deckSize > 0) {
+				if (deckSize >= 90 && expectedSize === 60) {
+					reason = "Deck has ~100 cards";
+				} else if (deckSize >= 50 && deckSize <= 70 && expectedSize === 100) {
+					reason = "Deck has ~60 cards";
 				}
-				return "Deck has ~100 cards — try Commander, Brawl, or Gladiator?";
-			}
-			// ~60 cards but format expects 100
-			if (deckSize >= 50 && deckSize <= 70 && expectedSize === 100) {
-				if (hasCommander) {
-					return "Deck has ~60 cards — try Oathbreaker or Standard Brawl?";
-				}
-				return "Deck has ~60 cards — try a 60-card format?";
 			}
 		}
 
-		// Cards not resolving
-		if (hasErrors) {
-			return "Some cards not found — try changing the format?";
+		if (!reason) return null;
+
+		// Get dynamic format suggestions
+		const suggestions = suggestFormats(
+			{ deckSize, hasCommander, hasAlchemyCards },
+			gameFormat,
+		);
+
+		if (suggestions.length > 0) {
+			return `${reason} — try ${formatSuggestionList(suggestions)}?`;
 		}
 
-		return null;
-	}, [gameFormat, parsedDeck, hasErrors]);
+		return `${reason} — try changing the format?`;
+	}, [gameFormat, parsedDeck, hasErrors, hasAlchemyCards]);
 
 	const handleCreate = useCallback(() => {
 		if (!deckName.trim()) return;

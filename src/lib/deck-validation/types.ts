@@ -72,6 +72,8 @@ export interface FormatConfig {
 	minDeckSize?: number;
 	deckSize?: number;
 	sideboardSize?: number;
+	/** Format supports alchemy (rebalanced A-) cards - Arena formats only */
+	supportsAlchemy?: boolean;
 }
 
 /**

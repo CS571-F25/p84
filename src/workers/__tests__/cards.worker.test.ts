@@ -84,4 +84,23 @@ describe("CardsWorker searchCards", () => {
 			expect(results.length).toBeGreaterThan(0);
 		});
 	});
+
+	describe("alchemy cards", () => {
+		it("finds cards with A- prefix", () => {
+			// Alchemy rebalanced cards have "A-" prefix
+			const results = worker.searchCards(
+				"A-Llanowar Loamspeaker",
+				undefined,
+				10,
+			);
+			expect(results.length).toBeGreaterThan(0);
+			expect(results[0].name).toBe("A-Llanowar Loamspeaker");
+		});
+
+		it("finds A-Thran Portal", () => {
+			const results = worker.searchCards("A-Thran Portal", undefined, 10);
+			expect(results.length).toBeGreaterThan(0);
+			expect(results[0].name).toBe("A-Thran Portal");
+		});
+	});
 });

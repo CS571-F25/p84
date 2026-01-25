@@ -100,7 +100,7 @@ export const PRESETS = {
 			"commanderPartner",
 			"commanderLegendary",
 		] as const,
-		config: { legalityField: "brawl", deckSize: 100 },
+		config: { legalityField: "brawl", deckSize: 100, supportsAlchemy: true },
 	},
 	standardbrawl: {
 		rules: [
@@ -112,25 +112,48 @@ export const PRESETS = {
 			"commanderRequired",
 			"commanderLegendary",
 		] as const,
-		config: { legalityField: "standardbrawl", deckSize: 60 },
+		config: {
+			legalityField: "standardbrawl",
+			deckSize: 60,
+			supportsAlchemy: true,
+		},
 	},
 
 	// Arena formats
 	historic: {
 		rules: SIXTY_CARD_RULES,
-		config: { legalityField: "historic", minDeckSize: 60, sideboardSize: 15 },
+		config: {
+			legalityField: "historic",
+			minDeckSize: 60,
+			sideboardSize: 15,
+			supportsAlchemy: true,
+		},
 	},
 	timeless: {
 		rules: SIXTY_CARD_RULES,
-		config: { legalityField: "timeless", minDeckSize: 60, sideboardSize: 15 },
+		config: {
+			legalityField: "timeless",
+			minDeckSize: 60,
+			sideboardSize: 15,
+			supportsAlchemy: true,
+		},
 	},
 	alchemy: {
 		rules: SIXTY_CARD_RULES,
-		config: { legalityField: "alchemy", minDeckSize: 60, sideboardSize: 15 },
+		config: {
+			legalityField: "alchemy",
+			minDeckSize: 60,
+			sideboardSize: 15,
+			supportsAlchemy: true,
+		},
 	},
 	gladiator: {
 		rules: ["cardLegality", "banned", "singleton", "deckSizeMin"] as const,
-		config: { legalityField: "gladiator", minDeckSize: 100 },
+		config: {
+			legalityField: "gladiator",
+			minDeckSize: 100,
+			supportsAlchemy: true,
+		},
 	},
 
 	// Retro formats
