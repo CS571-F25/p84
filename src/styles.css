@@ -82,7 +82,7 @@ body {
  */
 em, i, .italic {
 	font-style: italic;
-	font-variation-settings: "slnt" -15;
+	font-variation-settings: "slnt" -1, "CRSV" 0;
 }
 
 code,
