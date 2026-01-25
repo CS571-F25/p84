@@ -1,5 +1,17 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Library, LogIn, Menu, Moon, Search, Sun, X } from "lucide-react";
+import {
+	FolderPlus,
+	Home,
+	Import,
+	List,
+	LogIn,
+	Menu,
+	Moon,
+	Rows3,
+	Search,
+	Sun,
+	X,
+} from "lucide-react";
 import { useState } from "react";
 import { RETURN_TO_KEY, useAuth } from "@/lib/useAuth";
 import { useTheme } from "@/lib/useTheme";
@@ -97,8 +109,8 @@ export default function Header() {
 			)}
 
 			<aside
-				className={`fixed top-0 left-0 h-full w-80 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-					isOpen ? "translate-x-0" : "-translate-x-full"
+				className={`fixed top-0 left-0 h-full w-80 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+					isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
 				}`}
 			>
 				<div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-600">
@@ -141,9 +153,104 @@ export default function Header() {
 							className: "bg-cyan-700 hover:bg-cyan-600 text-white",
 						}}
 					>
-						<Library size={20} />
+						<Search size={20} />
 						<span className="font-medium">Card Browser</span>
 					</Link>
+
+					{session && (
+						<>
+							<div className="border-t border-gray-200 dark:border-zinc-700 my-3" />
+
+							<Link
+								to="/deck/new"
+								onClick={() => setIsOpen(false)}
+								className="flex items-center gap-3 p-3 rounded-lg transition-colors mb-2"
+								inactiveProps={{
+									className: "hover:bg-gray-100 dark:hover:bg-zinc-800",
+								}}
+								activeProps={{
+									className: "bg-cyan-700 hover:bg-cyan-600 text-white",
+								}}
+							>
+								<FolderPlus size={20} />
+								<span className="font-medium">New Deck</span>
+							</Link>
+
+							<Link
+								to="/deck/import"
+								search={{ format: undefined }}
+								onClick={() => setIsOpen(false)}
+								className="flex items-center gap-3 p-3 rounded-lg transition-colors mb-2"
+								inactiveProps={{
+									className: "hover:bg-gray-100 dark:hover:bg-zinc-800",
+								}}
+								activeProps={{
+									className: "bg-cyan-700 hover:bg-cyan-600 text-white",
+								}}
+							>
+								<Import size={20} />
+								<span className="font-medium">Import Deck</span>
+							</Link>
+
+							<div className="border-t border-gray-200 dark:border-zinc-700 my-3" />
+
+							<Link
+								to="/profile/$did"
+								params={{ did: session.info.sub }}
+								onClick={() => setIsOpen(false)}
+								className="flex items-center gap-3 p-3 rounded-lg transition-colors mb-2"
+								inactiveProps={{
+									className: "hover:bg-gray-100 dark:hover:bg-zinc-800",
+								}}
+								activeProps={{
+									className: "bg-cyan-700 hover:bg-cyan-600 text-white",
+								}}
+							>
+								<Rows3 size={20} />
+								<span className="font-medium">My Decks</span>
+							</Link>
+
+							<Link
+								to="/profile/$did/lists"
+								params={{ did: session.info.sub }}
+								onClick={() => setIsOpen(false)}
+								className="flex items-center gap-3 p-3 rounded-lg transition-colors mb-2"
+								inactiveProps={{
+									className: "hover:bg-gray-100 dark:hover:bg-zinc-800",
+								}}
+								activeProps={{
+									className: "bg-cyan-700 hover:bg-cyan-600 text-white",
+								}}
+							>
+								<List size={20} />
+								<span className="font-medium">My Lists</span>
+							</Link>
+						</>
+					)}
+
+					{!session && !isLoading && (
+						<>
+							<div className="border-t border-gray-200 dark:border-zinc-700 my-3" />
+
+							<Link
+								to="/signin"
+								onClick={() => {
+									handleSignInClick();
+									setIsOpen(false);
+								}}
+								className="flex items-center gap-3 p-3 rounded-lg transition-colors mb-2"
+								inactiveProps={{
+									className: "hover:bg-gray-100 dark:hover:bg-zinc-800",
+								}}
+								activeProps={{
+									className: "bg-cyan-700 hover:bg-cyan-600 text-white",
+								}}
+							>
+								<LogIn size={20} />
+								<span className="font-medium">Sign In</span>
+							</Link>
+						</>
+					)}
 				</nav>
 			</aside>
 		</>
