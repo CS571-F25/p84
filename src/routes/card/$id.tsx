@@ -297,21 +297,17 @@ function CardDetailPage() {
 						))}
 
 						<div
-							className="grid gap-x-8 gap-y-4 text-sm"
+							className="grid gap-x-8 gap-y-4 text-sm overflow-x-auto"
 							style={{
-								gridTemplateColumns: "minmax(50%, auto) minmax(0, 1fr)",
+								gridTemplateColumns:
+									"minmax(min-content, auto) minmax(min-content, 1fr)",
 							}}
 						>
-							<div className="min-w-0">
-								<p className="text-gray-600 dark:text-zinc-300">Set</p>
-								<p
-									className="text-gray-900 dark:text-white truncate"
-									title={
-										displayCard.set_name
-											? `${displayCard.set_name} (${displayCard.set?.toUpperCase()})`
-											: undefined
-									}
-								>
+							<div>
+								<p className="text-gray-600 dark:text-zinc-300 whitespace-nowrap">
+									Set
+								</p>
+								<p className="text-gray-900 dark:text-white whitespace-nowrap">
 									{displayCard.set_name ? (
 										<>
 											{displayCard.set_name} ({displayCard.set?.toUpperCase()})
@@ -321,30 +317,31 @@ function CardDetailPage() {
 									)}
 								</p>
 							</div>
-							<div className="min-w-0">
-								<p className="text-gray-600 dark:text-zinc-300">Rarity</p>
-								<p className="text-gray-900 dark:text-white capitalize truncate">
+							<div>
+								<p className="text-gray-600 dark:text-zinc-300 whitespace-nowrap">
+									Rarity
+								</p>
+								<p className="text-gray-900 dark:text-white capitalize whitespace-nowrap">
 									{displayCard.rarity ?? (
 										<span className="text-gray-400 dark:text-zinc-600">—</span>
 									)}
 								</p>
 							</div>
-							<div className="min-w-0">
-								<p className="text-gray-600 dark:text-zinc-300">Artist</p>
-								<p
-									className="text-gray-900 dark:text-white truncate"
-									title={displayCard.artist}
-								>
+							<div>
+								<p className="text-gray-600 dark:text-zinc-300 whitespace-nowrap">
+									Artist
+								</p>
+								<p className="text-gray-900 dark:text-white whitespace-nowrap">
 									{displayCard.artist ?? (
 										<span className="text-gray-400 dark:text-zinc-600">—</span>
 									)}
 								</p>
 							</div>
-							<div className="min-w-0">
-								<p className="text-gray-600 dark:text-zinc-300">
+							<div>
+								<p className="text-gray-600 dark:text-zinc-300 whitespace-nowrap">
 									Collector Number
 								</p>
-								<p className="text-gray-900 dark:text-white truncate">
+								<p className="text-gray-900 dark:text-white whitespace-nowrap">
 									{displayCard.collector_number ?? (
 										<span className="text-gray-400 dark:text-zinc-600">—</span>
 									)}
