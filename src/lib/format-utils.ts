@@ -211,8 +211,8 @@ export function formatDisplayName(format: string | undefined): string {
 export interface DeckCharacteristics {
 	deckSize: number;
 	hasCommander: boolean;
-	/** Deck contains alchemy cards (A- prefix or alchemy set codes) that failed to resolve */
-	hasAlchemyCards: boolean;
+	/** Formats where error cards are legal (from card legalities). Used to boost matching formats. */
+	errorLegalFormats: string[];
 }
 
 // Pre-computed format info for all formats (avoids repeated getFormatInfo calls)
@@ -229,14 +229,15 @@ const ALL_FORMATS: Array<{ id: string; info: FormatInfo }> =
  * Returns format IDs sorted by relevance (max 3).
  *
  * Scoring:
- * - +100 for alchemy support (when deck has alchemy cards)
+ * - +20 per occurrence in errorLegalFormats (formats where error cards are legal)
  * - +50 for commander support (when deck has commander)
- * - +30 for matching deck size (within 20%)
- * - +10 for close deck size (within 50%)
+ * - -20 for commander format when deck has no commander (might be missing markup)
+ * - +50 for exact deck size match (within 5%)
+ * - +30 for close deck size (within 20%)
+ * - +10 for somewhat close deck size (within 50%)
  *
  * Exclusions:
- * - Formats that don't support alchemy when deck has alchemy cards (hard filter)
- * - Formats with commander mismatch (deck has commander but format doesn't, or vice versa)
+ * - Formats without commander support when deck has commander
  * - Cube (too specific, user knows if they're building a cube)
  *
  * Falls back to Kitchen Table if no other formats match.
@@ -245,7 +246,13 @@ export function suggestFormats(
 	characteristics: DeckCharacteristics,
 	currentFormat: string,
 ): string[] {
-	const { deckSize, hasCommander, hasAlchemyCards } = characteristics;
+	const { deckSize, hasCommander, errorLegalFormats } = characteristics;
+
+	// Count occurrences of each format in error legalities
+	const legalFormatCounts = new Map<string, number>();
+	for (const fmt of errorLegalFormats) {
+		legalFormatCounts.set(fmt, (legalFormatCounts.get(fmt) || 0) + 1);
+	}
 
 	const candidates: Array<{ format: string; score: number }> = [];
 
@@ -257,37 +264,36 @@ export function suggestFormats(
 
 		let score = 0;
 
-		// Alchemy support is a hard requirement if deck has alchemy cards
-		if (hasAlchemyCards) {
-			if (info.supportsAlchemy) {
-				score += 100;
-			} else {
-				continue;
-			}
+		// Boost formats where error cards are legal (+20 per card)
+		const legalCount = legalFormatCounts.get(id) || 0;
+		score += legalCount * 20;
+
+		// Commander handling:
+		// - Deck HAS commander but format doesn't support: hard exclude
+		// - Deck has NO commander but format expects one: penalty (might just be missing markup)
+		// - Both match: boost
+		if (hasCommander && info.commanderType === null) {
+			continue; // Can't use commander in non-commander format
 		}
-
-		// Commander mismatch is a hard exclusion - the format fundamentally
-		// doesn't fit the deck structure. We exclude rather than penalize because
-		// a 60-card commander deck in "Modern" shouldn't see "Standard" suggested
-		// just because it has a slightly less negative score.
-		const commanderMismatch =
-			(hasCommander && info.commanderType === null) ||
-			(!hasCommander && info.commanderType !== null);
-
-		if (commanderMismatch) continue;
 
 		if (hasCommander && info.commanderType !== null) {
 			score += 50;
+		} else if (!hasCommander && info.commanderType !== null) {
+			score -= 20; // Penalty for missing commander, but don't exclude
 		}
 
-		// Deck size matching (within ~20% tolerance)
+		// Deck size matching - bigger boost for exact match
 		const expectedSize = info.deckSize === "variable" ? null : info.deckSize;
 		if (expectedSize) {
 			const sizeDiff = Math.abs(deckSize - expectedSize);
-			const tolerance = expectedSize * 0.2;
-			if (sizeDiff <= tolerance) {
+			if (sizeDiff <= expectedSize * 0.05) {
+				// Exact or near-exact match (within 5%)
+				score += 50;
+			} else if (sizeDiff <= expectedSize * 0.2) {
+				// Close match (within 20%)
 				score += 30;
 			} else if (sizeDiff <= expectedSize * 0.5) {
+				// Somewhat close (within 50%)
 				score += 10;
 			}
 		}

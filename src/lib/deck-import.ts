@@ -39,6 +39,8 @@ export interface ImportError {
 	line: number;
 	raw: string;
 	error: string;
+	/** If card exists but isn't legal in selected format, formats where it IS legal */
+	legalFormats?: string[];
 }
 
 export interface ImportResult {
@@ -151,10 +153,26 @@ export interface ResolveOptions {
 }
 
 /**
+ * Extract formats where a card is legal from its legalities object
+ */
+function getLegalFormats(
+	legalities: Record<string, string> | undefined,
+): string[] {
+	if (!legalities) return [];
+	return Object.entries(legalities)
+		.filter(([_, status]) => status === "legal" || status === "restricted")
+		.map(([format]) => format);
+}
+
+/**
  * Resolve parsed cards to Scryfall IDs
  *
  * Uses card data provider to find matching cards by name,
  * then filters by set/collector number if provided.
+ *
+ * If lookupByNameUnrestricted is provided, cards not found with restrictions
+ * will be checked without restrictions to distinguish "doesn't exist" from
+ * "exists but not legal in this format".
  */
 export async function resolveCards(
 	parsed: ParsedCardLine[],
@@ -162,6 +180,7 @@ export async function resolveCards(
 	getPrintings: (oracleId: OracleId) => Promise<ScryfallId[]>,
 	getCardById: (id: ScryfallId) => Promise<Card | undefined>,
 	options?: ResolveOptions,
+	lookupByNameUnrestricted?: (name: string) => Promise<Card[]>,
 ): Promise<ImportResult> {
 	const resolved: ResolvedCard[] = [];
 	const errors: ImportError[] = [];
@@ -175,6 +194,21 @@ export async function resolveCards(
 			const matches = await lookupByName(line.name);
 
 			if (matches.length === 0) {
+				// Check if card exists at all (without format restrictions)
+				if (lookupByNameUnrestricted) {
+					const unrestrictedMatches = await lookupByNameUnrestricted(line.name);
+					if (unrestrictedMatches.length > 0) {
+						// Card exists but not legal in selected format
+						const card = unrestrictedMatches[0];
+						errors.push({
+							line: lineNum,
+							raw: line.raw,
+							error: `"${card.name}" not legal in this format`,
+							legalFormats: getLegalFormats(card.legalities),
+						});
+						continue;
+					}
+				}
 				errors.push({
 					line: lineNum,
 					raw: line.raw,

@@ -24,35 +24,47 @@ describe("getFormatInfo", () => {
 });
 
 describe("suggestFormats", () => {
-	it("suggests alchemy-supporting formats when hasAlchemyCards", () => {
+	it("boosts formats where error cards are legal", () => {
+		// Simulate error cards that are legal in alchemy formats
 		const suggestions = suggestFormats(
-			{ deckSize: 60, hasCommander: false, hasAlchemyCards: true },
+			{
+				deckSize: 60,
+				hasCommander: false,
+				errorLegalFormats: ["alchemy", "historic", "timeless"],
+			},
 			"standard",
 		);
 
 		expect(suggestions.length).toBeGreaterThan(0);
-		for (const fmt of suggestions) {
-			expect(getFormatInfo(fmt).supportsAlchemy).toBe(true);
-		}
+		// Should suggest formats from errorLegalFormats
+		expect(
+			suggestions.some((fmt) =>
+				["alchemy", "historic", "timeless"].includes(fmt),
+			),
+		).toBe(true);
 	});
 
-	it("suggests commander + alchemy formats when both conditions", () => {
+	it("suggests commander formats when both commander and error formats match", () => {
+		// Simulate error cards legal in brawl (which is both alchemy and commander)
 		const suggestions = suggestFormats(
-			{ deckSize: 100, hasCommander: true, hasAlchemyCards: true },
+			{
+				deckSize: 100,
+				hasCommander: true,
+				errorLegalFormats: ["brawl", "standardbrawl"],
+			},
 			"commander",
 		);
 
 		expect(suggestions.length).toBeGreaterThan(0);
 		for (const fmt of suggestions) {
 			const info = getFormatInfo(fmt);
-			expect(info.supportsAlchemy).toBe(true);
 			expect(info.commanderType).not.toBeNull();
 		}
 	});
 
 	it("suggests commander formats when hasCommander", () => {
 		const suggestions = suggestFormats(
-			{ deckSize: 100, hasCommander: true, hasAlchemyCards: false },
+			{ deckSize: 100, hasCommander: true, errorLegalFormats: [] },
 			"standard",
 		);
 
@@ -64,7 +76,11 @@ describe("suggestFormats", () => {
 
 	it("excludes current format from suggestions", () => {
 		const suggestions = suggestFormats(
-			{ deckSize: 60, hasCommander: false, hasAlchemyCards: true },
+			{
+				deckSize: 60,
+				hasCommander: false,
+				errorLegalFormats: ["alchemy", "historic"],
+			},
 			"alchemy",
 		);
 
@@ -73,7 +89,7 @@ describe("suggestFormats", () => {
 
 	it("excludes cube when other suggestions exist", () => {
 		const suggestions = suggestFormats(
-			{ deckSize: 100, hasCommander: true, hasAlchemyCards: false },
+			{ deckSize: 100, hasCommander: true, errorLegalFormats: [] },
 			"standard",
 		);
 
@@ -83,13 +99,44 @@ describe("suggestFormats", () => {
 	});
 
 	it("falls back to kitchentable when nothing else matches", () => {
-		// Tiny deck with no commander or alchemy - no format matches
+		// Tiny deck with no commander or error formats - no format matches
 		const suggestions = suggestFormats(
-			{ deckSize: 5, hasCommander: false, hasAlchemyCards: false },
+			{ deckSize: 5, hasCommander: false, errorLegalFormats: [] },
 			"standard",
 		);
 
 		expect(suggestions).toEqual(["kitchentable"]);
+	});
+
+	it("ranks formats by frequency in errorLegalFormats", () => {
+		// legacy appears twice, so it should be boosted more
+		const suggestions = suggestFormats(
+			{
+				deckSize: 60,
+				hasCommander: false,
+				errorLegalFormats: ["legacy", "vintage", "legacy"],
+			},
+			"standard",
+		);
+
+		expect(suggestions.length).toBeGreaterThan(0);
+		// legacy should be ranked higher due to more occurrences
+		expect(suggestions[0]).toBe("legacy");
+	});
+
+	it("penalizes but does not exclude commander formats when no commander", () => {
+		// 100-card deck with brawl-legal errors but no commander marked
+		// Brawl should still appear (penalized, not excluded)
+		const suggestions = suggestFormats(
+			{
+				deckSize: 100,
+				hasCommander: false,
+				errorLegalFormats: ["brawl", "brawl", "brawl"],
+			},
+			"standard",
+		);
+
+		expect(suggestions).toContain("brawl");
 	});
 });
 

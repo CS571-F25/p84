@@ -19,7 +19,11 @@ import {
 	matchLinesToParsedCards,
 	parseDeck,
 } from "@/lib/deck-formats";
-import { type ResolvedCard, resolveCards } from "@/lib/deck-import";
+import {
+	type ImportError,
+	type ResolvedCard,
+	resolveCards,
+} from "@/lib/deck-import";
 import { useCreateDeckMutation } from "@/lib/deck-queries";
 import type { Section } from "@/lib/deck-types";
 import { getPreset } from "@/lib/deck-validation/presets";
@@ -30,7 +34,6 @@ import {
 	suggestFormats,
 } from "@/lib/format-utils";
 import type { Card } from "@/lib/scryfall-types";
-import { isAlchemySetCode } from "@/lib/set-symbols";
 import { useDebounce } from "@/lib/useDebounce";
 
 export const Route = createFileRoute("/deck/import")({
@@ -171,7 +174,7 @@ function ImportDeckPage() {
 	const [resolvedMap, setResolvedMap] = useState<
 		Map<string, ResolvedCard & { cardData: Card }>
 	>(new Map());
-	const [errorMap, setErrorMap] = useState<Map<string, string>>(new Map());
+	const [errorMap, setErrorMap] = useState<Map<string, ImportError>>(new Map());
 	const [isResolving, setIsResolving] = useState(false);
 
 	// Resolve cards when parsed deck changes
@@ -210,13 +213,20 @@ function ImportDeckPage() {
 				(oracleId) => provider.getPrintingsByOracleId(oracleId),
 				(id) => provider.getCardById(id),
 				{ format: debouncedParsed.format },
+				// Unrestricted lookup to detect "exists but not legal" vs "doesn't exist"
+				restrictions
+					? async (name) =>
+							provider.searchCards
+								? provider.searchCards(name, undefined, 1)
+								: []
+					: undefined,
 			);
 
 			if (cancelled) return;
 
-			const newErrors = new Map<string, string>();
+			const newErrors = new Map<string, ImportError>();
 			for (const error of result.errors) {
-				newErrors.set(error.raw, error.error);
+				newErrors.set(error.raw, error);
 			}
 
 			const cardDataList = await Promise.all(
@@ -260,7 +270,7 @@ function ImportDeckPage() {
 
 			const error = errorMap.get(trimmed);
 			if (error) {
-				return { key, line: { type: "error", message: error } };
+				return { key, line: { type: "error", message: error.error } };
 			}
 
 			const resolved = resolvedMap.get(trimmed);
@@ -300,22 +310,19 @@ function ImportDeckPage() {
 	const hasErrors = errorCount > 0;
 	const hasWarnings = warningCount > 0;
 
-	// Check for alchemy cards (A- prefix or alchemy set codes) in errors
-	const hasAlchemyCards = useMemo(() => {
-		if (!hasErrors) return false;
-		const allParsed = [
-			...parsedDeck.commander,
-			...parsedDeck.mainboard,
-			...parsedDeck.sideboard,
-			...parsedDeck.maybeboard,
-		];
-		return allParsed.some(
-			(card) =>
-				errorMap.has(card.raw) &&
-				(card.name.startsWith("A-") ||
-					(card.setCode && isAlchemySetCode(card.setCode))),
-		);
-	}, [parsedDeck, errorMap, hasErrors]);
+	// Collect legal formats from error cards to inform suggestions
+	const { errorLegalFormats, illegalCardCount } = useMemo(() => {
+		if (!hasErrors) return { errorLegalFormats: [], illegalCardCount: 0 };
+		const formats: string[] = [];
+		let count = 0;
+		for (const error of errorMap.values()) {
+			if (error.legalFormats) {
+				formats.push(...error.legalFormats);
+				count++;
+			}
+		}
+		return { errorLegalFormats: formats, illegalCardCount: count };
+	}, [errorMap, hasErrors]);
 
 	// Format suggestion hint
 	const formatHint = useMemo(() => {
@@ -331,10 +338,13 @@ function ImportDeckPage() {
 		// Build a reason and get dynamic suggestions
 		let reason: string | null = null;
 
-		if (hasAlchemyCards && !formatInfo.supportsAlchemy) {
-			reason = "Alchemy cards found";
-		} else if (hasCommander && !isCommanderFormat) {
+		if (hasCommander && !isCommanderFormat) {
 			reason = "Deck has a commander";
+		} else if (illegalCardCount > 0) {
+			reason =
+				illegalCardCount === 1
+					? "1 card not legal in this format"
+					: `${illegalCardCount} cards not legal in this format`;
 		} else if (hasErrors) {
 			reason = "Some cards not found";
 		} else {
@@ -352,9 +362,9 @@ function ImportDeckPage() {
 
 		if (!reason) return null;
 
-		// Get dynamic format suggestions
+		// Get dynamic format suggestions based on error legalities
 		const suggestions = suggestFormats(
-			{ deckSize, hasCommander, hasAlchemyCards },
+			{ deckSize, hasCommander, errorLegalFormats },
 			gameFormat,
 		);
 
@@ -363,7 +373,7 @@ function ImportDeckPage() {
 		}
 
 		return `${reason} — try changing the format?`;
-	}, [gameFormat, parsedDeck, hasErrors, hasAlchemyCards]);
+	}, [gameFormat, parsedDeck, hasErrors, errorLegalFormats, illegalCardCount]);
 
 	const handleCreate = useCallback(() => {
 		if (!deckName.trim()) return;
