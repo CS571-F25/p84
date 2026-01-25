@@ -63,7 +63,7 @@ export function ProfileLayout({ did, children }: ProfileLayoutProps) {
 
 	return (
 		<div className="min-h-screen bg-white dark:bg-zinc-900">
-			<div className="max-w-7xl mx-auto px-6 py-16">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-14 md:py-16">
 				{/* Profile Header */}
 				<ProfileHeader
 					profile={profileData?.profile ?? null}

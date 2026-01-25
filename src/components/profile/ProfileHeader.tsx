@@ -1,5 +1,6 @@
 import { ExternalLink, Pencil } from "lucide-react";
 import { useCallback, useId, useMemo, useState } from "react";
+import { RelationshipBadge } from "@/components/profile/RelationshipBadge";
 import { ProseMirrorEditor } from "@/components/richtext/ProseMirrorEditor";
 import { RichtextRenderer } from "@/components/richtext/RichtextRenderer";
 import { schema } from "@/components/richtext/schema";
@@ -166,7 +167,7 @@ export function ProfileHeader({
 			{/* Handle row */}
 			<div className="flex items-center gap-3">
 				<h1
-					className="text-3xl font-semibold text-gray-900 dark:text-white"
+					className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white truncate min-w-0 tracking-tight sm:tracking-normal"
 					style={{ fontVariationSettings: "'MONO' 0.5, 'CASL' 0.3" }}
 				>
 					{displayHandle}
@@ -176,19 +177,18 @@ export function ProfileHeader({
 						href={handleUrl}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="text-gray-400 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-cyan-400 transition-colors"
+						className="shrink-0 text-gray-400 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-cyan-400 transition-colors"
 						title={`Visit ${handleUrl}`}
 					>
-						<ExternalLink className="w-6 h-6" />
+						<ExternalLink className="w-5 h-5 sm:w-6 sm:h-6" />
 					</a>
 				)}
 			</div>
-			{/* Pronouns */}
-			{profile?.pronouns && (
-				<p className="text-sm text-gray-500 dark:text-zinc-300">
-					{profile.pronouns}
-				</p>
-			)}
+			{/* Pronouns + relationship */}
+			<div className="flex items-center gap-2 text-sm text-gray-500 dark:text-zinc-300">
+				{profile?.pronouns && <span>{profile.pronouns}</span>}
+				<RelationshipBadge profileDid={did} />
+			</div>
 
 			{/* Bio */}
 			{hasContent && profile?.bio && (
