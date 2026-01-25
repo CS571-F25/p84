@@ -165,9 +165,9 @@ export function ProfileHeader({
 	return (
 		<div className="mb-8 space-y-2">
 			{/* Handle row */}
-			<div className="flex items-center gap-3">
+			<div className="flex items-center gap-3 mb-0">
 				<h1
-					className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white truncate min-w-0 tracking-tight sm:tracking-normal"
+					className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white truncate min-w-0 tracking-tight sm:tracking-normal leading-snug"
 					style={{ fontVariationSettings: "'MONO' 0.5, 'CASL' 0.3" }}
 				>
 					{displayHandle}
