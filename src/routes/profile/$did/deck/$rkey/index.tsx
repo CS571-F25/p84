@@ -2,6 +2,7 @@ import type { Did } from "@atcute/lexicons";
 import { type DragEndEvent, useDndMonitor } from "@dnd-kit/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link as LinkIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
@@ -688,6 +689,17 @@ function DeckEditorInner({
 							readOnly={!isOwner}
 							placeholder="Write about your deck's strategy, key combos, card choices..."
 							availableTags={allTags}
+							fullViewLink={
+								<Link
+									to="/profile/$did/deck/$rkey/primer"
+									params={{ did, rkey }}
+									target="_blank"
+									className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium rounded-md bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300"
+								>
+									<LinkIcon className="w-4 h-4" />
+									Open
+								</Link>
+							}
 						/>
 					</TagClickContext.Provider>
 				</ErrorBoundary>

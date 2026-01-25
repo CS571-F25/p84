@@ -34,6 +34,8 @@ interface RichtextSectionProps {
 	placeholder?: string;
 	emptyText?: string;
 	availableTags?: string[];
+	/** Rendered next to expand/collapse button when content is truncated */
+	fullViewLink?: React.ReactNode;
 }
 
 const COLLAPSED_LINES = 8;
@@ -47,6 +49,7 @@ export function RichtextSection({
 	placeholder = "Write something...",
 	emptyText = "Add a description...",
 	availableTags,
+	fullViewLink,
 }: RichtextSectionProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isExpanded, setIsExpanded] = useState(false);
@@ -171,6 +174,7 @@ export function RichtextSection({
 						)}
 					</button>
 				)}
+				{needsTruncation && fullViewLink}
 				{!readOnly && (
 					<button
 						type="button"
