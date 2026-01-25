@@ -1,7 +1,7 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { CardImage } from "@/components/CardImage";
+import { CardImage, CardSkeleton } from "@/components/CardImage";
 import { CommentsPanel } from "@/components/comments";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
@@ -226,10 +226,17 @@ function CardDetailPage() {
 		return (
 			<div className="min-h-screen bg-white dark:bg-zinc-900">
 				<div className="max-w-7xl mx-auto px-6 py-8">
-					<div className="flex items-center justify-center py-20">
-						<p className="text-gray-600 dark:text-zinc-300 text-lg">
-							Loading card...
-						</p>
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+						<div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 py-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:top-8 flex justify-center lg:justify-end">
+							<CardSkeleton className="h-[50vh] lg:h-[80vh] shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)]" />
+						</div>
+						<div className="space-y-6 min-w-0">
+							<div className="space-y-3">
+								<div className="h-9 w-64 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse" />
+								<div className="h-6 w-48 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse" />
+							</div>
+							<div className="h-32 bg-gray-100 dark:bg-zinc-800 rounded-lg animate-pulse" />
+						</div>
 					</div>
 				</div>
 			</div>
@@ -263,7 +270,7 @@ function CardDetailPage() {
 						<CardImage
 							card={displayCard}
 							size="large"
-							className="shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)] max-w-full h-auto max-h-[50vh] lg:max-h-[80vh] object-contain"
+							className="shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)] h-[50vh] lg:h-[80vh]"
 						/>
 					</div>
 

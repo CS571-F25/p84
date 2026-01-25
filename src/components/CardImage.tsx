@@ -78,7 +78,7 @@ export function CardImage({
 		}
 	};
 
-	const baseClassName = `${className ?? ""} rounded-[4.75%/3.5%]`;
+	const baseClassName = `${className ?? ""} rounded-[4.75%/3.5%] aspect-[5/7]`;
 
 	if (!flippable) {
 		return (
@@ -159,10 +159,10 @@ export function CardImage({
 /**
  * Loading placeholder for card thumbnails
  */
-export function CardSkeleton() {
+export function CardSkeleton({ className }: { className?: string }) {
 	return (
 		<div
-			className="aspect-[5/7] rounded-[4.75%/3.5%] bg-gray-200 dark:bg-zinc-700 animate-pulse"
+			className={`aspect-[5/7] rounded-[4.75%/3.5%] bg-gray-200 dark:bg-zinc-700 animate-pulse ${className ?? ""}`}
 			style={{ backgroundImage: PLACEHOLDER_STRIPES }}
 		/>
 	);
