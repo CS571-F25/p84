@@ -26,7 +26,17 @@ export const PLACEHOLDER_STRIPES = `repeating-linear-gradient(
 export const CARD_ASPECT_RATIO = "672/936";
 
 /** Card border radius matching physical card corners */
-export const CARD_BORDER_RADIUS = "4.75%/3.5%";
+export const CARD_BORDER_RADIUS = "4.75% / 3.5%";
+
+/**
+ * Inline styles for card dimensions.
+ * Using inline styles instead of Tailwind arbitrary values like `aspect-[${VAR}]`
+ * because Tailwind's JIT compiler can't see dynamic template literals at build time.
+ */
+export const CARD_STYLES = {
+	aspectRatio: CARD_ASPECT_RATIO,
+	borderRadius: CARD_BORDER_RADIUS,
+} as const;
 
 interface CardImageProps {
 	card: Pick<Card, "name" | "id"> & { layout?: Layout };
@@ -90,7 +100,7 @@ export function CardImage({
 
 	// Base styles always applied to images
 	// text-transparent hides browser's ugly alt text rendering
-	const imgBaseClassName = `rounded-[${CARD_BORDER_RADIUS}] aspect-[${CARD_ASPECT_RATIO}] max-w-full text-transparent ${imgClassName ?? ""}`;
+	const imgBaseClassName = `max-w-full text-transparent ${imgClassName ?? ""}`;
 
 	if (!flippable) {
 		// Non-flippable: no wrapper, both outer and img classes go on the img
@@ -99,7 +109,7 @@ export function CardImage({
 				src={getImageUri(card.id, size, face)}
 				alt={card.name}
 				className={`${outerClassName ?? ""} ${imgBaseClassName} bg-gray-200 dark:bg-zinc-700`}
-				style={{ backgroundImage: PLACEHOLDER_STRIPES }}
+				style={{ ...CARD_STYLES, backgroundImage: PLACEHOLDER_STRIPES }}
 				loading="lazy"
 			/>
 		);
@@ -110,7 +120,8 @@ export function CardImage({
 
 	return (
 		<div
-			className={`relative group aspect-[${CARD_ASPECT_RATIO}] ${outerClassName ?? ""}`}
+			className={`relative group ${outerClassName ?? ""}`}
+			style={{ aspectRatio: CARD_ASPECT_RATIO }}
 		>
 			{flipBehavior === "transform" && hasBack ? (
 				<div
@@ -126,6 +137,7 @@ export function CardImage({
 						className={`w-full ${imgBaseClassName} bg-gray-200 dark:bg-zinc-700`}
 						loading="lazy"
 						style={{
+							...CARD_STYLES,
 							backfaceVisibility: "hidden",
 							backgroundImage: PLACEHOLDER_STRIPES,
 						}}
@@ -136,6 +148,7 @@ export function CardImage({
 						className={`w-full ${imgBaseClassName} bg-gray-200 dark:bg-zinc-700 absolute inset-0`}
 						loading="lazy"
 						style={{
+							...CARD_STYLES,
 							backfaceVisibility: "hidden",
 							transform: "rotateY(180deg)",
 							backgroundImage: PLACEHOLDER_STRIPES,
@@ -149,6 +162,7 @@ export function CardImage({
 					className={`w-full ${imgBaseClassName} bg-gray-200 dark:bg-zinc-700 motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out`}
 					loading="lazy"
 					style={{
+						...CARD_STYLES,
 						backgroundImage: PLACEHOLDER_STRIPES,
 						transformOrigin: "center center",
 						transform: isFlipped
@@ -177,8 +191,8 @@ export function CardImage({
 export function CardSkeleton({ className }: { className?: string }) {
 	return (
 		<div
-			className={`aspect-[${CARD_ASPECT_RATIO}] rounded-[${CARD_BORDER_RADIUS}] bg-gray-200 dark:bg-zinc-700 animate-pulse ${className ?? ""}`}
-			style={{ backgroundImage: PLACEHOLDER_STRIPES }}
+			className={`bg-gray-200 dark:bg-zinc-700 animate-pulse ${className ?? ""}`}
+			style={{ ...CARD_STYLES, backgroundImage: PLACEHOLDER_STRIPES }}
 		/>
 	);
 }
@@ -216,11 +230,17 @@ export function CardThumbnail({ card, href, onClick }: CardThumbnailProps) {
 		</>
 	);
 
-	const className = `group relative aspect-[${CARD_ASPECT_RATIO}] overflow-hidden hover:ring-2 hover:ring-cyan-500 motion-safe:transition-shadow block rounded-[${CARD_BORDER_RADIUS}]`;
+	const wrapperClassName =
+		"group relative overflow-hidden hover:ring-2 hover:ring-cyan-500 motion-safe:transition-shadow block";
 
 	if (href) {
 		return (
-			<Link to={href} className={className} onClick={onClick}>
+			<Link
+				to={href}
+				className={wrapperClassName}
+				style={CARD_STYLES}
+				onClick={onClick}
+			>
 				{content}
 			</Link>
 		);
@@ -228,13 +248,22 @@ export function CardThumbnail({ card, href, onClick }: CardThumbnailProps) {
 
 	if (onClick) {
 		return (
-			<button type="button" onClick={onClick} className={className}>
+			<button
+				type="button"
+				onClick={onClick}
+				className={wrapperClassName}
+				style={CARD_STYLES}
+			>
 				{content}
 			</button>
 		);
 	}
 
-	return <div className={className}>{content}</div>;
+	return (
+		<div className={wrapperClassName} style={CARD_STYLES}>
+			{content}
+		</div>
+	);
 }
 
 interface CardPreviewProps {
@@ -265,19 +294,23 @@ export function CardPreview({
 		/>
 	);
 
-	const baseClassName = `aspect-[${CARD_ASPECT_RATIO}] overflow-hidden hover:ring-2 hover:ring-cyan-500 motion-safe:transition-shadow block rounded-[${CARD_BORDER_RADIUS}]`;
-	const finalClassName = `${baseClassName} ${className ?? ""}`;
+	const baseClassName = `overflow-hidden hover:ring-2 hover:ring-cyan-500 motion-safe:transition-shadow block ${className ?? ""}`;
 
 	if (href) {
 		return (
-			<Link to={href} className={finalClassName} title={setName}>
+			<Link
+				to={href}
+				className={baseClassName}
+				style={CARD_STYLES}
+				title={setName}
+			>
 				{content}
 			</Link>
 		);
 	}
 
 	return (
-		<div className={finalClassName} title={setName}>
+		<div className={baseClassName} style={CARD_STYLES} title={setName}>
 			{content}
 		</div>
 	);

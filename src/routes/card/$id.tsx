@@ -1,11 +1,7 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import {
-	CARD_ASPECT_RATIO,
-	CardImage,
-	CardSkeleton,
-} from "@/components/CardImage";
+import { CardImage, CardSkeleton } from "@/components/CardImage";
 import { CommentsPanel } from "@/components/comments";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
@@ -232,9 +228,8 @@ function CardDetailPage() {
 				<div className="max-w-7xl mx-auto px-6 py-8">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 						<div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 py-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:top-8 flex justify-center lg:justify-end">
-							<div
-								className={`w-full max-w-[calc(50vh*${CARD_ASPECT_RATIO})] lg:max-w-[calc(80vh*${CARD_ASPECT_RATIO})]`}
-							>
+							{/* 672/936 = card aspect ratio, hardcoded because Tailwind JIT can't see template literals */}
+							<div className="w-full max-w-[calc(50vh*672/936)] lg:max-w-[calc(80vh*672/936)]">
 								<CardSkeleton className="h-full w-full shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)]" />
 							</div>
 						</div>
@@ -275,9 +270,8 @@ function CardDetailPage() {
 			<div className="max-w-7xl mx-auto px-6 py-8">
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 					<div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 py-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:top-8 flex justify-center lg:justify-end">
-						<div
-							className={`w-full max-w-[calc(50vh*${CARD_ASPECT_RATIO})] lg:max-w-[calc(80vh*${CARD_ASPECT_RATIO})]`}
-						>
+						{/* 672/936 = card aspect ratio, hardcoded because Tailwind JIT can't see template literals */}
+						<div className="w-full max-w-[calc(50vh*672/936)] lg:max-w-[calc(80vh*672/936)]">
 							<CardImage
 								card={displayCard}
 								size="large"

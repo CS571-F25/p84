@@ -117,6 +117,12 @@ This file tracks discovered issues, refactoring opportunities, and feature ideas
 
 ### Lower Priority
 
+#### CSS variable for card aspect ratio
+- **Location**: `src/routes/card/$id.tsx`, various places with `672/936` hardcoded
+- **Issue**: Card aspect ratio (672/936) is hardcoded in Tailwind arbitrary values because JIT can't see template literals
+- **Fix**: Define `--card-aspect-ratio: 672/936` in styles.css, use `calc(50vh*var(--card-aspect-ratio))` in Tailwind
+- **Effort**: Trivial (15 min)
+
 #### Extract meta tag builder in card route
 - **Location**: `src/routes/card/$id.tsx:62-113`
 - **Issue**: 51 lines of nested object literals for OG/Twitter meta tags

@@ -1,9 +1,5 @@
 import { useDraggable } from "@dnd-kit/core";
-import {
-	CARD_ASPECT_RATIO,
-	CARD_BORDER_RADIUS,
-	PLACEHOLDER_STRIPES,
-} from "@/components/CardImage";
+import { CARD_STYLES, PLACEHOLDER_STRIPES } from "@/components/CardImage";
 import type { CardInstance } from "@/lib/goldfish/types";
 import type { Card } from "@/lib/scryfall-types";
 import { getImageUri } from "@/lib/scryfall-utils";
@@ -64,15 +60,13 @@ export function GoldfishCard({
 				<img
 					src={imageSrc}
 					alt={card?.name ?? "Card"}
-					className={`rounded-[${CARD_BORDER_RADIUS}] bg-gray-200 dark:bg-zinc-700 ${sizeClass} aspect-[${CARD_ASPECT_RATIO}]`}
-					style={{ backgroundImage: PLACEHOLDER_STRIPES }}
+					className={`bg-gray-200 dark:bg-zinc-700 ${sizeClass}`}
+					style={{ ...CARD_STYLES, backgroundImage: PLACEHOLDER_STRIPES }}
 					draggable={false}
 					loading="lazy"
 				/>
 			) : (
-				<div
-					className={`rounded-[${CARD_BORDER_RADIUS}] bg-amber-700 ${sizeClass} aspect-[${CARD_ASPECT_RATIO}]`}
-				/>
+				<div className={`bg-amber-700 ${sizeClass}`} style={CARD_STYLES} />
 			)}
 			{counterEntries.length > 0 && (
 				<div className="absolute bottom-1 left-1 flex flex-wrap gap-1 max-w-full">

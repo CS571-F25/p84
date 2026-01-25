@@ -1,6 +1,6 @@
 import { useDroppable } from "@dnd-kit/core";
 import { Droplet, Minus, Plus, RefreshCw, RotateCcw } from "lucide-react";
-import { CARD_ASPECT_RATIO, CARD_BORDER_RADIUS } from "@/components/CardImage";
+import { CARD_STYLES } from "@/components/CardImage";
 import type { CardInstance, PlayerState } from "@/lib/goldfish/types";
 import type { Card, ScryfallId } from "@/lib/scryfall-types";
 import { GoldfishCard } from "./GoldfishCard";
@@ -71,7 +71,8 @@ export function GoldfishSidebar({
 					/>
 				) : (
 					<div
-						className={`h-40 aspect-[${CARD_ASPECT_RATIO}] rounded-[${CARD_BORDER_RADIUS}] border-2 border-dashed border-gray-300 dark:border-zinc-600`}
+						className="h-40 border-2 border-dashed border-gray-300 dark:border-zinc-600"
+						style={CARD_STYLES}
 					/>
 				)}
 			</div>

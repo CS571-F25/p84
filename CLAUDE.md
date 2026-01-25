@@ -116,6 +116,23 @@ Tailwind CSS v4 is integrated via `@tailwindcss/vite` plugin. Global styles in `
   ```
   (Overlay still appears on hover, just instantly with reduced motion)
 
+**Tailwind JIT and Dynamic Classes:**
+- Tailwind's JIT compiler scans source code at build time to find class names
+- **NEVER use template literals with variables for Tailwind arbitrary values:**
+  ```tsx
+  // BAD - Tailwind can't see this at build time, CSS won't be generated
+  className={`aspect-[${CARD_ASPECT_RATIO}] rounded-[${CARD_BORDER_RADIUS}]`}
+
+  // GOOD - Use inline styles for dynamic values
+  style={{ aspectRatio: CARD_ASPECT_RATIO, borderRadius: CARD_BORDER_RADIUS }}
+
+  // GOOD - Hardcoded arbitrary values work fine (with comment explaining magic numbers)
+  className="aspect-[672/936] rounded-[4.75%/3.5%]"
+  ```
+- This only affects arbitrary value syntax like `aspect-[...]`, `max-w-[...]`, `rounded-[...]`
+- Regular class composition with variables is fine: `className={`p-4 ${isActive ? 'bg-blue-500' : ''}`}`
+- Card aspect ratio and border radius use `CARD_STYLES` from `@/components/CardImage` for inline styles
+
 ### Development Tooling
 
 - **Nix**: flake.nix provides Node.js 22, TypeSpec, and language servers
