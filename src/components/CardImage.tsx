@@ -103,15 +103,21 @@ export function CardImage({
 	const imgBaseClassName = `max-w-full text-transparent ${imgClassName ?? ""}`;
 
 	if (!flippable) {
-		// Non-flippable: no wrapper, both outer and img classes go on the img
+		// Non-flippable: wrap in div for reliable space reservation
+		// (img aspect-ratio alone is unreliable on some mobile browsers during SPA navigation)
 		return (
-			<img
-				src={getImageUri(card.id, size, face)}
-				alt={card.name}
-				className={`${outerClassName ?? ""} ${imgBaseClassName} bg-gray-200 dark:bg-zinc-700`}
-				style={{ ...CARD_STYLES, backgroundImage: PLACEHOLDER_STRIPES }}
-				loading="lazy"
-			/>
+			<div
+				className={outerClassName}
+				style={{ aspectRatio: CARD_ASPECT_RATIO }}
+			>
+				<img
+					src={getImageUri(card.id, size, face)}
+					alt={card.name}
+					className={`w-full ${imgBaseClassName} bg-gray-200 dark:bg-zinc-700`}
+					style={{ ...CARD_STYLES, backgroundImage: PLACEHOLDER_STRIPES }}
+					loading="lazy"
+				/>
+			</div>
 		);
 	}
 
