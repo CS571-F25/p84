@@ -89,7 +89,8 @@ export function CardImage({
 	};
 
 	// Base styles always applied to images
-	const imgBaseClassName = `rounded-[${CARD_BORDER_RADIUS}] aspect-[${CARD_ASPECT_RATIO}] max-w-full ${imgClassName ?? ""}`;
+	// text-transparent hides browser's ugly alt text rendering
+	const imgBaseClassName = `rounded-[${CARD_BORDER_RADIUS}] aspect-[${CARD_ASPECT_RATIO}] max-w-full text-transparent ${imgClassName ?? ""}`;
 
 	if (!flippable) {
 		// Non-flippable: no wrapper, both outer and img classes go on the img
@@ -122,7 +123,7 @@ export function CardImage({
 					<img
 						src={getImageUri(card.id, size, "front")}
 						alt={card.name}
-						className={`${imgBaseClassName} bg-gray-200 dark:bg-zinc-700`}
+						className={`w-full ${imgBaseClassName} bg-gray-200 dark:bg-zinc-700`}
 						loading="lazy"
 						style={{
 							backfaceVisibility: "hidden",
@@ -132,7 +133,7 @@ export function CardImage({
 					<img
 						src={getImageUri(card.id, size, "back")}
 						alt={`${card.name} (back)`}
-						className={`${imgBaseClassName} bg-gray-200 dark:bg-zinc-700 absolute inset-0`}
+						className={`w-full ${imgBaseClassName} bg-gray-200 dark:bg-zinc-700 absolute inset-0`}
 						loading="lazy"
 						style={{
 							backfaceVisibility: "hidden",
@@ -145,7 +146,7 @@ export function CardImage({
 				<img
 					src={getImageUri(card.id, size, face)}
 					alt={card.name}
-					className={`${imgBaseClassName} bg-gray-200 dark:bg-zinc-700 motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out`}
+					className={`w-full ${imgBaseClassName} bg-gray-200 dark:bg-zinc-700 motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out`}
 					loading="lazy"
 					style={{
 						backgroundImage: PLACEHOLDER_STRIPES,
