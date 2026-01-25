@@ -699,6 +699,48 @@ describe("Scryfall search integration", () => {
 		});
 	});
 
+	describe("set: arena code normalization", () => {
+		const domCard = { set: "dom" } as Card;
+		const dd1Card = { set: "dd1" } as Card;
+		const evgCard = { set: "evg" } as Card;
+
+		it("set:dar finds Dominaria (dom) cards", () => {
+			// "dar" is Arena's code for Dominaria
+			const result = search("set:dar");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(domCard)).toBe(true);
+			}
+		});
+
+		it("set:dom still works directly", () => {
+			const result = search("set:dom");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(domCard)).toBe(true);
+			}
+		});
+
+		it("set:evg finds Anthology (evg), not dd1", () => {
+			// "evg" is shadowed - Arena uses it for dd1, but Scryfall has its own evg set
+			// We should NOT map it to dd1 in search to avoid hiding paper set
+			const result = search("set:evg");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(evgCard)).toBe(true);
+				expect(result.value.match(dd1Card)).toBe(false);
+			}
+		});
+
+		it("in:dar also normalizes arena codes", () => {
+			const result = search("in:dar");
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(domCard)).toBe(true);
+			}
+		});
+	});
+
 	describe("complex queries", () => {
 		it("commander deckbuilding query", async () => {
 			const elves = await cards.get("Llanowar Elves");

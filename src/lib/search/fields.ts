@@ -7,6 +7,7 @@ import {
 	canBePauperCommander,
 	hasPartnerMechanic,
 } from "@/lib/deck-validation/card-utils";
+import { normalizeSetCodeForSearch } from "@/lib/set-symbols";
 import type { Card } from "../scryfall-types";
 import { compareColors } from "./colors";
 import type {
@@ -134,7 +135,7 @@ export function compileField(
 
 		// Set/printing (discrete fields use exact match for ':')
 		case "set":
-			return ok(compileTextField((c) => c.set, operator, value, true));
+			return ok(compileSetField(operator, value));
 
 		case "settype":
 			return ok(compileTextField((c) => c.set_type, operator, value, true));
@@ -278,6 +279,40 @@ function compileOracleText(
 
 		return false;
 	};
+}
+
+/**
+ * Compile set field matcher with Arena/MTGO code normalization
+ *
+ * Maps arena codes (dar→dom) to scryfall codes, but only for unambiguous mappings.
+ * Shadowed codes (evg, med) are left as-is to avoid hiding real paper sets.
+ */
+function compileSetField(
+	operator: ComparisonOp,
+	value: FieldValue,
+): CardPredicate {
+	if (value.kind === "regex") {
+		const pattern = value.pattern;
+		return (card) => (card.set ? pattern.test(card.set) : false);
+	}
+
+	if (value.kind !== "string") {
+		return () => false;
+	}
+
+	// normalizeSetCodeForSearch returns lowercase, but card.set may not be
+	const searchValue = normalizeSetCodeForSearch(value.value);
+
+	switch (operator) {
+		case ":":
+		case "=":
+			return (card) => card.set?.toLowerCase() === searchValue;
+		case "!=":
+			return (card) =>
+				card.set ? card.set.toLowerCase() !== searchValue : true;
+		default:
+			return (card) => card.set?.toLowerCase() === searchValue;
+	}
 }
 
 /**
@@ -583,12 +618,14 @@ function compileIn(operator: ComparisonOp, value: FieldValue): CardPredicate {
 	// Fall back to set code or language
 	// Set codes are typically 3-4 chars, languages are 2-3 chars
 	// Check both - if either matches, include the card
+	// Normalize set code for arena/mtgo compatibility (dar→dom, etc.)
+	const normalizedSetCode = normalizeSetCodeForSearch(searchValue);
 	return isNegated
 		? (card) =>
-				card.set?.toLowerCase() !== searchValue &&
+				card.set?.toLowerCase() !== normalizedSetCode &&
 				card.lang?.toLowerCase() !== searchValue
 		: (card) =>
-				card.set?.toLowerCase() === searchValue ||
+				card.set?.toLowerCase() === normalizedSetCode ||
 				card.lang?.toLowerCase() === searchValue;
 }
 
