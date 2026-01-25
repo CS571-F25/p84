@@ -12,7 +12,11 @@ import {
 	useSensors,
 } from "@dnd-kit/core";
 import { type ReactNode, useId, useRef, useState } from "react";
-import { PLACEHOLDER_STRIPES } from "@/components/CardImage";
+import {
+	CARD_ASPECT_RATIO,
+	CARD_BORDER_RADIUS,
+	PLACEHOLDER_STRIPES,
+} from "@/components/CardImage";
 import type { CardInstance } from "@/lib/goldfish/types";
 import { getImageUri } from "@/lib/scryfall-utils";
 
@@ -116,12 +120,14 @@ function DragPreview({ instance }: { instance: CardInstance }) {
 				<img
 					src={imageSrc}
 					alt="Dragging card"
-					className="h-40 aspect-[5/7] rounded-[4.75%/3.5%] bg-gray-200 dark:bg-zinc-700 shadow-2xl"
+					className={`h-40 aspect-[${CARD_ASPECT_RATIO}] rounded-[${CARD_BORDER_RADIUS}] bg-gray-200 dark:bg-zinc-700 shadow-2xl`}
 					style={{ backgroundImage: PLACEHOLDER_STRIPES }}
 					draggable={false}
 				/>
 			) : (
-				<div className="h-40 aspect-[5/7] rounded-[4.75%/3.5%] bg-amber-700 shadow-2xl" />
+				<div
+					className={`h-40 aspect-[${CARD_ASPECT_RATIO}] rounded-[${CARD_BORDER_RADIUS}] bg-amber-700 shadow-2xl`}
+				/>
 			)}
 			{counterEntries.length > 0 && (
 				<div className="absolute bottom-1 left-1 flex flex-wrap gap-1 max-w-full">

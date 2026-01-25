@@ -22,11 +22,20 @@ export const PLACEHOLDER_STRIPES = `repeating-linear-gradient(
 	rgba(0,0,0,0.05) 16px
 )`;
 
+/** Scryfall card image aspect ratio (672×936 pixels) */
+export const CARD_ASPECT_RATIO = "672/936";
+
+/** Card border radius matching physical card corners */
+export const CARD_BORDER_RADIUS = "4.75%/3.5%";
+
 interface CardImageProps {
 	card: Pick<Card, "name" | "id"> & { layout?: Layout };
 	size?: ImageSize;
 	face?: CardFaceType;
-	className?: string;
+	/** Classes for the outer wrapper (sizing, layout). For non-flippable cards, applied to img. */
+	outerClassName?: string;
+	/** Classes for the img element (shadows, object-fit, etc.) */
+	imgClassName?: string;
 	isFlipped?: boolean;
 	onFlip?: (flipped: boolean) => void;
 }
@@ -46,7 +55,8 @@ export function CardImage({
 	card,
 	size = "normal",
 	face = "front",
-	className,
+	outerClassName,
+	imgClassName,
 	isFlipped: controlledFlipped,
 	onFlip,
 }: CardImageProps) {
@@ -78,14 +88,16 @@ export function CardImage({
 		}
 	};
 
-	const baseClassName = `${className ?? ""} rounded-[4.75%/3.5%] aspect-[5/7]`;
+	// Base styles always applied to images
+	const imgBaseClassName = `rounded-[${CARD_BORDER_RADIUS}] aspect-[${CARD_ASPECT_RATIO}] max-w-full ${imgClassName ?? ""}`;
 
 	if (!flippable) {
+		// Non-flippable: no wrapper, both outer and img classes go on the img
 		return (
 			<img
 				src={getImageUri(card.id, size, face)}
 				alt={card.name}
-				className={`${baseClassName} bg-gray-200 dark:bg-zinc-700`}
+				className={`${outerClassName ?? ""} ${imgBaseClassName} bg-gray-200 dark:bg-zinc-700`}
 				style={{ backgroundImage: PLACEHOLDER_STRIPES }}
 				loading="lazy"
 			/>
@@ -96,7 +108,9 @@ export function CardImage({
 	const rotateScale = 5 / 7;
 
 	return (
-		<div className="relative group">
+		<div
+			className={`relative group aspect-[${CARD_ASPECT_RATIO}] ${outerClassName ?? ""}`}
+		>
 			{flipBehavior === "transform" && hasBack ? (
 				<div
 					className="w-full motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out"
@@ -108,7 +122,7 @@ export function CardImage({
 					<img
 						src={getImageUri(card.id, size, "front")}
 						alt={card.name}
-						className={`${baseClassName} bg-gray-200 dark:bg-zinc-700`}
+						className={`${imgBaseClassName} bg-gray-200 dark:bg-zinc-700`}
 						loading="lazy"
 						style={{
 							backfaceVisibility: "hidden",
@@ -118,7 +132,7 @@ export function CardImage({
 					<img
 						src={getImageUri(card.id, size, "back")}
 						alt={`${card.name} (back)`}
-						className={`${baseClassName} bg-gray-200 dark:bg-zinc-700 absolute inset-0`}
+						className={`${imgBaseClassName} bg-gray-200 dark:bg-zinc-700 absolute inset-0`}
 						loading="lazy"
 						style={{
 							backfaceVisibility: "hidden",
@@ -131,7 +145,7 @@ export function CardImage({
 				<img
 					src={getImageUri(card.id, size, face)}
 					alt={card.name}
-					className={`${baseClassName} bg-gray-200 dark:bg-zinc-700 motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out`}
+					className={`${imgBaseClassName} bg-gray-200 dark:bg-zinc-700 motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-in-out`}
 					loading="lazy"
 					style={{
 						backgroundImage: PLACEHOLDER_STRIPES,
@@ -162,7 +176,7 @@ export function CardImage({
 export function CardSkeleton({ className }: { className?: string }) {
 	return (
 		<div
-			className={`aspect-[5/7] rounded-[4.75%/3.5%] bg-gray-200 dark:bg-zinc-700 animate-pulse ${className ?? ""}`}
+			className={`aspect-[${CARD_ASPECT_RATIO}] rounded-[${CARD_BORDER_RADIUS}] bg-gray-200 dark:bg-zinc-700 animate-pulse ${className ?? ""}`}
 			style={{ backgroundImage: PLACEHOLDER_STRIPES }}
 		/>
 	);
@@ -183,7 +197,8 @@ export function CardThumbnail({ card, href, onClick }: CardThumbnailProps) {
 			<CardImage
 				card={card}
 				size="normal"
-				className="w-full h-full object-cover rounded-[4.75%/3.5%]"
+				outerClassName="w-full h-full"
+				imgClassName="object-cover"
 			/>
 			<div className="absolute inset-0 bg-gradient-to-t from-black/80 dark:from-black/90 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
 				<div className="absolute bottom-0 left-0 right-0 p-3">
@@ -200,8 +215,7 @@ export function CardThumbnail({ card, href, onClick }: CardThumbnailProps) {
 		</>
 	);
 
-	const className =
-		"group relative aspect-[5/7] overflow-hidden hover:ring-2 hover:ring-cyan-500 motion-safe:transition-shadow block rounded-[4.75%/3.5%]";
+	const className = `group relative aspect-[${CARD_ASPECT_RATIO}] overflow-hidden hover:ring-2 hover:ring-cyan-500 motion-safe:transition-shadow block rounded-[${CARD_BORDER_RADIUS}]`;
 
 	if (href) {
 		return (
@@ -245,12 +259,12 @@ export function CardPreview({
 		<CardImage
 			card={card}
 			size="normal"
-			className="w-full h-full object-cover rounded-[4.75%/3.5%]"
+			outerClassName="w-full h-full"
+			imgClassName="object-cover"
 		/>
 	);
 
-	const baseClassName =
-		"aspect-[5/7] overflow-hidden hover:ring-2 hover:ring-cyan-500 motion-safe:transition-shadow block rounded-[4.75%/3.5%]";
+	const baseClassName = `aspect-[${CARD_ASPECT_RATIO}] overflow-hidden hover:ring-2 hover:ring-cyan-500 motion-safe:transition-shadow block rounded-[${CARD_BORDER_RADIUS}]`;
 	const finalClassName = `${baseClassName} ${className ?? ""}`;
 
 	if (href) {

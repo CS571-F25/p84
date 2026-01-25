@@ -73,11 +73,7 @@ export function CardSpread({ cardIds, emptyIcon }: CardSpreadProps) {
 						} as React.CSSProperties
 					}
 				>
-					<CardImage
-						card={{ id: id as ScryfallId, name: "" }}
-						size="small"
-						className="rounded"
-					/>
+					<CardImage card={{ id: id as ScryfallId, name: "" }} size="small" />
 				</div>
 			))}
 			<style>{`

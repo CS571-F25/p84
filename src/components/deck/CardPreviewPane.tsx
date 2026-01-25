@@ -16,7 +16,8 @@ export function CardPreviewPane({ cardId }: CardPreviewPaneProps) {
 				<CardImage
 					card={data}
 					size="large"
-					className="shadow-[0_0.5rem_1.875rem_rgba(0,0,0,0.4)] dark:shadow-[0_0.5rem_1.875rem_rgba(0,0,0,0.8)] w-full h-auto object-contain rounded-[4.75%/3.5%]"
+					outerClassName="w-full h-auto"
+					imgClassName="shadow-[0_0.5rem_1.875rem_rgba(0,0,0,0.4)] dark:shadow-[0_0.5rem_1.875rem_rgba(0,0,0,0.8)] object-contain"
 				/>
 			)}
 		</div>

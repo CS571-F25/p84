@@ -1,7 +1,11 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { CardImage, CardSkeleton } from "@/components/CardImage";
+import {
+	CARD_ASPECT_RATIO,
+	CardImage,
+	CardSkeleton,
+} from "@/components/CardImage";
 import { CommentsPanel } from "@/components/comments";
 import { ManaCost } from "@/components/ManaCost";
 import { OracleText } from "@/components/OracleText";
@@ -228,7 +232,11 @@ function CardDetailPage() {
 				<div className="max-w-7xl mx-auto px-6 py-8">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 						<div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 py-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:top-8 flex justify-center lg:justify-end">
-							<CardSkeleton className="h-[50vh] lg:h-[80vh] shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)]" />
+							<div
+								className={`w-full max-w-[calc(50vh*${CARD_ASPECT_RATIO})] lg:max-w-[calc(80vh*${CARD_ASPECT_RATIO})]`}
+							>
+								<CardSkeleton className="h-full w-full shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)]" />
+							</div>
 						</div>
 						<div className="space-y-6 min-w-0">
 							<div className="space-y-3">
@@ -267,11 +275,16 @@ function CardDetailPage() {
 			<div className="max-w-7xl mx-auto px-6 py-8">
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 					<div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 py-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:top-8 flex justify-center lg:justify-end">
-						<CardImage
-							card={displayCard}
-							size="large"
-							className="shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)] h-[50vh] lg:h-[80vh]"
-						/>
+						<div
+							className={`w-full max-w-[calc(50vh*${CARD_ASPECT_RATIO})] lg:max-w-[calc(80vh*${CARD_ASPECT_RATIO})]`}
+						>
+							<CardImage
+								card={displayCard}
+								size="large"
+								outerClassName="w-full"
+								imgClassName="shadow-[0_8px_30px_rgba(0,0,0,0.4)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.8)]"
+							/>
+						</div>
 					</div>
 
 					<div className="space-y-6 min-w-0">

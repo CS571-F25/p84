@@ -127,7 +127,8 @@ function HoverCardPreviewPortal({ hover }: HoverCardPreviewPortalProps) {
 			<CardImage
 				card={card}
 				size="normal"
-				className="w-full shadow-2xl shadow-black/50"
+				outerClassName="w-full"
+				imgClassName="shadow-2xl shadow-black/50"
 			/>
 		</div>,
 		document.body,

@@ -1,6 +1,10 @@
 import type { DragEndEvent } from "@dnd-kit/core";
 import { useCallback, useRef } from "react";
-import { CardImage } from "@/components/CardImage";
+import {
+	CARD_ASPECT_RATIO,
+	CARD_BORDER_RADIUS,
+	CardImage,
+} from "@/components/CardImage";
 import type { DeckCard } from "@/lib/deck-types";
 import { useGoldfishGame } from "@/lib/goldfish";
 import type { CardInstance, Zone } from "@/lib/goldfish/types";
@@ -120,13 +124,16 @@ export function GoldfishBoard({
 						<CardImage
 							card={hoveredCardData}
 							size="large"
-							className="w-full aspect-[5/7] rounded-lg shadow-lg"
+							outerClassName="w-full"
+							imgClassName="shadow-lg"
 							isFlipped={
 								hoveredCard?.faceIndex ? hoveredCard.faceIndex > 0 : false
 							}
 						/>
 					) : (
-						<div className="w-full aspect-[5/7] rounded-lg bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-400 dark:text-zinc-400 text-sm">
+						<div
+							className={`w-full aspect-[${CARD_ASPECT_RATIO}] rounded-[${CARD_BORDER_RADIUS}] bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-400 dark:text-zinc-400 text-sm`}
+						>
 							{hoveredCard?.isFaceDown ? "Face down" : "Hover a card"}
 						</div>
 					)}

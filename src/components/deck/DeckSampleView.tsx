@@ -141,7 +141,7 @@ export function DeckSampleView({
 						<CardImage
 							card={{ id: card.cardId, name: "" }}
 							size="normal"
-							className="h-52 aspect-[5/7] rounded-lg"
+							outerClassName="h-52"
 						/>
 					</div>
 				))}

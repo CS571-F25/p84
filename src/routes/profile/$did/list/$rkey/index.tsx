@@ -318,7 +318,7 @@ function CardListItem({ item, onRemove }: CardListItemProps) {
 				<CardImage
 					card={{ id: item.scryfallId, name: card.name }}
 					size="small"
-					className="w-16 h-auto rounded"
+					outerClassName="w-16 h-auto"
 				/>
 
 				<div className="flex-1 min-w-0">

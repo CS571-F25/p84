@@ -173,7 +173,8 @@ export function CardModal({
 										<CardImage
 											card={cardData}
 											size="normal"
-											className="w-full h-auto shadow-lg rounded-[4.75%/3.5%]"
+											outerClassName="w-full h-auto"
+											imgClassName="shadow-lg"
 										/>
 									</div>
 								</div>
