@@ -1,13 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Download, MoreVertical, Play, Trash2 } from "lucide-react";
+import { Copy, Download, MoreVertical, Play, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DeleteDeckDialog } from "@/components/deck/DeleteDeckDialog";
 import type { Rkey } from "@/lib/atproto-client";
 import { getCardDataProvider } from "@/lib/card-data-provider";
 import { prefetchCards } from "@/lib/card-prefetch";
-import { useDeleteDeckMutation } from "@/lib/deck-queries";
+import {
+	useCreateDeckMutation,
+	useDeleteDeckMutation,
+} from "@/lib/deck-queries";
 import type { Deck } from "@/lib/deck-types";
 import {
 	findAllCanonicalPrintings,
@@ -15,6 +18,7 @@ import {
 	updateDeckPrintings,
 } from "@/lib/printing-selection";
 import type { ScryfallId } from "@/lib/scryfall-types";
+import { useAuth } from "@/lib/useAuth";
 
 interface DeckActionsMenuProps {
 	deck: Deck;
@@ -33,11 +37,13 @@ export function DeckActionsMenu({
 	onCardsChanged,
 	readOnly = false,
 }: DeckActionsMenuProps) {
+	const { session } = useAuth();
 	const queryClient = useQueryClient();
 	const [isOpen, setIsOpen] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 	const deleteMutation = useDeleteDeckMutation(rkey);
+	const cloneMutation = useCreateDeckMutation();
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -99,6 +105,22 @@ export function DeckActionsMenu({
 		}
 	};
 
+	const handleClone = () => {
+		setIsOpen(false);
+		const cloneName = `Copy of ${deck.name}`;
+		cloneMutation.mutate(
+			{
+				name: cloneName,
+				format: deck.format,
+				primer: deck.primer,
+				cards: deck.cards,
+			},
+			{
+				onSuccess: () => toast.success(`Created "${cloneName}"`),
+			},
+		);
+	};
+
 	return (
 		<div className="relative" ref={menuRef}>
 			<button
@@ -131,6 +153,17 @@ export function DeckActionsMenu({
 						<Download size={14} />
 						Export
 					</Link>
+					{session && (
+						<button
+							type="button"
+							onClick={handleClone}
+							disabled={cloneMutation.isPending}
+							className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors text-gray-900 dark:text-white text-sm flex items-center gap-2 disabled:opacity-50"
+						>
+							<Copy size={14} />
+							{cloneMutation.isPending ? "Cloning..." : "Clone"}
+						</button>
+					)}
 					{!readOnly && (
 						<>
 							<div className="border-t border-gray-200 dark:border-zinc-600" />
