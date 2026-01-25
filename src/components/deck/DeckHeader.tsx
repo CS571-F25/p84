@@ -58,13 +58,15 @@ export function DeckHeader({
 					/>
 				) : (
 					<h1
-						className="text-4xl font-bold text-gray-900 dark:text-white cursor-pointer hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors font-display"
+						className={`text-4xl font-bold text-gray-900 dark:text-white font-display ${!readOnly ? "cursor-pointer hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors" : ""}`}
 						onClick={handleNameClick}
 						onKeyDown={(e) => {
 							if (e.key === "Enter" || e.key === " ") {
 								handleNameClick();
 							}
 						}}
+						tabIndex={!readOnly ? 0 : undefined}
+						role={!readOnly ? "button" : undefined}
 					>
 						{name}
 					</h1>
