@@ -87,10 +87,15 @@ export function isUncommonInPaperOrMtgo(card: Card): boolean {
 /**
  * Check if this printing can be a Pauper Commander (PDH).
  * Must be creature/vehicle/spacecraft (with P/T for spacecraft) and uncommon in paper/MTGO.
+ * Silver-bordered and acorn cards are excluded.
  *
  * Note: Full validation checks ALL printings of a card. This predicate
  * only checks the current printing, suitable for search filtering.
  */
 export function canBePauperCommander(card: Card): boolean {
+	// Silver-bordered and acorn cards can't be commanders
+	if (card.border_color === "silver" || card.security_stamp === "acorn") {
+		return false;
+	}
 	return hasCommanderCreatureType(card) && isUncommonInPaperOrMtgo(card);
 }

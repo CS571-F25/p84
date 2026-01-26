@@ -20,6 +20,7 @@ const COMMANDER_CORE_RULES = [
 	"deckSizeExact",
 	"commanderRequired",
 	"commanderPartner",
+	"illegalCardType",
 ] as const satisfies readonly RuleId[];
 
 /**

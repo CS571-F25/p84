@@ -93,6 +93,11 @@ export function hasCommanderCreatureType(card: Card): boolean {
 }
 
 export function isValidCommanderType(card: Card): boolean {
+	// Silver-bordered and acorn cards can't be commanders in sanctioned play
+	if (card.border_color === "silver" || card.security_stamp === "acorn") {
+		return false;
+	}
+
 	const frontTypeLine = getFrontFaceTypeLine(card).toLowerCase();
 	const oracleText = getOracleText(card).toLowerCase();
 
