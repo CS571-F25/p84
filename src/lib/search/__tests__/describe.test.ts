@@ -114,6 +114,20 @@ describe("describeQuery", () => {
 	});
 
 	it.each([
+		["c=0", "cards with exactly 0 colors"],
+		["c=1", "cards with exactly 1 color"],
+		["c=2", "cards with exactly 2 colors"],
+		["c>1", "cards with more than 1 color"],
+		["c>0", "cards with more than 0 colors"],
+		["c<3", "cards with fewer than 3 colors"],
+		["c>=2", "cards with 2 or more colors"],
+		["c<=1", "cards with 1 or fewer colors"],
+		["c!=1", "cards without exactly 1 color"],
+	])("color count: `%s` → %s", (query, expected) => {
+		expect(desc(query)).toBe(expected);
+	});
+
+	it.each([
 		[
 			"fire id>=g",
 			'name includes "fire" AND color identity includes at least {G}',

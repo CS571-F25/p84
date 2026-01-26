@@ -401,6 +401,94 @@ describe("Scryfall search integration", () => {
 		);
 	});
 
+	describe("color count matching", () => {
+		const mockColorless = { colors: [] as string[] } as Card;
+		const mockMono = { colors: ["R"] } as Card;
+		const mockTwoColor = { colors: ["U", "R"] } as Card;
+		const mockThreeColor = { colors: ["W", "U", "B"] } as Card;
+		const mockFiveColor = { colors: ["W", "U", "B", "R", "G"] } as Card;
+
+		it.each([
+			["c=0", mockColorless, true],
+			["c=0", mockMono, false],
+			["c=1", mockMono, true],
+			["c=1", mockTwoColor, false],
+			["c=2", mockTwoColor, true],
+			["c=3", mockThreeColor, true],
+			["c=5", mockFiveColor, true],
+		])("%s matches card with %d colors: %s", (query, card, expected) => {
+			const result = search(query);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(expected);
+			}
+		});
+
+		it.each([
+			["c>0", mockColorless, false],
+			["c>0", mockMono, true],
+			["c>1", mockMono, false],
+			["c>1", mockTwoColor, true],
+			["c>2", mockThreeColor, true],
+		])("%s (more than N colors) matches correctly", (query, card, expected) => {
+			const result = search(query);
+			expect(result.ok).toBe(true);
+			if (result.ok) {
+				expect(result.value.match(card)).toBe(expected);
+			}
+		});
+
+		it.each([
+			["c<1", mockColorless, true],
+			["c<1", mockMono, false],
+			["c<2", mockMono, true],
+			["c<2", mockTwoColor, false],
+			["c<3", mockTwoColor, true],
+		])(
+			"%s (fewer than N colors) matches correctly",
+			(query, card, expected) => {
+				const result = search(query);
+				expect(result.ok).toBe(true);
+				if (result.ok) {
+					expect(result.value.match(card)).toBe(expected);
+				}
+			},
+		);
+
+		it.each([
+			["c>=1", mockColorless, false],
+			["c>=1", mockMono, true],
+			["c>=2", mockMono, false],
+			["c>=2", mockTwoColor, true],
+			["c<=2", mockThreeColor, false],
+			["c<=3", mockThreeColor, true],
+		])(
+			"%s (N or more/fewer colors) matches correctly",
+			(query, card, expected) => {
+				const result = search(query);
+				expect(result.ok).toBe(true);
+				if (result.ok) {
+					expect(result.value.match(card)).toBe(expected);
+				}
+			},
+		);
+
+		it.each([
+			["c!=1", mockMono, false],
+			["c!=1", mockTwoColor, true],
+			["c!=2", mockTwoColor, false],
+		])(
+			"%s (not exactly N colors) matches correctly",
+			(query, card, expected) => {
+				const result = search(query);
+				expect(result.ok).toBe(true);
+				if (result.ok) {
+					expect(result.value.match(card)).toBe(expected);
+				}
+			},
+		);
+	});
+
 	describe("mana value matching", () => {
 		it.each([
 			["cmc=1", "Lightning Bolt", true],

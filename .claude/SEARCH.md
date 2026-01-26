@@ -176,13 +176,13 @@ Color comparisons use set theory. **Important:** The default `:` operator behave
 
 This matches Scryfall's behavior: `id:rg` finds cards playable in a Gruul commander deck.
 
-### Identity Count Queries
+### Color Count Queries
 
-The `identity` field also supports numeric comparisons on the *number* of colors:
-- `id>1` - Cards with more than 1 identity color (multicolor+)
-- `id=2` - Cards with exactly 2 identity colors
-- `id<=1` - Mono-color or colorless cards
-- `id=0` - Colorless cards only
+Both `color` and `identity` fields support numeric comparisons on the *number* of colors:
+- `c>1` or `id>1` - Cards with more than 1 color (multicolor+)
+- `c=2` or `id=2` - Cards with exactly 2 colors
+- `c<=1` or `id<=1` - Mono-color or colorless cards
+- `c=0` or `id=0` - Colorless cards only
 
 This is useful for finding mono-color commanders, multicolor cards, etc.
 

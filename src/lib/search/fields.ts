@@ -88,8 +88,19 @@ export function compileField(
 			return ok(compileOracleText(operator, value));
 
 		// Color fields
-		case "color":
+		case "color": {
+			// Numeric comparison: c>1 means "more than 1 color"
+			if (value.kind === "number") {
+				return ok(
+					createOrderedMatcher(
+						(card) => card.colors?.length ?? 0,
+						value.value,
+						operator,
+					),
+				);
+			}
 			return ok(compileColorField((c) => c.colors, operator, value));
+		}
 
 		case "identity": {
 			// Numeric comparison: id>1 means "more than 1 color in identity"

@@ -212,25 +212,29 @@ function describeValue(value: FieldValue, quoted = true): string {
 function describeField(node: FieldNode): string {
 	const fieldLabel = FIELD_LABELS[node.field];
 
-	// Special handling for identity count queries (id>1, id=2, etc.)
-	if (node.field === "identity" && node.value.kind === "number") {
+	// Special handling for color/identity count queries (c>1, id>1, c=2, id=2, etc.)
+	if (
+		(node.field === "color" || node.field === "identity") &&
+		node.value.kind === "number"
+	) {
 		const n = node.value.value;
+		const label = node.field === "identity" ? "identity " : "";
 		// Grammatically: "1 color" but "0/2/3 colors", "fewer than 3 colors", "2 or more colors"
 		const colorWordExact = n === 1 ? "color" : "colors";
 		switch (node.operator) {
 			case ":":
 			case "=":
-				return `cards with exactly ${n} identity ${colorWordExact}`;
+				return `cards with exactly ${n} ${label}${colorWordExact}`;
 			case "!=":
-				return `cards without exactly ${n} identity ${colorWordExact}`;
+				return `cards without exactly ${n} ${label}${colorWordExact}`;
 			case "<":
-				return `cards with fewer than ${n} identity colors`;
+				return `cards with fewer than ${n} ${label}colors`;
 			case ">":
-				return `cards with more than ${n} identity ${colorWordExact}`;
+				return `cards with more than ${n} ${label}${colorWordExact}`;
 			case "<=":
-				return `cards with ${n} or fewer identity colors`;
+				return `cards with ${n} or fewer ${label}colors`;
 			case ">=":
-				return `cards with ${n} or more identity colors`;
+				return `cards with ${n} or more ${label}colors`;
 		}
 	}
 
