@@ -10,6 +10,7 @@ interface ViewControlsProps {
 
 const GROUP_BY_OPTIONS: Array<{ value: GroupBy; label: string }> = [
 	{ value: "typeAndTags", label: "Type & Tags" },
+	{ value: "typeAndTagCount", label: "Type & Tag Count" },
 	{ value: "type", label: "Type" },
 	{ value: "subtype", label: "Subtype" },
 	{ value: "manaValue", label: "Mana Value" },

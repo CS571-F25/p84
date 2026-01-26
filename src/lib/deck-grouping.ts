@@ -266,6 +266,28 @@ export function groupCards(
 			break;
 		}
 
+		case "typeAndTagCount": {
+			// Group by type first, then by tag count within type
+			// Format: "Type (N tags)" or "Type (no tags)"
+			for (const card of cards) {
+				const cardData = cardLookup(card);
+				const face = cardData ? getPrimaryFace(cardData) : undefined;
+				const type = extractPrimaryType(face?.type_line);
+				const tagCount = card.tags?.length ?? 0;
+				const countLabel =
+					tagCount === 0
+						? "no tags"
+						: tagCount === 1
+							? "1 tag"
+							: `${tagCount} tags`;
+				const groupName = `${type} (${countLabel})`;
+				const group = groups.get(groupName) ?? { cards: [], forTag: false };
+				group.cards.push(card);
+				groups.set(groupName, group);
+			}
+			break;
+		}
+
 		case "subtype": {
 			for (const card of cards) {
 				const cardData = cardLookup(card);
@@ -371,6 +393,33 @@ export function sortGroupNames(
 
 				// Both tags, both types, or both special: sort alphabetically
 				return a.localeCompare(b);
+			});
+		}
+
+		case "typeAndTagCount": {
+			// Sort by tag count ascending, then by type
+			// Format: "Type (N tags)" or "Type (no tags)"
+			const parseGroup = (name: string) => {
+				const match = name.match(/^(.+) \((\d+|no) tags?\)$/);
+				if (!match) return { type: name, count: 0 };
+				const countStr = match[2];
+				return {
+					type: match[1],
+					count: countStr === "no" ? 0 : parseInt(countStr, 10),
+				};
+			};
+
+			return groupNames.sort((a, b) => {
+				const parsedA = parseGroup(a);
+				const parsedB = parseGroup(b);
+
+				// Sort by tag count first (fewer tags = cut candidates at top)
+				if (parsedA.count !== parsedB.count) {
+					return parsedA.count - parsedB.count;
+				}
+
+				// Then by type alphabetically
+				return parsedA.type.localeCompare(parsedB.type);
 			});
 		}
 

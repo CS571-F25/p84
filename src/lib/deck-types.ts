@@ -59,6 +59,7 @@ export type ViewStyle = "text" | "grid" | "stacks";
 export type GroupBy =
 	| "type"
 	| "typeAndTags"
+	| "typeAndTagCount"
 	| "subtype"
 	| "manaValue"
 	| "colorIdentity"
